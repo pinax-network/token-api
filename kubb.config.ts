@@ -1,12 +1,11 @@
-import { defineConfig } from '@kubb/core'
-import { pluginOas } from '@kubb/plugin-oas'
-import { pluginTs } from '@kubb/swagger-ts'
-import { pluginZod } from '@kubb/swagger-zod'
+import { defineConfig } from '@kubb/core';
+import { pluginOas } from '@kubb/plugin-oas';
+import { pluginZod } from '@kubb/swagger-zod';
 export default defineConfig(() => {
     return {
         root: '.',
         input: {
-            path: './tsp-output/@typespec/openapi3/openapi.json',
+            path: './static/@typespec/openapi3/openapi.json',
         },
         output: {
             path: './src/types'
@@ -22,8 +21,7 @@ export default defineConfig(() => {
                 },
                 typedSchema: true,
                 coercion: true,
-                unknownType: 'any'
             })
         ],
-    }
-})
+    };
+});

@@ -19,8 +19,7 @@
 # output-dir: "{project-root}/_generated"       # Configure the base output directory for all emitters
 warn-as-error: true
 emit:
-    - "@typespec/protobuf"
-    - "@typespec/openapi3"
+  - "@typespec/openapi3"
 options:
-    "@typespec/openapi3":
-        "file-type": "json"
+  "@typespec/openapi3":
+    "file-type": "json"

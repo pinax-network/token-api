@@ -3,15 +3,13 @@ import { ping } from "./ping.js";
 import { APP_NAME, config } from "../config.js";
 
 // TODO: Check how to abort previous queries if haven't returned yet
-// TODO: Make client connect to all DB instances
 const client = createClient({
-    username: config.username,
-    password: config.password,
-    url: config.host,
+    ...config,
     clickhouse_settings: {
         allow_experimental_object_type: 1,
-        readonly: "1",
-        exact_rows_before_limit: 1
+        exact_rows_before_limit: 1,
+        output_format_json_quote_64bit_integers: 0,
+        readonly: "1"
     },
     application: APP_NAME,
 });

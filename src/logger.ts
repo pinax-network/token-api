@@ -21,4 +21,4 @@ class TsLogger extends Logger<ILogObj> {
 }
 
 export const logger = new TsLogger();
-if (config.verbose) logger.enable();
+if (config.verbose) logger.enable(config.prettyLogging ? "pretty" : "json");
