@@ -137,6 +137,6 @@ dist
 cursor.lock
 
 # CLI
-antelope-token-api
+erc20-token-api
 
 *.db
