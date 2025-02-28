@@ -92,6 +92,7 @@ async function TokenAPI() {
     // --- Routes     ---
     // ------------------
     app.get("/account/balances/:address", routes.account.balances);
+    app.get("/account/transfers/:address", routes.account.transfers);
 
     // -------------
     // --- Miscs ---

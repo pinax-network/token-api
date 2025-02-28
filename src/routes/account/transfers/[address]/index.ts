@@ -7,10 +7,11 @@ export default async function (ctx: Context) {
     const query = `
     SELECT
         contract,
-        CAST(new_balance, 'String') AS balance,
+        from,
+        to,
         timestamp
-    FROM balances
-    WHERE owner = {address: String}
+    FROM transfers
+    WHERE from = {address: String} OR to = {address: String}
     ORDER BY block_num DESC`;
     return makeUsageQuery(ctx, [query], { address });
 }
