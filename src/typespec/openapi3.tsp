@@ -12,8 +12,8 @@ using TypeSpec.OpenAPI;
     `x-description`: "ERC-20 tokens balances and transfers",
     version: "2.0.0",
 }) // From @typespec/openapi
-//@server("https://eos.api.pinax.network/v1", "EOS V1 Api Endpoint")
-namespace AntelopeTokenApi;
+//@server("https://eth.api.pinax.network/v1", "ETH V1 API Endpoint")
+namespace TokenApi;
 
 alias ApiKeyHeader = "X-Api-Key";
 // Error codes adapted from https://github.com/pinax-network/golang-base/blob/develop/response/errors.go

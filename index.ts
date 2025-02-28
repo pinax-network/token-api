@@ -12,7 +12,7 @@ import { usageOperationsToEndpointsMap, type EndpointReturnTypes, type UsageEndp
 import { MonitoringHeadQueryResponseSchema, paths } from './src/types/zod.gen.js';
 import { makeQuery } from "./src/clickhouse/makeQuery.js";
 
-async function AntelopeTokenAPI() {
+async function TokenAPI() {
     const app = new Hono();
 
     // Tracking all incoming requests
@@ -160,6 +160,6 @@ async function AntelopeTokenAPI() {
 }
 
 export default {
-    ...await AntelopeTokenAPI(),
+    ...await TokenAPI(),
     idleTimeout: config.requestIdleTimeout
 };

@@ -31,7 +31,7 @@ template: |
   ## Changes
   $CHANGES
 
-  **Full Changelog**: https://github.com/pinax-network/antelope-token-api/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/pinax-network/erc20-token-api/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 autolabeler:
   - label: 'documentation'

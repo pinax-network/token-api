@@ -6,7 +6,7 @@ import { config } from './config.js';
 export const registry = new client.Registry();
 
 function prefixMetric(name: string): string {
-    return `antelope_token_api_${name}`;
+    return `erc20_token_api_${name}`;
 }
 
 // Metrics

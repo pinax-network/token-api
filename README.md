@@ -41,7 +41,7 @@
 
 > Coming soon...
 
-## [`Bun` Binary Releases](https://github.com/pinax-network/antelope-token-api/releases)
+## [`Bun` Binary Releases](https://github.com/pinax-network/erc20-token-api/releases)
 
 > [!WARNING]
 > Linux x86 only
