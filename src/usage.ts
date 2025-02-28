@@ -25,91 +25,45 @@ export async function makeUsageQuery(ctx: Context, endpoint: UsageEndpoints, use
     if (!page)
         page = 1;
 
-    let filters = "";
-    // Don't add `limit` and `block_range` to WHERE clause
-    for (const k of Object.keys(query_params).filter(k => k !== "limit" && k !== "block_range")) {
-        // if (k === 'account' && endpoint === '/account/transfers')
-        //     continue;
-
-        if (k === 'account') {
-            filters += ` (owner = {account: String}) AND`;
-            continue
-        }
-
-        const clickhouse_type = typeof query_params[k as keyof typeof query_params] === "number" ? "int" : "String";
-        filters += ` (${k} = {${k}: ${clickhouse_type}}) AND`;
-    }
-
-    filters = filters.substring(0, filters.lastIndexOf(' ')); // Remove last item ` AND`
-    if (filters.length)
-        filters = `WHERE ${filters}`;
-
     let query = "";
     let additional_query_params: AdditionalQueryParams = {};
 
-    // Parse block range for endpoints that uses it. Check for single value or two values.
-    // if (endpoint == "/transfers" || endpoint == "/account/transfers") {
-    //     const q = query_params as ValidUserParams<typeof endpoint>;
-    //     if (q.block_range) {
-    //         if (q.block_range[0] && q.block_range[1]) {
-    //             filters +=
-    //                 `${filters.length ? "AND" : "WHERE"}` +
-    //                 ` (block_num >= {min_block: int} AND block_num <= {max_block: int})`;
-    //             // Use Min/Max to account for any ordering of parameters
-    //             additional_query_params.min_block = Math.min(q.block_range[0], q.block_range[1]);
-    //             additional_query_params.max_block = Math.max(q.block_range[0], q.block_range[1]);
-    //         } else if (q.block_range[0]) {
-    //             filters +=
-    //                 `${filters.length ? "AND" : "WHERE"}` +
-    //                 ` (block_num >= {min_block: int})`;
-    //             additional_query_params.min_block = q.block_range[0];
-    //         }
-    //     }
-    // }
+    switch (endpoint) {
+        case "/account/balances": {
+            // Need to narrow the type of `query_params` explicitly under the case to access properties based on endpoint value
+            // See https://github.com/microsoft/TypeScript/issues/33014
+            const q = query_params as ValidUserParams<typeof endpoint>;
 
-    if (endpoint == "/account/balances") {
-        query +=
-            `SELECT block_num AS last_updated_block, contract, new_balance as balance FROM balances`
-            + ` ${filters} ORDER BY value DESC`
+            query = `SELECT
+            contract,
+            CAST(new_balance, 'String') AS balance,
+            timestamp AS last_updated_at
+            FROM balances
+            WHERE owner = {account: String}
+            ${q.contract ? ` AND contract = {contract: String}`: ``}
+            ORDER BY last_updated_at DESC`;
+            break;
+        }
+
+        case "/account/balances/historical": {
+            const q = query_params as ValidUserParams<typeof endpoint>;
+
+            query = `SELECT
+            contract,
+            CAST(new_balance, 'String') AS balance,
+            timestamp AS last_updated_at
+            FROM balances_by_date
+            WHERE owner = {account: String} AND date = {date: String}
+            ${q.contract ? ` AND contract = {contract: String}`: ``}
+            ORDER BY last_updated_at DESC`;
+            break;
+        }
+
+        default:
+            // If this line throws an lint error, there is a missing endpoint case
+            // Make sure all usage endpoints have a SQL query defined above.
+            endpoint satisfies never;
     }
-    // else if (endpoint == "/account/balances/historical") {
-    //     query +=
-    //         `SELECT * FROM historical_account_balances`
-    //         + ` ${filters} ORDER BY value DESC`
-    // } else if (endpoint == "/tokens/supplies") {
-    //     // Need to narrow the type of `query_params` explicitly to access properties based on endpoint value
-    //     // See https://github.com/microsoft/TypeScript/issues/33014
-    //     const q = query_params as ValidUserParams<typeof endpoint>;
-    //     query +=
-    //         `SELECT * FROM ${q.block_num ? 'historical_' : ''}token_supplies`
-    //         + ` ${filters} ORDER BY block_num DESC`;
-    // } else if (endpoint == "/transfers") {
-    //     query += `SELECT * FROM `;
-
-    //     const q = query_params as ValidUserParams<typeof endpoint>;
-    //     if (q.contract && q.symcode)
-    //         query += `transfers_contract`;
-    //     else
-    //         query += `transfers_block_num`;
-
-    //     query += ` ${filters} ORDER BY block_num DESC`;
-    // } else if (endpoint == "/account/transfers") {
-    //     const q = query_params as ValidUserParams<typeof endpoint>;
-    //     query +=
-    //         `SELECT * FROM`
-    //         + ` ((SELECT * FROM ${q.block_range ? 'historical_' : ''}transfers_from FINAL WHERE (from = {account: String}))`
-    //         + ` UNION ALL (SELECT * FROM ${q.block_range ? 'historical_' : ''}transfers_to FINAL WHERE (to = {account: String})))`
-    //         + ` ${filters} ORDER BY block_num DESC`;
-    // } else if (endpoint == "/transfers/id") {
-    //     query += `SELECT * FROM transfer_events ${filters} ORDER BY action_index`;
-    // } else if (endpoint == "/tokens/holders") {
-    //     filters += ` AND has_null_balance = 0`;
-    //     query += `SELECT account, value AS balance FROM token_holders FINAL ${filters} ORDER BY value DESC`;
-    // } else if (endpoint == "/tokens") {
-        // NB: Using `account_balances` seems to return the most results
-        //     Have to try with fully synced chain to compare with `create_events` and others
-    //     query += `SELECT contract, symcode FROM account_balances GROUP BY (contract, symcode) ${filters}`;
-    // }
 
     query += " LIMIT {limit: int}";
     query += " OFFSET {offset: int}";

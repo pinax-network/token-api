@@ -55,6 +55,25 @@ export type UsageBalanceErrorSchema = z.infer<typeof usageBalanceErrorSchema>;
 export const usageBalanceQueryResponseSchema = z.object({ "data": z.array(z.lazy(() => balanceSchema)), "meta": z.lazy(() => responseMetadataSchema) });
 export type UsageBalanceQueryResponseSchema = z.infer<typeof usageBalanceQueryResponseSchema>;
 
+
+export const usageBalanceHistoricalQueryParamsSchema = z.object({ "account": z.lazy(() => modelsAddressSchema), "date": z.coerce.string(), "contract": z.lazy(() => modelsAddressSchema).optional(), "limit": z.coerce.number().int().default(10).optional(), "page": z.coerce.number().int().default(1).optional() });
+export type UsageBalanceHistoricalQueryParamsSchema = z.infer<typeof usageBalanceHistoricalQueryParamsSchema>;
+/**
+ * @description Array of balances.
+ */
+export const usageBalanceHistorical200Schema = z.object({ "data": z.array(z.lazy(() => balanceChangeSchema)), "meta": z.lazy(() => responseMetadataSchema) });
+export type UsageBalanceHistorical200Schema = z.infer<typeof usageBalanceHistorical200Schema>;
+/**
+ * @description An unexpected error response.
+ */
+export const usageBalanceHistoricalErrorSchema = z.lazy(() => apiErrorSchema);
+export type UsageBalanceHistoricalErrorSchema = z.infer<typeof usageBalanceHistoricalErrorSchema>;
+/**
+ * @description Array of balances.
+ */
+export const usageBalanceHistoricalQueryResponseSchema = z.object({ "data": z.array(z.lazy(() => balanceChangeSchema)), "meta": z.lazy(() => responseMetadataSchema) });
+export type UsageBalanceHistoricalQueryResponseSchema = z.infer<typeof usageBalanceHistoricalQueryResponseSchema>;
+
  /**
  * @description Head block information.
  */
@@ -145,6 +164,18 @@ export type DocsVersionQueryResponseSchema = z.infer<typeof docsVersionQueryResp
             default: usageBalanceQueryResponseSchema
         },
         errors: {}
+    }, "Usage_balanceHistorical": {
+        request: undefined,
+        parameters: {
+            path: undefined,
+            query: usageBalanceHistoricalQueryParamsSchema,
+            header: undefined
+        },
+        responses: {
+            200: usageBalanceHistoricalQueryResponseSchema,
+            default: usageBalanceHistoricalQueryResponseSchema
+        },
+        errors: {}
     }, "Monitoring_head": {
         request: undefined,
         parameters: {
@@ -208,6 +239,8 @@ export type DocsVersionQueryResponseSchema = z.infer<typeof docsVersionQueryResp
     } } as const;
 export const paths = { "/account/balances": {
         get: operations["Usage_balance"]
+    }, "/account/balances/historical": {
+        get: operations["Usage_balanceHistorical"]
     }, "/head": {
         get: operations["Monitoring_head"]
     }, "/health": {
