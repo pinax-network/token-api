@@ -20,15 +20,15 @@ export type ValidUserParams<E extends UsageEndpoints> = NonNullable<EndpointPara
     z.infer<EndpointParameters<E>["query"] & ValidPathParams<E>>>;
 export type AdditionalQueryParams = { offset?: number; min_block?: number; max_block?: number; };
 // Allow any valid parameters from the endpoint to be used as SQL query parameters
-export type ValidQueryParams = ValidUserParams<UsageEndpoints> & AdditionalQueryParams;
+// export type ValidQueryParams = ValidUserParams<UsageEndpoints> & AdditionalQueryParams;
 
-// Map stripped operations name (e.g. `Usage_transfers` stripped to `transfers`) to endpoint paths (e.g. `/transfers`)
-export const usageOperationsToEndpointsMap = Object.entries(operations).filter(([k, _]) => k.startsWith("Usage")).reduce(
-    (o, [k, v]) => Object.assign(
-        o, 
-        {
-            // Split once on first underscore to create keys (e.g. `Usage_transfersAccount` => `transfersAccount`)
-            [k.split('_')[1] as string]: Object.entries(paths).find(([_, v_]) => v_.get === v)?.[0]
-        }
-    ), {}
-) as { [key in string]: UsageEndpoints };
+// // Map stripped operations name (e.g. `Usage_transfers` stripped to `transfers`) to endpoint paths (e.g. `/transfers`)
+// export const usageOperationsToEndpointsMap = Object.entries(operations).filter(([k, _]) => k.startsWith("Usage")).reduce(
+//     (o, [k, v]) => Object.assign(
+//         o,
+//         {
+//             // Split once on first underscore to create keys (e.g. `Usage_transfersAccount` => `transfersAccount`)
+//             [k.split('_')[1] as string]: Object.entries(paths).find(([_, v_]) => v_.get === v)?.[0]
+//         }
+//     ), {}
+// ) as { [key in string]: UsageEndpoints };
