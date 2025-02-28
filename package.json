@@ -1,7 +1,7 @@
 {
     "name": "erc20-token-api",
-    "description": "Get informations about ERC20 tokens",
-    "version": "0.0.1",
+    "description": "ERC-20 tokens balances and transfers",
+    "version": "2.0.0",
     "homepage": "https://github.com/pinax-network/erc20-token-api",
     "license": "MIT",
     "authors": [
@@ -23,13 +23,13 @@
     ],
     "dependencies": {
         "@clickhouse/client-web": "latest",
-        "@kubb/cli": "^2.23.2",
-        "@kubb/core": "^2.23.2",
-        "@kubb/swagger": "^2.24.0",
-        "@kubb/swagger-zod": "^2.24.0",
+        "@hono/graphql-server": "^0.5.1",
+        "@kubb/cli": "^2.27.0",
+        "@kubb/core": "^2.27.0",
+        "@kubb/plugin-oas": "^2.27.0",
+        "@kubb/swagger-zod": "^2.27.0",
         "commander": "latest",
         "dotenv": "latest",
-        "ethers": "^6.12.1",
         "hono": "latest",
         "prom-client": "latest",
         "tslog": "latest",
@@ -43,7 +43,7 @@
         "lint": "export APP_VERSION=$(git rev-parse --short HEAD) && bun run tsc --noEmit --skipLibCheck --pretty",
         "start": "export APP_VERSION=$(git rev-parse --short HEAD) && bun index.ts",
         "test": "bun test --coverage",
-        "types": "bun run tsp compile ./src/typespec && bun run kubb --config ./kubb.config.ts",
+        "types": "bun run tsp compile ./src/typespec --output-dir static && bun run kubb",
         "types:check": "bun run tsp compile ./src/typespec --no-emit --pretty --warn-as-error",
         "types:format": "bun run tsp format src/typespec/**/*.tsp",
         "types:watch": "bun run tsp compile ./src/typespec --watch --pretty --warn-as-error"
@@ -51,12 +51,17 @@
     "type": "module",
     "devDependencies": {
         "@typespec/compiler": "latest",
+        "@typespec/openapi": "latest",
         "@typespec/openapi3": "latest",
-        "@typespec/protobuf": "latest",
         "bun-types": "latest",
+        "openapi-to-graphql-cli": "^3.0.7",
         "typescript": "latest"
     },
     "prettier": {
         "tabWidth": 4
-    }
+    },
+    "trustedDependencies": [
+        "es5-ext",
+        "esbuild"
+    ]
 }

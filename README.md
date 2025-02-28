@@ -2,22 +2,16 @@
 
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/erc20-token-api/actions/workflows/bun-test.yml)
 
-> Tokens information from all EVM blockchains, powered by [Substreams](https://substreams.streamingfast.io/)
+> ERC-20 tokens balances and transfers
 
 ## REST API
 
 ### Usage
 
-|           Method           | Path                          | Query parameters<br>(\* = **Required**)                            | Description                                                        |
-| :------------------------: | ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-|    GET <br>`text/html`     | `/`                           | -                                                                  | [Swagger](https://swagger.io/) API playground                      |
-| GET <br>`application/json` | `/chains`                     | `limit`<br>`page`                                                  | Information about the chains and latest head block in the database |
-| GET <br>`application/json` | `/{chain}/balance`            | `block_num`<br>`contract`<br>`account*`<br>`limit`<br>`page`       | Balances of an account.                                            |
-| GET <br>`application/json` | `/{chain}/holders`            | **`contract*`**<br>`limit`<br>`page`                               | List of holders of a token                                         |
-| GET <br>`application/json` | `/{chain}/supply`             | `block_num`<br>`contract*`<br>`limit`<br>`page`                    | Total supply for a token                                           |
-| GET <br>`application/json` | `/{chain}/tokens`             | `contract`<br>`symbol`<br>`name`<br>`limit`<br>`page`              | Get info about available tokens                                    |
-| GET <br>`application/json` | `/{chain}/transfers`          | `block_range`<br>`from`<br>`to`<br>`contract`<br>`limit`<br>`page` | All transfers related to a token                                   |
-| GET <br>`application/json` | `/{chain}/transfers/{trx_id}` | `limit`<br>`page`                                                  | Specific transfer related to a token                               |
+| Method | Path | Query parameters<br>(* = **Required**) | Description |
+| :---: | --- | --- | --- |
+| GET <br>`text/html` | `/` | - | [Stoplight](https://stoplight.io/) API playground |
+| GET <br>`application/json` | `/account/balances` | **`account*`**<br>`contract`<br>`limit`<br>`page` | Token balances of an account |
 
 ### Docs
 
@@ -30,14 +24,14 @@
 
 |        Method        | Path       | Description                                  |
 | :------------------: | ---------- | -------------------------------------------- |
+| GET <br>`application/json` | `/head`  | Current head block for which data is available |
 | GET <br>`text/plain` | `/health`  | Checks database connection                   |
 | GET <br>`text/plain` | `/metrics` | [Prometheus](https://prometheus.io/) metrics |
 
 ## Requirements
 
--   [ClickHouse](clickhouse.com/), databases should follow a `{chain}_tokens_{version}` naming scheme. Database tables can be setup using the [`schema.sql`](./schema.sql) definitions created by the [`create_schema.sh`](./create_schema.sh) script.
--   A [Substream sink](https://substreams.streamingfast.io/reference-and-specs/glossary#sink) for loading data into ClickHouse. We recommend [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/) or [Substreams Sink SQL](https://github.com/pinax-network/substreams-sink-sql). You should use the generated [`protobuf` files](tsp-output/@typespec/protobuf) to build your substream. This Token API makes use of the [`erc20-substreams`](https://github.com/pinax-network/erc20-substreams) substream.
--   [A Substreams API Token provider](https://pinax.network) to stream blockchains Data.
+- [ClickHouse](clickhouse.com/)
+- A [Substreams sink](https://substreams.streamingfast.io/reference-and-specs/glossary#sink) for loading data into ClickHouse. We recommend [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/) or [Substreams Sink SQL](https://github.com/pinax-network/substreams-sink-sql). You should use the generated [`protobuf` files](tsp-output/@typespec/protobuf) to build your substream. This Token API makes use of the [`substreams-erc20`](https://github.com/pinax-network/substreams-erc20) substream.
 
 ### API stack architecture
 
@@ -45,70 +39,7 @@
 
 ### Setting up the database backend (ClickHouse)
 
-#### Without a cluster
-
-Example on how to set up the ClickHouse backend for sinking [EOS](https://pinax.network/en/chain/eos) data.
-
-1. Start the ClickHouse server
-
-```console
-clickhouse server
-```
-
-2. Create the token database
-
-```console
-echo "CREATE DATABASE eth_tokens_v1" | clickhouse client -h <host> --port 9000 -d <database> -u <user> --password <password>
-```
-
-3. Run the [`create_schema.sh`](./create_schema.sh) script
-
-```console
-./create_schema.sh -o /tmp/schema.sql
-```
-
-4. Execute the schema
-
-```console
-clickhouse client -h <host> --port 9000 -d <database> -u <user> --password <password> --multiquery < ./schema.sql
-```
-
-5. Run the [sink](https://github.com/pinax-network/substreams-sink-sql)
-
-```console
-export SUBSTREAMS_TOKEN= "YOUR_SUBSTREAMS_TOKEN"
-```
-
-```console
-substreams-sink-sql run clickhouse://<username>:<password>@<host>:9000/eth_tokens_v1 \
-https://github.com/pinax-network/erc20-substreams/releases/download/v0.0.2/erc20-substreams-v0.0.2.spkg `#Substreams package` \
--e eth.substreams.pinax.network:443 `#Substreams endpoint` \
-1: `#Block range <start>:<end>` \
---undo-buffer-size 1 --on-module-hash-mistmatch=warn --batch-block-flush-interval 100 --development-mode `#Additional flags`
-```
-
-6. Start the API
-
-```console
-# Will be available on locahost:3000 by default, Make sure --database exclude chains
-erc20-token-api --host <host> --database tokens_v1 --username <username> --password <password> --verbose
-```
-
-#### With a cluster
-
-If you run ClickHouse in a [cluster](https://clickhouse.com/docs/en/architecture/cluster-deployment), change step 2 & 3:
-
-2. Create the token database
-
-```console
-echo "CREATE DATABASE eth_tokens_v1 ON CLUSTER <cluster>" | clickhouse client -h <host> --port 9000 -d <database> -u <user> --password <password>
-```
-
-3. Run the [`create_schema.sh`](./create_schema.sh) script
-
-```console
-./create_schema.sh -o /tmp/schema.sql -c <cluster>
-```
+> Coming soon...
 
 ## [`Bun` Binary Releases](https://github.com/pinax-network/antelope-token-api/releases)
 
@@ -116,24 +47,30 @@ echo "CREATE DATABASE eth_tokens_v1 ON CLUSTER <cluster>" | clickhouse client -h
 > Linux x86 only
 
 ```console
-$ wget https://github.com/pinax-network/erc20-token-api/releases/download/v1.0.1/erc20-token-api
+$ wget https://github.com/pinax-network/erc20-token-api/releases/download/v2.0.0/erc20-token-api
 $ chmod +x ./erc20-token-api
 $ ./erc20-token-api --help
 Usage: erc20-token-api [options]
 
-Token balances, supply and transfers from the Antelope blockchains
+ERC-20 tokens balances and transfers
 
 Options:
-  -V, --version            output the version number
-  -p, --port <number>      HTTP port on which to attach the API (default: "8080", env: PORT)
-  --hostname <string>      Server listen on HTTP hostname (default: "localhost", env: HOSTNAME)
-  --host <string>          Database HTTP hostname (default: "http://localhost:8123", env: HOST)
-  --database <string>      The database to use inside ClickHouse (default: "default", env: DATABASE)
-  --username <string>      Database user (default: "default", env: USERNAME)
-  --password <string>      Password associated with the specified username (default: "", env: PASSWORD)
-  --max-limit <number>     Maximum LIMIT queries (default: 10000, env: MAX_LIMIT)
-  -v, --verbose <boolean>  Enable verbose logging (choices: "true", "false", default: false, env: VERBOSE)
-  -h, --help               display help for command
+  -V, --version                    output the version number
+  -p, --port <number>              HTTP port on which to attach the API (default: "8080", env: PORT)
+  --hostname <string>              Server listen on HTTP hostname (default: "localhost", env: HOSTNAME)
+  --host <string>                  Database HTTP hostname (default: "http://localhost:8123", env: HOST)
+  --database <string>              The database to use inside ClickHouse (default: "default", env: DATABASE)
+  --username <string>              Database user (default: "default", env: USERNAME)
+  --password <string>              Password associated with the specified username (default: "", env: PASSWORD)
+  --max-limit <number>             Maximum LIMIT queries (default: 10000, env: MAX_LIMIT)
+  --max-rows-trigger <number>      Queries returning rows above this treshold will be considered large queries for metrics (default: 10000000, env:
+                                   LARGE_QUERIES_ROWS_TRIGGER)
+  --max-bytes-trigger <number>     Queries processing bytes above this treshold will be considered large queries for metrics (default: 1000000000,
+                                   env: LARGE_QUERIES_BYTES_TRIGGER)
+  --request-idle-timeout <number>  Bun server request idle timeout (seconds) (default: 60, env: BUN_IDLE_REQUEST_TIMEOUT)
+  --pretty-logging <boolean>       Enable pretty logging (default JSON) (choices: "true", "false", default: false, env: PRETTY_LOGGING)
+  -v, --verbose <boolean>          Enable verbose logging (choices: "true", "false", default: false, env: VERBOSE)
+  -h, --help                       display help for command
 ```
 
 ## `.env` Environment variables
@@ -143,15 +80,18 @@ Options:
 PORT=8080
 HOSTNAME=localhost
 
+# Bun request timeout in seconds
+BUN_IDLE_REQUEST_TIMEOUT=60
+
 # Clickhouse Database
 HOST=http://127.0.0.1:8123
 DATABASE=default
 USERNAME=default
 PASSWORD=
-TABLE=
 MAX_LIMIT=500
 
 # Logging
+PRETTY_LOGGING=true
 VERBOSE=true
 ```
 
