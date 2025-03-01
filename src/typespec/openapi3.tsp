@@ -110,6 +110,7 @@ interface Usage {
     /**
         Historical token balances of an account.
         @returns Array of balances.
+    */
     @tag("Account")
     @summary("Account historical token balances")
     @route("/account/balances/historical")
@@ -117,11 +118,10 @@ interface Usage {
     @useAuth(ApiKeyAuth<ApiKeyLocation.header, ApiKeyHeader>)
     balanceHistorical(
         @query account: BalanceChange.owner,
-        @query block_num: BlockInfo.block_num,
+        @query date: BlockInfo.timestamp,
         @query contract?: BalanceChange.contract,
         ...PaginationQueryParams,
     ): ApiResponse<UsageResponse<BalanceChange[]>>;
-    */
 
     /**
         All transfers related to an account.
