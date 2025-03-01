@@ -54,7 +54,6 @@
         "@typespec/openapi": "latest",
         "@typespec/openapi3": "latest",
         "bun-types": "latest",
-        "openapi-to-graphql-cli": "^3.0.7",
         "typescript": "latest"
     },
     "prettier": {
