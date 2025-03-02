@@ -4,9 +4,10 @@ import { Option, program } from "commander";
 
 import pkg from "../package.json" with { type: "json" };
 
-export const DEFAULT_PORT = "8080";
+export const DEFAULT_PORT = "3000";
 export const DEFAULT_HOSTNAME = "localhost";
-export const DEFAULT_HOST = "http://localhost:8123";
+export const DEFAULT_OPENAPI_SERVER_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}`; // https://beta.api.pinax.network
+export const DEFAULT_URL = "http://localhost:8123";
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
@@ -31,10 +32,11 @@ const opts = program
     .showHelpAfterError()
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
-    .addOption(new Option("--host <string>", "Database HTTP hostname").env("HOST").default(DEFAULT_HOST))
+    .addOption(new Option("--url <string>", "Database HTTP hostname").env("URL").default(DEFAULT_URL))
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified username").env("PASSWORD").default(DEFAULT_PASSWORD))
+    .addOption(new Option("--openapi-server-url <string>", "OpenAPI Server URL").env("OPENAPI_SERVER_URL").default(DEFAULT_OPENAPI_SERVER_URL))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .addOption(new Option("--max-rows-trigger <number>", "Queries returning rows above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_ROWS_TRIGGER").default(DEFAULT_LARGE_QUERIES_ROWS_TRIGGER))
     .addOption(new Option("--max-bytes-trigger <number>", "Queries processing bytes above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_BYTES_TRIGGER").default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER))
@@ -47,10 +49,11 @@ const opts = program
 export const config = z.object({
     port: z.string(),
     hostname: z.string(),
-    host: z.string(),
+    url: z.string(),
     database: z.string(),
     username: z.string(),
     password: z.string(),
+    openapiServerUrl: z.string(),
     maxLimit: z.coerce.number(),
     maxRowsTrigger: z.coerce.number(),
     maxBytesTrigger: z.coerce.number(),

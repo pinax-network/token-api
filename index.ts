@@ -1,47 +1,48 @@
 import { Hono, type Context } from "hono";
-import openapi from "./static/@typespec/openapi3/openapi.json" with { type: "json" };
 import { APP_VERSION, config } from "./src/config.js";
 import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
+import { openAPISpecs } from 'hono-openapi'
+import { apiReference } from '@scalar/hono-api-reference'
+import routes from './src/routes/index.js'
 import { APIErrorResponse } from "./src/utils.js";
-import * as routes from "./src/routes/index.js";
 
-async function App() {
-    const app = new Hono();
-    // --------------
-    // --- Routes ---
-    // --------------
-    app.get("/token/balances/evm/:address", routes.token.balances.evm.default);
-    app.get("/token/transfers/evm/:address", routes.token.transfers.evm.default);
-    app.get("/token/holders/evm/:contract", routes.token.holders.evm.default);
+const app = new Hono()
 
-    // ------------
-    // --- Docs ---
-    // ------------
-    app.get("/", () => new Response(Bun.file("./stoplight/index.html")));
-    app.get("/favicon.ico", () => new Response(Bun.file("./stoplight/favicon.ico")));
-    app.get("/openapi", async (ctx: Context) => ctx.json(openapi));
+// -----------
+// --- API ---
+// -----------
+app.route('/', routes)
 
-    // ------------------
-    // --- Monitoring ---
-    // ------------------
-    app.get("/version", async (ctx: Context) => ctx.json(APP_VERSION));
-    app.get("/health", routes.health.default);
-    app.get("/metrics", async () => new Response(await prometheus.registry.metrics()));
-    app.notFound((ctx: Context) => APIErrorResponse(ctx, 404, "route_not_found", `Path not found: ${ctx.req.method} ${ctx.req.path}`));
+// ------------
+// --- Docs ---
+// ------------
+app.get('/', apiReference({ theme: 'kepler', spec: { url: '/openapi' } }));
+app.get("/favicon.ico", () => new Response(Bun.file("./favicon.ico")));
+app.get('/openapi', openAPISpecs(app, {
+    documentation: {
+    info: {
+        title: 'Pinax API (Beta)',
+        version: APP_VERSION.version,
+        description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
+    },
+    servers: [
+        { url: config.openapiServerUrl, description: 'Pinax API Server (Beta)' },
+    ]}
+}));
 
-    // Tracking all incoming requests
-    app.use(async (ctx: Context, next) => {
-        const pathname = ctx.req.path;
-        logger.trace(`Incoming request: [${pathname}]`);
-        prometheus.requests.inc({ pathname });
-        await next();
-    });
+// Tracking all incoming requests
+app.use(async (c: Context, next) => {
+    const pathname = c.req.path;
+    logger.trace(`Incoming request: [${pathname}]`);
+    prometheus.requests.inc({ pathname });
+    await next();
+});
 
-    return app;
-}
+// 404 NOT FOUND
+app.notFound((c: Context) => APIErrorResponse(c, 404, "route_not_found", `Path not found: ${c.req.method} ${c.req.path}`));
 
 export default {
-    ...await App(),
+    ...app,
     idleTimeout: config.requestIdleTimeout
 };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { evmAddress } from "../../../../types/zod.gen.js";
+import { evmAddress } from "../../../../types/zod.js";
 import { Context } from "hono";
 import { makeUsageQuery } from "../../../../handleQuery.js";
 
