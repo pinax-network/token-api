@@ -8,7 +8,7 @@ const route = new Hono();
 
 const responseSchema = v.object({
     version: v.string(),
-    commit: v.string("e9768d4"),
+    commit: v.string(),
 });
 
 const openapi = describeRoute({
@@ -19,7 +19,10 @@ const openapi = describeRoute({
         200: {
             description: 'The version of the API',
             content: {
-                'text/plain': { schema: resolver(responseSchema) },
+                'application/json': { schema: resolver(responseSchema), example: {
+                    version: APP_VERSION.version,
+                    commit: APP_VERSION.commit,
+                } },
             },
         },
     },
