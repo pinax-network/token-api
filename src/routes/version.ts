@@ -13,7 +13,7 @@ const responseSchema = v.object({
 
 const openapi = describeRoute({
     description: 'Get the version of the API',
-    tags: ['monitoring'],
+    tags: ['Monitoring'],
     hide: false,
     responses: {
         200: {
