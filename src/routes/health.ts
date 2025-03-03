@@ -16,7 +16,6 @@ const errorSchema = v.object({
 const openapi = describeRoute({
     description: 'Get health status of the API',
     tags: ['Monitoring'],
-    hide: false,
     responses: {
         200: {
             description: 'Health status of the API',

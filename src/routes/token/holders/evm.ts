@@ -25,7 +25,6 @@ const responseSchema = v.object({
 const openapi = describeRoute({
     description: 'Token Holders by Contract Address',
     tags: ['EVM'],
-    hide: false,
     responses: {
         200: {
             description: 'Token Holders',

@@ -25,7 +25,6 @@ const responseSchema = v.object({
 const openapi = describeRoute({
     description: 'Token Balances by Wallet Address',
     tags: ['EVM'],
-    hide: false,
     responses: {
         200: {
             description: 'Token Balances',
