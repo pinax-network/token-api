@@ -1,34 +1,34 @@
-# Contributing to Erc20 Token API
+# Contributing
 
-Welcome to the Erc20 Token API repository ! You'll find here guidelines on how the repository is set up and how to possibly contribute to it.
+You'll find here guidelines on how the repository is set up and how to possibly contribute to it.
 
-<!-- TODO: Link to Pinax Discord -->
+## https://discord.gg/pinax
 
 ## Table of Contents
 
--   [Asking Questions](#asking-questions)
--   [Contributing](#contributing)
-    -   [Reporting Bugs](#reporting-bugs)
-    -   [Suggesting Enhancements](#suggesting-enhancements)
-    -   [Submitting PRs](#submitting-prs)
--   [Style guides](#style-guides)
-    -   [Code](#code)
-    -   [Commit Messages](#commit-messages)
+- [Asking Questions](#asking-questions)
+- [Contributing](#contributing)
+    - [Reporting Bugs](#reporting-bugs)
+    - [Suggesting Enhancements](#suggesting-enhancements)
+    - [Submitting PRs](#submitting-prs)
+- [Style guides](#style-guides)
+    - [Code](#code)
+    - [Commit Messages](#commit-messages)
 
 ## Asking Questions
 
 > [!NOTE]
 > Make sure you have read the [documentation](README.md) first !
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/pinax-network/Erc20-token-api/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+Before you ask a question, it is best to search for existing [Issues](/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
 
 <!-- TODO: Issue VS Tech support in Discord ? -->
 
 If you then still feel the need to ask a question and need clarification, we recommend the following:
 
--   Open an [Issue](https://github.com/pinax-network/Erc20-token-api/issues/new).
--   Provide as much context as you can about what you're running into.
--   Provide project and platform versions depending on what seems relevant.
+- Open an [Issue](/issues/new).
+- Provide as much context as you can about what you're running into.
+- Provide project and platform versions depending on what seems relevant.
 
 ## Contributing
 
@@ -43,16 +43,16 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report. Please complete the following steps in advance to help fix any potential bug as fast as possible.
 
--   Make sure that you are using the [latest version](https://github.com/pinax-network/Erc20-token-api/releases). If you're using the binary, you can check with `Erc20-token-api --version`.
--   Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (make sure that you have read the [documentation](README.md). If you are looking for support, you might want to check [this section](#asking-questions)).
--   To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is not already a bug report existing for your bug or error in the [bug tracker](https://github.com/pinax-network/Erc20-token-api/issues?q=label%3Abug).
--   Also make sure to search the internet (including Stack Overflow) to see if users outside the GitHub community have discussed the issue.
--   Collect information about the bug:
-    -   Stack trace if possible
-    -   OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
-    -   Version of the [Bun](https://bun.sh/) binary, `bun --version`
-    -   Possibly your environment variables and the output
-    -   Can you reliably reproduce the issue? And can you also reproduce it with older versions?
+- Make sure that you are using the [latest version](/releases). If you're using the binary, you can check with `pinax-sql-api --version`.
+- Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (make sure that you have read the [documentation](README.md). If you are looking for support, you might want to check [this section](#asking-questions)).
+- To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is not already a bug report existing for your bug or error in the [bug tracker](/issues?q=label%3Abug).
+- Also make sure to search the internet (including Stack Overflow) to see if users outside the GitHub community have discussed the issue.
+- Collect information about the bug:
+    - Stack trace if possible
+    - OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
+    - Version of the [Bun](https://bun.sh/) binary, `bun --version`
+    - Possibly your environment variables and the output
+    - Can you reliably reproduce the issue? And can you also reproduce it with older versions?
 
 #### How Do I Submit a Good Bug Report?
 
@@ -62,31 +62,31 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
 
--   Open an [Issue](https://github.com/pinax-network/Erc20-token-api/issues/new?assignees=0237h&labels=bug&projects=&template=bug_report.md&title=).
--   Explain the behavior you would expect and the actual behavior.
--   Please provide as much context as possible and describe the _reproduction steps_ that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
--   Provide the information you collected in the previous section.
+- Open an [Issue](/issues/new?assignees=0237h&labels=bug&projects=&template=bug_report.md&title=).
+- Explain the behavior you would expect and the actual behavior.
+- Please provide as much context as possible and describe the _reproduction steps_ that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
+- Provide the information you collected in the previous section.
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Erc20 Token API, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
 
 #### Before Submitting an Enhancement
 
--   Make sure that you are using the [latest version](https://github.com/pinax-network/Erc20-token-api/releases). If you're using the binary, you can check with `Erc20-token-api --version`.
--   Read the [documentation](README.md) carefully and find out if the functionality is already covered, maybe by an individual configuration.
--   Perform a [search](https://github.com/pinax-network/Erc20-token-api/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
--   Find out whether your idea fits with the scope and aims of the project. Keep in mind that features should be useful to the majority of users and not just a small subset.
+- Make sure that you are using the [latest version](/releases). If you're using the binary, you can check with `pinax-sql-api --version`.
+- Read the [documentation](README.md) carefully and find out if the functionality is already covered, maybe by an individual configuration.
+- Perform a [search](/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+- Find out whether your idea fits with the scope and aims of the project. Keep in mind that features should be useful to the majority of users and not just a small subset.
 
 #### How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/pinax-network/Erc20-token-api/issues).
+Enhancement suggestions are tracked as [GitHub issues](/issues).
 
--   Open an [Issue](https://github.com/pinax-network/Erc20-token-api/issues/new?assignees=0237h&labels=feature&projects=&template=feature_request.md&title=).
--   Use a **clear and descriptive title** for the issue to identify the suggestion.
--   Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
--   **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
--   **Explain why this enhancement would be useful** to most Erc20 Token API users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
+- Open an [Issue](/issues/new?assignees=0237h&labels=feature&projects=&template=feature_request.md&title=).
+- Use a **clear and descriptive title** for the issue to identify the suggestion.
+- Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
+- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
+- **Explain why this enhancement would be useful** to most users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
 
 ### Submitting PRs
 
@@ -98,11 +98,11 @@ Any push to `main` branch will be tagged with the commit hash and the latest com
 
 PRs should be submitted from separate branches of the `main` branch. Ideally, your PR should fall into one the following categories:
 
--   **Feature**: `feature/xxx`
--   **Bug fix**: `fix/xxx`, try to make separate PRs for different bug fixes unless the change solves multiple bugs at once.
--   **Documentation**: `docs/xxx`, adding comments to files should be counted as documentation and changes made into a separate branch.
--   **Operations**: `ops/xxx`
--   **Others**: any other branching scheme or no branch will be counted as a miscellaneous change, avoid if possible.
+- **Feature**: `feature/xxx`
+- **Bug fix**: `fix/xxx`, try to make separate PRs for different bug fixes unless the change solves multiple bugs at once.
+- **Documentation**: `docs/xxx`, adding comments to files should be counted as documentation and changes made into a separate branch.
+- **Operations**: `ops/xxx`
+- **Others**: any other branching scheme or no branch will be counted as a miscellaneous change, avoid if possible.
 
 The reasoning behind these categories is to make it easier to track changes as well as drafting future releases (see [`release-drafter.yml`](.github/release-drafter.yml) action for more details).
 

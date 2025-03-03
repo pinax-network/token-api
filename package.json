@@ -1,9 +1,11 @@
 {
-    "name": "erc20-token-api",
-    "description": "ERC-20 tokens balances and transfers",
-    "version": "2.0.0",
-    "homepage": "https://github.com/pinax-network/erc20-token-api",
-    "license": "MIT",
+    "name": "pinax-sql-api",
+    "description": "Pinax SQL API",
+    "version": "0.1.0",
+    "homepage": "https://github.com/pinax-network/pinax-sql-api",
+    "license": "Apache-2.0",
+    "private": true,
+    "type": "module",
     "authors": [
         {
             "name": "Etienne Donneger",
@@ -21,47 +23,30 @@
             "url": "https://github.com/Matlefebvre1234/"
         }
     ],
+    "scripts": {
+        "dev": "export APP_VERSION=$(git rev-parse --short HEAD) && bun --watch index.ts",
+        "start": "export APP_VERSION=$(git rev-parse --short HEAD) && bun index.ts",
+        "build": "export APP_VERSION=$(git rev-parse --short HEAD) && bun build --compile index.ts --outfile pinax-sql-api",
+        "clean": "bun i --force",
+        "lint": "bun run tsc --noEmit --skipLibCheck --pretty"
+    },
     "dependencies": {
         "@clickhouse/client-web": "latest",
-        "@hono/graphql-server": "^0.5.1",
-        "@kubb/cli": "^2.27.0",
-        "@kubb/core": "^2.27.0",
-        "@kubb/plugin-oas": "^2.27.0",
-        "@kubb/swagger-zod": "^2.27.0",
+        "@hono/valibot-validator": "^0.5.2",
+        "@hono/zod-openapi": "^0.19.0",
+        "@scalar/hono-api-reference": "^0.5.177",
+        "@valibot/to-json-schema": "^1.0.0-rc.0",
         "commander": "latest",
         "dotenv": "latest",
         "hono": "latest",
+        "hono-openapi": "^0.4.5",
         "prom-client": "latest",
         "tslog": "latest",
+        "valibot": "^1.0.0-rc.3",
         "zod": "latest"
     },
-    "private": true,
-    "scripts": {
-        "build": "export APP_VERSION=$(git rev-parse --short HEAD) && bun build --compile index.ts --outfile erc20-token-api",
-        "clean": "bun i --force",
-        "dev": "export APP_VERSION=$(git rev-parse --short HEAD) && bun --watch index.ts",
-        "lint": "export APP_VERSION=$(git rev-parse --short HEAD) && bun run tsc --noEmit --skipLibCheck --pretty",
-        "start": "export APP_VERSION=$(git rev-parse --short HEAD) && bun index.ts",
-        "test": "bun test --coverage",
-        "types": "bun run tsp compile ./src/typespec --output-dir static && bun run kubb",
-        "types:check": "bun run tsp compile ./src/typespec --no-emit --pretty --warn-as-error",
-        "types:format": "bun run tsp format src/typespec/**/*.tsp",
-        "types:watch": "bun run tsp compile ./src/typespec --watch --pretty --warn-as-error"
-    },
-    "type": "module",
     "devDependencies": {
-        "@typespec/compiler": "latest",
-        "@typespec/openapi": "latest",
-        "@typespec/openapi3": "latest",
         "bun-types": "latest",
-        "openapi-to-graphql-cli": "^3.0.7",
         "typescript": "latest"
-    },
-    "prettier": {
-        "tabWidth": 4
-    },
-    "trustedDependencies": [
-        "es5-ext",
-        "esbuild"
-    ]
+    }
 }

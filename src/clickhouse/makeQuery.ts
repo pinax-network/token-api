@@ -5,10 +5,9 @@ import { logger } from "../logger.js";
 import * as prometheus from "../prometheus.js";
 
 import type { ResponseJSON } from "@clickhouse/client-web";
-import type { ValidQueryParams } from "../types/api.js";
 import { config } from "../config.js";
 
-export async function makeQuery<T = unknown>(query: string, query_params?: ValidQueryParams) {
+export async function makeQuery<T = unknown>(query: string, query_params?: Record<string, unknown>) {
     const query_id = crypto.randomUUID();
     logger.trace({ query_id, query, query_params });
 
@@ -33,6 +32,5 @@ export async function makeQuery<T = unknown>(query: string, query_params?: Valid
     }
 
     logger.trace({ query_id: response.query_id, statistics: data.statistics, rows: data.rows, rows_before_limit_at_least: data.rows_before_limit_at_least });
-    
     return data;
 }
