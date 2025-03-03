@@ -16,7 +16,7 @@ flowchart LR
 
 ## Supported Endpoints
 
-**Tokens**
+### Tokens
 - [x] EVM
   - [ ] Native
   - [x] ERC-20
@@ -27,19 +27,22 @@ flowchart LR
   - [ ] Native
   - [ ] eosio.token
 
-**Token Balances**
+### Token Balances
 - [x] EVM
 - [ ] SVN (Solana)
 - [ ] Antelope
-**Token Transfers**
+
+### Token Transfers
 - [x] EVM
 - [ ] SVN (Solana)
 - [ ] Antelope
-**Token Holders**
+
+### Token Holders
 - [x] EVM
 - [ ] SVN (Solana)
 - [ ] Antelope
-**Token Prices**
+
+### Token Prices
 - [ ] EVM
   - [ ] Uniswap V2
   - [ ] Uniswap V3
@@ -50,11 +53,13 @@ flowchart LR
   - [ ] Raydium
 - [ ] Antelope
   - [ ] Defibox
-**Transactions**
+
+### Transactions
 - [ ] EVM
 - [ ] SVN (Solana)
 - [ ] Antelope
-**NFTs**
+
+### NFTs
 - [ ] EVM
 - [ ] SVN (Solana)
 - [ ] Antelope
