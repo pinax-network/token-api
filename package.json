@@ -33,8 +33,6 @@
     "dependencies": {
         "@clickhouse/client-web": "latest",
         "@hono/valibot-validator": "^0.5.2",
-        "@hono/zod-openapi": "^0.19.0",
-        "@scalar/hono-api-reference": "^0.5.177",
         "@valibot/to-json-schema": "^1.0.0-rc.0",
         "commander": "latest",
         "dotenv": "latest",

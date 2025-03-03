@@ -3,7 +3,6 @@ import { APP_VERSION, config } from "./src/config.js";
 import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
 import { openAPISpecs } from 'hono-openapi'
-import { apiReference } from '@scalar/hono-api-reference'
 import routes from './src/routes/index.js'
 import { APIErrorResponse } from "./src/utils.js";
 
@@ -17,17 +16,17 @@ app.route('/', routes)
 // ------------
 // --- Docs ---
 // ------------
-app.get('/', apiReference({ theme: 'kepler', spec: { url: '/openapi' } }));
-app.get("/favicon.ico", () => new Response(Bun.file("./favicon.ico")));
+app.get("/", () => new Response(Bun.file("./public/index.html")));
+app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
     info: {
-        title: 'Pinax API (Beta)',
+        title: 'Pinax SQL API (Beta)',
         version: APP_VERSION.version,
         description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
     },
     servers: [
-        { url: config.openapiServerUrl, description: 'Pinax API Server (Beta)' },
+        { url: config.openapiServerUrl, description: 'Pinax SQL API Server' },
     ]}
 }));
 
