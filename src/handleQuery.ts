@@ -13,6 +13,8 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
         query_params.offset = 0;
     }
 
+    const request_time = new Date();
+
     // inject request query params
     query_params = { ...query_params, ...ctx.req.param(), ...ctx.req.query() };
 
@@ -27,6 +29,8 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
                 statistics: result.statistics ?? null,
                 rows: result.rows ?? 0,
                 rows_before_limit_at_least: result.rows_before_limit_at_least ?? 0,
+                request_time,
+                duration_ms: Number(new Date()) - Number(request_time),
             }
         });
     } catch (err) {

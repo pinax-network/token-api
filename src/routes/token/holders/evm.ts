@@ -51,7 +51,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
         CAST(new_balance, 'String') AS amount,
         toUnixTimestamp(timestamp) as timestamp,
         date
-    FROM ${TABLE} balances
+    FROM ${TABLE}.balances
     WHERE contract = {contract: String}
     ORDER BY block_num DESC`;
     return makeUsageQuery(c, [query], { contract });

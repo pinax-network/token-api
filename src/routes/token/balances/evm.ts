@@ -51,7 +51,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
         CAST(new_balance, 'String') AS amount,
         toUnixTimestamp(timestamp) as timestamp,
         date
-    FROM ${TABLE} balances
+    FROM ${TABLE}.balances
     WHERE owner = {address: String}
     ORDER BY block_num DESC`;
     return makeUsageQuery(c, [query], { address });
