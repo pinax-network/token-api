@@ -16,10 +16,7 @@ app.route('/', routes)
 // ------------
 // --- Docs ---
 // ------------
-app.get("/", () => new Response(Bun.file("./public/index.scalar.html")));
-app.get("/sclar", () => new Response(Bun.file("./public/index.scalar.html")));
-app.get("/stoplight", () => new Response(Bun.file("./public/index.stoplight.html")));
-app.get("/swagger", () => new Response(Bun.file("./public/index.swagger.html")));
+app.get("/", () => new Response(Bun.file("./public/index.html")));
 app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
