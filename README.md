@@ -16,48 +16,48 @@ flowchart LR
 
 ## Supported Endpoints
 
-- **Tokens**
-  - [x] EVM
-    - [ ] Native
-    - [x] ERC-20
-  - [ ] SVN (Solana)
-    - [ ] Native
-    - [ ] SPL Token
-  - [ ] Antelope
-    - [ ] Native
-    - [ ] eosio.token
+**Tokens**
+- [x] EVM
+  - [ ] Native
+  - [x] ERC-20
+- [ ] SVN (Solana)
+  - [ ] Native
+  - [ ] SPL Token
+- [ ] Antelope
+  - [ ] Native
+  - [ ] eosio.token
 
-- **Token Balances**
-  - [x] EVM
-  - [ ] SVN (Solana)
-  - [ ] Antelope
-- **Token Transfers**
-  - [x] EVM
-  - [ ] SVN (Solana)
-  - [ ] Antelope
-- **Token Holders**
-  - [x] EVM
-  - [ ] SVN (Solana)
-  - [ ] Antelope
-- **Token Prices**
-  - [ ] EVM
-    - [ ] Uniswap V2
-    - [ ] Uniswap V3
-    - [ ] CurveFi
-    - [ ] SushiSwap
-  - [ ] SVN (Solana)
-    - [ ] Orca
-    - [ ] Raydium
-  - [ ] Antelope
-    - [ ] Defibox
-- **Transactions**
-  - [ ] EVM
-  - [ ] SVN (Solana)
-  - [ ] Antelope
-- **NFTs**
-  - [ ] EVM
-  - [ ] SVN (Solana)
-  - [ ] Antelope
+**Token Balances**
+- [x] EVM
+- [ ] SVN (Solana)
+- [ ] Antelope
+**Token Transfers**
+- [x] EVM
+- [ ] SVN (Solana)
+- [ ] Antelope
+**Token Holders**
+- [x] EVM
+- [ ] SVN (Solana)
+- [ ] Antelope
+**Token Prices**
+- [ ] EVM
+  - [ ] Uniswap V2
+  - [ ] Uniswap V3
+  - [ ] CurveFi
+  - [ ] SushiSwap
+- [ ] SVN (Solana)
+  - [ ] Orca
+  - [ ] Raydium
+- [ ] Antelope
+  - [ ] Defibox
+**Transactions**
+- [ ] EVM
+- [ ] SVN (Solana)
+- [ ] Antelope
+**NFTs**
+- [ ] EVM
+- [ ] SVN (Solana)
+- [ ] Antelope
 
 ## `.env` Environment variables
 
