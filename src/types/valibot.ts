@@ -13,3 +13,7 @@ export const metaSchema = v.object({
     request_time: v.optional(v.string()), // v.isoTimestamp('yyyy-mm-ddThh:mm:ss.sssZ')
     duration_ms: v.optional(v.number()),
 });
+
+export function parseEvmAddress(address: string): string {
+    return address.toLowerCase().replace(/^0x/, '');
+}

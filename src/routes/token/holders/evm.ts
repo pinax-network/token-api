@@ -4,7 +4,7 @@ import { resolver, validator } from 'hono-openapi/valibot'
 import * as v from 'valibot'
 import { config } from '../../../config.js'
 import { makeUsageQuery } from '../../../handleQuery.js'
-import { metaSchema } from '../../../types/valibot.js'
+import { metaSchema, parseEvmAddress } from '../../../types/valibot.js'
 
 const route = new Hono();
 
@@ -55,7 +55,8 @@ const MODULE_HASH = "5b21ee0834a2c082a0befea1b71f771dc87d0f5e";
 
 route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
     const chain_id = c.req.query("chain_id") ?? "mainnet";
-    const contract = c.req.param("contract");
+    const contract = parseEvmAddress(c.req.param("contract"));
+    if (!contract) return c.json({ error: 'invalid EVM contract'}, 400);
 
     const TABLE = config.database ?? `${chain_id}:${MODULE_HASH}` // TO-IMPLEMENT: Chain ID + Module Hash
     const query = `
