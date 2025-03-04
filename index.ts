@@ -20,14 +20,24 @@ app.get("/", () => new Response(Bun.file("./public/index.html")));
 app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
-    info: {
-        title: 'Pinax SQL API (Beta)',
-        version: APP_VERSION.version,
-        description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
+        info: {
+            title: 'Pinax SQL API (Beta)',
+            version: APP_VERSION.version,
+            description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
+        },
+        servers: [
+            { url: config.openapiServerUrl, description: 'Pinax SQL API Server' },
+        ],
+        components: {
+            securitySchemes: {
+                ApiKeyAuth: {
+                    type: "apiKey",
+                    in: "header",
+                    name: "X-Api-Key"
+                },
+            }
+        }
     },
-    servers: [
-        { url: config.openapiServerUrl, description: 'Pinax SQL API Server' },
-    ]}
 }));
 
 // Tracking all incoming requests

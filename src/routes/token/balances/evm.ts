@@ -25,11 +25,21 @@ const responseSchema = v.object({
 const openapi = describeRoute({
     description: 'Token Balances by Wallet Address',
     tags: ['EVM'],
+    security: [{ ApiKeyAuth: [] }],
     responses: {
         200: {
             description: 'Token Balances',
             content: {
-                'application/json': { schema: resolver(responseSchema), example: 'OK' },
+                'application/json': { schema: resolver(responseSchema), example: {
+                    data: [
+                        {
+                            "contract": "0xd6e1401a079922469e9b965cb090ea6ff64c6839",
+                            "amount": "8974208837245497768568420",
+                            "timestamp": 1529003200,
+                            "date": "2018-06-14"
+                        }
+                    ]
+                }},
             },
         }
     },

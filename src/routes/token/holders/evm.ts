@@ -25,11 +25,21 @@ const responseSchema = v.object({
 const openapi = describeRoute({
     description: 'Token Holders by Contract Address',
     tags: ['EVM'],
+    security: [{ ApiKeyAuth: [] }],
     responses: {
         200: {
             description: 'Token Holders',
             content: {
-                'application/json': { schema: resolver(responseSchema), example: 'OK' },
+                'application/json': { schema: resolver(responseSchema), example: {
+                    data: [
+                        {
+                            "contract": "0x27695e09149adc738a978e9a678f99e4c39e9eb9",
+                            "amount": "1239979319084415",
+                            "timestamp": 1529002377,
+                            "date": "2018-06-14"
+                        }
+                    ]
+                }},
             },
         }
     },

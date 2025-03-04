@@ -27,11 +27,23 @@ const responseSchema = v.object({
 const openapi = describeRoute({
     description: 'Token Transfers by Wallet Address',
     tags: ['EVM'],
+    security: [{ ApiKeyAuth: [] }],
     responses: {
         200: {
             description: 'Token Transfers',
             content: {
-                'application/json': { schema: resolver(responseSchema), example: 'OK' },
+                'application/json': { schema: resolver(responseSchema), example: {
+                    data: [
+                        {
+                            "contract": "0x27695e09149adc738a978e9a678f99e4c39e9eb9",
+                            "from": "0x2b5634c42055806a59e9107ed44d43c426e58258",
+                            "to": "0xa78c4208fe4fedd86fc90fad93d6fb154c3936a4",
+                            "value": "8000000000000",
+                            "timestamp": 1529002377,
+                            "date": "2018-06-14"
+                        }
+                    ]
+                }},
             },
         }
     },
