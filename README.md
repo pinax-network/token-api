@@ -110,7 +110,7 @@ docker build \
 - Run with `.env` file
 
 ```bash
-docker run -it --rm --env-file .env ghcr.io/pinax-network/pinax-sql-api
+docker run -it --rm --env-file .env -p 3000:3000 ghcr.io/pinax-network/pinax-sql-api:develop
 ```
 
 ## Contributing
