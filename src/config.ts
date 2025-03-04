@@ -19,9 +19,10 @@ export const DEFAULT_PRETTY_LOGGING = false;
 export const DEFAULT_VERBOSE = false;
 export const DEFAULT_SORT_BY = "DESC";
 export const APP_NAME = pkg.name;
+export const GIT_COMMIT = process.env.GIT_COMMIT || "unknown";
 export const APP_VERSION = {
     version: pkg.version,
-    commit: process.env.APP_VERSION || "unknown"
+    commit: GIT_COMMIT
 };
 
 // parse command line options

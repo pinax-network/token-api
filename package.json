@@ -24,9 +24,10 @@
         }
     ],
     "scripts": {
-        "dev": "export APP_VERSION=$(git rev-parse --short HEAD) && bun --watch index.ts",
-        "start": "export APP_VERSION=$(git rev-parse --short HEAD) && bun index.ts",
-        "build": "export APP_VERSION=$(git rev-parse --short HEAD) && bun build --compile index.ts --outfile pinax-sql-api",
+        "dev": "bun --watch index.ts",
+        "start": "bun index.ts",
+        "build": "bun build --compile index.ts --outfile pinax-sql-api",
+        "test": "bun test --coverage",
         "clean": "bun i --force",
         "lint": "bun run tsc --noEmit --skipLibCheck --pretty"
     },

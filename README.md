@@ -102,7 +102,9 @@ docker pull ghcr.io/pinax-network/pinax-sql-api:develop
 - Build from source
 
 ```bash
-docker build -t pinax-sql-api .
+docker build \
+  --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
+  -t pinax-sql-api .
 ```
 
 - Run with `.env` file
