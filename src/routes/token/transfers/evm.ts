@@ -4,6 +4,7 @@ import { resolver, validator } from 'hono-openapi/valibot'
 import * as v from 'valibot'
 import { config } from '../../../config.js'
 import { makeUsageQuery } from '../../../handleQuery.js'
+import { metaSchema } from '../../../types/valibot.js'
 
 const route = new Hono();
 
@@ -16,12 +17,15 @@ const querySchema = v.object({
 });
 
 const responseSchema = v.object({
-    timestamp: v.number(),
-    date: v.string(),
-    contract: v.string(),
-    from: v.string(),
-    to: v.string(),
-    value: v.string(),
+    data: v.array(v.object({
+        timestamp: v.number(),
+        date: v.string(),
+        contract: v.string(),
+        from: v.string(),
+        to: v.string(),
+        value: v.string(),
+    })),
+    meta: v.optional(metaSchema),
 });
 
 const openapi = describeRoute({
@@ -30,7 +34,7 @@ const openapi = describeRoute({
     security: [{ ApiKeyAuth: [] }],
     responses: {
         200: {
-            description: 'Token Transfers',
+            description: 'Successful Response',
             content: {
                 'application/json': { schema: resolver(responseSchema), example: {
                     data: [
