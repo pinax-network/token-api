@@ -16,7 +16,7 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
     const request_time = new Date();
 
     // inject request query params
-    query_params = { ...query_params, ...ctx.req.param(), ...ctx.req.query() };
+    query_params = { ...ctx.req.param(), ...ctx.req.query(), ...query_params };
 
     try {
         const result = await makeQuery(query.join(" "), query_params);

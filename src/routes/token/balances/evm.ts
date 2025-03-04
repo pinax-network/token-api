@@ -4,12 +4,12 @@ import { resolver, validator } from 'hono-openapi/valibot'
 import * as v from 'valibot'
 import { config } from '../../../config.js'
 import { makeUsageQuery } from '../../../handleQuery.js'
-import { metaSchema, parseEvmAddress } from '../../../types/valibot.js'
+import { EvmAddressSchema, metaSchema, parseEvmAddress } from '../../../types/valibot.js'
 
 const route = new Hono();
 
 const paramSchema = v.object({
-    address: v.string(),
+    address: EvmAddressSchema,
 });
 
 const querySchema = v.object({
@@ -19,8 +19,8 @@ const querySchema = v.object({
 const responseSchema = v.object({
     data: v.array(v.object({
         timestamp: v.number(),
-        date: v.string(),
-        contract: v.string(),
+        date: v.date(),
+        contract: EvmAddressSchema,
         amount: v.string(),
     })),
     meta: v.optional(metaSchema),

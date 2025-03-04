@@ -4,23 +4,24 @@ import { resolver, validator } from 'hono-openapi/valibot'
 import * as v from 'valibot'
 import { config } from '../../../config.js'
 import { makeUsageQuery } from '../../../handleQuery.js'
-import { metaSchema, parseEvmAddress } from '../../../types/valibot.js'
+import { EvmAddressSchema, metaSchema, parseEvmAddress } from '../../../types/valibot.js'
 
 const route = new Hono();
 
 const paramSchema = v.object({
-    contract: v.string(),
+    contract: EvmAddressSchema,
 });
 
 const querySchema = v.object({
     chain_id: v.optional(v.string()),
+    order_by: v.optional(v.string()),
 });
 
 const responseSchema = v.object({
     data: v.array(v.object({
         timestamp: v.number(),
-        date: v.string(),
-        contract: v.string(),
+        date: v.date(),
+        contract: EvmAddressSchema,
         amount: v.string(),
     })),
     meta: v.optional(metaSchema),
@@ -61,13 +62,13 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const TABLE = config.database ?? `${chain_id}:${MODULE_HASH}` // TO-IMPLEMENT: Chain ID + Module Hash
     const query = `
     SELECT
-        concat('0x', contract) as contract,
+        concat('0x', owner) as address,
         CAST(new_balance, 'String') AS amount,
         toUnixTimestamp(timestamp) as timestamp,
         date
     FROM ${TABLE}.balances
     WHERE contract = {contract: String}
-    ORDER BY block_num DESC`;
+    ORDER BY amount DESC`;
     return makeUsageQuery(c, [query], { contract });
 });
 
