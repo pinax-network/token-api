@@ -16,8 +16,8 @@ export const metaSchema = v.object({
 
 export const EvmAddressSchema = v.pipe(
     v.string(),
-    v.length(42, 'invalid EVM address'),
-    v.regex(/^0x/, 'invalid EVM address')
+    v.minLength(40, 'invalid EVM address'),
+    v.maxLength(42, 'invalid EVM address')
 );
 
 export function parseEvmAddress(address: string): string|null {

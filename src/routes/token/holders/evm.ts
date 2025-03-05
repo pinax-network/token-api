@@ -20,7 +20,7 @@ const querySchema = v.object({
 const responseSchema = v.object({
     data: v.array(v.object({
         timestamp: v.number(),
-        date: v.date(),
+        date: v.string(),
         contract: EvmAddressSchema,
         amount: v.string(),
     })),
@@ -67,7 +67,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
         toUnixTimestamp(timestamp) as timestamp,
         date
     FROM ${TABLE}.balances
-    WHERE contract = {contract: String}
+    WHERE contract = {contract: String} AND new_balance > 0
     ORDER BY amount DESC`;
     return makeUsageQuery(c, [query], { contract });
 });

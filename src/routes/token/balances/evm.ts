@@ -19,7 +19,7 @@ const querySchema = v.object({
 const responseSchema = v.object({
     data: v.array(v.object({
         timestamp: v.number(),
-        date: v.date(),
+        date: v.string(),
         contract: EvmAddressSchema,
         amount: v.string(),
     })),
@@ -66,7 +66,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
         toUnixTimestamp(timestamp) as timestamp,
         date
     FROM ${TABLE}.balances
-    WHERE owner = {address: String}
+    WHERE owner = {address: String} AND new_balance > 0
     ORDER BY block_num DESC`;
     return makeUsageQuery(c, [query], { address });
 });

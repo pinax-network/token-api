@@ -19,7 +19,7 @@ const querySchema = v.object({
 const responseSchema = v.object({
     data: v.array(v.object({
         timestamp: v.number(),
-        date: v.date(),
+        date: v.string(),
         contract: EvmAddressSchema,
         from: EvmAddressSchema,
         to: EvmAddressSchema,
