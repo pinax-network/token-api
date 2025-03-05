@@ -1,4 +1,4 @@
-streams:
+datasets:
   - chain_id: mainnet
     module_name: db_out
     module_hash: 5b21ee0834a2c082a0befea1b71f771dc87d0f5e

@@ -34,9 +34,10 @@
     "dependencies": {
         "@clickhouse/client-web": "latest",
         "@hono/valibot-validator": "^0.5.2",
+        "@hono/zod-openapi": "^0.19.0",
+        "@modelcontextprotocol/sdk": "^1.6.1",
         "@valibot/to-json-schema": "^1.0.0-rc.0",
         "commander": "latest",
-        "@hono/zod-openapi": "^0.19.0",
         "dotenv": "latest",
         "hono": "latest",
         "hono-openapi": "^0.4.5",
