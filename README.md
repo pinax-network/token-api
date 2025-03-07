@@ -1,4 +1,4 @@
-# Pinax: `SQL API`
+# Pinax: `Token API`
 
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-sql-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-sql-api/actions/workflows/bun-test.yml)
 
@@ -11,7 +11,7 @@ flowchart LR
   S1[ERC-20.spkg] --> Server
   S2[SPL Token.spkg] --> Server
   S3[eosio.token.spkg] --> Server
-  Server{Pinax MCP Server} --> API{Pinax SQL API}
+  Server{Pinax MCP Server} --> API{Pinax Token API}
 ```
 
 ## Supported Endpoints
@@ -67,7 +67,7 @@ flowchart LR
 ## `.env` Environment variables
 
 ```env
-# SQL API Server
+# Token API Server
 PORT=8080
 HOSTNAME=localhost
 

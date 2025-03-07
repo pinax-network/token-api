@@ -1,5 +1,5 @@
 import { Hono, type Context } from "hono";
-import { APP_VERSION, config } from "./src/config.js";
+import { APP_NAME, APP_VERSION, config } from "./src/config.js";
 import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
 import { openAPISpecs } from 'hono-openapi'
@@ -21,12 +21,12 @@ app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
         info: {
-            title: 'Pinax SQL API (Beta)',
+            title: 'Pinax Token API (Beta)',
             version: APP_VERSION.version,
             description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
         },
         servers: [
-            { url: config.openapiServerUrl, description: 'Pinax SQL API Server' },
+            { url: config.openapiServerUrl, description: APP_NAME },
         ],
         components: {
             securitySchemes: {

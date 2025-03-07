@@ -1,6 +1,6 @@
 {
     "name": "pinax-sql-api",
-    "description": "Pinax SQL API",
+    "description": "Pinax Token API",
     "version": "0.1.0",
     "homepage": "https://github.com/pinax-network/pinax-sql-api",
     "license": "Apache-2.0",
