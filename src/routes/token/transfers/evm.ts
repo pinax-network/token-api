@@ -71,7 +71,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
         CAST(value, 'String') AS value,
         toUnixTimestamp(timestamp) as timestamp,
         date
-    FROM ${TABLE}.transfers
+    FROM "${TABLE}".transfers
     WHERE from = {address: String} OR to = {address: String}
     ORDER BY block_num DESC`;
     return makeUsageQuery(c, [query], { address });
