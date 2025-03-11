@@ -2,16 +2,22 @@ import { Hono, type Context } from "hono";
 import { APP_NAME, APP_VERSION, config } from "./src/config.js";
 import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
-import { openAPISpecs } from 'hono-openapi'
-import routes from './src/routes/index.js'
+import { openAPISpecs } from 'hono-openapi';
+import routes from './src/routes/index.js';
 import { APIErrorResponse } from "./src/utils.js";
+import { startMcpServer } from "./src/mcp/index.js";
 
-const app = new Hono()
+// Start MCP server
+startMcpServer().catch((error) => {
+    console.error("Error starting MCP server:", error);
+});
+
+const app = new Hono();
 
 // -----------
 // --- API ---
 // -----------
-app.route('/', routes)
+app.route('/', routes);
 
 // ------------
 // --- Docs ---
