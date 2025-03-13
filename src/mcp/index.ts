@@ -1,9 +1,11 @@
 import { FastMCP, UserError } from "fastmcp";
 import { z } from 'zod';
-import { evmAddress } from "../types/zod.js";
-import { config } from "../config.js";
+import { makeQuery } from "../clickhouse/makeQuery.js";
+// From https://github.com/ClickHouse/clickhouse-js/blob/6e26010036bc108c835d16c5a4904c6dc6039e70/packages/client-common/src/data_formatter/format_query_params.ts#L5
+// Allows for safe quoting of variables in SQL queries when not able to use query params
+import { formatQueryParams } from "@clickhouse/client-common"
+import { file } from "bun";
 
-const API_URL = `http://${config.hostname}:${config.port}`;
 const mcp = new FastMCP({
     name: "Pinax Token API MCP Server",
     version: "1.0.0",
@@ -23,27 +25,95 @@ mcp.on("disconnect", (event) => {
     session.removeAllListeners();
 });
 
+async function runSQLMCP(sql: string): Promise<string> {
+    let response;
+    try {
+        response = await makeQuery(sql);
+    } catch (error) {
+        throw new UserError(`Error while running SQL query: ${error}`);
+    }
+
+    if (response.data) {
+        const json = JSON.stringify(response);
+
+        if (!json)
+            throw new UserError(`Error parsing SQL query response to JSON`);
+
+        return JSON.stringify(json);
+    } else {
+        throw new UserError(`SQL query response didn't contain any data.`);
+    }
+}
+
+function escapeSQL(value: string): string {
+    return `"${formatQueryParams({ value })}"` // Wrap in double quotes
+}
+
 mcp.addTool({
-    name: "tokenBalance",
-    description: "Get ERC-20 token balance for an account, provided by the Pinax Token API",
-    parameters: z.object({
-        address: evmAddress
-    }),
-    execute: async (args) => {
-        const response = await fetch(`${API_URL}/balances/evm/${args.address}`);
-
-        if (response.ok) {
-            const json = await response.json();
-
-            if (!json)
-                throw new UserError(`Error parsing API response:\n${JSON.stringify(json)}`);
-
-            return JSON.stringify(json);
-        } else {
-            throw new UserError(`API response not ok: [${response.status}] ${response.statusText}`);
-        }
+    name: "list_databases",
+    description: "List available databases",
+    parameters: z.object({}), // Always needs a parameter (even if empty)
+    execute: async () => {
+        return runSQLMCP("SHOW DATABASES");
     },
 });
+
+mcp.addTool({
+    name: "list_tables",
+    description: "List available tables from a database",
+    parameters: z.object({
+        database: z.string() // TODO: Add validation for allowed databases on ClickHouse side (user permissions)
+    }),
+    execute: async (args) => {
+        // Filter out backfill tables as well (TODO: could be done with user permissions ?)
+        return runSQLMCP(`SHOW TABLES FROM ${escapeSQL(args.database)} NOT LIKE '%backfill%'`);
+    },
+});
+
+mcp.addTool({
+    name: "describe_table",
+    description: "Describe the schema of a table from a database",
+    parameters: z.object({
+        database: z.string(),
+        table: z.string(),
+    }),
+    execute: async (args) => {
+        return runSQLMCP(`DESCRIBE ${escapeSQL(args.database)}.${escapeSQL(args.table)}`);
+    },
+});
+
+mcp.addTool({
+    name: "run_query",
+    description: "Run a read-only SQL query",
+    parameters: z.object({
+        query: z.string()
+    }),
+    execute: async (args) => {
+        return runSQLMCP(args.query);
+    },
+});
+
+// TODO: Resource template for each chain type with use cases -> balances, holders, transfers
+
+mcp.addResource({
+    name: "sql_evm_balances_for_account",
+    description: "SQL query for querying token balance of an account",
+    uri: "file://evm_balances_for_account.sql",
+    mimeType: "text/plain",
+    load: async () => {
+        return {
+            text: await file("./src/routes/token/balances/balances_for_account.sql").text()
+        }
+    }
+});
+
+mcp.addPrompt({
+    name: "native_token_queries",
+    description: "Guidance on the format to use for queries related to the native token contract",
+    load: async () => {
+        return "You can use the SQL file resources to run queries for the native token contract. You must use the exact spelling of `native` for the contract filter."
+    }
+})
 
 export async function startMcpServer() {
     await mcp.start({

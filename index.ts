@@ -8,7 +8,7 @@ import { APIErrorResponse } from "./src/utils.js";
 import { startMcpServer } from "./src/mcp/index.js";
 
 // Start MCP server
-startMcpServer().catch((error) => {
+await startMcpServer().catch((error) => {
     console.error("Error starting MCP server:", error);
 });
 
