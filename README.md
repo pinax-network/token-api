@@ -1,24 +1,27 @@
 # Pinax: `Token API`
 
-[![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-sql-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-sql-api/actions/workflows/bun-test.yml)
+[![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml)
 
-> Collection of SQL based APIs by built on top of [**Pinax MCP Server**](https://github.com/pinax-network/pinax-mcp-server) (powered by [Substreams](https://thegraph.com/docs/substreams)).
+> Collection of token-based APIs, covering ERC-20 and native tokens for balances, transfers, and contract data (powered by [Substreams](https://thegraph.com/docs/substreams). **MCP Server** supports multiple chains and token standards, including EVM, Solana, and Antelope.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  S1[ERC-20.spkg] --> Server
-  S2[SPL Token.spkg] --> Server
-  S3[eosio.token.spkg] --> Server
-  Server{Pinax MCP Server} --> API{Pinax Token API}
+  S1[ERC-20.spkg] --> Sink{Substreams SQL Sink}
+  S2[EVM Native.spkg] --> Sink
+  S3[SPL Token.spkg] --> Sink
+  S4[eosio.token.spkg] --> Sink
+  Sink --> Clickhouse
+  Clickhouse((Clickhouse)) --> Server{Pinax MCP Server}
+  Clickhouse --> API{Pinax Token API}
 ```
 
 ## Supported Endpoints
 
 ### Tokens
 - [x] EVM
-  - [ ] Native
+  - [x] Native
   - [x] ERC-20
 - [ ] SVN (Solana)
   - [ ] Native
@@ -90,13 +93,13 @@ VERBOSE=true
 **For latest tagged release**
 
 ```bash
-docker pull ghcr.io/pinax-network/pinax-sql-api:latest
+docker pull ghcr.io/pinax-network/pinax-token-api:latest
 ```
 
 **For head of `main` branch**
 
 ```bash
-docker pull ghcr.io/pinax-network/pinax-sql-api:develop
+docker pull ghcr.io/pinax-network/pinax-token-api:develop
 ```
 
 - Build from source
@@ -104,13 +107,13 @@ docker pull ghcr.io/pinax-network/pinax-sql-api:develop
 ```bash
 docker build \
   --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
-  -t pinax-sql-api .
+  -t pinax-token-api .
 ```
 
 - Run with `.env` file
 
 ```bash
-docker run -it --rm --env-file .env -p 3000:3000 ghcr.io/pinax-network/pinax-sql-api:develop
+docker run -it --rm --env-file .env -p 3000:3000 ghcr.io/pinax-network/pinax-token-api:develop
 ```
 
 ## Contributing
