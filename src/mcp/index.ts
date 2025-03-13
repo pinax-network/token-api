@@ -106,8 +106,8 @@ mcp.addResourceTemplate({
             description: "Name of the SQL query",
             // @ts-ignore
             required: true,
-            complete: async () => {
-                return { values: Object.keys(sqlQueries) };
+            complete: async (value) => {
+                return { values: Object.keys(sqlQueries).filter(v => v.includes(value)) };
             },
         },
         {
