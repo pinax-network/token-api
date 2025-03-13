@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'path';
+import { logger } from '../logger.js';
 
 /**
  * Loads all SQL files from a specified directory (non-recursive) into a key-value object
@@ -61,5 +62,5 @@ try {
     throw error;
 }
 
-console.log(sqlQueries);
+logger.trace(`Loaded SQL queries:\n`, sqlQueries);
 export { sqlQueries };

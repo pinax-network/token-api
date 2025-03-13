@@ -25,3 +25,5 @@ export function parseEvmAddress(address: string): string|null {
     if (!(address.length == 40 || address.length == 42)) return null;
     return address.toLowerCase().replace(/^0x/, '');
 }
+
+export const chainIdSchema = v.picklist(['mainnet', 'bsc', 'arbitrum-one']);
