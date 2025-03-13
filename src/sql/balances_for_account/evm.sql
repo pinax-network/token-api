@@ -1,5 +1,5 @@
 SELECT
-concat('0x', contract) as contract,
+contract,
 CAST(new_balance, 'String') AS amount,
 toUnixTimestamp(timestamp) as timestamp,
 date

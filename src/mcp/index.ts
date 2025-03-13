@@ -3,8 +3,9 @@ import { z } from 'zod';
 import { makeQuery } from "../clickhouse/makeQuery.js";
 // From https://github.com/ClickHouse/clickhouse-js/blob/6e26010036bc108c835d16c5a4904c6dc6039e70/packages/client-common/src/data_formatter/format_query_params.ts#L5
 // Allows for safe quoting of variables in SQL queries when not able to use query params
-import { formatQueryParams } from "@clickhouse/client-common"
+import { formatQueryParams } from "@clickhouse/client-common";
 import { file } from "bun";
+import { sqlQueries } from "../sql/index.js";
 
 const mcp = new FastMCP({
     name: "Pinax Token API MCP Server",
@@ -46,7 +47,7 @@ async function runSQLMCP(sql: string): Promise<string> {
 }
 
 function escapeSQL(value: string): string {
-    return `"${formatQueryParams({ value })}"` // Wrap in double quotes
+    return `"${formatQueryParams({ value })}"`; // Wrap in double quotes
 }
 
 mcp.addTool({
@@ -93,17 +94,63 @@ mcp.addTool({
     },
 });
 
-// TODO: Resource template for each chain type with use cases -> balances, holders, transfers
+// Resource template for MCP clients that supports using it
 
-mcp.addResource({
-    name: "sql_evm_balances_for_account",
-    description: "SQL query for querying token balance of an account",
-    uri: "file://evm_balances_for_account.sql",
+mcp.addResourceTemplate({
+    uriTemplate: "file:///sql/{name}/{chain_type}.sql",
+    name: "Example SQL query",
     mimeType: "text/plain",
-    load: async () => {
+    arguments: [
+        {
+            name: "name",
+            description: "Name of the SQL query",
+            // @ts-ignore
+            required: true,
+            complete: async () => {
+                return { values: Object.keys(sqlQueries) };
+            },
+        },
+        {
+            name: "chain_type",
+            description: `Chain type (e.g. 'evm')`,
+            // @ts-ignore See https://github.com/punkpeye/fastmcp/issues/20
+            required: true,
+            complete: async () => {
+                return { values: ['evm'] };
+            },
+        },
+    ],
+    load: async ({ name, chain_type }) => {
+        if (!name || !chain_type)
+            throw new UserError(`SQL query name and chain type are required`);
+
+        const examples = sqlQueries[name];
+        if (!examples)
+            throw new UserError(`Invalid SQL query name specified, valid SQL queries are ${Object.keys(sqlQueries)}`);
+
+        if (!(chain_type in examples))
+            throw new UserError(`Invalid chain type specified, valid chain types are ${Object.keys(examples)}`);
+
         return {
-            text: await file("./src/routes/token/balances/balances_for_account.sql").text()
-        }
+            text: `${examples[chain_type]}`,
+        };
+    },
+});
+
+// Map SQL queries to static resources for MCP clients not supporting resource template
+Object.entries(sqlQueries).map(([name, chains]) => {
+    for (const [chain, sql] of Object.entries(chains)) {
+        mcp.addResource({
+            name: `sql_${chain}_${name}`,
+            description: `'${chain}' SQL query example`,
+            uri: `file://sql/${name}/${chain}.sql`,
+            mimeType: "text/plain",
+            load: async () => {
+                return {
+                    text: sql
+                };
+            }
+        });
     }
 });
 
@@ -111,9 +158,9 @@ mcp.addPrompt({
     name: "native_token_queries",
     description: "Guidance on the format to use for queries related to the native token contract",
     load: async () => {
-        return "You can use the SQL file resources to run queries for the native token contract. You must use the exact spelling of `native` for the contract filter."
+        return "You can use the SQL file resources to run queries for the native token contract. You must use the exact spelling of `native` for the contract filter.";
     }
-})
+});
 
 export async function startMcpServer() {
     await mcp.start({
