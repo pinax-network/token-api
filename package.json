@@ -29,7 +29,8 @@
         "build": "bun build --compile index.ts --outfile pinax-sql-api",
         "test": "bun test --coverage",
         "clean": "bun i --force",
-        "lint": "bun run tsc --noEmit --skipLibCheck --pretty"
+        "lint": "bun run tsc --noEmit --skipLibCheck --pretty",
+        "inspector": "bunx @modelcontextprotocol/inspector"
     },
     "dependencies": {
         "@clickhouse/client-web": "latest",
@@ -39,6 +40,7 @@
         "@valibot/to-json-schema": "^1.0.0-rc.0",
         "commander": "latest",
         "dotenv": "latest",
+        "fastmcp": "^1.20.3",
         "hono": "latest",
         "hono-openapi": "^0.4.5",
         "prom-client": "latest",
