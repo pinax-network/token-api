@@ -10,19 +10,19 @@ import { config } from "../config.js";
 const mcp = new FastMCP({
     name: "Pinax Token API MCP Server",
     version: "1.0.0",
-    authenticate: async (request) => {
-        const apiKey = request.headers["x-api-key"];
+    // authenticate: async (request) => {
+    //     const apiKey = request.headers["x-api-key"];
 
-        if (apiKey !== '12345') {
-            throw new Response(null, {
-                status: 401,
-                statusText: "Unauthorized",
-            });
-        }
+    //     if (apiKey !== '12345') {
+    //         throw new Response(null, {
+    //             status: 401,
+    //             statusText: "Unauthorized",
+    //         });
+    //     }
 
-        // Whatever you return here will be accessible in the `context.session` object.
-        return {};
-    },
+    //     // Whatever you return here will be accessible in the `context.session` object.
+    //     return {};
+    // },
 });
 
 // Catch session errors (default MCP SDK timeout of 10 seconds) and close connection
