@@ -4,12 +4,25 @@ import { makeQuery } from "../clickhouse/makeQuery.js";
 // From https://github.com/ClickHouse/clickhouse-js/blob/6e26010036bc108c835d16c5a4904c6dc6039e70/packages/client-common/src/data_formatter/format_query_params.ts#L5
 // Allows for safe quoting of variables in SQL queries when not able to use query params
 import { formatQueryParams } from "@clickhouse/client-common";
-import { file } from "bun";
 import { sqlQueries } from "../sql/index.js";
+import { config } from "../config.js";
 
 const mcp = new FastMCP({
     name: "Pinax Token API MCP Server",
     version: "1.0.0",
+    authenticate: async (request) => {
+        const apiKey = request.headers["x-api-key"];
+
+        if (apiKey !== '12345') {
+            throw new Response(null, {
+                status: 401,
+                statusText: "Unauthorized",
+            });
+        }
+
+        // Whatever you return here will be accessible in the `context.session` object.
+        return {};
+    },
 });
 
 // Catch session errors (default MCP SDK timeout of 10 seconds) and close connection
@@ -166,8 +179,8 @@ export async function startMcpServer() {
     await mcp.start({
         transportType: "sse",
         sse: {
-            endpoint: "/sse",
-            port: 8080,
+            endpoint: `/${config.sseEndpoint}`,
+            port: config.ssePort,
         },
     });  
 }
