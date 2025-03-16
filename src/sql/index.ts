@@ -33,13 +33,14 @@ export async function loadSqlFiles(folderPath: string): Promise<Record<string, s
         
                 // Use the filename without extension as the key
                 const key = file.replace('.sql', '');
-                sqlFiles[key] = content;
+                // Fold multiline statement into single line
+                sqlFiles[key] = content.replace(/\n|;/g, ' ').trim();
             }
         }
     
         return sqlFiles;
     } catch (error) {
-        console.error('Error loading SQL files:', error);
+        logger.error('Error loading SQL files:', error);
         throw error;
     }
 }
@@ -58,7 +59,7 @@ try {
         }
     }    
 } catch (error) {
-    console.error('Error loading SQL files from subdirectories:', error);
+    logger.error('Error loading SQL files from subdirectories:', error);
     throw error;
 }
 
