@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { APIErrorResponse } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
 
-export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}) {
+export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
     // pagination
     if (!query_params['limit']) {
         query.push('LIMIT {limit: int}');
@@ -19,7 +19,7 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
     query_params = { ...ctx.req.param(), ...ctx.req.query(), ...query_params };
 
     try {
-        const result = await makeQuery(query.join(" "), query_params);
+        const result = await makeQuery(query.join(" "), query_params, database);
         if (result.data.length === 0) {
             return APIErrorResponse(ctx, 404, "not_found_data", `No data found`);
         }

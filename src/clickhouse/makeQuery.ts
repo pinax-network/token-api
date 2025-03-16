@@ -7,11 +7,11 @@ import * as prometheus from "../prometheus.js";
 import type { ResponseJSON } from "@clickhouse/client-web";
 import { config } from "../config.js";
 
-export async function makeQuery<T = unknown>(query: string, query_params?: Record<string, unknown>) {
+export async function makeQuery<T = unknown>(query: string, query_params?: Record<string, unknown>, database?: string) {
     const query_id = crypto.randomUUID();
-    logger.trace({ query_id, query, query_params });
+    logger.trace({ query_id, database, query, query_params });
 
-    const response = await client.query({ query, query_params, format: "JSON", query_id });
+    const response = await client(database).query({ query, query_params, format: "JSON", query_id });
     const data: ResponseJSON<T> = await response.json();
     prometheus.queries.inc();
 
