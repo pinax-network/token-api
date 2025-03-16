@@ -26,4 +26,4 @@ export function parseEvmAddress(address: string): string|null {
     return address.toLowerCase().replace(/^0x/, '');
 }
 
-export const chainIdSchema = v.picklist(['mainnet', 'bsc', 'arbitrum-one']);
+export const chainIdSchema = v.picklist(['mainnet', 'bsc', 'base']);
