@@ -39,7 +39,7 @@ const openapi = describeRoute({
 })
 
 route.get('/health', openapi, async (c) => {
-    const response = await client.ping();
+    const response = await client().ping();
     if (!response.success) {
         const message = JSON.parse(response.error.message);
         if (message.code === 516) return APIErrorResponse(c, 403, 'authentication_failed', response.error.message);
