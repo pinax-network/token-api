@@ -23,7 +23,8 @@ export const EvmAddressSchema = v.pipe(
 export function parseEvmAddress(address: string): string|null {
     if (!address) return null;
     if (!(address.length == 40 || address.length == 42)) return null;
-    return address.toLowerCase().replace(/^0x/, '');
+    address = address.toLowerCase();
+    return address.length == 40 ? `0x${address.toLowerCase()}` : address;
 }
 
 export const chainIdSchema = v.picklist(['mainnet', 'bsc', 'base']);
