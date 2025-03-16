@@ -63,9 +63,9 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const TABLE = `${chain_id}:${EVM_SUBSTREAMS_VERSION}`;
     const query = `
     SELECT
-        concat('0x', contract) as contract,
-        concat('0x', from) as from,
-        concat('0x', to) as to,
+        contract,
+        from,
+        to,
         CAST(value, 'String') AS value,
         toUnixTimestamp(timestamp) as timestamp,
         date
