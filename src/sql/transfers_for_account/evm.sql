@@ -7,15 +7,15 @@ SELECT
     to,
     CAST(value, 'String') AS amount,
     multiIf(
-        contract = 'native' AND chain_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals
     ) AS decimals,
     multiIf(
-        contract = 'native' AND chain_id = 'mainnet', 'ETH',
-        contract = 'native' AND chain_id = 'arbitrum-one', 'ETH',
-        contract = 'native' AND chain_id = 'base', 'ETH',
-        contract = 'native' AND chain_id = 'bnb', 'BNB',
-        contract = 'native' AND chain_id = 'matic', 'POL',
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id = 'mainnet', 'ETH',
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id = 'arbitrum-one', 'ETH',
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id = 'base', 'ETH',
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id = 'bnb', 'BNB',
+        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND chain_id = 'matic', 'POL',
         contracts.symbol
     ) AS symbol,
     {chain_id: String} as chain_id
