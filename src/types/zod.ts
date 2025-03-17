@@ -41,8 +41,11 @@ export const metaSchema = z.object({
     duration_ms: z.optional(z.number()),
 });
 
-export const EvmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
 export const chainIdSchema = z.enum(['mainnet', 'bsc', 'base']);
+export const ageSchema = z.coerce.number().int().min(1).max(365);
+export const limitSchema = z.coerce.number().int().min(1).max(500);
+export const offsetSchema = z.coerce.number().int().min(0).max(500);
 
 // ----------------------
 // API Responses
