@@ -5,19 +5,18 @@
       "name": "erc20-token-api",
       "dependencies": {
         "@clickhouse/client-web": "latest",
-        "@hono/valibot-validator": "^0.5.2",
         "@hono/zod-openapi": "^0.19.0",
+        "@hono/zod-validator": "^0.4.3",
         "@modelcontextprotocol/sdk": "^1.6.1",
-        "@valibot/to-json-schema": "^1.0.0-rc.0",
         "commander": "latest",
         "dotenv": "latest",
         "fastmcp": "^1.20.3",
         "hono": "latest",
-        "hono-openapi": "^0.4.5",
+        "hono-openapi": "^0.4.6",
         "prom-client": "latest",
         "tslog": "latest",
-        "valibot": "^1.0.0-rc.3",
-        "zod": "latest",
+        "zod": "^3.24.2",
+        "zod-openapi": "^4.2.3",
       },
       "devDependencies": {
         "bun-types": "latest",
@@ -347,6 +346,8 @@
     "yoctocolors": ["yoctocolors@2.1.1", "", {}, "sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ=="],
 
     "zod": ["zod@3.24.2", "", {}, "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="],
+
+    "zod-openapi": ["zod-openapi@4.2.3", "", { "peerDependencies": { "zod": "^3.21.4" } }, "sha512-i0SqpcdXfsvVWTIY1Jl3Tk421s9fBIkpXvaA86zDas+8FjfZjm+GX6ot6SPB2SyuHwUNTN02gE5uIVlYXlyrDQ=="],
 
     "zod-to-json-schema": ["zod-to-json-schema@3.24.3", "", { "peerDependencies": { "zod": "^3.24.1" } }, "sha512-HIAfWdYIt1sssHfYZFCXp4rU1w2r8hVVXYIlmoa0r0gABLs5di3RCqPU5DDROogVz1pAdYBaz7HK5n9pSUNs3A=="],
 

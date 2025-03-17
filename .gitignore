@@ -137,6 +137,6 @@ dist
 cursor.lock
 
 # CLI
-erc20-token-api
+pinax-token-api
 
 *.db
