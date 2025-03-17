@@ -28,6 +28,7 @@ export const APP_VERSION = {
     commit: GIT_COMMIT
 };
 export const DEFAULT_AGE = 30;
+export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_OFFSET = 0;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_CHAIN_ID = "mainnet";

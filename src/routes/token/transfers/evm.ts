@@ -33,7 +33,7 @@ const responseSchema = z.object({
         contract: evmAddressSchema,
         from: evmAddressSchema,
         to: evmAddressSchema,
-        value: z.string(),
+        amount: z.string(),
 
         // -- contract --
         symbol: z.string(),
