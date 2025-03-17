@@ -19,7 +19,6 @@ const querySchema = z.object({
     limit: z.optional(limitSchema),
     offset: z.optional(offsetSchema),
     age: z.optional(ageSchema),
-    contract: z.optional(evmAddressSchema),
 });
 
 const responseSchema = z.object({

@@ -15,10 +15,10 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    order_by: z.optional(z.string()),
     chain_id: z.optional(chainIdSchema),
     limit: z.optional(limitSchema),
     offset: z.optional(offsetSchema),
+    order_by: z.optional(z.string()),
 });
 
 const responseSchema = z.object({
