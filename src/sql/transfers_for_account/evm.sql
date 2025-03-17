@@ -23,5 +23,6 @@ FROM transfers
 LEFT JOIN contracts
     ON transfers.contract = contracts.address
 WHERE
-    date >= Date(now()) - {age: Int} AND (from = {address: String} OR to = {address: String})
+    (date >= Date(now()) - {age: Int} AND (from = {address: String} OR to = {address: String}))
+    AND ({contract: String} = '' OR contract = {contract: String})
 ORDER BY block_num DESC;

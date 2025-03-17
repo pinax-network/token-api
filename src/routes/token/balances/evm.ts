@@ -18,6 +18,7 @@ const querySchema = z.object({
     chain_id: z.optional(chainIdSchema),
     limit: z.optional(limitSchema),
     offset: z.optional(offsetSchema),
+    contract: z.optional(z.string()),
 });
 
 const responseSchema = z.object({
@@ -74,10 +75,12 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const chain_id = chainIdSchema.safeParse(c.req.query("chain_id")).data ?? DEFAULT_CHAIN_ID;
     const database = `${chain_id}:${EVM_SUBSTREAMS_VERSION}`;
 
+    const contract = c.req.query("contract") ?? '';
+
     const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on chain_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { address, chain_id }, database);
+    return makeUsageQuery(c, [query], { address, chain_id, contract }, database);
 });
 
 export default route;

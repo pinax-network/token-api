@@ -21,5 +21,6 @@ FROM balances FINAL
 LEFT JOIN contracts
     ON balances.contract = contracts.address
 WHERE
-    owner = {address: String} AND new_balance > 0
+    (owner = {address: String} AND new_balance > 0)
+    AND ({contract: String} = '' OR contract = {contract: String})
 ORDER BY block_num DESC;
