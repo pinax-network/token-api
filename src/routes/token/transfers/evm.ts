@@ -1,32 +1,32 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/valibot';
-import * as v from 'valibot';
+import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { chainIdSchema, EvmAddressSchema, metaSchema, parseEvmAddress } from '../../../types/valibot.js';
+import { chainIdSchema, EvmAddressSchema, metaSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
+import { z } from 'zod';
 
 const route = new Hono();
 
-const paramSchema = v.object({
+const paramSchema = z.object({
     address: EvmAddressSchema,
 });
 
-const querySchema = v.object({
+const querySchema = z.object({
     chain_id: chainIdSchema,
 });
 
-const responseSchema = v.object({
-    data: v.array(v.object({
-        timestamp: v.number(),
-        date: v.string(),
+const responseSchema = z.object({
+    data: z.array(z.object({
+        timestamp: z.number(),
+        date: z.string(),
         contract: EvmAddressSchema,
         from: EvmAddressSchema,
         to: EvmAddressSchema,
-        value: v.string(),
+        value: z.string(),
     })),
-    meta: v.optional(metaSchema),
+    meta: z.optional(metaSchema),
 });
 
 const openapi = describeRoute({
@@ -57,9 +57,10 @@ const openapi = describeRoute({
 });
 
 route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const address = parseEvmAddress(c.req.param("address"));
-    if (!address) return c.json({ error: 'invalid EVM address' }, 400);
+    const parseAddress = EvmAddressSchema.safeParse(c.req.param("address"));
+    if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
+    const address = parseAddress.data;
     const chain_id = c.req.query("chain_id");
     const database = `${chain_id}:${EVM_SUBSTREAMS_VERSION}`;
 

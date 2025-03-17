@@ -27,11 +27,28 @@ export const paginationQuery = z.object({
 });
 export type PaginationQuery = z.infer<typeof paginationQuery>;
 
+export const statisticsSchema = z.object({
+    elapsed: z.optional(z.number()),
+    rows_read: z.optional(z.number()),
+    bytes_read: z.optional(z.number()),
+});
+
+export const metaSchema = z.object({
+    statistics: z.optional(statisticsSchema),
+    rows: z.optional(z.number()),
+    rows_before_limit_at_least: z.optional(z.number()),
+    request_time: z.optional(z.string()), // z.isoTimestamp('yyyy-mm-ddThh:mm:ss.sssZ')
+    duration_ms: z.optional(z.number()),
+});
+
+export const EvmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+export const chainIdSchema = z.enum(['mainnet', 'bsc', 'base']);
+
 // ----------------------
 // API Responses
 // ----------------------
 export const apiErrorResponse = z.object({
-    "status": z.union([z.literal(500),z.literal(502), z.literal(504), z.literal(400), z.literal(401), z.literal(403), z.literal(404), z.literal(405)]),
+    "status": z.union([z.literal(500), z.literal(502), z.literal(504), z.literal(400), z.literal(401), z.literal(403), z.literal(404), z.literal(405)]),
     "code": z.enum(["bad_database_response", "connection_refused", "authentication_failed", "bad_header", "missing_required_header", "bad_query_input", "database_timeout", "forbidden", "internal_server_error", "method_not_allowed", "route_not_found", "unauthorized", "not_found_data"]),
     "message": z.coerce.string()
 });

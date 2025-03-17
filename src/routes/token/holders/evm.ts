@@ -1,31 +1,31 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/valibot';
-import * as v from 'valibot';
+import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { chainIdSchema, EvmAddressSchema, metaSchema, parseEvmAddress } from '../../../types/valibot.js';
+import { chainIdSchema, EvmAddressSchema, metaSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
+import { z } from 'zod';
 
 const route = new Hono();
 
-const paramSchema = v.object({
+const paramSchema = z.object({
     contract: EvmAddressSchema,
 });
 
-const querySchema = v.object({
+const querySchema = z.object({
     chain_id: chainIdSchema,
-    order_by: v.optional(v.string()),
+    order_by: z.optional(z.string()),
 });
 
-const responseSchema = v.object({
-    data: v.array(v.object({
-        timestamp: v.number(),
-        date: v.string(),
+const responseSchema = z.object({
+    data: z.array(z.object({
+        timestamp: z.number(),
+        date: z.string(),
         contract: EvmAddressSchema,
-        amount: v.string(),
+        amount: z.string(),
     })),
-    meta: v.optional(metaSchema),
+    meta: z.optional(metaSchema),
 });
 
 const openapi = describeRoute({
@@ -54,9 +54,10 @@ const openapi = describeRoute({
 });
 
 route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const contract = parseEvmAddress(c.req.param("contract"));
-    if (!contract) return c.json({ error: 'invalid EVM contract' }, 400);
+    const parseContract = EvmAddressSchema.safeParse(c.req.param("contract"));
+    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
 
+    const contract = parseContract.data;
     const chain_id = c.req.query("chain_id");
     const database = `${chain_id}:${EVM_SUBSTREAMS_VERSION}`;
 
