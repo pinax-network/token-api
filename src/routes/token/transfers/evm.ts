@@ -57,12 +57,16 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "contract": "0x27695e09149adc738a978e9a678f99e4c39e9eb9",
-                                "from": "0x2b5634c42055806a59e9107ed44d43c426e58258",
-                                "to": "0xa78c4208fe4fedd86fc90fad93d6fb154c3936a4",
-                                "value": "8000000000000",
-                                "timestamp": 1529002377,
-                                "date": "2018-06-14"
+                                "block_num": 22049790,
+                                "timestamp": 1742011715,
+                                "date": "2025-03-15",
+                                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "from": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+                                "to": "0x28c6c06298d514db089934071355e5743bf21d60",
+                                "amount": "200000000000000",
+                                "decimals": 6,
+                                "symbol": "USDC",
+                                "chain_id": "mainnet"
                             }
                         ]
                     }

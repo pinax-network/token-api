@@ -17,9 +17,9 @@ SELECT
         contracts.symbol
     ) AS symbol,
     {chain_id: String} as chain_id
-FROM balances FINAL
+FROM balances_by_contract FINAL
 LEFT JOIN contracts
     ON balances.contract = contracts.address
 WHERE
     contract = {contract: String} AND new_balance > 0
-ORDER BY amount DESC;
+ORDER BY new_balance DESC;

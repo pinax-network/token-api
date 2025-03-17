@@ -14,7 +14,6 @@ const client = (database?: string) => {
         },
         application: APP_NAME,
     });
- 
     return c;
 }
 
