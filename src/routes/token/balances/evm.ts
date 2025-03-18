@@ -45,7 +45,7 @@ const responseSchema = z.object({
 const openapi = describeRoute({
     description: 'Token Balances by Wallet Address',
     tags: ['EVM'],
-    security: [{ ApiKeyAuth: [] }],
+    security: [{ bearerAuth: [] }],
     responses: {
         200: {
             description: 'Successful Response',
