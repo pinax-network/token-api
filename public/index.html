@@ -7,12 +7,24 @@
   <meta name="description" content="Stoplight" />
   <title>Pinax Token API (Beta)</title>
   <link href="/favicon.ico" rel="icon" type="image/x-icon">
-  <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
 </head>
 
 <body>
-  <elements-api apiDescriptionUrl="/openapi" router="hash" layout="sidebar" />
+  <div id="app"></div>
+
+  <!-- Load the Script -->
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+
+  <!-- Initialize the Scalar API Reference -->
+  <script>
+    Scalar.createApiReference('#app', {
+      // The URL of the OpenAPI/Swagger document
+      url: '/openapi',
+      // Avoid CORS issues
+      proxyUrl: 'https://proxy.scalar.com',
+      theme: 'default'
+    })
+  </script>
 </body>
 
 </html>
