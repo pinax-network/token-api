@@ -31,7 +31,8 @@ export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_OFFSET = 0;
 export const DEFAULT_LIMIT = 10;
-export const DEFAULT_CHAIN_ID = "mainnet";
+export const DEFAULT_NETWORK_ID = "mainnet";
+export const DEFAULT_NETWORKS = "mainnet,bsc,base"
 
 // parse command line options
 const opts = program
@@ -53,6 +54,7 @@ const opts = program
     .addOption(new Option("--max-bytes-trigger <number>", "Queries processing bytes above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_BYTES_TRIGGER").default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER))
     .addOption(new Option("--request-idle-timeout <number>", "Bun server request idle timeout (seconds)").env("BUN_IDLE_REQUEST_TIMEOUT").default(DEFAULT_IDLE_TIMEOUT))
     .addOption(new Option("--pretty-logging <boolean>", "Enable pretty logging (default JSON)").choices(["true", "false"]).env("PRETTY_LOGGING").default(DEFAULT_PRETTY_LOGGING))
+    .addOption(new Option("--networks <string>", "Supported The Graph Network IDs").env("NETWORKS").default(DEFAULT_NETWORKS))
     .addOption(new Option("-v, --verbose <boolean>", "Enable verbose logging").choices(["true", "false"]).env("VERBOSE").default(DEFAULT_VERBOSE))
     .parse()
     .opts();
@@ -71,6 +73,7 @@ export const config = z.object({
     maxRowsTrigger: z.coerce.number(),
     maxBytesTrigger: z.coerce.number(),
     requestIdleTimeout: z.coerce.number(),
+    networks: z.string().transform((networks) => networks.split(',')),
     // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
     prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
     verbose: z.coerce.string().transform((val) => val.toLowerCase() === "true"),

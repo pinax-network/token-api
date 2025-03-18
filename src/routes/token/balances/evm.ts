@@ -2,11 +2,11 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { chainIdSchema, evmAddressSchema, limitSchema, metaSchema, offsetSchema } from '../../../types/zod.js';
+import { networkIdSchema, evmAddressSchema, limitSchema, metaSchema, offsetSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { DEFAULT_CHAIN_ID } from '../../../config.js';
+import { DEFAULT_NETWORK_ID } from '../../../config.js';
 
 const route = new Hono();
 
@@ -15,7 +15,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    chain_id: z.optional(chainIdSchema),
+    network_id: z.optional(networkIdSchema),
     limit: z.optional(limitSchema),
     offset: z.optional(offsetSchema),
     contract: z.optional(z.string()),
@@ -36,8 +36,8 @@ const responseSchema = z.object({
         symbol: z.string(),
         decimals: z.number(),
 
-        // -- chain --
-        chain_id: chainIdSchema,
+        // -- network --
+        network_id: networkIdSchema,
     })),
     meta: z.optional(metaSchema),
 });
@@ -57,11 +57,11 @@ const openapi = describeRoute({
                                 "block_num": 22067152,
                                 "timestamp": 1742221043,
                                 "date": "2025-03-17",
-                                "contract": "native",
+                                "contract": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
                                 "amount": "159482036593475716150538",
                                 "decimals": 18,
                                 "symbol": "ETH",
-                                "chain_id": "mainnet"
+                                "network_id": "mainnet"
                             },
                         ]
                     }
@@ -76,15 +76,15 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
     const address = parseAddress.data;
-    const chain_id = chainIdSchema.safeParse(c.req.query("chain_id")).data ?? DEFAULT_CHAIN_ID;
-    const database = `${chain_id}:${EVM_SUBSTREAMS_VERSION}`;
+    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
+    const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
 
     const contract = c.req.query("contract") ?? '';
 
-    const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on chain_id
+    const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { address, chain_id, contract }, database);
+    return makeUsageQuery(c, [query], { address, network_id, contract }, database);
 });
 
 export default route;
