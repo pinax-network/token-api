@@ -4,6 +4,7 @@ import { Option, program } from "commander";
 
 import pkg from "../package.json" with { type: "json" };
 
+// defaults
 export const DEFAULT_PORT = "3000";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_SSE_PORT = "8080";
@@ -26,6 +27,11 @@ export const APP_VERSION = {
     version: pkg.version,
     commit: GIT_COMMIT
 };
+export const DEFAULT_AGE = 30;
+export const DEFAULT_MAX_AGE = 180;
+export const DEFAULT_OFFSET = 0;
+export const DEFAULT_LIMIT = 10;
+export const DEFAULT_CHAIN_ID = "mainnet";
 
 // parse command line options
 const opts = program

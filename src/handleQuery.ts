@@ -1,18 +1,20 @@
 import { Context } from "hono";
 import { APIErrorResponse } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "./config.js";
+import { limitSchema, offsetSchema } from "./types/zod.js";
 
 export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
     // pagination
-    if (!query_params['limit']) {
-        query.push('LIMIT {limit: int}');
-        query_params.limit = 10;
-    }
-    if (!query_params['offset']) {
-        query.push('OFFSET {offset: int}');
-        query_params.offset = 0;
-    }
+    const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
+    query.push('LIMIT {limit: int}');
+    query_params.limit = limit;
 
+    const offset = offsetSchema.safeParse(ctx.req.query("offset")).data ?? DEFAULT_OFFSET;
+    query.push('OFFSET {offset: int}');
+    query_params.offset = offset;
+
+    // start of request
     const request_time = new Date();
 
     // inject request query params
