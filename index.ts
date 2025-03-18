@@ -36,10 +36,10 @@ app.get('/openapi', openAPISpecs(app, {
         ],
         components: {
             securitySchemes: {
-                ApiKeyAuth: {
-                    type: "apiKey",
-                    in: "header",
-                    name: "X-Api-Key"
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
                 },
             }
         }
