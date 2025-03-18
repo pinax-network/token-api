@@ -43,7 +43,7 @@ export const metaSchema = z.object({
 });
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
-export const chainIdSchema = z.enum(['mainnet', 'bsc', 'base']);
+export const networkIdSchema = z.enum(['mainnet', 'bsc', 'base']);
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
 export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
 export const offsetSchema = z.coerce.number().int().min(0).max(500).default(0);
