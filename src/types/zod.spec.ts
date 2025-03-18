@@ -1,6 +1,6 @@
 // example1.test.js
 import { it, expect } from "bun:test";
-import { chainIdSchema, evmAddressSchema } from "./zod.js";
+import { networkIdSchema, evmAddressSchema } from "./zod.js";
 import { ZodError } from "zod";
 
 it("evmAddressSchema", () => {
@@ -12,7 +12,7 @@ it("evmAddressSchema", () => {
     expect(() => evmAddressSchema.parse("")).toThrowError(ZodError);
 });
 
-it("chainIdSchema", () => {
-    expect(chainIdSchema.parse("mainnet")).toBe("mainnet");
-    expect(() => chainIdSchema.parse("invalid")).toThrowError(ZodError);
+it("networkIdSchema", () => {
+    expect(networkIdSchema.parse("mainnet")).toBe("mainnet");
+    expect(() => networkIdSchema.parse("invalid")).toThrowError(ZodError);
 });

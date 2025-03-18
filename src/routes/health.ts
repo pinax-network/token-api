@@ -18,7 +18,7 @@ const openapi = describeRoute({
     tags: ['Monitoring'],
     responses: {
         200: {
-            description: 'Health status of the API',
+            description: 'Successful Response',
             content: {
                 'text/plain': { schema: resolver(v.string()), example: 'OK' },
             },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_OFFSET } from "../config.js";
+import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE } from "../config.js";
 
 // ----------------------
 // Common schemas
@@ -43,10 +43,10 @@ export const metaSchema = z.object({
 });
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
-export const chainIdSchema = z.enum(['mainnet', 'bsc', 'base']);
+export const networkIdSchema = z.enum(['mainnet', 'bsc', 'base']);
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
-export const limitSchema = z.coerce.number().int().min(1).max(1000).default(DEFAULT_LIMIT);
-export const offsetSchema = z.coerce.number().int().min(0).default(DEFAULT_OFFSET);
+export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
+export const offsetSchema = z.coerce.number().int().min(0).max(500).default(0);
 
 // ----------------------
 // API Responses

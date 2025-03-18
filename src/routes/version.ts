@@ -16,7 +16,7 @@ const openapi = describeRoute({
     tags: ['Monitoring'],
     responses: {
         200: {
-            description: 'The version of the API',
+            description: 'Successful Response',
             content: {
                 'application/json': { schema: resolver(responseSchema), example: {
                     version: APP_VERSION.version,
