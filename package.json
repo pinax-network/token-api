@@ -39,6 +39,7 @@
         "@hono/zod-validator": "^0.4.3",
         "@modelcontextprotocol/sdk": "^1.6.1",
         "@pinax/graph-networks-registry": "^0.6.7",
+        "@web3icons/core": "^4.0.10",
         "commander": "latest",
         "dotenv": "latest",
         "fastmcp": "^1.20.3",
