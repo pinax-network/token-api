@@ -35,7 +35,7 @@ const responseSchema = z.object({
         decimals: z.number(),
 
         // -- token --
-        total_supply: z.number(),
+        total_supply: z.string(),
         holders: z.number(),
 
         // -- chain --
