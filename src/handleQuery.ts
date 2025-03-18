@@ -25,7 +25,7 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
         if (result.data.length === 0) {
             return APIErrorResponse(ctx, 404, "not_found_data", `No data found`);
         }
-        return ctx.json({
+        return {
             data: result.data,
             meta: {
                 statistics: result.statistics ?? null,
@@ -34,7 +34,7 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
                 request_time,
                 duration_ms: Number(new Date()) - Number(request_time),
             }
-        });
+        };
     } catch (err) {
         return APIErrorResponse(ctx, 500, "bad_database_response", err);
     }
