@@ -1,13 +1,13 @@
 // From https://github.com/ClickHouse/clickhouse-js/blob/6e26010036bc108c835d16c5a4904c6dc6039e70/packages/client-common/src/data_formatter/format_query_params.ts#L5
 // Allows for safe quoting of variables in SQL queries when not able to use query params
 import { formatQueryParams } from "@clickhouse/client-common";
-import { UserError } from "fastmcp";
+import { Progress, UserError } from "fastmcp";
 import { makeQuery } from "../clickhouse/makeQuery.js";
 
-export async function runSQLMCP(sql: string): Promise<string> {
+export async function runSQLMCP(sql: string, reportProgress?: (progress: Progress) => Promise<void>): Promise<string> {
     let response;
     try {
-        response = await makeQuery(sql);
+        response = await makeQuery(sql, {}, undefined, reportProgress);
     } catch (error) {
         throw new UserError(`Error while running SQL query: ${error}`);
     }

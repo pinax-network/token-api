@@ -7,8 +7,8 @@ export default [
         name: "list_databases",
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
-        execute: async () => {
-            return runSQLMCP("SHOW DATABASES");
+        execute: async ({ reportProgress }) => {
+            return runSQLMCP("SHOW DATABASES", reportProgress);
         },
     },
     {
@@ -17,9 +17,9 @@ export default [
         parameters: z.object({
             database: z.string() // TODO: Add validation for allowed databases on ClickHouse side (user permissions)
         }),
-        execute: async (args) => {
+        execute: async (args, { reportProgress }) => {
             // Filter out backfill tables as well (TODO: could be done with user permissions ?)
-            return runSQLMCP(`SHOW TABLES FROM ${escapeSQL(args.database)} NOT LIKE '%backfill%'`);
+            return runSQLMCP(`SHOW TABLES FROM ${escapeSQL(args.database)} NOT LIKE '%backfill%'`, reportProgress);
         },
     },
     {
@@ -29,8 +29,8 @@ export default [
             database: z.string(),
             table: z.string(),
         }),
-        execute: async (args) => {
-            return runSQLMCP(`DESCRIBE ${escapeSQL(args.database)}.${escapeSQL(args.table)}`);
+        execute: async (args, { reportProgress }) => {
+            return runSQLMCP(`DESCRIBE ${escapeSQL(args.database)}.${escapeSQL(args.table)}`, reportProgress);
         },
     },
     {
@@ -39,8 +39,8 @@ export default [
         parameters: z.object({
             query: z.string()
         }),
-        execute: async (args) => {
-            return runSQLMCP(args.query);
+        execute: async (args, { reportProgress }) => {
+            return runSQLMCP(args.query, reportProgress);
         },
     },
 ] as Tool<undefined, z.ZodTypeAny>[];
