@@ -2,9 +2,25 @@ import { Context } from "hono";
 import { APIErrorResponse } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
 import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "./config.js";
-import { limitSchema, offsetSchema } from "./types/zod.js";
+import { ApiErrorResponse, limitSchema, offsetSchema } from "./types/zod.js";
 
+export async function handleUsageQueryError(ctx: Context, result: any) {
+    if (result.status !== 200 as ApiErrorResponse["status"]) {
+        return APIErrorResponse(ctx, result.status as ApiErrorResponse["status"], result.code as ApiErrorResponse["code"], result.message);
+    }
+    return ctx.json(result);
+}
+
+// backwards compatible
 export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
+    const result = await makeUsageQueryJson(ctx, query, query_params, database);
+    if (result.status !== 200 as ApiErrorResponse["status"]) {
+        return APIErrorResponse(ctx, result.status as ApiErrorResponse["status"], result.code as ApiErrorResponse["code"], result.message);
+    }
+    return ctx.json(result);
+}
+
+export async function makeUsageQueryJson<T = unknown>(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
     // pagination
     const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
     query.push('LIMIT {limit: int}');
@@ -21,12 +37,17 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
     query_params = { ...ctx.req.param(), ...ctx.req.query(), ...query_params };
 
     try {
-        const result = await makeQuery(query.join(" "), query_params, database);
+        const result = await makeQuery<T>(query.join(" "), query_params, database);
         if (result.data.length === 0) {
-            return APIErrorResponse(ctx, 404, "not_found_data", `No data found`);
+            return {
+                status: 404 as ApiErrorResponse["status"],
+                code: "not_found_data" as ApiErrorResponse["code"],
+                message: 'No data found'
+            };
         }
         return {
             data: result.data,
+            status: 200 as ApiErrorResponse["status"],
             meta: {
                 statistics: result.statistics ?? null,
                 rows: result.rows ?? 0,
@@ -36,6 +57,10 @@ export async function makeUsageQuery(ctx: Context, query: string[], query_params
             }
         };
     } catch (err) {
-        return APIErrorResponse(ctx, 500, "bad_database_response", err);
+        return {
+            status: 500 as ApiErrorResponse["status"],
+            code: "bad_database_response" as ApiErrorResponse["code"],
+            message: err
+        };
     }
 }

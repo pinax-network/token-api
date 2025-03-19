@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { makeUsageQuery } from '../../../handleQuery.js';
-import { networkIdSchema, evmAddressSchema, metaSchema } from '../../../types/zod.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
+import { networkIdSchema, evmAddressSchema, metaSchema, ApiErrorResponse } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
@@ -86,18 +86,22 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const query = sqlQueries['tokens_for_contract']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response: any = await makeUsageQuery(c, [query], { contract, network_id }, database);
+    type Data = {symbol: string, icon: {web3icon: string}}
+    const result = await makeUsageQueryJson<Data>(c, [query], { contract, network_id }, database);
 
     // inject Web3 Icons
-    response.data.forEach((row: any) => {
-        const web3icon = findIcon(row.symbol);
-        if (web3icon) {
-            row.icon = {
-                web3icon
+    if ( result?.data && result.status == 200 as ApiErrorResponse["status"]) {
+        result.data.forEach((row: Data) => {
+            const web3icon = findIcon(row.symbol);
+            if (web3icon) {
+                row.icon = {
+                    web3icon
+                }
             }
-        }
-    });
-    return c.json(response);
+        });
+        return c.json(result);
+    }
+    return handleUsageQueryError(c, result);
 });
 
 function findIcon(symbol?: string) {
