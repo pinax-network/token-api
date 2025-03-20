@@ -32,7 +32,7 @@ export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_OFFSET = 0;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_NETWORK_ID = "mainnet";
-export const DEFAULT_NETWORKS = "mainnet,bsc,base"
+export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 
 // parse command line options
 const opts = program
