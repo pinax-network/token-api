@@ -5,11 +5,10 @@ import { Option, program } from "commander";
 import pkg from "../package.json" with { type: "json" };
 
 // defaults
-export const DEFAULT_PORT = "3000";
+export const DEFAULT_PORT = "8000";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_SSE_PORT = "8080";
 export const DEFAULT_SSE_ENDPOINT = "sse";
-export const DEFAULT_OPENAPI_SERVER_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}`; // https://beta.api.pinax.network
 export const DEFAULT_URL = "http://localhost:8123";
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
@@ -48,7 +47,6 @@ const opts = program
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified username").env("PASSWORD").default(DEFAULT_PASSWORD))
-    .addOption(new Option("--openapi-server-url <string>", "OpenAPI Server URL").env("OPENAPI_SERVER_URL").default(DEFAULT_OPENAPI_SERVER_URL))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .addOption(new Option("--max-rows-trigger <number>", "Queries returning rows above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_ROWS_TRIGGER").default(DEFAULT_LARGE_QUERIES_ROWS_TRIGGER))
     .addOption(new Option("--max-bytes-trigger <number>", "Queries processing bytes above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_BYTES_TRIGGER").default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER))
@@ -68,7 +66,6 @@ export const config = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
-    openapiServerUrl: z.string(),
     maxLimit: z.coerce.number(),
     maxRowsTrigger: z.coerce.number(),
     maxBytesTrigger: z.coerce.number(),

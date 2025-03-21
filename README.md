@@ -1,85 +1,54 @@
-# Pinax: `Token API`
+# The Graph: `Token API`
 
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml)
+![license](https://img.shields.io/github/license/pinax-network/pinax-token-api)
 
-> Collection of token-based APIs, covering ERC-20 and native tokens for balances, transfers, and contract data (powered by [Substreams](https://thegraph.com/docs/substreams). **MCP Server** supports multiple chains and token standards, including EVM, Solana, and Antelope.
+> Power your apps with real-time token data.
+
+![banner](banner.jpg)
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  S1[ERC-20.spkg] --> Sink{Substreams SQL Sink}
-  S2[EVM Native.spkg] --> Sink
-  S3[SPL Token.spkg] --> Sink
-  S4[eosio.token.spkg] --> Sink
+  S1[EVM Tokens.spkg] --> Sink{Substreams SQL Sink}
+  S2[SVM Tokens.spkg] --> Sink
+  S3[Antelope Tokens.spkg] --> Sink
   Sink --> Clickhouse
-  Clickhouse((Clickhouse)) --> Server{Pinax MCP Server}
-  Clickhouse --> API{Pinax Token API}
+  Clickhouse((Clickhouse)) --> Server{MCP Server}
+  Clickhouse --> API{Token API}
 ```
 
 ## Supported Endpoints
 
-### Tokens
-- [x] EVM
-  - [x] Native
-  - [x] ERC-20
-- [ ] SVN (Solana)
-  - [ ] Native
-  - [ ] SPL Token
-- [ ] Antelope
-  - [ ] Native
-  - [ ] eosio.token
+- [x] Balances
+- [x] Holders
+- [x] Tokens
+- [x] Transfers
 
-### Token Balances
-- [x] EVM
-- [ ] SVN (Solana)
-- [ ] Antelope
+## Supported Networks
 
-### Token Transfers
-- [x] EVM
+- [x] EVM (Ethereum, Base, Arbitrum, BSC, etc.)
 - [ ] SVN (Solana)
-- [ ] Antelope
-
-### Token Holders
-- [x] EVM
-- [ ] SVN (Solana)
-- [ ] Antelope
-
-### Token Prices
-- [ ] EVM
-  - [ ] Uniswap V2
-  - [ ] Uniswap V3
-  - [ ] CurveFi
-  - [ ] SushiSwap
-- [ ] SVN (Solana)
-  - [ ] Orca
-  - [ ] Raydium
-- [ ] Antelope
-  - [ ] Defibox
-
-### Transactions
-- [ ] EVM
-- [ ] SVN (Solana)
-- [ ] Antelope
-
-### NFTs
-- [ ] EVM
-- [ ] SVN (Solana)
-- [ ] Antelope
+- [ ] Antelope (Vaulta, WAX, Telos, Ultra)
 
 ## `.env` Environment variables
 
 ```env
-# Token API Server
-PORT=8080
+# API Server
+PORT=8000
 HOSTNAME=localhost
 
-# Bun request timeout in seconds
-BUN_IDLE_REQUEST_TIMEOUT=60
-
 # MCP Server
-HOST=https://beta.mcp.pinax.network
-PINAX_API_KEY="f98f••••••••••••••••••••5247"
+SSE_PORT=8080
+SSE_ENDPOINT=sse
+
+# Clickhouse Database
+URL=http://127.0.0.1:8123
+DATABASE=default
+USERNAME=default
+PASSWORD=
+MAX_LIMIT=10000
 
 # Logging
 PRETTY_LOGGING=true
@@ -113,7 +82,7 @@ docker build \
 - Run with `.env` file
 
 ```bash
-docker run -it --rm --env-file .env -p 3000:3000 ghcr.io/pinax-network/pinax-token-api:develop
+docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/pinax-token-api:develop
 ```
 
 ## Contributing

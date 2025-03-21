@@ -27,12 +27,12 @@ app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
         info: {
-            title: 'Pinax Token API (Beta)',
+            title: 'Token API (Beta)',
             version: APP_VERSION.version,
-            description: 'Collection of SQL based APIs by built on top of Pinax MCP Server (powered by Substreams).',
+            description: 'Power your apps with real-time token data.',
         },
         servers: [
-            { url: config.openapiServerUrl, description: APP_NAME },
+            { url: `https://token-api.service.pinax.network`, description: APP_NAME },
             { url: `http://localhost:${config.port}`, description: `${APP_NAME} - Local` },
         ],
         components: {
