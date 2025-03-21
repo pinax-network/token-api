@@ -1,5 +1,5 @@
 import { Hono, type Context } from "hono";
-import { APP_NAME, APP_VERSION, config } from "./src/config.js";
+import { APP_DESCRIPTION, APP_VERSION, config } from "./src/config.js";
 import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
 import { openAPISpecs } from 'hono-openapi';
@@ -32,8 +32,8 @@ app.get('/openapi', openAPISpecs(app, {
             description: 'Power your apps with real-time token data.',
         },
         servers: [
-            { url: `https://token-api.service.pinax.network`, description: APP_NAME },
-            { url: `http://localhost:${config.port}`, description: `${APP_NAME} - Local` },
+            { url: `https://token-api.service.pinax.network`, description: `${APP_DESCRIPTION} - Production` },
+            { url: `http://localhost:${config.port}`, description: `${APP_DESCRIPTION} - Local` },
         ],
         components: {
             securitySchemes: {

@@ -1,14 +1,14 @@
 import { FastMCP } from "fastmcp";
 
-import { config } from "../config.js";
+import { APP_DESCRIPTION, APP_VERSION, config } from "../config.js";
 import { logger } from "../logger.js";
 import tools from "./tools.js";
 import prompts from "./prompts.js";
 import { resources, resourceTemplates } from "./resources.js";
 
 const mcp = new FastMCP({
-    name: "Pinax Token API MCP Server",
-    version: "1.0.0",
+    name: APP_DESCRIPTION,
+    version: APP_VERSION.version,
 });
 
 // Catch session errors (default MCP SDK timeout of 10 seconds) and close connection

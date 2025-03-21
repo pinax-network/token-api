@@ -1,16 +1,16 @@
 import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
-import { resolver } from 'hono-openapi/valibot'
-import * as v from 'valibot'
+import { resolver } from 'hono-openapi/zod';
 import client from '../clickhouse/client.js'
 import { APIErrorResponse } from '../utils.js'
+import { z } from 'zod'
 
 const route = new Hono();
 
-const errorSchema = v.object({
-    status: v.number(),
-    code: v.string(),
-    message: v.string(),
+const errorSchema = z.object({
+    status: z.number(),
+    code: z.string(),
+    message: z.string(),
 });
 
 const openapi = describeRoute({
@@ -20,7 +20,7 @@ const openapi = describeRoute({
         200: {
             description: 'Successful Response',
             content: {
-                'text/plain': { schema: resolver(v.string()), example: 'OK' },
+                'text/plain': { schema: resolver(z.string()), example: 'OK' },
             },
         },
         403: {

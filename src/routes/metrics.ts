@@ -1,1 +1,0 @@
-// app.get("/metrics", async () => new Response(await prometheus.registry.metrics()));

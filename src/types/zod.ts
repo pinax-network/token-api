@@ -68,7 +68,7 @@ export const apiUsageResponse = z.object({
     statistics: z.optional(statisticsSchema),
     pagination: paginationSchema,
     results: z.optional(z.number()),
-    total_results: z.optional(z.number()),    
+    total_results: z.optional(z.number()),
     request_time: z.date(),
     duration_ms: z.number()
 });
