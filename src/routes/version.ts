@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
-import { resolver } from 'hono-openapi/valibot'
+import { resolver } from 'hono-openapi/zod'
 import { APP_VERSION } from '../config.js'
 import { z } from 'zod'
 

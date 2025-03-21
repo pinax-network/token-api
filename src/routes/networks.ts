@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
-import { resolver } from 'hono-openapi/valibot'
-import * as v from 'valibot'
+import { resolver } from 'hono-openapi/zod';
 import { config  } from '../config.js'
 import { NetworksRegistry } from "@pinax/graph-networks-registry";
 
