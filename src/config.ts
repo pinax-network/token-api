@@ -29,7 +29,7 @@ export const APP_VERSION = {
 };
 export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
-export const DEFAULT_OFFSET = 0;
+export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_NETWORK_ID = "mainnet";
 export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"

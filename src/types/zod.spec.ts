@@ -1,6 +1,6 @@
 // example1.test.js
 import { it, expect } from "bun:test";
-import { networkIdSchema, evmAddressSchema } from "./zod.js";
+import { networkIdSchema, evmAddressSchema, paginationSchema } from "./zod.js";
 import { ZodError } from "zod";
 
 it("evmAddressSchema", () => {
@@ -15,4 +15,77 @@ it("evmAddressSchema", () => {
 it("networkIdSchema", () => {
     expect(networkIdSchema.parse("mainnet")).toBe("mainnet");
     expect(() => networkIdSchema.parse("invalid")).toThrowError(ZodError);
+});
+
+it("paginationSchema", () => {
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 1,
+        next_page: 2,
+        total_pages: 3,
+    })).not.toThrow();
+
+    // OK only one page
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 1,
+        next_page: 1,
+        total_pages: 1,
+    })).not.toThrow();
+
+    // Invalid, 0 page
+    expect(() => paginationSchema.parse({
+        previous_page: 0,
+        current_page: 1,
+        next_page: 2,
+        total_pages: 3,
+    })).toThrowError(ZodError);
+
+    // Invalid, 0 page
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 0,
+        next_page: 2,
+        total_pages: 3,
+    })).toThrowError(ZodError);
+
+    // Invalid, 0 page
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 1,
+        next_page: 0,
+        total_pages: 3,
+    })).toThrowError(ZodError);
+
+    // Invalid, 0 page
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 1,
+        next_page: 2,
+        total_pages: 0,
+    })).toThrowError(ZodError);
+
+    // Invalid, previous > current
+    expect(() => paginationSchema.parse({
+        previous_page: 2,
+        current_page: 1,
+        next_page: 2,
+        total_pages: 3,
+    })).toThrowError(ZodError);
+
+    // Invalid, current > next
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 3,
+        next_page: 2,
+        total_pages: 3,
+    })).toThrowError(ZodError);
+
+    // Invalid, next > total
+    expect(() => paginationSchema.parse({
+        previous_page: 1,
+        current_page: 1,
+        next_page: 3,
+        total_pages: 2,
+    })).toThrowError(ZodError);
 });
