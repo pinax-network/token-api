@@ -1,14 +1,14 @@
 import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver } from 'hono-openapi/valibot'
-import * as v from 'valibot'
 import { APP_VERSION } from '../config.js'
+import { z } from 'zod'
 
 const route = new Hono();
 
-const responseSchema = v.object({
-    version: v.string(),
-    commit: v.string(),
+const responseSchema = z.object({
+    version: z.string(),
+    commit: z.string(),
 });
 
 const openapi = describeRoute({
