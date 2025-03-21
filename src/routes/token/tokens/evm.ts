@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { networkIdSchema, evmAddressSchema, metaSchema, ApiErrorResponse } from '../../../types/zod.js';
+import { networkIdSchema, evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
@@ -41,11 +41,11 @@ const responseSchema = z.object({
         // -- chain --
         network_id: networkIdSchema,
     })),
-    meta: z.optional(metaSchema),
+    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
-    description: 'Token Holders by Contract Address',
+    description: 'Token Holders and Supply by Contract Address',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -90,7 +90,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const result = await makeUsageQueryJson<Data>(c, [query], { contract, network_id }, database);
 
     // inject Web3 Icons
-    if ( result?.data && result.status == 200 as ApiErrorResponse["status"]) {
+    if ( 'data' in result ) {
         result.data.forEach((row: Data) => {
             const web3icon = findIcon(row.symbol);
             if (web3icon) {

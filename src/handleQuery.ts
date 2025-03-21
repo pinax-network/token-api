@@ -1,34 +1,41 @@
 import { Context } from "hono";
-import { APIErrorResponse } from "./utils.js";
+import { APIErrorResponse, computePagination } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from "./config.js";
-import { ApiErrorResponse, limitSchema, offsetSchema } from "./types/zod.js";
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from "./config.js";
+import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./types/zod.js";
 
-export async function handleUsageQueryError(ctx: Context, result: any) {
-    if (result.status !== 200 as ApiErrorResponse["status"]) {
-        return APIErrorResponse(ctx, result.status as ApiErrorResponse["status"], result.code as ApiErrorResponse["code"], result.message);
-    }
+export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
+    if ('status' in result)
+        return APIErrorResponse(
+            ctx,
+            result.status,
+            result.code,
+            result.message
+        );
+
     return ctx.json(result);
 }
 
 // backwards compatible
 export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
     const result = await makeUsageQueryJson(ctx, query, query_params, database);
-    if (result.status !== 200 as ApiErrorResponse["status"]) {
-        return APIErrorResponse(ctx, result.status as ApiErrorResponse["status"], result.code as ApiErrorResponse["code"], result.message);
-    }
-    return ctx.json(result);
+    return await handleUsageQueryError(ctx, result);
 }
 
-export async function makeUsageQueryJson<T = unknown>(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
-    // pagination
+export async function makeUsageQueryJson<T = unknown>(
+    ctx: Context,
+    query: string[],
+    query_params: Record<string, string | number> = {},
+    database: string
+): Promise<ApiUsageResponse | ApiErrorResponse> {
     const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
     query.push('LIMIT {limit: int}');
     query_params.limit = limit;
 
-    const offset = offsetSchema.safeParse(ctx.req.query("offset")).data ?? DEFAULT_OFFSET;
+    const page = pageSchema.safeParse(ctx.req.query("page")).data ?? DEFAULT_PAGE;
     query.push('OFFSET {offset: int}');
-    query_params.offset = offset;
+    // Since `page` starts at 1, `offset` should be positive for page > 1
+    query_params.offset = query_params.limit * (page - 1);
 
     // start of request
     const request_time = new Date();
@@ -45,22 +52,22 @@ export async function makeUsageQueryJson<T = unknown>(ctx: Context, query: strin
                 message: 'No data found'
             };
         }
+
+        const total_results = result.rows_before_limit_at_least ?? 0;
         return {
             data: result.data,
-            status: 200 as ApiErrorResponse["status"],
-            meta: {
-                statistics: result.statistics ?? null,
-                rows: result.rows ?? 0,
-                rows_before_limit_at_least: result.rows_before_limit_at_least ?? 0,
-                request_time,
-                duration_ms: Number(new Date()) - Number(request_time),
-            }
+            statistics: result.statistics ?? {},
+            pagination: computePagination(page, limit, total_results),
+            results: result.rows ?? 0,
+            total_results,
+            request_time,
+            duration_ms: Number(new Date()) - Number(request_time),
         };
     } catch (err) {
         return {
             status: 500 as ApiErrorResponse["status"],
             code: "bad_database_response" as ApiErrorResponse["code"],
-            message: err
+            message: `${err}`
         };
     }
 }

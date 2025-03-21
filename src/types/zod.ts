@@ -34,20 +34,24 @@ export const statisticsSchema = z.object({
     bytes_read: z.optional(z.number()),
 });
 
-export const metaSchema = z.object({
-    statistics: z.optional(statisticsSchema),
-    rows: z.optional(z.number()),
-    rows_before_limit_at_least: z.optional(z.number()),
-    request_time: z.optional(z.string()), // z.isoTimestamp('yyyy-mm-ddThh:mm:ss.sssZ')
-    duration_ms: z.optional(z.number()),
-});
+export const paginationSchema = z.object({
+    previous_page: z.coerce.number().int().min(1),
+    current_page: z.coerce.number().int().min(1),
+    next_page: z.coerce.number().int().min(1),
+    total_pages: z.coerce.number().int().min(1),
+}).refine(({ previous_page, current_page, next_page, total_pages }) => 
+    previous_page <= current_page
+    && current_page <= next_page
+    && next_page <= total_pages
+);
+export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
 // z.enum argument type definition requires at least one element to be defined
 export const networkIdSchema = z.enum([config.networks.at(0) ?? DEFAULT_NETWORK_ID, ...config.networks.slice(1)]);
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
 export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
-export const offsetSchema = z.coerce.number().int().min(0).max(500).default(0);
+export const pageSchema = z.coerce.number().int().min(1).default(1);
 
 // ----------------------
 // API Responses
@@ -59,29 +63,13 @@ export const apiErrorResponse = z.object({
 });
 export type ApiErrorResponse = z.infer<typeof apiErrorResponse>;
 
-export const paginationResponse = z.object({
-    "next_page": z.coerce.number().int(),
-    "previous_page": z.coerce.number().int(),
-    "total_pages": z.coerce.number().int(),
-    "total_results": z.coerce.number().int()
+export const apiUsageResponse = z.object({
+    data: z.array(z.any()),
+    statistics: z.optional(statisticsSchema),
+    pagination: paginationSchema,
+    results: z.optional(z.number()),
+    total_results: z.optional(z.number()),    
+    request_time: z.date(),
+    duration_ms: z.number()
 });
-export type PaginationResponse = z.infer<typeof paginationResponse>;
-
-export const statisticsResponse = z.object({
-    "elapsed": z.coerce.number(),
-    "rows_read": z.coerce.number().int(),
-    "bytes_read": z.coerce.number().int()
-});
-export type StatisticsResponse = z.infer<typeof statisticsResponse>;
-
-export const metadataResponse = z.object({
-    "statistics": z.lazy(() => statisticsResponse).nullable(),
-    paginationResponse
-});
-export type MetadataResponse = z.infer<typeof metadataResponse>;
-
-export const versionResponse = z.object({
-    "version": version,
-    "commit": commit
-});
-export type VersionResponse = z.infer<typeof versionResponse>;
+export type ApiUsageResponse = z.infer<typeof apiUsageResponse>;

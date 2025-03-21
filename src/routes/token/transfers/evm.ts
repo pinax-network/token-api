@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { ageSchema, networkIdSchema, evmAddressSchema, limitSchema, metaSchema, offsetSchema } from '../../../types/zod.js';
+import { ageSchema, networkIdSchema, evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
@@ -16,11 +16,9 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    limit: z.optional(limitSchema),
-    offset: z.optional(offsetSchema),
     age: z.optional(ageSchema),
     contract: z.optional(z.string()),
-});
+}).merge(paginationQuery);
 
 const responseSchema = z.object({
     data: z.array(z.object({
@@ -42,7 +40,7 @@ const responseSchema = z.object({
         // -- chain --
         network_id: networkIdSchema,
     })),
-    meta: z.optional(metaSchema),
+    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
