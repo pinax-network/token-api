@@ -1,6 +1,5 @@
 import { Hono, type Context } from "hono";
 import { APP_DESCRIPTION, APP_VERSION, config } from "./src/config.js";
-import * as prometheus from './src/prometheus.js';
 import { logger } from './src/logger.js';
 import { openAPISpecs } from 'hono-openapi';
 import routes from './src/routes/index.js';
@@ -51,7 +50,6 @@ app.get('/openapi', openAPISpecs(app, {
 app.use(async (c: Context, next) => {
     const pathname = c.req.path;
     logger.trace(`Incoming request: [${pathname}]`);
-    prometheus.requests.inc({ pathname });
     await next();
 });
 

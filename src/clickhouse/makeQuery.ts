@@ -2,7 +2,6 @@ import * as crypto from 'node:crypto';
 import client from "./client.js";
 
 import { logger } from "../logger.js";
-import * as prometheus from "../prometheus.js";
 
 import type { ResponseJSON } from "@clickhouse/client-web";
 import { isProgressRow, ProgressRow } from "@clickhouse/client";
@@ -58,23 +57,8 @@ export async function makeQuery<T = unknown>(
     }
 
     const responseJson: ResponseJSON<T> = { data, statistics, rows: data.length, rows_before_limit_at_least };
-    prometheus.queries.inc();
 
     if (response.query_id !== query_id) throw new Error(`Wrong query ID for query: sent ${query_id} / received ${response.query_id}`);
-
-    if (responseJson.statistics) {
-        prometheus.bytes_read.observe(responseJson.statistics.bytes_read);
-        prometheus.rows_read.observe(responseJson.statistics.rows_read);
-        prometheus.elapsed_seconds.observe(responseJson.statistics.elapsed);
-
-        if (responseJson.statistics.rows_read > config.maxRowsTrigger || responseJson.statistics.bytes_read > config.maxBytesTrigger)
-            prometheus.large_queries.inc({
-                query_id,
-                bytes_read: responseJson.statistics.bytes_read,
-                rows_read: responseJson.statistics.rows_read,
-                elapsed_seconds: responseJson.statistics.elapsed
-            });
-    }
 
     logger.trace({ query_id: response.query_id, statistics: responseJson.statistics, rows: responseJson.rows, rows_before_limit_at_least: responseJson.rows_before_limit_at_least });
     return responseJson;
