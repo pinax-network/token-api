@@ -137,6 +137,6 @@ dist
 cursor.lock
 
 # CLI
-pinax-token-api
+token-api
 
 *.db

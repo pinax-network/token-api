@@ -21,9 +21,10 @@ export const DEFAULT_PRETTY_LOGGING = false;
 export const DEFAULT_VERBOSE = false;
 export const DEFAULT_SORT_BY = "DESC";
 export const APP_NAME = pkg.name;
+export const APP_DESCRIPTION = pkg.description;
 export const GIT_COMMIT = process.env.GIT_COMMIT || "unknown";
 export const APP_VERSION = {
-    version: pkg.version,
+    version: pkg.version as `${number}.${number}.${number}`,
     commit: GIT_COMMIT
 };
 export const DEFAULT_AGE = 30;
@@ -37,7 +38,7 @@ export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 const opts = program
     .name(pkg.name)
     .version(`${APP_VERSION.version}+${APP_VERSION.commit}`)
-    .description(pkg.description)
+    .description(APP_DESCRIPTION)
     .showHelpAfterError()
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
