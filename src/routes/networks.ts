@@ -3,27 +3,28 @@ import { describeRoute } from 'hono-openapi'
 import { resolver } from 'hono-openapi/zod';
 import { config  } from '../config.js'
 import { NetworksRegistry } from "@pinax/graph-networks-registry";
+import { z } from 'zod';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
 const route = new Hono();
 
-const networksSchema = v.object({
-    id: v.string(),
-    fullName: v.string(),
-    shortName: v.string(),
-    caip2Id: v.string(),
-    networkType: v.string(),
-    icon: v.object({
-        web3Icons: v.object({
-            name: v.string(),
+const networksSchema = z.object({
+    id: z.string(),
+    fullName: z.string(),
+    shortName: z.string(),
+    caip2Id: z.string(),
+    networkType: z.string(),
+    icon: z.object({
+        web3Icons: z.object({
+            name: z.string(),
         }),
     }),
-    alias: v.array(v.string()),
+    alias: z.array(z.string()),
 });
 
-const responseSchema = v.object({
-    networks: v.array(networksSchema),
+const responseSchema = z.object({
+    networks: z.array(networksSchema),
 });
 
 const openapi = describeRoute({
