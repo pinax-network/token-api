@@ -33,6 +33,7 @@ app.get('/openapi', openAPISpecs(app, {
         },
         servers: [
             { url: config.openapiServerUrl, description: APP_NAME },
+            { url: `http://localhost:${config.port}`, description: `${APP_NAME} - Local` },
         ],
         components: {
             securitySchemes: {
