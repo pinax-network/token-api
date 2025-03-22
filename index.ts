@@ -28,7 +28,7 @@ app.get('/openapi', openAPISpecs(app, {
         info: {
             title: 'Token API (Beta)',
             version: APP_VERSION.version,
-            description: 'Power your apps with real-time token data.',
+            description: 'Power your apps & AI agents with real-time token data.',
         },
         servers: [
             { url: `https://token-api.service.pinax.network`, description: `${APP_DESCRIPTION} - Production` },
