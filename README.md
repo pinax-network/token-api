@@ -34,7 +34,7 @@ flowchart LR
 - [ ] SVN (Solana)
 - [ ] Antelope (Vaulta, WAX, Telos, Ultra)
 
-### Quick start
+## Quick start
 
 Install [Bun](https://bun.sh/)
 
