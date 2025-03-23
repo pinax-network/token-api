@@ -34,6 +34,22 @@ flowchart LR
 - [ ] SVN (Solana)
 - [ ] Antelope (Vaulta, WAX, Telos, Ultra)
 
+### Quick start
+
+Install [Bun](https://bun.sh/)
+
+```bash
+bun install
+bun dev
+```
+
+**Tests**
+
+```bash
+bun lint
+bun test
+```
+
 ## `.env` Environment variables
 
 ```env
@@ -92,19 +108,3 @@ docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
-### Quick start
-
-Install [Bun](https://bun.sh/)
-
-```bash
-bun install
-bun dev
-```
-
-**Tests**
-
-```bash
-bun lint
-bun test
-```
