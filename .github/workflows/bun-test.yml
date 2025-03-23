@@ -27,6 +27,5 @@ jobs:
                   USERNAME: ${{ secrets.USERNAME }}
                   PASSWORD: ${{ secrets.PASSWORD }}
                   TABLE: ${{ secrets.TABLE }}
-                  GIT_VERSION: "v0.0.0"
                   GIT_DATE: "2025-01-01"
                   GIT_COMMIT: "eaffd97310123b667a9fd69d9870c2f728f91462"

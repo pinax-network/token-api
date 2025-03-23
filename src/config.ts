@@ -31,9 +31,9 @@ export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 // GitHub metadata
 const GIT_COMMIT = process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text();
 const GIT_DATE = process.env.GIT_DATE ?? await $`git log -1 --format=%cd --date=short`.text();
-const GIT_VERSION = process.env.GIT_VERSION ?? await $`git describe --tags --abbrev=0`.text();
+
 export const GIT_APP = {
-    version: GIT_VERSION.replace(/\n/, "") as `${number}.${number}.${number}`,
+    version: pkg.version as `${number}.${number}.${number}`,
     commit: GIT_COMMIT.slice(0, 7),
     date: GIT_DATE.replace(/\n/, "") as `${number}-${number}-${number}`,
 };
