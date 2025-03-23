@@ -1,6 +1,7 @@
 import "dotenv/config";
-import { z } from 'zod';
+import { date, z } from 'zod';
 import { Option, program } from "commander";
+import { $ } from "bun";
 
 import pkg from "../package.json" with { type: "json" };
 
@@ -20,13 +21,6 @@ export const DEFAULT_IDLE_TIMEOUT = 60;
 export const DEFAULT_PRETTY_LOGGING = false;
 export const DEFAULT_VERBOSE = false;
 export const DEFAULT_SORT_BY = "DESC";
-export const APP_NAME = pkg.name;
-export const APP_DESCRIPTION = pkg.description;
-export const GIT_COMMIT = process.env.GIT_COMMIT || "unknown";
-export const APP_VERSION = {
-    version: pkg.version as `${number}.${number}.${number}`,
-    commit: GIT_COMMIT
-};
 export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_PAGE = 1;
@@ -34,10 +28,23 @@ export const DEFAULT_LIMIT = 10;
 export const DEFAULT_NETWORK_ID = "mainnet";
 export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 
+// GitHub metadata
+const GIT_COMMIT = process.env.GIT_COMMIT || await $`git rev-parse HEAD`.text();
+const GIT_DATE = process.env.GIT_DATE ?? await $`git log -1 --format=%cd --date=short`.text();
+const GIT_VERSION = process.env.GIT_VERSION ?? await $`git describe --tags --abbrev=0`.text();
+export const GIT_APP = {
+    version: GIT_VERSION.replace(/\n/, "") as `${number}.${number}.${number}`,
+    commit: GIT_COMMIT.slice(0, 7),
+    date: GIT_DATE.replace(/\n/, "") as `${number}-${number}-${number}`,
+};
+export const APP_NAME = pkg.name;
+export const APP_DESCRIPTION = pkg.description;
+export const APP_VERSION = `${GIT_APP.version}+${GIT_APP.commit} (${GIT_APP.date})`;
+
 // parse command line options
 const opts = program
     .name(pkg.name)
-    .version(`${APP_VERSION.version}+${APP_VERSION.commit}`)
+    .version(APP_VERSION)
     .description(APP_DESCRIPTION)
     .showHelpAfterError()
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))

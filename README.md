@@ -1,9 +1,9 @@
-# The Graph: `Token API`
+# `Token API`
 
-[![.github/workflows/bun-test.yml](https://github.com/graphprotocol/token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/graphprotocol/token-api/actions/workflows/bun-test.yml)
-![license](https://img.shields.io/github/license/graphprotocol/token-api)
+[![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml)
+![license](https://img.shields.io/github/license/pinax-network/pinax-token-api)
 
-> Power your apps with real-time token data.
+> Power your apps & AI agents with real-time token data.
 
 ![banner](banner.jpg)
 
@@ -76,6 +76,8 @@ docker pull ghcr.io/graphprotocol/token-api:develop
 ```bash
 docker build \
   --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
+  --build-arg GIT_DATE="$(git log -1 --format=%cd --date=short)" \
+  --build-arg GIT_VERSION="$(git describe --tags --abbrev=0)" \
   -t token-api .
 ```
 

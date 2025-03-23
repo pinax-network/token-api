@@ -27,7 +27,7 @@ app.get('/openapi', openAPISpecs(app, {
     documentation: {
         info: {
             title: 'Token API (Beta)',
-            version: APP_VERSION.version,
+            version: APP_VERSION,
             description: 'Power your apps & AI agents with real-time token data.',
         },
         servers: [

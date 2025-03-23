@@ -1,14 +1,14 @@
 import { FastMCP } from "fastmcp";
 
-import { APP_DESCRIPTION, APP_VERSION, config } from "../config.js";
+import { APP_VERSION, config, GIT_APP } from "../config.js";
 import { logger } from "../logger.js";
 import tools from "./tools.js";
 import prompts from "./prompts.js";
 import { resources, resourceTemplates } from "./resources.js";
 
 const mcp = new FastMCP({
-    name: APP_DESCRIPTION,
-    version: APP_VERSION.version,
+    name: APP_VERSION,
+    version: GIT_APP.version,
 });
 
 // Catch session errors (default MCP SDK timeout of 10 seconds) and close connection
