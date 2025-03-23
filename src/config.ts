@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { date, z } from 'zod';
+import { z } from 'zod';
 import { Option, program } from "commander";
 import { $ } from "bun";
 
@@ -29,7 +29,7 @@ export const DEFAULT_NETWORK_ID = "mainnet";
 export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 
 // GitHub metadata
-const GIT_COMMIT = process.env.GIT_COMMIT || await $`git rev-parse HEAD`.text();
+const GIT_COMMIT = process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text();
 const GIT_DATE = process.env.GIT_DATE ?? await $`git log -1 --format=%cd --date=short`.text();
 const GIT_VERSION = process.env.GIT_VERSION ?? await $`git describe --tags --abbrev=0`.text();
 export const GIT_APP = {
