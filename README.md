@@ -1,7 +1,9 @@
-# `Token API`
+# The Graph: `Token API`
 
-[![.github/workflows/bun-test.yml](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/pinax-token-api/actions/workflows/bun-test.yml)
-![license](https://img.shields.io/github/license/pinax-network/pinax-token-api)
+[![.github/workflows/bun-test.yml](https://github.com/pinax-network/token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/token-api/actions/workflows/bun-test.yml)
+![license](https://img.shields.io/github/license/pinax-network/token-api)
+
+### https://thegraph.com/token-api/
 
 > Power your apps & AI agents with real-time token data.
 
@@ -62,13 +64,13 @@ VERBOSE=true
 **For latest tagged release**
 
 ```bash
-docker pull ghcr.io/graphprotocol/token-api:latest
+docker pull ghcr.io/pinax-network/token-api:latest
 ```
 
 **For head of `main` branch**
 
 ```bash
-docker pull ghcr.io/graphprotocol/token-api:develop
+docker pull ghcr.io/pinax-network/token-api:develop
 ```
 
 - Build from source
@@ -84,7 +86,7 @@ docker build \
 - Run with `.env` file
 
 ```bash
-docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/graphprotocol/token-api:develop
+docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api:develop
 ```
 
 ## Contributing
