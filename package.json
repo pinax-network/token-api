@@ -1,9 +1,8 @@
 {
     "private": true,
     "name": "token-api",
-    "description": "The Graph: Token API",
-    "version": "0.1.0",
-    "homepage": "https://github.com/graphprotocol/token-api",
+    "description": "Token API",
+    "homepage": "https://github.com/pinax-network/pinax-token-api",
     "license": "Apache-2.0",
     "type": "module",
     "authors": [
@@ -51,6 +50,6 @@
     },
     "devDependencies": {
         "typescript": "^5.8.2",
-        "bun-types": "^1.2.5"
+        "@types/bun": "^1.2.5"
     }
 }
