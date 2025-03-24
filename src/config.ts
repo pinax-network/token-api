@@ -29,13 +29,14 @@ export const DEFAULT_NETWORK_ID = "mainnet";
 export const DEFAULT_NETWORKS = "arbitrum-one,base,bsc,mainnet"
 
 // GitHub metadata
-const GIT_COMMIT = process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text();
-const GIT_DATE = process.env.GIT_DATE ?? await $`git log -1 --format=%cd --date=short`.text();
-
+const GIT_COMMIT = (process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text()).replace(/\n/, "").slice(0, 7);
+const GIT_DATE = (process.env.GIT_DATE ?? await $`git log -1 --format=%cd --date=short`.text()).replace(/\n/, "");
+const GIT_REPOSITORY = (process.env.GIT_REPOSITORY ?? await $`git config --get remote.origin.url`.text()).replace(/git@github.com:/, "").replace(".git", "").replace(/\n/, "");
 export const GIT_APP = {
     version: pkg.version as `${number}.${number}.${number}`,
-    commit: GIT_COMMIT.slice(0, 7),
-    date: GIT_DATE.replace(/\n/, "") as `${number}-${number}-${number}`,
+    commit: GIT_COMMIT,
+    date: GIT_DATE as `${number}-${number}-${number}`,
+    repo: GIT_REPOSITORY,
 };
 export const APP_NAME = pkg.name;
 export const APP_DESCRIPTION = pkg.description;

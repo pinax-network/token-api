@@ -39,7 +39,6 @@ jobs:
                       type=raw,enable=${{ !startsWith(github.ref, 'refs/tags/') }},value=develop
                       type=semver,pattern={{raw}}
             - run: echo "GIT_DATE=$(git log -1 --format=%cd --date=short)" >> $GITHUB_ENV
-            - run: echo "GIT_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
             - name: Build and push Docker image
               uses: docker/build-push-action@v5
               with:
@@ -47,8 +46,7 @@ jobs:
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
-                  # Pass github.sha to Docker as GIT_COMMIT & GIT_DATE
                   build-args: |
                     GIT_COMMIT=${{ github.sha }}
+                    GIT_REPOSITORY=${{ github.repository }}
                     GIT_DATE=${{ env.GIT_DATE }}
-                    GIT_VERSION=${{ env.GIT_VERSION }}

@@ -92,10 +92,7 @@ docker pull ghcr.io/pinax-network/token-api:develop
 - Build from source
 
 ```bash
-docker build \
-  --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
-  --build-arg GIT_DATE="$(git log -1 --format=%cd --date=short)"
-  -t token-api .
+docker build -t token-api .
 ```
 
 - Run with `.env` file
