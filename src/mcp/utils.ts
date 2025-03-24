@@ -3,11 +3,12 @@
 import { formatQueryParams } from "@clickhouse/client-common";
 import { Progress, UserError } from "fastmcp";
 import { makeQuery } from "../clickhouse/makeQuery.js";
+import { config } from "../config.js";
 
 export async function runSQLMCP(sql: string, reportProgress?: (progress: Progress) => Promise<void>): Promise<string> {
     let response;
     try {
-        response = await makeQuery(sql, {}, undefined, reportProgress);
+        response = await makeQuery(sql, {}, { username: config.mcpUsername, password: config.mcpPassword }, reportProgress);
     } catch (error) {
         throw new UserError(`Error while running SQL query: ${error}`);
     }

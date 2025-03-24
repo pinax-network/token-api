@@ -5,19 +5,19 @@ import { logger } from "../logger.js";
 
 import type { ResponseJSON } from "@clickhouse/client-web";
 import { isProgressRow, ProgressRow } from "@clickhouse/client";
-import { config } from "../config.js";
 import { Progress } from 'fastmcp';
+import { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
 
 export async function makeQuery<T = unknown>(
     query: string,
     query_params?: Record<string, unknown>,
-    database?: string,
+    overwrite_config?: WebClickHouseClientConfigOptions,
     reportProgressMCP?: (progress: Progress) => Promise<void>
 ) {
     const query_id = crypto.randomUUID();
-    logger.trace({ query_id, database, query, query_params });
+    logger.trace({ query_id, overwrite_config, query, query_params });
 
-    const response = await client(database).query({ query, query_params, format: "JSONEachRowWithProgress", query_id });
+    const response = await client(overwrite_config).query({ query, query_params, format: "JSONEachRowWithProgress", query_id });
     const stream = response.stream<T>();
     const data: T[] = [];
     let rows_before_limit_at_least = 0;

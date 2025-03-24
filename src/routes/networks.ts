@@ -1,5 +1,5 @@
-import { Hono } from 'hono'
-import { describeRoute } from 'hono-openapi'
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
 import { resolver } from 'hono-openapi/zod';
 import { NetworksRegistry } from "@pinax/graph-networks-registry";
 import { z } from 'zod';
@@ -36,15 +36,17 @@ const openapi = describeRoute({
         200: {
             description: 'Successful Response',
             content: {
-                'application/json': { schema: resolver(responseSchema), example: {
-                    networks: [
-                        getNetwork("mainnet"),
-                    ]
-                } },
+                'application/json': {
+                    schema: resolver(responseSchema), example: {
+                        networks: [
+                            getNetwork("mainnet"),
+                        ]
+                    }
+                },
             },
         },
     },
-})
+});
 
 export function getNetwork(id: string) {
     const network = registry.getNetworkById(id);
@@ -65,10 +67,10 @@ export function getNetwork(id: string) {
 
 export async function getNetworksIds() {
     const query = `SHOW DATABASES LIKE '%db_out'`;
-    const result = await client(config.database).query({ query, format: "JSONEachRow" });
+    const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
     const network_ids = new Set<string>([DEFAULT_NETWORK_ID]);
 
-    for ( const row of await result.json<{name: string}>()) {
+    for (const row of await result.json<{ name: string; }>()) {
         const network_id = row.name.split(":")[0];
         if (network_id) network_ids.add(network_id);
     }
@@ -77,12 +79,12 @@ export async function getNetworksIds() {
 
 // store networks in memory
 // this is a workaround to avoid loading networks from the database on every request
-export const networks = await getNetworksIds()
+export const networks = await getNetworksIds();
 export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]);
 logger.trace(`Supported networks:\n`, networks);
 
 route.get('/networks', openapi, async (c) => {
-    return c.json({networks: networks.map(id => getNetwork(id))});
+    return c.json({ networks: networks.map(id => getNetwork(id)) });
 });
 
 export default route;

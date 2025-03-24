@@ -1,11 +1,12 @@
 import { createClient } from "@clickhouse/client-web";
 import { APP_NAME, config } from "../config.js";
+import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 
 // TODO: Check how to abort previous queries if haven't returned yet
-const client = (database?: string) => {
+const client = (custom_config?: WebClickHouseClientConfigOptions) => {
     const c = createClient({
         ...config,
-        database,
+        ...custom_config,
         clickhouse_settings: {
             allow_experimental_object_type: 1,
             output_format_json_quote_64bit_integers: 0,
