@@ -77,7 +77,8 @@ export async function getNetworksIds() {
 
 // store networks in memory
 // this is a workaround to avoid loading networks from the database on every request
-const networks = await getNetworksIds()
+export const networks = await getNetworksIds()
+export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]);
 logger.trace(`Supported networks:\n`, networks);
 
 route.get('/networks', openapi, async (c) => {
@@ -85,4 +86,3 @@ route.get('/networks', openapi, async (c) => {
 });
 
 export default route;
-export { networks };

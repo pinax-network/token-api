@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_NETWORK_ID } from "../config.js";
-import { networks } from "../routes/networks.js";
 
 // ----------------------
 // Common schemas
@@ -49,7 +48,6 @@ export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
 // z.enum argument type definition requires at least one element to be defined
-export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]);
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
 export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
 export const pageSchema = z.coerce.number().int().min(1).default(1);

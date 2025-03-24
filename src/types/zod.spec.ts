@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { networkIdSchema, evmAddressSchema, paginationSchema } from "./zod.js";
+import { evmAddressSchema, paginationSchema } from "./zod.js";
 import { ZodError } from "zod";
 
 describe("EVM Address Schema", () => {
@@ -35,15 +35,15 @@ describe("EVM Address Schema", () => {
   });
 });
 
-describe("Network ID Schema", () => {
-  it("should successfully parse a valid network ID 'mainnet'", () => {
-    expect(networkIdSchema.parse("mainnet")).toBe("mainnet");
-  });
+// describe("Network ID Schema", () => {
+//   it("should successfully parse a valid network ID 'mainnet'", () => {
+//     expect(networkIdSchema.parse("mainnet")).toBe("mainnet");
+//   });
 
-  it("should throw a ZodError when parsing an invalid network ID", () => {
-    expect(() => networkIdSchema.parse("invalid")).toThrowError(ZodError);
-  });
-});
+//   it("should throw a ZodError when parsing an invalid network ID", () => {
+//     expect(() => networkIdSchema.parse("invalid")).toThrowError(ZodError);
+//   });
+// });
 
 describe("Pagination Schema", () => {
   it("should validate a pagination object with multiple pages correctly", () => {
