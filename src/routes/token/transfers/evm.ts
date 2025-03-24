@@ -2,11 +2,12 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { ageSchema, networkIdSchema, evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
+import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_AGE, DEFAULT_NETWORK_ID } from '../../../config.js';
+import { networkIdSchema } from '../../networks.js';
 
 const route = new Hono();
 

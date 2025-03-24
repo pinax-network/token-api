@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { networkIdSchema, evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
 import * as web3icons from "@web3icons/core"
+import { networkIdSchema } from '../../networks.js';
 
 const route = new Hono();
 

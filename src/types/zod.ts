@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_NETWORK_ID } from "../config.js";
+import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_NETWORK_ID } from "../config.js";
 
 // ----------------------
 // Common schemas
@@ -39,7 +39,7 @@ export const paginationSchema = z.object({
     current_page: z.coerce.number().int().min(1),
     next_page: z.coerce.number().int().min(1),
     total_pages: z.coerce.number().int().min(1),
-}).refine(({ previous_page, current_page, next_page, total_pages }) => 
+}).refine(({ previous_page, current_page, next_page, total_pages }) =>
     previous_page <= current_page
     && current_page <= next_page
     && next_page <= total_pages
@@ -48,7 +48,6 @@ export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
 // z.enum argument type definition requires at least one element to be defined
-export const networkIdSchema = z.enum([config.networks.at(0) ?? DEFAULT_NETWORK_ID, ...config.networks.slice(1)]);
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
 export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
 export const pageSchema = z.coerce.number().int().min(1).default(1);
