@@ -19,13 +19,14 @@ export default [
         }),
         execute: async (args, { reportProgress }) => {
             // Filter out backfill tables as well (TODO: could be done with user permissions ?)
-            const query = `SELECT name
-                FROM system.tables
-                WHERE database = ${escapeSQL(args.database)}
-                    AND name NOT LIKE '%backfill%'
-                    AND name NOT LIKE '.inner%'
+            const query = `SHOW TABLES
+                FROM ${escapeSQL(args.database)}
+                WHERE
+                    name NOT LIKE 'backfill_%'
+                    AND name NOT LIKE '.inner_%'
                     AND name NOT LIKE '%_mv'
-                    AND name != 'cursors'`;
+                    AND name NOT LIKE 'cursors';
+                `;
             return runSQLMCP(query, reportProgress);
         },
     },
