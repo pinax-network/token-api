@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver } from 'hono-openapi/zod';
-import { config  } from '../config.js'
 import { NetworksRegistry } from "@pinax/graph-networks-registry";
 import { z } from 'zod';
+import client from '../clickhouse/client.js';
+import { logger } from '../logger.js';
+import { config, DEFAULT_NETWORK_ID } from '../config.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
@@ -61,12 +63,26 @@ export function getNetwork(id: string) {
     };
 }
 
-route.get('/networks', openapi, (c) => {
-    const networks = [];
-    for (const id of config.networks) {
-        networks.push(getNetwork(id));
+export async function getNetworksIds() {
+    const query = `SHOW DATABASES LIKE '%db_out'`;
+    const result = await client(config.database).query({ query, format: "JSONEachRow" });
+    const network_ids = new Set<string>([DEFAULT_NETWORK_ID]);
+
+    for ( const row of await result.json<{name: string}>()) {
+        const network_id = row.name.split(":")[0];
+        if (network_id) network_ids.add(network_id);
     }
-    return c.json({networks});
+    return Array.from(network_ids);
+}
+
+// store networks in memory
+// this is a workaround to avoid loading networks from the database on every request
+const networks = await getNetworksIds()
+logger.trace(`Supported networks:\n`, networks);
+
+route.get('/networks', openapi, async (c) => {
+    return c.json({networks: networks.map(id => getNetwork(id))});
 });
 
 export default route;
+export { networks };
