@@ -89,7 +89,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { address, age, network_id, contract }, database);
+    return makeUsageQuery(c, [query], { address, age, network_id, contract }, { database });
 });
 
 export default route;

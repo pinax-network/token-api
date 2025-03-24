@@ -3,6 +3,7 @@ import { APIErrorResponse, computePagination } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from "./config.js";
 import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./types/zod.js";
+import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result)
@@ -17,8 +18,13 @@ export async function handleUsageQueryError(ctx: Context, result: ApiUsageRespon
 }
 
 // backwards compatible
-export async function makeUsageQuery(ctx: Context, query: string[], query_params: Record<string, string | number> = {}, database: string) {
-    const result = await makeUsageQueryJson(ctx, query, query_params, database);
+export async function makeUsageQuery(
+    ctx: Context,
+    query: string[],
+    query_params: Record<string, string | number> = {},
+    overwrite_config?: WebClickHouseClientConfigOptions
+) {
+    const result = await makeUsageQueryJson(ctx, query, query_params, overwrite_config);
     return await handleUsageQueryError(ctx, result);
 }
 
@@ -26,7 +32,7 @@ export async function makeUsageQueryJson<T = unknown>(
     ctx: Context,
     query: string[],
     query_params: Record<string, string | number> = {},
-    database: string
+    overwrite_config?: WebClickHouseClientConfigOptions
 ): Promise<ApiUsageResponse | ApiErrorResponse> {
     const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
     query.push('LIMIT {limit: int}');
@@ -44,7 +50,7 @@ export async function makeUsageQueryJson<T = unknown>(
     query_params = { ...ctx.req.param(), ...ctx.req.query(), ...query_params };
 
     try {
-        const result = await makeQuery<T>(query.join(" "), query_params, database);
+        const result = await makeQuery<T>(query.join(" "), query_params, overwrite_config);
         if (result.data.length === 0) {
             return {
                 status: 404 as ApiErrorResponse["status"],
