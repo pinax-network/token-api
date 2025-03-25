@@ -7,8 +7,9 @@ import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
-import * as web3icons from "@web3icons/core";
 import { networkIdSchema } from '../../networks.js';
+import { injectIcons } from '../../../inject/icon.js';
+import { injectSymbol } from '../../../inject/symbol.js';
 
 const route = new Hono();
 
@@ -95,32 +96,11 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const query = sqlQueries['tokens_for_contract']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    type Data = { symbol: string, icon: { web3icon: string; }; };
-    const result = await makeUsageQueryJson<Data>(c, [query], { contract, network_id }, { database });
-
-    // inject Web3 Icons
-    if ('data' in result) {
-        result.data.forEach((row: Data) => {
-            const web3icon = findIcon(row.symbol);
-            if (web3icon) {
-                row.icon = {
-                    web3icon
-                };
-            }
-        });
-        return c.json(result);
-    }
-    return handleUsageQueryError(c, result);
+    const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
+    injectSymbol(response);
+    injectIcons(response);
+    return handleUsageQueryError(c, response);
 });
 
-function findIcon(symbol?: string) {
-    if (!symbol) return null;
-    for (const token in web3icons.svgs.tokens.mono) {
-        if (token === symbol) {
-            return token;
-        }
-    }
-    return null;
-}
 
 export default route;
