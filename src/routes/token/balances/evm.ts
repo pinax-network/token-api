@@ -42,7 +42,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    description: 'Token Balances by Wallet Address',
+    summary: 'Token Balances by Wallet Address',
+    description: 'The EVM Balances endpoint returns the current balances of native and ERC-20 tokens held by a specified wallet address on an Ethereum-compatible blockchain. The endpoint provides a snapshot of an account’s current token holdings.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
