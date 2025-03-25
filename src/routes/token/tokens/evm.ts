@@ -52,7 +52,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    description: 'Token Holders and Supply by Contract Address',
+    summary: 'Token Holders and Supply by Contract Address',
+    description: 'The Tokens endpoint delivers contract metadata for a specific ERC-20 token contract from a supported EVM blockchain. Metadata includes name, symbol, number of holders, circulating supply, decimals, and more.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
