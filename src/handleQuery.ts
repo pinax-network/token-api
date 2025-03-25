@@ -6,13 +6,14 @@ import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./t
 import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
-    if ('status' in result)
+    if ('status' in result) {
         return APIErrorResponse(
             ctx,
             result.status,
             result.code,
             result.message
         );
+    }
 
     return ctx.json(result);
 }
