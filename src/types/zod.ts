@@ -1,5 +1,6 @@
+import 'zod-openapi/extend';
 import { z } from "zod";
-import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_NETWORK_ID } from "../config.js";
+import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE } from "../config.js";
 
 // ----------------------
 // Common schemas
@@ -19,12 +20,18 @@ export type Version = z.infer<typeof version>;
 export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
+export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
+export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({description: 'The maximum number of items returned in a single request.'});
+export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({description: 'The page number of the results to return.'});
+export const orderBySchema = z.enum(["asc", "desc"]).openapi({description: 'The order in which to return the results.'});
+
 // ----------------------
 // API Query Params
 // ----------------------
 export const paginationQuery = z.object({
-    "limit": z.coerce.number().int().default(10).optional(),
-    "page": z.coerce.number().int().default(1).optional(),
+    "limit": limitSchema.optional(),
+    "page": pageSchema.optional(),
 });
 export type PaginationQuery = z.infer<typeof paginationQuery>;
 
@@ -45,12 +52,6 @@ export const paginationSchema = z.object({
     && next_page <= total_pages
 );
 export type PaginationSchema = z.infer<typeof paginationSchema>;
-
-export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
-// z.enum argument type definition requires at least one element to be defined
-export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE);
-export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT);
-export const pageSchema = z.coerce.number().int().min(1).default(1);
 
 // ----------------------
 // API Responses

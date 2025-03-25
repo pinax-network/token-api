@@ -80,7 +80,8 @@ export async function getNetworksIds() {
 // store networks in memory
 // this is a workaround to avoid loading networks from the database on every request
 export const networks = await getNetworksIds();
-export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]).default(DEFAULT_NETWORK_ID);
+// z.enum argument type definition requires at least one element to be defined
+export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]).default(DEFAULT_NETWORK_ID).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
 logger.trace(`Supported networks:\n`, networks);
 
 route.get('/networks', openapi, async (c) => {

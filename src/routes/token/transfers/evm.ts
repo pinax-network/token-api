@@ -12,13 +12,13 @@ import { networkIdSchema } from '../../networks.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: evmAddressSchema,
+    address: evmAddressSchema.openapi({ description: 'EVM address to query' }),
 });
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
     age: z.optional(ageSchema),
-    contract: z.optional(z.string()),
+    contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({

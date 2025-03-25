@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
@@ -12,12 +12,12 @@ import { networkIdSchema } from '../../networks.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: evmAddressSchema,
+    contract: evmAddressSchema.openapi({ description: 'EVM contract address to query' }),
 });
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    order_by: z.optional(z.string()),
+    order_by: z.optional(orderBySchema.default('desc')),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
