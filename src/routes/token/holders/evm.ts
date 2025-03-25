@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { makeUsageQuery } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
@@ -12,12 +12,12 @@ import { networkIdSchema } from '../../networks.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: evmAddressSchema,
+    contract: evmAddressSchema.openapi({ description: 'EVM contract address to query' }),
 });
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    order_by: z.optional(z.string()),
+    order_by: z.optional(orderBySchema.default('desc')),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -76,12 +76,13 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
+    const order_by = orderBySchema.safeParse(c.req.query("order_by")).data ?? "desc";
     const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
 
     const query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { contract, network_id }, { database });
+    return makeUsageQuery(c, [query], { contract, network_id, order_by }, { database });
 });
 
 export default route;

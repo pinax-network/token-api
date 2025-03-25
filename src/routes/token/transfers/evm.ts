@@ -12,13 +12,13 @@ import { networkIdSchema } from '../../networks.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: evmAddressSchema,
+    address: evmAddressSchema.openapi({ description: 'EVM address to query' }),
 });
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
     age: z.optional(ageSchema),
-    contract: z.optional(z.string()),
+    contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -33,6 +33,7 @@ const responseSchema = z.object({
         from: evmAddressSchema,
         to: evmAddressSchema,
         amount: z.string(),
+        transaction_id: z.string(),
 
         // -- contract --
         symbol: z.string(),
@@ -56,17 +57,18 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22049790,
-                                "timestamp": 1742011715,
-                                "date": "2025-03-15",
+                                "block_num": 22071757,
+                                "timestamp": 1742276627,
+                                "date": "2025-03-18",
                                 "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                "from": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
-                                "to": "0x28c6c06298d514db089934071355e5743bf21d60",
-                                "amount": "200000000000000",
+                                "from": "0x835678a611b28684005a5e2233695fb6cbbb0007",
+                                "to": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+                                "amount": "5806756000000",
+                                "transaction_id": "0x843979ef37cbb2348c2c98f065a8684e7cd92496e08fd736a02a72d2041ecb4e",
                                 "decimals": 6,
                                 "symbol": "USDC",
                                 "network_id": "mainnet"
-                            }
+                              }
                         ]
                     }
                 },

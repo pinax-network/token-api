@@ -12,7 +12,7 @@ import { networkIdSchema } from '../../networks.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: evmAddressSchema,
+    address: evmAddressSchema.openapi({ description: 'EVM address to query' }),
 });
 
 const querySchema = z.object({

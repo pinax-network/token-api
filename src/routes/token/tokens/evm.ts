@@ -36,11 +36,16 @@ const responseSchema = z.object({
         decimals: z.number(),
 
         // -- token --
-        total_supply: z.string(),
+        circulating_supply: z.string(),
         holders: z.number(),
 
         // -- chain --
         network_id: networkIdSchema,
+
+        // -- icon --
+        icon: z.object({
+          web3icon: z.string()
+        })
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -65,8 +70,11 @@ const openapi = describeRoute({
                                 "symbol": "GRT",
                                 "decimals": 18,
                                 "network_id": "mainnet",
-                                "total_supply": "10803355950136852966436018411",
-                                "holders": 170086
+                                "circulating_supply": "10803355950136852966436018411",
+                                "holders": 170086,
+                                "icon": {
+                                    "web3icon": "GRT"
+                                }
                             }
                         ]
                     }
