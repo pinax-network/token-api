@@ -24,7 +24,7 @@ export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => add
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
 export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({description: 'The maximum number of items returned in a single request.'});
 export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({description: 'The page number of the results to return.'});
-export const orderBySchema = z.enum(["asc", "desc"]).openapi({description: 'The order in which to return the results.'});
+export const orderBySchema = z.enum(["asc", "desc"]).openapi({description: 'The order in which to return the results: Ascending (asc) or Descending (desc).'});
 
 // ----------------------
 // API Query Params
