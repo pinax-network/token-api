@@ -21,10 +21,10 @@ export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
-export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
-export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({description: 'The maximum number of items returned in a single request.'});
-export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({description: 'The page number of the results to return.'});
-export const orderBySchema = z.enum(["asc", "desc"]).openapi({description: 'The order in which to return the results.'});
+export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ summary: "Age in Days", description: "Indicates how many days have passed since the data's creation or insertion." });
+export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({ summary: "Items per Page", description: 'The maximum number of items returned in a single request.'});
+export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ summary: "Page Number", description: 'The page number of the results to return.'});
+export const orderBySchema = z.enum(["asc", "desc"]).openapi({summary: "Ordering", description: 'The order in which to return the results: ascending (asc) or descending (desc).'});
 
 // ----------------------
 // API Query Params
