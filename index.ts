@@ -31,7 +31,8 @@ app.get('/openapi', openAPISpecs(app, {
             description: 'Power your apps & AI agents with real-time token data.',
         },
         servers: [
-            { url: `https://token-api.service.pinax.network`, description: `${APP_DESCRIPTION} - Production` },
+            { url: `https://token-api.thegraph.com`, description: `${APP_DESCRIPTION} - Production` },
+            { url: `https://token-api.service.pinax.network`, description: `${APP_DESCRIPTION} - Dev` },
             { url: `http://localhost:${config.port}`, description: `${APP_DESCRIPTION} - Local` },
         ],
         components: {
