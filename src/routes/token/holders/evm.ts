@@ -76,12 +76,13 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
+    const order_by = orderBySchema.safeParse(c.req.query("order_by")).data ?? "desc";
     const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
 
     const query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { contract, network_id }, { database });
+    return makeUsageQuery(c, [query], { contract, network_id, order_by }, { database });
 });
 
 export default route;
