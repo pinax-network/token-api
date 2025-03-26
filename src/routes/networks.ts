@@ -66,15 +66,20 @@ export function getNetwork(id: string) {
 }
 
 export async function getNetworksIds() {
-    const query = `SHOW DATABASES LIKE '%db_out'`;
-    const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
-    const network_ids = new Set<string>([DEFAULT_NETWORK_ID]);
+    try {
+        const query = `SHOW DATABASES LIKE '%db_out'`;
+        const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
+        const network_ids = new Set<string>([DEFAULT_NETWORK_ID]);
 
-    for (const row of await result.json<{ name: string; }>()) {
-        const network_id = row.name.split(":")[0];
-        if (network_id) network_ids.add(network_id);
+        for (const row of await result.json<{ name: string; }>()) {
+            const network_id = row.name.split(":")[0];
+            if (network_id) network_ids.add(network_id);
+        }
+        return Array.from(network_ids);
+    } catch (e) {
+        logger.error(`Error fetching network ids: ${e}`);
+        return [DEFAULT_NETWORK_ID];
     }
-    return Array.from(network_ids);
 }
 
 // store networks in memory

@@ -1,8 +1,9 @@
 import { Hono, type Context } from "hono";
+import "./src/banner.js";
 import { APP_DESCRIPTION, APP_VERSION, config } from "./src/config.js";
 import { logger } from './src/logger.js';
-import { openAPISpecs } from 'hono-openapi';
 import routes from './src/routes/index.js';
+import { openAPISpecs } from 'hono-openapi';
 import { APIErrorResponse } from "./src/utils.js";
 import { startMcpServer } from "./src/mcp/index.js";
 
@@ -23,6 +24,7 @@ app.route('/', routes);
 // ------------
 app.get("/", () => new Response(Bun.file("./public/index.html")));
 app.get("/favicon.svg", () => new Response(Bun.file("./public/favicon.svg")));
+app.get("/banner.jpg", () => new Response(Bun.file("./public/banner.jpg")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
         info: {
