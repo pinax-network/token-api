@@ -3,6 +3,7 @@ SELECT
     max(timestamp) as timestamp,
     max(block_num) as block_num,
     contract as address,
+    {network_id: String} as network_id,
     multiIf(
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals
@@ -23,7 +24,6 @@ SELECT
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'Polygon',
         trim(contracts.name)
     ) AS name,
-    {network_id: String} as network_id,
     CAST(sum(new_balance), 'String') as circulating_supply,
     count() as holders
 FROM balances_by_contract FINAL

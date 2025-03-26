@@ -33,12 +33,17 @@ const responseSchema = z.object({
         contract: evmAddressSchema,
         amount: z.string(),
 
-        // -- contract --
-        symbol: z.string(),
-        decimals: z.number(),
-
         // -- network --
         network_id: networkIdSchema,
+
+        // -- contract --
+        symbol: z.optional(z.string()),
+        decimals: z.optional(z.number()),
+
+        // -- price --
+        price_usd: z.optional(z.number()),
+        value_usd: z.optional(z.number()),
+        low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -55,15 +60,17 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22067152,
-                                "timestamp": 1742221043,
-                                "date": "2025-03-17",
-                                "contract": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-                                "amount": "159482036593475716150538",
+                                "block_num": 21764208,
+                                "timestamp": 1738564283,
+                                "date": "2025-02-03",
+                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+                                "amount": "339640316263000000000000000",
                                 "decimals": 18,
-                                "symbol": "ETH",
-                                "network_id": "mainnet"
-                            },
+                                "symbol": "GRT",
+                                "network_id": "mainnet",
+                                "price_usd": 0.10426804866144047,
+                                "value_usd": 35413633.023497514
+                            }
                         ]
                     }
                 },

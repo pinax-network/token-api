@@ -4,6 +4,7 @@ SELECT
     date,
     CAST(contract, 'String') AS contract,
     CAST(new_balance, 'String') AS amount,
+    {network_id: String} as network_id,
     multiIf(
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals
@@ -15,8 +16,7 @@ SELECT
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'bnb', 'BNB',
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'POL',
         trim(contracts.symbol)
-    ) AS symbol,
-    {network_id: String} as network_id
+    ) AS symbol
 FROM balances FINAL
 LEFT JOIN contracts
     ON balances.contract = contracts.address

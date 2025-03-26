@@ -32,11 +32,6 @@ const responseSchema = z.object({
         // -- contract --
         address: evmAddressSchema,
 
-        // -- contract --
-        name: z.string(),
-        symbol: z.string(),
-        decimals: z.number(),
-
         // -- token --
         circulating_supply: z.string(),
         holders: z.number(),
@@ -47,7 +42,17 @@ const responseSchema = z.object({
         // -- icon --
         icon: z.object({
           web3icon: z.string()
-        })
+        }),
+
+        // -- contract --
+        symbol: z.optional(z.string()),
+        name: z.optional(z.string()),
+        decimals: z.optional(z.number()),
+
+        // -- price --
+        price_usd: z.optional(z.number()),
+        market_cap: z.optional(z.number()),
+        low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -64,19 +69,21 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "date": "2025-03-18",
-                                "timestamp": "2025-03-18 15:46:59",
-                                "block_num": 22074750,
+                                "date": "2025-03-26",
+                                "timestamp": "2025-03-26 03:48:35",
+                                "block_num": 22128490,
                                 "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "name": "Graph Token",
-                                "symbol": "GRT",
                                 "decimals": 18,
+                                "symbol": "GRT",
+                                "name": "Graph Token",
                                 "network_id": "mainnet",
-                                "circulating_supply": "10803355950136852966436018411",
-                                "holders": 170086,
+                                "circulating_supply": "10800262823318213436822328009",
+                                "holders": 170271,
                                 "icon": {
-                                    "web3icon": "GRT"
-                                }
+                                  "web3icon": "GRT"
+                                },
+                                "price_usd": 0.1040243665135064,
+                                "market_cap": 1123490498.375051
                             }
                         ]
                     }

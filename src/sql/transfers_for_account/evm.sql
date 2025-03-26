@@ -2,11 +2,12 @@ SELECT
     block_num,
     toUnixTimestamp(timestamp) as timestamp,
     date,
+    transaction_id,
     CAST(contract, 'String') AS contract,
     from,
     to,
     CAST(value, 'String') AS amount,
-    transaction_id,
+    {network_id: String} as network_id
     multiIf(
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals
@@ -18,8 +19,7 @@ SELECT
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'bnb', 'BNB',
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'POL',
         trim(contracts.symbol)
-    ) AS symbol,
-    {network_id: String} as network_id
+    ) AS symbol
 FROM transfers
 LEFT JOIN contracts
     ON transfers.contract = contracts.address

@@ -33,12 +33,17 @@ const responseSchema = z.object({
         address: evmAddressSchema,
         amount: z.string(),
 
-        // -- contract --
-        symbol: z.string(),
-        decimals: z.number(),
-
         // -- chain --
         network_id: networkIdSchema,
+
+        // -- contract --
+        symbol: z.optional(z.string()),
+        decimals: z.optional(z.number()),
+
+        // -- price --
+        price_usd: z.optional(z.number()),
+        value_usd: z.optional(z.number()),
+        low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -55,14 +60,16 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 20581510,
-                                "timestamp": 1724297855,
-                                "date": "2024-08-22",
-                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "amount": "120000000000000000000000",
+                                "block_num": 21764208,
+                                "timestamp": 1738564283,
+                                "date": "2025-02-03",
+                                "address": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+                                "amount": "339640316263000000000000000",
                                 "decimals": 18,
                                 "symbol": "GRT",
-                                "network_id": "mainnet"
+                                "network_id": "mainnet",
+                                "price_usd": 0.1040243665135064,
+                                "value_usd": 35330868.74170554
                             }
                         ]
                     }
@@ -86,7 +93,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const response = await makeUsageQueryJson(c, [query], { contract, network_id, order_by }, { database });
     injectSymbol(response);
-    await injectPrices(response, network_id);
+    await injectPrices(response, network_id, contract);
     return handleUsageQueryError(c, response);
 });
 

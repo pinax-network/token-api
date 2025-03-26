@@ -34,7 +34,7 @@ interface ComputedPrice {
 
 const LOW_LIQUIDITY_CHECK = 10000; // $10K
 
-export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, network_id: string) {
+export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, network_id: string, contract?: string) {
     const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
     const prices = await getPrices(database);
 
@@ -43,7 +43,7 @@ export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, 
 
     if ('data' in response) {
         response.data.forEach((row: Data) => {
-            const address = row.address || row.contract;
+            const address = contract ?? row.contract ?? row.address;
             if (address) {
                 // Token price
                 const price = computeTokenPrice(prices, address, native_price);
