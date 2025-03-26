@@ -1,13 +1,15 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { makeUsageQuery } from '../../../handleQuery.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_AGE, DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
+import { injectSymbol } from '../../../inject/symbol.js';
+import { injectPrices } from '../../../inject/prices.js';
 
 const route = new Hono();
 
@@ -28,19 +30,26 @@ const responseSchema = z.object({
         timestamp: z.number(),
         date: z.string(),
 
+        // -- transaction --
+        transaction_id: z.string(),
+
         // -- transfer --
         contract: evmAddressSchema,
         from: evmAddressSchema,
         to: evmAddressSchema,
         amount: z.string(),
-        transaction_id: z.string(),
-
-        // -- contract --
-        symbol: z.string(),
-        decimals: z.number(),
 
         // -- chain --
         network_id: networkIdSchema,
+
+        // -- contract --
+        symbol: z.optional(z.string()),
+        decimals: z.optional(z.number()),
+
+        // -- price --
+        price_usd: z.optional(z.number()),
+        value_usd: z.optional(z.number()),
+        low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -58,18 +67,20 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22071757,
-                                "timestamp": 1742276627,
-                                "date": "2025-03-18",
-                                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                "from": "0x835678a611b28684005a5e2233695fb6cbbb0007",
-                                "to": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
-                                "amount": "5806756000000",
-                                "transaction_id": "0x843979ef37cbb2348c2c98f065a8684e7cd92496e08fd736a02a72d2041ecb4e",
-                                "decimals": 6,
-                                "symbol": "USDC",
-                                "network_id": "mainnet"
-                              }
+                                "block_num": 22128243,
+                                "timestamp": 1742957927,
+                                "date": "2025-03-26",
+                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+                                "from": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
+                                "to": "0x2e4578e6c86380ca1759431fedeeae823e33357b",
+                                "amount": "4805168872000000000000",
+                                "transaction_id": "0x18c62cfa9c10a1e0a7bee36099151238e668ff61c97c7b9ab616aaa93c176e2c",
+                                "decimals": 18,
+                                "symbol": "GRT",
+                                "network_id": "mainnet",
+                                "price_usd": 0.1040243665135064,
+                                "value_usd": 499.85464790022
+                            }
                         ]
                     }
                 },
@@ -92,7 +103,10 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { address, age, network_id, contract }, { database });
+    const response = await makeUsageQueryJson(c, [query], { address, age, network_id, contract }, { database });
+    injectSymbol(response);
+    await injectPrices(response, network_id);
+    return handleUsageQueryError(c, response);
 });
 
 export default route;

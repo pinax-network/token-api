@@ -2,11 +2,11 @@ SELECT
     block_num,
     toUnixTimestamp(timestamp) as timestamp,
     date,
+    transaction_id,
     CAST(contract, 'String') AS contract,
     from,
     to,
     CAST(value, 'String') AS amount,
-    transaction_id,
     multiIf(
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals

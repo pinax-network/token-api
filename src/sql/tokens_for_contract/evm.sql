@@ -23,9 +23,9 @@ SELECT
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'Polygon',
         trim(contracts.name)
     ) AS name,
-    {network_id: String} as network_id,
     CAST(sum(new_balance), 'String') as circulating_supply,
-    count() as holders
+    count() as holders,
+    {network_id: String} as network_id
 FROM balances_by_contract FINAL
 LEFT JOIN contracts
     ON balances_by_contract.contract = contracts.address

@@ -1,4 +1,3 @@
-import * as web3icons from "@web3icons/core";
 import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
 
 interface Symbol {
@@ -19,7 +18,7 @@ const symbols = new Map<string, Symbol>([
     ['0xef68e7c694f40c8202821edf525de3782458639f', { symbol: 'LRC', decimals: 18, name: "LoopringCoin" }], // field called `NAME` & `SYMBOL` & `DECIMALS` in contract
 ])
 
-export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse) {
+export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse, include_name = false) {
     if ('data' in response) {
         response.data.forEach((row: Symbol) => {
             const address = row.address || row.contract;
@@ -28,19 +27,9 @@ export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse) {
                 if (symbol) {
                     row.symbol = symbol.symbol;
                     row.decimals = symbol.decimals;
-                    row.name = symbol.name;
+                    if (include_name) row.name = symbol.name;
                 }
             }
         });
     }
-}
-
-function findIcon(symbol?: string) {
-    if (!symbol) return null;
-    for (const token in web3icons.svgs.tokens.mono) {
-        if (token === symbol) {
-            return token;
-        }
-    }
-    return null;
 }
