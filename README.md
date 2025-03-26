@@ -7,7 +7,7 @@
 
 > Power your apps & AI agents with real-time token data.
 
-![banner](banner.png)
+![banner](banner.jpg)
 
 ## Architecture
 

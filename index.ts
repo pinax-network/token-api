@@ -22,7 +22,7 @@ app.route('/', routes);
 // --- Docs ---
 // ------------
 app.get("/", () => new Response(Bun.file("./public/index.html")));
-app.get("/favicon.ico", () => new Response(Bun.file("./public/favicon.ico")));
+app.get("/favicon.svg", () => new Response(Bun.file("./public/favicon.svg")));
 app.get('/openapi', openAPISpecs(app, {
     documentation: {
         info: {
@@ -32,7 +32,6 @@ app.get('/openapi', openAPISpecs(app, {
         },
         servers: [
             { url: `https://token-api.thegraph.com`, description: `${APP_DESCRIPTION} - Production` },
-            { url: `https://token-api.service.pinax.network`, description: `${APP_DESCRIPTION} - Dev` },
             { url: `http://localhost:${config.port}`, description: `${APP_DESCRIPTION} - Local` },
         ],
         components: {
