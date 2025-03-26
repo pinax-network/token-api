@@ -24,4 +24,5 @@ export const natives = new Map<string, Symbol>([
     ["mainnet", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["bsc", { symbol: 'BNB', decimals: 18, name: "BNB Smart Chain" }],
     ["base", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
+    ["arbitrum-one", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
 ])

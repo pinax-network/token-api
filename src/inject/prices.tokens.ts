@@ -17,6 +17,13 @@ export const stables = new Set([
     '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // Base: USDC (Circle: USDC Token)
     '0x820c137fa70c8691f0e44dc420a5e53c168921dc', // Base: USDS (Sky: Dai Stablecoin)
     '0x50c5725949a6f0c72e6c4a641f24049a917db0cb', // Base: DAI (Sky: Dai Stablecoin)
+
+    // Arbitrum One
+    '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // Arbitrum: USDT (Tether USD)
+    '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // Arbitrum: USDC (Circle: USDC Token)
+    '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // Arbitrum: USDC.e (Bridged USDC)
+    '0x6491c05a82219b8d1479057361ff1654749b876b', // Arbitrum: USDS (Sky: Dai Stablecoin)
+    '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // Arbitrum: DAI (Sky: Dai Stablecoin)
 ]);
 
 export const natives = new Set([
@@ -31,4 +38,7 @@ export const natives = new Set([
 
     // Base
     '0x4200000000000000000000000000000000000006', // Base: WETH
+
+    // Arbitrum One
+    '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // Arbitrum: WETH
 ]);
