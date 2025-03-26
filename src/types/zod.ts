@@ -22,12 +22,14 @@ export type Commit = z.infer<typeof commit>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
 
-export const walletAddressSchema = evmAddressSchema.openapi({ description: 'EVM wallet address to query', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' })
-export const contractAddressSchema = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' })
+export const walletAddressSchema = evmAddressSchema.openapi({ description: 'EVM wallet address to query', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' });
+export const contractAddressSchema = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' });
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
-export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({description: 'The maximum number of items returned in a single request.'});
-export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({description: 'The page number of the results to return.'});
-export const orderBySchema = z.enum(["asc", "desc"]).openapi({description: 'The order in which to return the results: Ascending (asc) or Descending (desc).'});
+export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAULT_LIMIT).openapi({ description: 'The maximum number of items returned in a single request.' });
+export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ description: 'The page number of the results to return.' });
+export const orderBySchema = z.enum(["asc", "desc"]).openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
+export const intervalSchema = z.enum(['hour', 'day', 'week']).default('hour').openapi({ description: 'The interval for which to aggregate price data.' });
+export const datetimeSchema = z.string().datetime().default('1970-01-01T00:00:00Z');
 
 // ----------------------
 // API Query Params

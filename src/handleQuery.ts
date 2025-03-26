@@ -32,7 +32,7 @@ export async function makeUsageQuery(
 export async function makeUsageQueryJson<T = unknown>(
     ctx: Context,
     query: string[],
-    query_params: Record<string, string | number> = {},
+    query_params: Record<string, string | number | string[]> = {},
     overwrite_config?: WebClickHouseClientConfigOptions
 ): Promise<ApiUsageResponse | ApiErrorResponse> {
     const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
