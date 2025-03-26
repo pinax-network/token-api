@@ -7,7 +7,6 @@ SELECT
     from,
     to,
     CAST(value, 'String') AS amount,
-    {network_id: String} as network_id
     multiIf(
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
         contracts.decimals
@@ -19,7 +18,8 @@ SELECT
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'bnb', 'BNB',
         contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'POL',
         trim(contracts.symbol)
-    ) AS symbol
+    ) AS symbol,
+    {network_id: String} as network_id
 FROM transfers
 LEFT JOIN contracts
     ON transfers.contract = contracts.address
