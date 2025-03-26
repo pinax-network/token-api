@@ -94,7 +94,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });
-    injectSymbol(response);
+    injectSymbol(response, network_id);
     await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
