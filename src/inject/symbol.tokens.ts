@@ -5,6 +5,7 @@ export interface Symbol {
 }
 
 export const tokens = new Map<string, Symbol>([
+    // Mainnet
     ['0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2', { symbol: 'MKR', decimals: 18, name: "Maker" }], // 32bytes
     ['0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', { symbol: 'USDC', decimals: 6, name: "USD Coin" }], // update name via initializeV2
     ['0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0', { symbol: 'EOS', decimals: 18, name: "EOS: Old Token" }], // 32bytes
@@ -14,9 +15,13 @@ export const tokens = new Map<string, Symbol>([
     ['0x3597bfd533a99c9aa083587b074434e61eb0a258', { symbol: 'DENT', decimals: 8, name: "DENT" }], // update name after contract creation via setTokenInformation
     ['0xef68e7c694f40c8202821edf525de3782458639f', { symbol: 'LRC', decimals: 18, name: "LoopringCoin" }], // field called `NAME` & `SYMBOL` & `DECIMALS` in contract
     ['0x0000000000085d4780b73119b644ae5ecd22b376', { symbol: 'TUSD', decimals: 18, name: "TrueUSD" }], // unknown reason ??
+
+    // Base
+    ['0x4200000000000000000000000000000000000006', { symbol: 'WETH', decimals: 18, name: "Wrapped Ether" }], // genesis
 ])
 
 export const natives = new Map<string, Symbol>([
     ["mainnet", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["bsc", { symbol: 'BNB', decimals: 18, name: "BNB Smart Chain" }],
+    ["base", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
 ])
