@@ -10,6 +10,7 @@ import { DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
 import { injectIcons } from '../../../inject/icon.js';
 import { injectSymbol } from '../../../inject/symbol.js';
+import { injectPrices } from '../../../inject/prices.js';
 
 const route = new Hono();
 
@@ -99,6 +100,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
     injectSymbol(response);
     injectIcons(response);
+    await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 

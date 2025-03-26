@@ -1,4 +1,3 @@
-import * as web3icons from "@web3icons/core";
 import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
 
 interface Symbol {
@@ -33,14 +32,4 @@ export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse) {
             }
         });
     }
-}
-
-function findIcon(symbol?: string) {
-    if (!symbol) return null;
-    for (const token in web3icons.svgs.tokens.mono) {
-        if (token === symbol) {
-            return token;
-        }
-    }
-    return null;
 }
