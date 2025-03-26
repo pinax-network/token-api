@@ -1,13 +1,15 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { makeUsageQuery } from '../../../handleQuery.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { evmAddressSchema, paginationQuery, statisticsSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
+import { injectSymbol } from '../../../inject/symbol.js';
+import { injectPrices } from '../../../inject/prices.js';
 
 const route = new Hono();
 
@@ -83,7 +85,10 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    return makeUsageQuery(c, [query], { address, network_id, contract }, { database });
+    const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });
+    injectSymbol(response);
+    await injectPrices(response, network_id);
+    return handleUsageQueryError(c, response);
 });
 
 export default route;

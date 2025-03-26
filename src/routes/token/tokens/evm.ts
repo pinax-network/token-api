@@ -98,7 +98,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
-    injectSymbol(response);
+    injectSymbol(response, true);
     injectIcons(response);
     await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
