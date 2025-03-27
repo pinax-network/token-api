@@ -1,6 +1,8 @@
 import { describe, it, expect } from "bun:test";
 import { evmAddressSchema, paginationSchema, timestampSchema } from "./zod.js";
+import { networkIdSchema } from "../routes/networks.js";
 import { ZodError } from "zod";
+import { config, DEFAULT_NETWORK_ID } from "../config.js";
 
 describe("EVM Address Schema", () => {
   it("should correctly parse a valid lowercase address", () => {
@@ -186,5 +188,60 @@ describe("Timestamp Schema", () => {
 
     const invalidResult = timestampSchema.safeParse(-1);
     expect(invalidResult.success).toBe(false);
+  });
+});
+
+describe("Network ID Schema", () => {
+  it("should accept the default network ID", () => {
+    expect(networkIdSchema.parse(DEFAULT_NETWORK_ID)).toBe(DEFAULT_NETWORK_ID);
+  });
+
+  it("should accept any network ID from the config", () => {
+    for (const network of config.networks) {
+      expect(networkIdSchema.parse(network)).toBe(network);
+    }
+  });
+
+  it("should throw a ZodError for network IDs not in the config", () => {
+    expect(() => networkIdSchema.parse("invalid-network")).toThrowError(ZodError);
+  });
+
+  it("should throw a ZodError for empty strings", () => {
+    expect(() => networkIdSchema.parse("")).toThrowError(ZodError);
+  });
+
+  it("should throw a ZodError for non-string values", () => {
+    expect(() => networkIdSchema.parse(123)).toThrowError(ZodError);
+    expect(() => networkIdSchema.parse(null)).toThrowError(ZodError);
+    expect(() => networkIdSchema.parse(undefined)).toThrowError(ZodError);
+    expect(() => networkIdSchema.parse({})).toThrowError(ZodError);
+  });
+
+  it("should correctly handle the safeParse method", () => {
+    const validResult = networkIdSchema.safeParse(DEFAULT_NETWORK_ID);
+    expect(validResult.success).toBe(true);
+    if (validResult.success) {
+      expect(validResult.data).toBe(DEFAULT_NETWORK_ID);
+    }
+
+    const invalidResult = networkIdSchema.safeParse("invalid-network");
+    expect(invalidResult.success).toBe(false);
+  });
+
+  it("should include the correct error message for invalid networks", () => {
+    try {
+      networkIdSchema.parse("invalid-network");
+    } catch (error) {
+      if (error instanceof ZodError) {
+        // @ts-ignore
+        const errorMessage = error.errors[0].message;
+        expect(errorMessage).toContain("Invalid enum value");
+        expect(errorMessage).toContain("Expected");
+        // Check that the error message lists all valid networks
+        for (const network of config.networks) {
+          expect(errorMessage).toContain(network);
+        }
+      }
+    }
   });
 });

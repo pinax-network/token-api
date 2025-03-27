@@ -83,7 +83,7 @@ async function validateNetworks() {
 // this is a workaround to avoid loading networks from the database on every request
 await validateNetworks();
 // z.enum argument type definition requires at least one element to be defined
-export const networkIdSchema = z.enum([DEFAULT_NETWORK_ID]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
+export const networkIdSchema = z.enum([config.networks.at(0) ?? DEFAULT_NETWORK_ID, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
 logger.trace(`Supported networks:\n`, config.networks);
 logger.trace(`Default network: ${DEFAULT_NETWORK_ID}`);
 
