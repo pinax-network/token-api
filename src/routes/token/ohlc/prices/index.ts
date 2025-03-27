@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import prices from "./prices/index.js";
+import evm from "./evm.js";
 
 const router = new Hono();
 
-router.route('/prices', prices);
+router.route('/evm', evm);
 
 export default router;

@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, contractAddressSchema, intervalSchema, timestampSchema, networkIdSchema } from '../../../types/zod.js';
-import { sqlQueries } from '../../../sql/index.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, contractAddressSchema, intervalSchema, timestampSchema, networkIdSchema } from '../../../../types/zod.js';
+import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
-import { DB_SUFFIX, DEFAULT_NETWORK_ID } from '../../../config.js';
-import { stables } from '../../../inject/prices.tokens.js';
+import { DB_SUFFIX, DEFAULT_NETWORK_ID } from '../../../../config.js';
+import { stables } from '../../../../inject/prices.tokens.js';
 
 const route = new Hono();
 
@@ -47,13 +47,13 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "datetime": "2025-03-22 03:20:00",
+                                "datetime": "2025-03-27 13:00:00",
                                 "ticker": "WETHUSD",
-                                "open": 1985.478415394995,
-                                "high": 1990.188570158394,
-                                "low": 1981.7251934111157,
-                                "close": 1981.7251934197654,
-                                "volume": "120433"
+                                "open": 2014.2702939297124,
+                                "high": 2025.569558523342,
+                                "low": 1994.6332609061067,
+                                "close": 2000.6323801360375,
+                                "volume": 134562
                             }
                         ]
                     }
