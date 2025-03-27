@@ -1,6 +1,6 @@
 SELECT
     max(date) as date,
-    max(timestamp) as timestamp,
+    max(timestamp) as datetime,
     max(block_num) as block_num,
     contract as address,
     multiIf(

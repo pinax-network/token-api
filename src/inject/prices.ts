@@ -39,7 +39,6 @@ interface ComputedPrice {
 export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, network_id: string, contract?: string) {
     const database = `${network_id}:${DB_SUFFIX}`;
     const prices = await getPrices(database);
-    logger.debug({prices: prices.length});
 
     // Native price
     const native_price = computeNativePrice(prices, network_id);
@@ -111,7 +110,7 @@ function computeNativePrice(prices: Price[], network_id: string): ComputedPrice 
     const price_usd = reserve_usd / reserve_native
     const liquidity_usd = reserve_usd * 2
     const price = {token, pair: `${symbol}USD`, price_usd, liquidity_usd};
-    logger.debug(price);
+
     return price;
 }
 
@@ -154,6 +153,6 @@ function computeTokenPrice(prices: Price[], token: string, native_price: Compute
 
     const liquidity_usd = reserve_usd * 2
     const price = {token, pair: `${symbol}USD`, price_usd, liquidity_usd};
-    logger.debug(price);
+
     return price;
 }

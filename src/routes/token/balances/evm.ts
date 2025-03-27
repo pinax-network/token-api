@@ -25,7 +25,7 @@ const responseSchema = z.object({
     data: z.array(z.object({
         // -- block --
         block_num: z.number(),
-        timestamp: z.number(),
+        datetime: z.string(),
         date: z.string(),
 
         // -- balance --
@@ -61,7 +61,7 @@ const openapi = describeRoute({
                         data: [
                             {
                                 "block_num": 21764208,
-                                "timestamp": 1738564283,
+                                "datetime": "2025-02-03 06:31:23",
                                 "date": "2025-02-03",
                                 "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "amount": "339640316263000000000000000",

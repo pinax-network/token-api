@@ -1,6 +1,6 @@
 SELECT
     block_num,
-    toUnixTimestamp(timestamp) as timestamp,
+    timestamp as datetime,
     date,
     transaction_id,
     CAST(contract, 'String') AS contract,
