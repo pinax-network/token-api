@@ -77,11 +77,13 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const parseIntervalMinute = intervalSchema.transform((interval) => {
         switch (interval) {
-            case 'hour':
+            case '1h':
                 return 60;
-            case 'day':
+            case '4h':
+                return 240;
+            case '1d':
                 return 1440;
-            case 'week':
+            case '1w':
                 return 10080;
         }
     }).safeParse(c.req.query('interval'));
