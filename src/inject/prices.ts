@@ -4,10 +4,12 @@ import { logger } from "../logger.js";
 import { EVM_SUBSTREAMS_VERSION } from "../routes/token/index.js";
 import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
 import { stables, natives } from "./prices.tokens.js";
+import * as symbols from "./symbol.tokens.js";
 
 interface Data {
     address?: string;
     contract?: string;
+    symbol?: string;
     decimals: number;
     amount: string;
     price_usd?: number; // Current price of token, if available
@@ -40,35 +42,41 @@ export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, 
     logger.debug({prices: prices.length});
 
     // Native price
-    const native_price = computeNativePrice(prices);
+    const native_price = computeNativePrice(prices, network_id);
 
     if ('data' in response) {
         response.data.forEach((row: Data) => {
             const address = contract ?? row.contract ?? row.address;
-            if (address) {
-                // Token price
-                const price = computeTokenPrice(prices, address, native_price);
-                if ( !price ) return;
-                const {price_usd, liquidity_usd } = price;
+            if ( !address || !row.symbol ) return;
 
-                // USD price
-                row.price_usd = price_usd;
+            // // Must be native token
+            // // Note: Optimism has two native assets `OP` & `WETH`
+            // if ( !symbols.natives.get(row.symbol)) {
+            //     return;
+            // }
 
-                // Liquidity check
-                if ( liquidity_usd < DEFAULT_LOW_LIQUIDITY_CHECK ) {
-                    row.low_liquidity = true;
-                }
+            // Token price
+            const price = computeTokenPrice(prices, address, native_price);
+            if ( !price ) return;
+            const {price_usd, liquidity_usd } = price;
 
-                // Value in USD
-                if ( row.amount ) {
-                    const value = Number(row.amount) / 10 ** row.decimals;
-                    row.value_usd = value * price_usd;
-                }
+            // USD price
+            row.price_usd = price_usd;
 
-                // Market Cap
-                if ( row.circulating_supply ) {
-                    row.market_cap = Number(row.circulating_supply) / 10 ** row.decimals * price_usd;
-                }
+            // Liquidity check
+            if ( liquidity_usd < DEFAULT_LOW_LIQUIDITY_CHECK ) {
+                row.low_liquidity = true;
+            }
+
+            // Value in USD
+            if ( row.amount ) {
+                const value = Number(row.amount) / 10 ** row.decimals;
+                row.value_usd = value * price_usd;
+            }
+
+            // Market Cap
+            if ( row.circulating_supply ) {
+                row.market_cap = Number(row.circulating_supply) / 10 ** row.decimals * price_usd;
             }
         });
     }
@@ -80,7 +88,7 @@ async function getPrices(database: string): Promise<Price[]> {
     return response.json();
 }
 
-function computeNativePrice(prices: Price[]): ComputedPrice {
+function computeNativePrice(prices: Price[], network_id: string): ComputedPrice {
     let symbol = '';
     let token = '';
     let reserve_usd = 0;

@@ -21,9 +21,15 @@ export const stables = new Set([
     // Arbitrum One
     '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // Arbitrum: USDT (Tether USD)
     '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // Arbitrum: USDC (Circle: USDC Token)
-    '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // Arbitrum: USDC.e (Bridged USDC)
+    '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // Arbitrum: USDC.e (Bridged from Ethereum)
     '0x6491c05a82219b8d1479057361ff1654749b876b', // Arbitrum: USDS (Sky: Dai Stablecoin)
     '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // Arbitrum: DAI (Sky: Dai Stablecoin)
+
+    // Optimism
+    '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58', // Optimism: USDT (Tether USD)
+    '0x0b2c639c533813f4aa9d7837caf62653d097ff85', // Optimism: UDSC (Bridged via Circle CCTP)
+    '0x7f5c764cbc14f9669b88837ca1490cca17c31607', // Optimism: USDC.e (Bridged from Ethereum)
+    '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // Optimism: DAI (Sky: Dai Stablecoin)
 ]);
 
 export const natives = new Set([
@@ -41,4 +47,8 @@ export const natives = new Set([
 
     // Arbitrum One
     '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // Arbitrum: WETH
+
+    // Optimism
+    '0x4200000000000000000000000000000000000006', // Optimism: WETH
+    // '0x4200000000000000000000000000000000000042', // Optimism: OP
 ]);

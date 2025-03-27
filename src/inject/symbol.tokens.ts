@@ -18,6 +18,10 @@ export const tokens = new Map<string, Symbol>([
 
     // Base
     ['0x4200000000000000000000000000000000000006', { symbol: 'WETH', decimals: 18, name: "Wrapped Ether" }], // genesis
+
+    // Optimism
+    ['0x4200000000000000000000000000000000000042', { symbol: 'OP', decimals: 18, name: "Optimism" }], // genesis
+    ['0x4200000000000000000000000000000000000006', { symbol: 'WETH', decimals: 18, name: "Wrapped Ether" }], // genesis
 ])
 
 export const natives = new Map<string, Symbol>([
@@ -25,4 +29,5 @@ export const natives = new Map<string, Symbol>([
     ["bsc", { symbol: 'BNB', decimals: 18, name: "BNB Smart Chain" }],
     ["base", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["arbitrum-one", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
+    ["optimism", { symbol: 'ETH', decimals: 18, name: "Optimism" }],
 ])
