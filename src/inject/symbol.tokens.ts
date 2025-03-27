@@ -30,4 +30,5 @@ export const natives = new Map<string, Symbol>([
     ["base", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["arbitrum-one", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["optimism", { symbol: 'ETH', decimals: 18, name: "Optimism" }],
+    ["matic", { symbol: 'POL', decimals: 18, name: "Polygon" }],
 ])

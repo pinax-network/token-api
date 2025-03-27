@@ -30,6 +30,12 @@ export const stables = new Set([
     '0x0b2c639c533813f4aa9d7837caf62653d097ff85', // Optimism: UDSC (Bridged via Circle CCTP)
     '0x7f5c764cbc14f9669b88837ca1490cca17c31607', // Optimism: USDC.e (Bridged from Ethereum)
     '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // Optimism: DAI (Sky: Dai Stablecoin)
+
+    // Polygon (Matic)
+    '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // Polygon: USDT (Bridged via Polygon POS)
+    '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // Polygon: USDC (Circle: USDC Token)
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // Polygon: USDC (Bridged via Polygon POS)
+    '0x9c9e5fd8bbc25984b178fdce6117defa39d2db39', // Polygon: BUSD (Binance-Peg BUSD Token)
 ]);
 
 export const natives = new Set([
@@ -50,5 +56,7 @@ export const natives = new Set([
 
     // Optimism
     '0x4200000000000000000000000000000000000006', // Optimism: WETH
-    // '0x4200000000000000000000000000000000000042', // Optimism: OP
+
+    // Polygon (Matic)
+    '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // Polygon: WPOL
 ]);
