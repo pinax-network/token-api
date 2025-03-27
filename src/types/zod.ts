@@ -29,7 +29,7 @@ export const limitSchema = z.coerce.number().int().min(1).max(500).default(DEFAU
 export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ description: 'The page number of the results to return.' });
 export const orderBySchema = z.enum(["asc", "desc"]).openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
 export const intervalSchema = z.enum(['hour', 'day', 'week']).default('hour').openapi({ description: 'The interval for which to aggregate price data.' });
-export const datetimeSchema = z.string().datetime().default('1970-01-01T00:00:00Z');
+export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in seconds').transform((t) => t*1000).openapi({ description: 'UNIX timestamp in seconds.' });
 
 // ----------------------
 // API Query Params

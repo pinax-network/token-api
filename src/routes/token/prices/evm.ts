@@ -2,13 +2,14 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, contractAddressSchema, intervalSchema, datetimeSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, contractAddressSchema, intervalSchema, timestampSchema } from '../../../types/zod.js';
 import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
 import { stables } from '../../../inject/prices.js';
+import { startTime } from 'hono/timing';
 
 const route = new Hono();
 
@@ -19,8 +20,8 @@ const paramSchema = z.object({
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
     interval: intervalSchema,
-    from: z.optional(datetimeSchema),
-    to: z.optional(datetimeSchema)
+    startTime: z.optional(timestampSchema),
+    endTime: z.optional(timestampSchema)
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -88,11 +89,17 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     }).safeParse(c.req.query('interval'));
     if (!parseIntervalMinute.success) return c.json({ error: `Invalid Interval: ${parseIntervalMinute.error.message}` }, 400);
 
-    const parseFrom = datetimeSchema.optional().safeParse(c.req.query('from'));
-    if (!parseFrom.success) return c.json({ error: `Invalid From: ${parseFrom.error.message}` }, 400);
+    const parseStart = timestampSchema.default(0).safeParse(c.req.query('startTime'));
+    if (!parseStart.success) return c.json({ error: `Invalid StartTime: ${parseStart.error.message}` }, 400);
 
-    const parseTo = datetimeSchema.optional().safeParse(c.req.query('to'));
-    if (!parseTo.success) return c.json({ error: `Invalid To: ${parseTo.error.message}` }, 400);
+    const parseEnd = timestampSchema.default(9999999999).safeParse(c.req.query('endTime'));
+    if (!parseEnd.success) return c.json({ error: `Invalid EndTime: ${parseEnd.error.message}` }, 400);
+
+    const min_datetime = (new Date(parseStart.data)).toISOString();
+    const max_datetime = (new Date(parseEnd.data)).toISOString();
+
+    if (min_datetime > max_datetime)
+        return c.json({ error: `Invalid period: startTime > endTime` }, 400);
 
     const response = await makeUsageQueryJson(c, [query], {
         network_id,
@@ -101,8 +108,8 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
         low_quantile: 0.05,
         contract,
         stablecoin_contracts: [...stables],
-        min_datetime: parseFrom.data ?? (new Date(0)).toISOString(),
-        max_datetime: parseTo.data ?? (new Date()).toISOString(),
+        min_datetime,
+        max_datetime,
     }, { database });
 
     return handleUsageQueryError(c, response);

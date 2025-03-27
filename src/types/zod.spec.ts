@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { evmAddressSchema, paginationSchema } from "./zod.js";
+import { evmAddressSchema, paginationSchema, timestampSchema } from "./zod.js";
 import { ZodError } from "zod";
 
 describe("EVM Address Schema", () => {
@@ -143,5 +143,48 @@ describe("Pagination Schema", () => {
         total_pages: 2,
       })
     ).toThrowError(ZodError);
+  });
+});
+
+describe("Timestamp Schema", () => {
+  it("should convert a valid timestamp number to milliseconds", () => {
+    const timestamp = 1647456789; // seconds
+    expect(timestampSchema.parse(timestamp)).toBe(1647456789000); // milliseconds
+  });
+
+  it("should coerce string timestamps to numbers and convert to milliseconds", () => {
+    const timestampStr = "1647456789"; // seconds as string
+    expect(timestampSchema.parse(timestampStr)).toBe(1647456789000); // milliseconds
+  });
+
+  it("should handle zero as a valid timestamp", () => {
+    expect(timestampSchema.parse(0)).toBe(0);
+    expect(timestampSchema.parse("0")).toBe(0);
+    expect(timestampSchema.parse("")).toBe(0);
+  });
+
+  it("should throw a ZodError for negative timestamps", () => {
+    expect(() => timestampSchema.parse(-1)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse("-1")).toThrowError(ZodError);
+  });
+
+  it("should throw a ZodError for non-numeric strings", () => {
+    expect(() => timestampSchema.parse("abc")).toThrowError(ZodError);
+  });
+
+  it("should correctly validate and transform decimal timestamps", () => {
+    expect(timestampSchema.parse(1647456789.5)).toBe(1647456789500);
+    expect(timestampSchema.parse("1647456789.5")).toBe(1647456789500);
+  });
+
+  it("should handle the safeParse method correctly", () => {
+    const validResult = timestampSchema.safeParse(1647456789);
+    expect(validResult.success).toBe(true);
+    if (validResult.success) {
+      expect(validResult.data).toBe(1647456789000);
+    }
+
+    const invalidResult = timestampSchema.safeParse(-1);
+    expect(invalidResult.success).toBe(false);
   });
 });
