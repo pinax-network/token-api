@@ -1,6 +1,6 @@
 import 'zod-openapi/extend';
 import { z } from "zod";
-import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE } from "../config.js";
+import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_NETWORK_ID } from "../config.js";
 
 // ----------------------
 // Common schemas
@@ -21,6 +21,8 @@ export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+// z.enum argument type definition requires at least one element to be defined
+export const networkIdSchema = z.enum([config.networks.at(0) ?? DEFAULT_NETWORK_ID, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
 
 export const walletAddressSchema = evmAddressSchema.openapi({ description: 'EVM wallet address to query', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' });
 export const contractAddressSchema = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' });

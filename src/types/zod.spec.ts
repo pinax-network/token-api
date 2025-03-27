@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { evmAddressSchema, paginationSchema, timestampSchema } from "./zod.js";
-import { networkIdSchema } from "../routes/networks.js";
+import { evmAddressSchema, paginationSchema, timestampSchema, networkIdSchema } from "./zod.js";
 import { ZodError } from "zod";
 import { config, DEFAULT_NETWORK_ID } from "../config.js";
 
