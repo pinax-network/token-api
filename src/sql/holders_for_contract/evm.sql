@@ -1,6 +1,6 @@
 SELECT
     block_num,
-    toUnixTimestamp(timestamp) as timestamp,
+    timestamp as datetime,
     date,
     owner as address,
     CAST(new_balance, 'String') AS amount,
