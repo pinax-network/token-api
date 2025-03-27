@@ -28,6 +28,7 @@ export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_NETWORK_ID = "mainnet";
+export const DEFAULT_NETWORKS = DEFAULT_NETWORK_ID;
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text()).replace(/\n/, "").slice(0, 7);
@@ -43,6 +44,8 @@ export const APP_NAME = pkg.name;
 export const APP_DESCRIPTION = pkg.description;
 export const APP_VERSION = `${GIT_APP.version}+${GIT_APP.commit} (${GIT_APP.date})`;
 
+export const DB_SUFFIX = "evm-tokens@v1.9.0:db_out";
+
 // parse command line options
 const opts = program
     .name(pkg.name)
@@ -57,6 +60,7 @@ const opts = program
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified API username").env("PASSWORD").default(DEFAULT_PASSWORD))
+    .addOption(new Option("--networks <string>", "Supported The Graph Network IDs").env("NETWORKS").default(DEFAULT_NETWORKS))
     .addOption(new Option("--mcp-username <string>", "Database user for MCP").env("MCP_USERNAME").default(DEFAULT_MCP_USERNAME))
     .addOption(new Option("--mcp-password <string>", "Password associated with the specified MCP username").env("MCP_PASSWORD").default(DEFAULT_MCP_PASSWORD))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
@@ -77,6 +81,7 @@ export const config = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
+    networks: z.string().transform((networks) => networks.split(',')),
     mcpUsername: z.string(),
     mcpPassword: z.string(),
     maxLimit: z.coerce.number(),

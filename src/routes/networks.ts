@@ -5,7 +5,7 @@ import { NetworksRegistry } from "@pinax/graph-networks-registry";
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
 import { logger } from '../logger.js';
-import { config, DEFAULT_NETWORK_ID } from '../config.js';
+import { config, DB_SUFFIX, DEFAULT_NETWORK_ID } from '../config.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
@@ -65,32 +65,30 @@ export function getNetwork(id: string) {
     };
 }
 
-export async function getNetworksIds() {
-    try {
-        const query = `SHOW DATABASES LIKE '%db_out'`;
-        const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
-        const network_ids = new Set<string>([DEFAULT_NETWORK_ID]);
-
-        for (const row of await result.json<{ name: string; }>()) {
-            const network_id = row.name.split(":")[0];
-            if (network_id) network_ids.add(network_id);
+async function validateNetworks() {
+    if (!config.networks.includes(DEFAULT_NETWORK_ID)) {
+        throw new Error(`Default network ${DEFAULT_NETWORK_ID} not found`);
+    }
+    const query = `SHOW DATABASES LIKE '%:${DB_SUFFIX}'`;
+    const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
+    const dbs = await result.json<{ name: string; }>();
+    for (const network of config.networks) {
+        if (!dbs.find(db => db.name === `${network}:${DB_SUFFIX}`)) {
+            throw new Error(`Database ${network}:${DB_SUFFIX} not found`);
         }
-        return Array.from(network_ids);
-    } catch (e) {
-        logger.error(`Error fetching network ids: ${e}`);
-        return [DEFAULT_NETWORK_ID];
     }
 }
 
 // store networks in memory
 // this is a workaround to avoid loading networks from the database on every request
-export const networks = await getNetworksIds();
+await validateNetworks();
 // z.enum argument type definition requires at least one element to be defined
-export const networkIdSchema = z.enum([networks.at(0) ?? DEFAULT_NETWORK_ID, ...networks.slice(1)]).default(DEFAULT_NETWORK_ID).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
-logger.trace(`Supported networks:\n`, networks);
+export const networkIdSchema = z.enum([DEFAULT_NETWORK_ID]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: DEFAULT_NETWORK_ID });
+logger.trace(`Supported networks:\n`, config.networks);
+logger.trace(`Default network: ${DEFAULT_NETWORK_ID}`);
 
 route.get('/networks', openapi, async (c) => {
-    return c.json({ networks: networks.map(id => getNetwork(id)) });
+    return c.json({ networks: config.networks.map(id => getNetwork(id)) });
 });
 
 export default route;
