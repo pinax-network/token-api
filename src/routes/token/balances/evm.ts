@@ -49,7 +49,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'Token Balances by Wallet Address',
-    description: 'The EVM Balances endpoint returns the current balances of native and ERC-20 tokens held by a specified wallet address on an Ethereum-compatible blockchain. The endpoint provides a snapshot of an account’s current token holdings.',
+    description: 'The EVM Balances endpoint provides a snapshot of an account’s current token holdings. The endpoint returns the current balances of native and ERC-20 tokens held by a specified wallet address on an Ethereum-compatible blockchain.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -93,7 +93,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });
-    injectSymbol(response);
+    injectSymbol(response, network_id);
     await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });

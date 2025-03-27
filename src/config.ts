@@ -29,6 +29,7 @@ export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_NETWORK_ID = "mainnet";
 export const DEFAULT_NETWORKS = DEFAULT_NETWORK_ID;
+export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text()).replace(/\n/, "").slice(0, 7);
