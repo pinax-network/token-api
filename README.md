@@ -11,6 +11,34 @@
 
 ## Architecture
 
+### 1. OpenAPI Schema Definitions
+
+- Provide a formal, machine-readable contract for all REST endpoints, including request and response models.
+- Serve as a basis for automated documentation and client/server code generation.
+- Capture everything from parameter schemas to response structures to ensure consistency across different implementations.
+
+### 2. Executable SQL Statements
+
+- Represent raw, parameterized queries that can be directly executed within a ClickHouse environment.
+- Provide an unambiguous means of data manipulation and retrieval, enabling straightforward operational transparency (e.g., paste into a ClickHouse client for immediate testing).
+
+### 3. MCP Server (Including SQL Context)
+
+- Hosts the service logic while embedding the relevant SQL statements to orchestrate data queries.
+- Ensures that each database operation is correctly contextualized, allowing consistent use across various application layers or microservices.
+
+### 4. HTTP Routes (Wrapping Query & Parameters)
+
+- Expose each SQL operation via HTTP endpoints, encapsulating user inputs and query parameters into well-defined APIs.
+- Streamline external access to database functionality by abstracting the underlying SQL implementation from the client.
+
+### 5. On-the-Fly Data Injection
+
+- Accommodates immediate adjustments or patches where Substreams data is incomplete or erroneous.
+- Allows custom logic to amend, replace, or enrich dataset records before they are processed or stored, ensuring robust data integrity despite upstream issues.
+
+### 6. Substreams SQL Sink
+
 ```mermaid
 flowchart LR
   S1[EVM Tokens.spkg] --> Sink{Substreams SQL Sink}
@@ -27,6 +55,8 @@ flowchart LR
 - [x] Holders
 - [x] Tokens
 - [x] Transfers
+- [x] OHLC
+  - [x] Prices
 
 ## Supported Networks
 
