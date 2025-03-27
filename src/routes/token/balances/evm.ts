@@ -2,11 +2,10 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, walletAddressSchema } from '../../../types/zod.js';
+import { evmAddressSchema, paginationQuery, statisticsSchema, walletAddressSchema, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DB_SUFFIX, DEFAULT_NETWORK_ID } from '../../../config.js';
-import { networkIdSchema } from '../../networks.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
 
