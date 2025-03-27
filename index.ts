@@ -32,7 +32,7 @@ app.get('/openapi', openAPISpecs(app, {
             version: APP_VERSION,
             description: 'Power your apps & AI agents with real-time token data.',
         },
-        servers: [
+        servers: config.disableOpenapiServers ? [] : [
             { url: `https://token-api.thegraph.com`, description: `${APP_DESCRIPTION} - Production` },
             { url: `http://localhost:${config.port}`, description: `${APP_DESCRIPTION} - Local` },
         ],
@@ -60,5 +60,5 @@ app.notFound((c: Context) => APIErrorResponse(c, 404, "route_not_found", `Path n
 
 export default {
     ...app,
-    idleTimeout: config.requestIdleTimeout
+    idleTimeout: config.idleTimeout
 };

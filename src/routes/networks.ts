@@ -5,7 +5,7 @@ import { NetworksRegistry } from "@pinax/graph-networks-registry";
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
 import { logger } from '../logger.js';
-import { config, DB_SUFFIX, DEFAULT_NETWORK_ID } from '../config.js';
+import { config, DEFAULT_NETWORK_ID } from '../config.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
@@ -69,12 +69,12 @@ async function validateNetworks() {
     if (!config.networks.includes(DEFAULT_NETWORK_ID)) {
         throw new Error(`Default network ${DEFAULT_NETWORK_ID} not found`);
     }
-    const query = `SHOW DATABASES LIKE '%:${DB_SUFFIX}'`;
+    const query = `SHOW DATABASES LIKE '%:${config.dbEvmSuffix}'`;
     const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
     const dbs = await result.json<{ name: string; }>();
     for (const network of config.networks) {
-        if (!dbs.find(db => db.name === `${network}:${DB_SUFFIX}`)) {
-            throw new Error(`Database ${network}:${DB_SUFFIX} not found`);
+        if (!dbs.find(db => db.name === `${network}:${config.dbEvmSuffix}`)) {
+            throw new Error(`Database ${network}:${config.dbEvmSuffix} not found`);
         }
     }
 }

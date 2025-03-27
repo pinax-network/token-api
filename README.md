@@ -86,6 +86,7 @@ bun test
 # API Server
 PORT=8000
 HOSTNAME=localhost
+IDLE_TIMEOUT=60
 
 # MCP Server
 SSE_PORT=8080
@@ -99,6 +100,13 @@ PASSWORD=
 MCP_USERNAME=default
 MCP_PASSWORD=
 MAX_LIMIT=10000
+NETWORKS=mainnet,bsc,base,optimism,arbitrum-one
+DB_EVM_SUFFIX=evm-tokens@v1.9.0:db_out
+DB_SVM_SUFFIX=svm-tokens@v1.0.0:db_out
+DB_ANTELOPE_SUFFIX=antelope-tokens@v1.0.0:db_out
+
+# OpenAPI
+DISABLE_OPENAPI_SERVERS=false
 
 # Logging
 PRETTY_LOGGING=true

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { escapeSQL, runSQLMCP } from "./utils.js";
 import { Tool } from "fastmcp";
-import { DB_SUFFIX } from "../config.js";
+import { config } from "../config.js";
 
 export default [
     {
@@ -9,7 +9,7 @@ export default [
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
         execute: async ({ reportProgress }) => {
-            return runSQLMCP(`SHOW DATABASES LIKE '%${DB_SUFFIX}'`, reportProgress);
+            return runSQLMCP(`SHOW DATABASES LIKE '%${config.dbEvmSuffix}'`, reportProgress);
         },
     },
     {
