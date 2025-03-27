@@ -5,6 +5,7 @@ SELECT
         toStartOfInterval(datetime, INTERVAL {interval_minute: UInt64} MINUTE)
     ) AS datetime,
     CONCAT((SELECT symbol FROM contracts WHERE address = {contract: String}), 'USD') AS ticker,
+    argMinMerge(open) AS open,
     if(
         quantile({high_quantile: Float32})(high) < open,
         open,
@@ -15,9 +16,8 @@ SELECT
         close,
         quantile({low_quantile: Float32})(low)
     ) AS low,
-    sum(volume) AS volume,
-    argMinMerge(open) AS open,
-    argMaxMerge(close) AS close
+    argMaxMerge(close) AS close,
+    sum(volume) AS volume
 FROM ohlc_from_swaps
 WHERE token1 = {contract: String} AND token0 IN {stablecoin_contracts: Array(String)}
 GROUP BY token1, datetime

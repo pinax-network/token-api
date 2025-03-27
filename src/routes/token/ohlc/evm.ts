@@ -9,7 +9,6 @@ import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
 import { stables } from '../../../inject/prices.js';
-import { startTime } from 'hono/timing';
 
 const route = new Hono();
 
