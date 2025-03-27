@@ -3,7 +3,7 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, contractAddressSchema } from '../../../types/zod.js';
-import { EVM_SUBSTREAMS_VERSION } from '../index.js';
+import { DB_SUFFIX } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
@@ -87,7 +87,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
     const order_by = orderBySchema.safeParse(c.req.query("order_by")).data ?? "desc";
-    const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
+    const database = `${network_id}:${DB_SUFFIX}`;
 
     const query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);

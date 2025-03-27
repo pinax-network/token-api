@@ -3,7 +3,7 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { contractAddressSchema, evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
-import { EVM_SUBSTREAMS_VERSION } from '../index.js';
+import { DB_SUFFIX } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { DEFAULT_NETWORK_ID } from '../../../config.js';
@@ -100,7 +100,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
-    const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
+    const database = `${network_id}:${DB_SUFFIX}`;
 
     const query = sqlQueries['tokens_for_contract']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);

@@ -1,7 +1,7 @@
 import client from "../clickhouse/client.js";
+import { DB_SUFFIX } from "../config.js";
 import { DEFAULT_LOW_LIQUIDITY_CHECK } from "../config.js";
 import { logger } from "../logger.js";
-import { EVM_SUBSTREAMS_VERSION } from "../routes/token/index.js";
 import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
 import { stables, natives } from "./prices.tokens.js";
 import * as symbols from "./symbol.tokens.js";
@@ -37,7 +37,7 @@ interface ComputedPrice {
 }
 
 export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, network_id: string, contract?: string) {
-    const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
+    const database = `${network_id}:${DB_SUFFIX}`;
     const prices = await getPrices(database);
     logger.debug({prices: prices.length});
 

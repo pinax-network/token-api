@@ -3,10 +3,9 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { evmAddressSchema, paginationQuery, statisticsSchema, walletAddressSchema } from '../../../types/zod.js';
-import { EVM_SUBSTREAMS_VERSION } from '../index.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { DEFAULT_NETWORK_ID } from '../../../config.js';
+import { DB_SUFFIX, DEFAULT_NETWORK_ID } from '../../../config.js';
 import { networkIdSchema } from '../../networks.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
@@ -86,7 +85,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
-    const database = `${network_id}:${EVM_SUBSTREAMS_VERSION}`;
+    const database = `${network_id}:${DB_SUFFIX}`;
 
     const contract = c.req.query("contract") ?? '';
 
