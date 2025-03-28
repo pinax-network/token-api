@@ -68,8 +68,8 @@ SELECT
     datetime,
     ticker,
     quantileExactWeighted(open, count) AS open,
-    max(high) AS high,
-    min(low) AS low,
+    quantileExactWeighted(high, count) AS high,
+    quantileExactWeighted(low, count) AS low,
     quantileExactWeighted(close, count) AS close,
     sum(volume) AS volume
 FROM combined_prices
