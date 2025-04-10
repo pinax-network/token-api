@@ -5,7 +5,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery, walletAddressSchema, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { config, DEFAULT_AGE, DEFAULT_NETWORK_ID } from '../../../config.js';
+import { config, DEFAULT_AGE } from '../../../config.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
 
@@ -92,7 +92,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
     const address = parseAddress.data;
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
+    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 

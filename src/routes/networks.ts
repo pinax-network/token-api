@@ -5,7 +5,7 @@ import { NetworksRegistry } from "@pinax/graph-networks-registry";
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
 import { logger } from '../logger.js';
-import { config, DEFAULT_NETWORK_ID } from '../config.js';
+import { config } from '../config.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
@@ -66,8 +66,8 @@ export function getNetwork(id: string) {
 }
 
 async function validateNetworks() {
-    if (!config.networks.includes(DEFAULT_NETWORK_ID)) {
-        throw new Error(`Default network ${DEFAULT_NETWORK_ID} not found`);
+    if (!config.networks.includes(config.defaultNetwork)) {
+        throw new Error(`Default network ${config.defaultNetwork} not found`);
     }
     const query = `SHOW DATABASES LIKE '%:${config.dbEvmSuffix}'`;
     const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
@@ -84,7 +84,7 @@ async function validateNetworks() {
 await validateNetworks();
 
 logger.trace(`Supported networks:\n`, config.networks);
-logger.trace(`Default network: ${DEFAULT_NETWORK_ID}`);
+logger.trace(`Default network: ${config.defaultNetwork}`);
 
 route.get('/networks', openapi, async (c) => {
     return c.json({ networks: config.networks.map(id => getNetwork(id)) });

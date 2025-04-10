@@ -27,8 +27,8 @@ export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
-export const DEFAULT_NETWORK_ID = "mainnet";
-export const DEFAULT_NETWORKS = DEFAULT_NETWORK_ID;
+export const DEFAULT_DEFAULT_NETWORK_ID = "mainnet";
+export const DEFAULT_NETWORKS = DEFAULT_DEFAULT_NETWORK_ID;
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 
@@ -69,6 +69,7 @@ const opts = program
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified API username").env("PASSWORD").default(DEFAULT_PASSWORD))
     .addOption(new Option("--networks <string>", "Supported The Graph Network IDs").env("NETWORKS").default(DEFAULT_NETWORKS))
+    .addOption(new Option("--default-network <string>", "Default Network ID").env("DEFAULT_NETWORK_ID").default(DEFAULT_DEFAULT_NETWORK_ID))
     .addOption(new Option("--db-evm-suffix <string>", "EVM Token Clickhouse database suffix").env("DB_EVM_SUFFIX").default(DEFAULT_DB_EVM_SUFFIX))
     .addOption(new Option("--db-svm-suffix <string>", "SVM (Solana) Token Clickhouse database suffix").env("DB_SVM_SUFFIX").default(DEFAULT_DB_SVM_SUFFIX))
     .addOption(new Option("--db-antelope-suffix <string>", "Antelope Token Clickhouse database suffix").env("DB_ANTELOPE_SUFFIX").default(DEFAULT_DB_ANTELOPE_SUFFIX))
@@ -94,6 +95,7 @@ export const config = z.object({
     username: z.string(),
     password: z.string(),
     networks: z.string().transform((networks) => networks.split(',')),
+    defaultNetwork: z.string(),
     dbEvmSuffix: z.string(),
     dbSvmSuffix: z.string(),
     dbAntelopeSuffix: z.string(),

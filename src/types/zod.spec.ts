@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { evmAddressSchema, paginationSchema, timestampSchema, networkIdSchema } from "./zod.js";
 import { ZodError } from "zod";
-import { config, DEFAULT_NETWORK_ID } from "../config.js";
+import { config } from "../config.js";
 
 describe("EVM Address Schema", () => {
   it("should correctly parse a valid lowercase address", () => {
@@ -192,7 +192,7 @@ describe("Timestamp Schema", () => {
 
 describe("Network ID Schema", () => {
   it("should accept the default network ID", () => {
-    expect(networkIdSchema.parse(DEFAULT_NETWORK_ID)).toBe(DEFAULT_NETWORK_ID);
+    expect(networkIdSchema.parse(config.defaultNetwork)).toBe(config.defaultNetwork);
   });
 
   it("should accept any network ID from the config", () => {
@@ -217,10 +217,10 @@ describe("Network ID Schema", () => {
   });
 
   it("should correctly handle the safeParse method", () => {
-    const validResult = networkIdSchema.safeParse(DEFAULT_NETWORK_ID);
+    const validResult = networkIdSchema.safeParse(config.defaultNetwork);
     expect(validResult.success).toBe(true);
     if (validResult.success) {
-      expect(validResult.data).toBe(DEFAULT_NETWORK_ID);
+      expect(validResult.data).toBe(config.defaultNetwork);
     }
 
     const invalidResult = networkIdSchema.safeParse("invalid-network");

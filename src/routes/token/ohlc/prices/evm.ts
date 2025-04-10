@@ -5,7 +5,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { evmAddressSchema, statisticsSchema, paginationQuery, contractAddressSchema, intervalSchema, timestampSchema, networkIdSchema } from '../../../../types/zod.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
-import { config, DEFAULT_NETWORK_ID } from '../../../../config.js';
+import { config } from '../../../../config.js';
 import { stables } from '../../../../inject/prices.tokens.js';
 
 const route = new Hono();
@@ -68,7 +68,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
 
     const contract = parseContract.data;
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? DEFAULT_NETWORK_ID;
+    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
     const query = sqlQueries['ohlcv_prices_usd_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
