@@ -103,7 +103,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const response = await makeUsageQueryJson(c, [query], { address, age, network_id, contract }, { database });
     injectSymbol(response, network_id);
-    await injectPrices(response, network_id);
+    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 

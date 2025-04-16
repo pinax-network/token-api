@@ -1,21 +1,10 @@
 SELECT
     block_num,
     timestamp as datetime,
-    date,
-    owner as address,
+    address,
     CAST(new_balance, 'String') AS amount,
-    multiIf(
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id IN ('mainnet','arbitrum-one','base','bnb','matic'), 18,
-        contracts.decimals
-    ) AS decimals,
-    multiIf(
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'mainnet', 'ETH',
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'arbitrum-one', 'ETH',
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'base', 'ETH',
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'bnb', 'BNB',
-        contract IN ('native', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND network_id = 'matic', 'POL',
-        trim(contracts.symbol)
-    ) AS symbol,
+    decimals,
+    trim(symbol) as symbol,
     {network_id: String} as network_id
 FROM balances_by_contract FINAL
 LEFT JOIN contracts

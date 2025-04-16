@@ -106,7 +106,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
     injectSymbol(response, network_id, true);
     injectIcons(response);
-    await injectPrices(response, network_id);
+    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 

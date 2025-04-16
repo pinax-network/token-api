@@ -64,7 +64,7 @@ WITH combined_prices AS
     HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String}) AND datetime <= parseDateTimeBestEffort({max_datetime: String})
     ORDER BY datetime DESC
 )
-SELECT 
+SELECT
     datetime,
     ticker,
     quantileExactWeighted(open, count) AS open,
