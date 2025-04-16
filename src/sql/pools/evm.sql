@@ -3,13 +3,18 @@ SELECT
     pools.timestamp as datetime,
     transaction_id,
     CAST(factory, 'String') AS factory,
-    CAST(pool, 'String') AS pool,
-    CAST(token0, 'String') AS token0,
-    trim(c0.symbol) as symbol0,
-    c0.decimals as decimals0,
-    CAST(token1, 'String') AS token1,
-    trim(c1.symbol) as symbol1,
-    c1.decimals as decimals1,
+    CAST(
+        ( CAST(pool AS String), trim(p.symbol), p.decimals )
+        AS Tuple(address String, symbol  String, decimals UInt8)
+    ) AS pool,
+    CAST(
+        ( CAST(token0 AS String), trim(c0.symbol), c0.decimals )
+        AS Tuple(address String, symbol  String, decimals UInt8)
+    ) AS token0,
+    CAST(
+        ( CAST(token1 AS String), trim(c1.symbol), c1.decimals )
+        AS Tuple(address String, symbol  String, decimals UInt8)
+    ) AS token1,
     fee,
     protocol,
     {network_id: String} as network_id
@@ -18,6 +23,8 @@ JOIN contracts c0
     ON pools.token0 = c0.address
 JOIN contracts c1
     ON pools.token1 = c1.address
+JOIN contracts p
+    ON pools.pool = p.address
 WHERE
     ({pool: String} = '' OR pool = {pool: String})
 ORDER BY block_num DESC;
