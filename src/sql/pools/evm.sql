@@ -19,12 +19,12 @@ SELECT
     protocol,
     {network_id: String} as network_id
 FROM pools
-JOIN contracts c0
-    ON pools.token0 = c0.address
-JOIN contracts c1
-    ON pools.token1 = c1.address
-JOIN contracts p
-    ON pools.pool = p.address
+JOIN contracts AS c0 ON c0.address = pools.token0
+JOIN contracts AS c1 ON c1.address = pools.token1
+JOIN contracts AS p  ON p.address  = pools.pool
 WHERE
-    ({pool: String} = '' OR pool = {pool: String})
+    if ({pool:String} == '', true, pools.pool  = {pool:String}) AND
+    if ({factory:String} == '', true, pools.factory = {factory:String}) AND
+    if ({token:String} == '', true, pools.token0 = {token:String} OR  pools.token1 = {token:String}) AND
+    if ({symbol:String} == '', true, c0.symbol = {symbol:String} OR  c1.symbol = {symbol:String})
 ORDER BY block_num DESC;

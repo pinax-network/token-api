@@ -9,13 +9,12 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 
 const route = new Hono();
 
-const paramSchema = z.object({
-    address: GRT,
-});
-
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    pool: z.optional(USDC_WETH),
+    pool: z.optional(evmAddressSchema),
+    factory: z.optional(evmAddressSchema),
+    token: z.optional(GRT),
+    symbol: z.optional(z.string()),
 });
 
 const tokenSchema = z.object({
@@ -51,8 +50,8 @@ const responseSchema = z.object({
 
 
 const openapi = describeRoute({
-    summary: 'Pools by Token',
-    description: 'The Pools endpoint delivers contract details for Uniswap V2 & V3 liquidity pools.',
+    summary: 'Swap Pools',
+    description: 'The Pools endpoint delivers contract details for Uniswap V2 & V3 swap pools.',
     tags: ['EVM'],
     responses: {
         200: {
@@ -75,11 +74,29 @@ const openapi = describeRoute({
 })
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
-    const pool = c.req.param("pool") ?? '';
+    const pool = c.req.query("pool") ?? '';
     if (pool) {
-        const parsed = evmAddressSchema.safeParse(c.req.param("pool"));
+        const parsed = evmAddressSchema.safeParse(pool);
         if (!parsed.success) {
-            return c.json({ error: `Invalid EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid pool EVM address: ${parsed.error.message}` }, 400);
+        }
+    }
+
+    const token = c.req.query("token") ?? '';
+    if (token) {
+        const parsed = evmAddressSchema.safeParse(token);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
+        }
+    }
+
+    const symbol = c.req.query("symbol") ?? '';
+
+    const factory = c.req.query("factory") ?? '';
+    if (factory) {
+        const parsed = evmAddressSchema.safeParse(factory);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid factory EVM address: ${parsed.error.message}` }, 400);
         }
     }
 
@@ -90,7 +107,9 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     const query = sqlQueries['pools']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { pool, network_id }, { database });
+    console.log({token})
+
+    const response = await makeUsageQueryJson(c, [query], { pool, token, factory, symbol, network_id }, { database });
     return handleUsageQueryError(c, response);
 });
 
