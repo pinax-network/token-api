@@ -1,5 +1,5 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'path';
+import { readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { logger } from '../logger.js';
 
 /**
@@ -28,13 +28,9 @@ export async function loadSqlFiles(folderPath: string): Promise<Record<string, s
 
         for (const file of files) {
             if (file.endsWith('.sql')) {
-                const filePath = join(folderPath, file);
-                const content = await readFile(filePath, 'utf-8');
-
                 // Use the filename without extension as the key
                 const key = file.replace('.sql', '');
-                // Fold multiline statement into single line
-                sqlFiles[key] = content.replace(/\n|;/g, ' ').trim();
+                sqlFiles[key] = await readSQL(join(folderPath, file));
             }
         }
 
@@ -65,3 +61,9 @@ try {
 
 logger.trace(`Loaded SQL queries:\n`, Object.keys(sqlQueries));
 export { sqlQueries };
+
+export async function readSQL(path: string) {
+    const content = await Bun.file(path).text();
+    // Fold multiline statement into single line
+    return content.replace(/\n|;/g, ' ').trim();
+}

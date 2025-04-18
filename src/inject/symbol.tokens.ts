@@ -41,7 +41,6 @@ export const tokens = new Map<string, Symbol>([
     ['0x49d5cc521f75e13fa8eb4e89e9d381352c897c96', { symbol: 'USDT', decimals: 6, name: "Wormhole: USDTso Token" }], // wormhole uses EIP-1967 Beacon Proxy
     ['0x43274da7818fb8f1d1121d93245ed7c8422ebaf0', { symbol: 'SCT', decimals: 9, name: "Wormhole: SolClout" }], // wormhole uses EIP-1967 Beacon Proxy
     ['0x13b6a55662f6591f8b8408af1c73b017e32eedb8', { symbol: 'RAY', decimals: 9, name: "Wormhole: RAY Token" }], // wormhole uses EIP-1967 Beacon Proxy
-
 ])
 
 export const natives = new Map<string, Symbol>([
@@ -51,4 +50,5 @@ export const natives = new Map<string, Symbol>([
     ["arbitrum-one", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
     ["optimism", { symbol: 'ETH', decimals: 18, name: "Optimism" }],
     ["matic", { symbol: 'POL', decimals: 18, name: "Polygon" }],
+    ["unichain", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
 ])

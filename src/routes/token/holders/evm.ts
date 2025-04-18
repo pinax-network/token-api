@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, contractAddressSchema, networkIdSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, GRT, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -12,7 +12,7 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: contractAddressSchema
+    contract: GRT
 });
 
 const querySchema = z.object({
@@ -92,7 +92,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const response = await makeUsageQueryJson(c, [query], { contract, network_id, order_by }, { database });
     injectSymbol(response, network_id);
-    await injectPrices(response, network_id, contract);
+    // await injectPrices(response, network_id, contract);
     return handleUsageQueryError(c, response);
 });
 
