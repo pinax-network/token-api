@@ -3,10 +3,7 @@ SELECT
     pools.timestamp as datetime,
     transaction_id,
     toString(factory) AS factory,
-    CAST(
-        ( toString(pool), trim(p.symbol), p.decimals )
-        AS Tuple(address String, symbol  String, decimals UInt8)
-    ) AS pool,
+    pool,
     CAST(
         ( toString(token0), trim(c0.symbol), c0.decimals )
         AS Tuple(address String, symbol  String, decimals UInt8)
@@ -19,7 +16,6 @@ SELECT
     protocol,
     {network_id: String} as network_id
 FROM pools
-JOIN contracts AS p  FINAL ON p.address  = pools.pool
 JOIN contracts AS c0 FINAL ON c0.address = pools.token0
 JOIN contracts AS c1 FINAL ON c1.address = pools.token1
 WHERE

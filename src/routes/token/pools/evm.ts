@@ -33,7 +33,7 @@ const responseSchema = z.object({
         // -- pool --
         // creator: evmAddressSchema, // TO-DO: https://github.com/pinax-network/substreams-evm-tokens/issues/37
         factory: evmAddressSchema,
-        pool: tokenSchema,
+        pool: evmAddressSchema,
         token0: tokenSchema,
         token1: tokenSchema,
         fee: z.number(),
