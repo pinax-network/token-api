@@ -12,17 +12,17 @@ const route = new Hono();
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
     token: z.optional(GRT),
+    caller: z.optional(evmAddressSchema),
+    sender: z.optional(evmAddressSchema),
+    recipient: z.optional(evmAddressSchema),
     symbol: z.optional(z.string()),
+    pool: z.optional(evmAddressSchema),
+    factory: z.optional(evmAddressSchema),
 
     // NOT IMPLEMENTED YET
     // https://github.com/pinax-network/substreams-evm-tokens/issues/38
     // https://github.com/pinax-network/substreams-evm-tokens/issues/32
-    // pool: z.optional(evmAddressSchema),
-    // caller: z.optional(evmAddressSchema),
-    // sender: z.optional(evmAddressSchema),
-    // recipient: z.optional(evmAddressSchema),
-    // factory: z.optional(evmAddressSchema),
-    // transaction_id: z.optional(evmTransactionSchema),
+    transaction_id: z.optional(evmTransactionSchema),
     protocol: z.optional(protocolSchema),
 }).merge(paginationQuery);
 
