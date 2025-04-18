@@ -23,6 +23,7 @@ export type Commit = z.infer<typeof commit>;
 export const protocolSchema = z.enum(["uniswap_v2", "uniswap_v3"]).openapi({ description: "Protocol name", example: "uniswap_v3" });
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+export const evmTransactionSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string());
 // z.enum argument type definition requires at least one element to be defined
 export const networkIdSchema = z.enum([config.networks.at(0) ?? config.defaultNetwork, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: config.defaultNetwork });
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
@@ -37,6 +38,12 @@ export const Vitalik = evmAddressSchema.openapi({ description: 'EVM wallet addre
 export const WETH = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' }); // WETH (Wrapped Ethereum)
 export const GRT = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' }); // GRT
 export const USDC_WETH = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
+
+export const tokenSchema = z.object({
+    address: evmAddressSchema,
+    symbol: z.string(),
+    decimals: z.number(),
+});
 
 // ----------------------
 // API Query Params

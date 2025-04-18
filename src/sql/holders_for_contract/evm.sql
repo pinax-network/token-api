@@ -2,7 +2,7 @@ SELECT
     block_num,
     timestamp as datetime,
     address,
-    CAST(new_balance, 'String') AS amount,
+    toString(new_balance) AS amount,
     decimals,
     trim(symbol) as symbol,
     {network_id: String} as network_id

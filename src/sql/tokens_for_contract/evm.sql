@@ -5,7 +5,7 @@ SELECT
     decimals,
     trim(symbol) as symbol,
     name,
-    CAST(sum(new_balance), 'String') as circulating_supply,
+    toString(sum(new_balance)) as circulating_supply,
     count() as holders,
     {network_id: String} as network_id
 FROM balances_by_contract FINAL

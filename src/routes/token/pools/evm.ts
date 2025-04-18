@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, USDC_WETH, statisticsSchema, GRT, protocolSchema } from '../../../types/zod.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, protocolSchema, tokenSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -18,13 +18,6 @@ const querySchema = z.object({
     protocol: z.optional(protocolSchema),
 });
 
-const tokenSchema = z.object({
-    address: evmAddressSchema,
-    symbol: z.string(),
-    decimals: z.number(),
-});
-
-
 const responseSchema = z.object({
     data: z.array(z.object({
         // -- block --
@@ -35,10 +28,10 @@ const responseSchema = z.object({
         network_id: networkIdSchema,
 
         // -- transaction --
-        creator: evmAddressSchema,
-        creator_transaction_id: z.string(),
+        transaction_id: z.string(),
 
         // -- pool --
+        // creator: evmAddressSchema, // TO-DO: https://github.com/pinax-network/substreams-evm-tokens/issues/37
         factory: evmAddressSchema,
         pool: tokenSchema,
         token0: tokenSchema,
@@ -51,7 +44,7 @@ const responseSchema = z.object({
 
 
 const openapi = describeRoute({
-    summary: 'Swap Pools',
+    summary: 'Liquidity Pools',
     description: 'The Pools endpoint delivers contract details for Uniswap V2 & V3 swap pools.',
     tags: ['EVM'],
     responses: {
@@ -108,7 +101,6 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    // const pool = parsePool.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 

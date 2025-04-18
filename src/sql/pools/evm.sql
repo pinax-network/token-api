@@ -29,4 +29,4 @@ WHERE
     if ({token:String} == '', true, pools.token0 = {token:String} OR  pools.token1 = {token:String}) AND
     if ({symbol:String} == '', true, c0.symbol = {symbol:String} OR  c1.symbol = {symbol:String}) AND
     if ({protocol:String} == '', true, protocol = {protocol:String})
-ORDER BY block_num DESC;
+ORDER BY timestamp DESC;
