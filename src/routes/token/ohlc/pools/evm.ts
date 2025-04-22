@@ -2,16 +2,15 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, WETH, intervalSchema, timestampSchema, networkIdSchema } from '../../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, intervalSchema, timestampSchema, networkIdSchema, USDC_WETH } from '../../../../types/zod.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
-import { stables } from '../../../../inject/prices.tokens.js';
 
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: WETH
+    pool: USDC_WETH
 });
 
 const querySchema = z.object({
@@ -37,8 +36,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token OHLCV prices by Contract Address',
-    description: 'The EVM Prices endpoint provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
+    summary: 'Token pair OHLCV prices by Pool Address',
+    description: 'The EVM Pool prices endpoint provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -50,14 +49,14 @@ const openapi = describeRoute({
                         data: [
                             {
                                 "datetime": "2025-04-22 01:00:00",
-                                "ticker": "WETHUSD",
-                                "open": 1559.036656656456,
-                                "high": 1588.0055525937225,
-                                "low": 1559.036656656456,
-                                "close": 1588.0055525937225,
-                                "volume": 5500074.134435,
-                                "uaw": 93,
-                                "transactions": 1062
+                                "ticker": "WETHUSDC",
+                                "open": 1568.1231985920829,
+                                "high": 1588.0055525937228,
+                                "low": 1567.4961060936091,
+                                "close": 1587.846767916931,
+                                "volume": 7313447103818,
+                                "uaw": 53,
+                                "transactions": 309
                             }
                         ]
                     }
@@ -67,16 +66,16 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
-    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
+route.get('/:pool', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
+    const parsePool = evmAddressSchema.safeParse(c.req.param("pool"));
+    if (!parsePool.success) return c.json({ error: `Invalid EVM pool: ${parsePool.error.message}` }, 400);
 
-    const contract = parseContract.data;
+    const pool = parsePool.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
-    const query = sqlQueries['ohlcv_prices_usd_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
-    if (!query) return c.json({ error: 'Query for OHLCV prices could not be loaded' }, 500);
+    const query = sqlQueries['ohlcv_prices_for_pool']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    if (!query) return c.json({ error: 'Query for OHLCV pool prices could not be loaded' }, 500);
 
     const parseIntervalMinute = intervalSchema.transform((interval) => {
         switch (interval) {
@@ -109,8 +108,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
         interval_minute: parseIntervalMinute.data,
         high_quantile: 0.95,
         low_quantile: 0.05,
-        contract,
-        stablecoin_contracts: [...stables],
+        pool,
         min_datetime,
         max_datetime,
     }, { database });
