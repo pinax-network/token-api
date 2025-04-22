@@ -24,7 +24,6 @@ ohlc AS (
         1/quantileDeterministicMerge({high_quantile: Float32})(high0) AS low_raw,
         1/argMaxMerge(close0) AS close_raw,
         sum(gross_volume0) AS volume,
-        uniqMerge(uaw) AS uaw,
         sum(transactions) AS transactions
     FROM ohlc_prices
     WHERE pool = {pool: String}
@@ -49,6 +48,5 @@ SELECT
     ) * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS low,
     close_raw * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS close,
     volume,
-    uaw,
     transactions
 FROM ohlc;

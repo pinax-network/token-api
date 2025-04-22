@@ -36,7 +36,6 @@ ohlc_10 AS (
         1/quantileDeterministicMerge({high_quantile: Float32})(high0) AS low_raw,
         1/argMaxMerge(close0) AS close_raw,
         sum(gross_volume0) AS volume,
-        uniqMerge(uaw) AS uaw,
         sum(transactions) AS transactions,
         t0_decimals, t1_decimals
     FROM ohlc_prices AS o_01
@@ -58,7 +57,6 @@ ohlc_01 AS (
         quantileDeterministicMerge({high_quantile: Float32})(low0) AS low_raw,
         argMaxMerge(close0) AS close_raw,
         sum(gross_volume1) AS volume,
-        uniqMerge(uaw) AS uaw,
         sum(transactions) AS transactions,
         t0_decimals, t1_decimals
     FROM ohlc_prices AS o_10
@@ -84,7 +82,6 @@ ohlc AS (
         ) * pow(10, t0_decimals - t1_decimals) AS low,
         close_raw * pow(10, t0_decimals - t1_decimals) AS close,
         toFloat64(volume) * pow(10, -t1_decimals) AS volume,
-        uaw,
         transactions
     FROM ohlc_01
 
@@ -105,7 +102,6 @@ ohlc AS (
         ) * pow(10, t1_decimals - t0_decimals) AS low,
         close_raw * pow(10, t1_decimals - t0_decimals) AS close,
         toFloat64(volume) * pow(10, -t0_decimals) AS volume,
-        uaw,
         transactions
     FROM ohlc_10
 )
@@ -117,7 +113,6 @@ SELECT
     quantileExactWeighted(low, ohlc.transactions) AS low,
     quantileExactWeighted(close, ohlc.transactions) AS close,
     sum(volume) AS volume,
-    sum(uaw) AS uaw,
     sum(transactions) AS transactions
 FROM ohlc
 GROUP BY datetime, ticker
