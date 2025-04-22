@@ -17,8 +17,8 @@ pool_metadata AS (
     LEFT JOIN contracts AS t1 FINAL ON p.token1 = t1.address
     WHERE 
         isNotNull(t0.decimals) AND isNotNull(t1.decimals) AND
-        (p.token0 = {contract: String} OR p.token1 = {contract: String}) AND
-        (p.token0 IN {stablecoin_contracts: Array(String)} OR p.token1 IN {stablecoin_contracts: Array(String)})
+        (p.token0 = {contract: String} AND p.token1 IN {stablecoin_contracts: Array(String)})
+        OR (p.token1 = {contract: String} AND p.token0 IN {stablecoin_contracts: Array(String)})
 ),
 unified_ohlc AS (
     SELECT
