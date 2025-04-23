@@ -19,8 +19,6 @@ SELECT
     toString(amount1) as amount1,
     swaps.amount0 / pow(10, c0.decimals) as value0,
     swaps.amount1 / pow(10, c1.decimals) as value1,
-    price,
-    pools.fee as fee,
     pools.protocol as protocol,
     {network_id: String} as network_id
 FROM swaps

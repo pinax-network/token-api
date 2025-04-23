@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, protocolSchema, tokenSchema } from '../../../types/zod.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -11,9 +11,9 @@ const route = new Hono();
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    pool: z.optional(evmAddressSchema),
+    pool: z.optional(USDC_WETH),
     factory: z.optional(evmAddressSchema),
-    token: z.optional(GRT),
+    token: z.optional(evmAddressSchema),
     symbol: z.optional(z.string()),
     protocol: z.optional(protocolSchema),
 });
@@ -55,9 +55,24 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22128490,
-                                "datetime": "2025-03-26 03:48:35",
-                                // ...
+                                "block_num": 12376729,
+                                "datetime": "2021-05-05 21:42:11",
+                                "transaction_id": "0x125e0b641d4a4b08806bf52c0c6757648c9963bcda8681e4f996f09e00d4c2cc",
+                                "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+                                "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+                                "token0": {
+                                  "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                  "symbol": "USDC",
+                                  "decimals": 6
+                                },
+                                "token1": {
+                                  "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                  "symbol": "WETH",
+                                  "decimals": 18
+                                },
+                                "fee": 500,
+                                "protocol": "uniswap_v3",
+                                "network_id": "mainnet"
                             }
                         ]
                     }
@@ -68,20 +83,22 @@ const openapi = describeRoute({
 })
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
-    const pool = c.req.query("pool") ?? '';
+    let pool = c.req.query("pool") ?? '';
     if (pool) {
         const parsed = evmAddressSchema.safeParse(pool);
         if (!parsed.success) {
             return c.json({ error: `Invalid pool EVM address: ${parsed.error.message}` }, 400);
         }
+        pool = parsed.data;
     }
 
-    const token = c.req.query("token") ?? '';
+    let token = c.req.query("token") ?? '';
     if (token) {
         const parsed = evmAddressSchema.safeParse(token);
         if (!parsed.success) {
             return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
         }
+        token = parsed.data;
     }
 
     const symbol = c.req.query("symbol") ?? '';
@@ -93,12 +110,13 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const factory = c.req.query("factory") ?? '';
+    let factory = c.req.query("factory") ?? '';
     if (factory) {
         const parsed = evmAddressSchema.safeParse(factory);
         if (!parsed.success) {
             return c.json({ error: `Invalid factory EVM address: ${parsed.error.message}` }, 400);
         }
+        factory = parsed.data;
     }
 
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
