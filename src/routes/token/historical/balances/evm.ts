@@ -73,7 +73,7 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/historical/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
+route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
     const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
     if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
