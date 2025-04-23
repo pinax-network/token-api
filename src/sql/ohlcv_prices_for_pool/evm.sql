@@ -47,6 +47,6 @@ SELECT
         low_raw
     ) * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS low,
     close_raw * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS close,
-    volume,
+    toFloat64(ohlc.volume) * pow(10, -(SELECT t0_decimals FROM metadata)) AS volume,
     transactions
 FROM ohlc;
