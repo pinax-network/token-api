@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, contractAddressSchema, networkIdSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, GRT, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -12,7 +12,7 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: contractAddressSchema
+    contract: GRT
 });
 
 const querySchema = z.object({
@@ -25,11 +25,11 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- contract --
         address: evmAddressSchema,
         amount: z.string(),
+        value: z.number(),
 
         // -- chain --
         network_id: networkIdSchema,
@@ -47,8 +47,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token Holders by Contract Address',
-    description: 'The EVM Holders endpoint provides information about the addresses holding a specific token, including each holder’s balance. This is useful for analyzing token distribution for a particular contract.',
+    summary: 'Token Holders',
+    description: 'Provides ERC-20 token holder balances by contract address.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -61,7 +61,6 @@ const openapi = describeRoute({
                             {
                                 "block_num": 12022417,
                                 "datetime": "2021-03-12 07:35:19",
-                                "date": "2021-03-12",
                                 "address": "0x701bd63938518d7db7e0f00945110c80c67df532",
                                 "amount": "661800000021764825741967",
                                 "decimals": 18,
@@ -92,7 +91,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const response = await makeUsageQueryJson(c, [query], { contract, network_id, order_by }, { database });
     injectSymbol(response, network_id);
-    await injectPrices(response, network_id, contract);
+    // await injectPrices(response, network_id, contract);
     return handleUsageQueryError(c, response);
 });
 

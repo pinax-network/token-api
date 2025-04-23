@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { contractAddressSchema, evmAddressSchema, statisticsSchema, networkIdSchema } from '../../../types/zod.js';
+import { GRT, evmAddressSchema, statisticsSchema, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -13,7 +13,7 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: contractAddressSchema,
+    contract: GRT,
 });
 
 const querySchema = z.object({
@@ -25,7 +25,6 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- contract --
         address: evmAddressSchema,
@@ -56,8 +55,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token Metadata by Contract',
-    description: 'The Tokens endpoint delivers contract metadata for a specific ERC-20 token contract from a supported EVM blockchain. Metadata includes name, symbol, number of holders, circulating supply, decimals, and more.',
+    summary: 'Token Metadata',
+    description: 'Provides ERC-20 token contract metadata.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -68,9 +67,8 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "date": "2025-03-26",
-                                "datetime": "2025-03-26 03:48:35",
                                 "block_num": 22128490,
+                                "datetime": "2025-03-26 03:48:35",
                                 "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "decimals": 18,
                                 "symbol": "GRT",
@@ -106,7 +104,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
     injectSymbol(response, network_id, true);
     injectIcons(response);
-    await injectPrices(response, network_id);
+    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 

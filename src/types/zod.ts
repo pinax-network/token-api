@@ -7,6 +7,8 @@ import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE } from "../config.j
 // ----------------------
 export const evmAddress = z.coerce.string().regex(new RegExp("^(0[xX])?[0-9a-fA-F]{40}$"));
 export type EvmAddress = z.infer<typeof evmAddress>;
+export const evmTransaction = z.coerce.string().regex(new RegExp("^(0[xX])?[0-9a-fA-F]{64}$"));
+export type EvmTransaction = z.infer<typeof evmTransaction>;
 
 export const blockNumHash = z.object({
     "block_num": z.coerce.number().int(),
@@ -20,18 +22,30 @@ export type Version = z.infer<typeof version>;
 export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
+export const protocolSchema = z.enum(["uniswap_v2", "uniswap_v3"]).openapi({ description: "Protocol name", example: "uniswap_v3" });
+
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string());
+export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string());
 // z.enum argument type definition requires at least one element to be defined
 export const networkIdSchema = z.enum([config.networks.at(0) ?? config.defaultNetwork, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: config.defaultNetwork });
-
-export const walletAddressSchema = evmAddressSchema.openapi({ description: 'EVM wallet address to query', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
-export const contractAddressSchema = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' }); // WETH (Wrapped Ethereum)
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
 export const limitSchema = z.coerce.number().int().min(1).max(1000).default(DEFAULT_LIMIT).openapi({ description: 'The maximum number of items returned in a single request.' });
 export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ description: 'The page number of the results to return.' });
 export const orderBySchema = z.enum(["asc", "desc"]).openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
 export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
 export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in seconds').transform((t) => t*1000).openapi({ description: 'UNIX timestamp in seconds.' });
+
+// Used for examples
+export const Vitalik = evmAddressSchema.openapi({ description: 'EVM wallet address to query', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
+export const WETH = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' }); // WETH (Wrapped Ethereum)
+export const GRT = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' }); // GRT
+export const USDC_WETH = evmAddressSchema.openapi({ description: 'EVM contract address to query', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
+
+export const tokenSchema = z.object({
+    address: evmAddressSchema,
+    symbol: z.string(),
+    decimals: z.number(),
+});
 
 // ----------------------
 // API Query Params

@@ -2,34 +2,34 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, walletAddressSchema, networkIdSchema } from '../../../types/zod.js';
+import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, networkIdSchema, ageSchema, intervalSchema, timestampSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { config } from '../../../config.js';
+import { config, DEFAULT_AGE } from '../../../config.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
 
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: walletAddressSchema,
+    address: Vitalik,
 });
 
-const querySchema = z.object({
+let querySchema: any = z.object({
     network_id: z.optional(networkIdSchema),
     contract: z.optional(z.string()),
 }).merge(paginationQuery);
 
-const responseSchema = z.object({
+let responseSchema: any = z.object({
     data: z.array(z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- balance --
         contract: evmAddressSchema,
         amount: z.string(),
+        value: z.number(),
 
         // -- network --
         network_id: networkIdSchema,
@@ -46,9 +46,9 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
-    summary: 'Token Balances by Wallet Address',
-    description: 'The EVM Balances endpoint provides a snapshot of an account’s current token holdings. The endpoint returns the current balances of native and ERC-20 tokens held by a specified wallet address on an Ethereum-compatible blockchain.',
+let openapi = describeRoute({
+    summary: 'Balances by Address',
+    description: 'Provides latest ERC-20 & Native balances by wallet address.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -61,9 +61,9 @@ const openapi = describeRoute({
                             {
                                 "block_num": 21764208,
                                 "datetime": "2025-02-03 06:31:23",
-                                "date": "2025-02-03",
                                 "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "amount": "339640316263000000000000000",
+                                "value": 339640316.263,
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "network_id": "mainnet",
@@ -93,7 +93,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });
     injectSymbol(response, network_id);
-    await injectPrices(response, network_id);
+    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 

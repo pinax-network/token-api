@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery, walletAddressSchema, networkIdSchema } from '../../../types/zod.js';
+import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config, DEFAULT_AGE } from '../../../config.js';
@@ -12,7 +12,7 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: walletAddressSchema,
+    address: Vitalik,
 });
 
 const querySchema = z.object({
@@ -26,7 +26,6 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- transaction --
         transaction_id: z.string(),
@@ -36,6 +35,7 @@ const responseSchema = z.object({
         from: evmAddressSchema,
         to: evmAddressSchema,
         amount: z.string(),
+        value: z.number(),
 
         // -- chain --
         network_id: networkIdSchema,
@@ -53,8 +53,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token Transfers by Wallet Address',
-    description: 'The EVM Transfers endpoint provides access to historical token transfer events for a specified address. This endpoint is ideal for tracking transaction history and analyzing token movements over time.',
+    summary: 'Transfers by Address',
+    description: 'Provides ERC-20 & Native transfer events.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -67,12 +67,12 @@ const openapi = describeRoute({
                             {
                                 "block_num": 22128243,
                                 "datetime": "2025-03-26 02:58:47",
-                                "date": "2025-03-26",
+                                "transaction_id": "0x18c62cfa9c10a1e0a7bee36099151238e668ff61c97c7b9ab616aaa93c176e2c",
                                 "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "from": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
                                 "to": "0x2e4578e6c86380ca1759431fedeeae823e33357b",
                                 "amount": "4805168872000000000000",
-                                "transaction_id": "0x18c62cfa9c10a1e0a7bee36099151238e668ff61c97c7b9ab616aaa93c176e2c",
+                                "value": 4805.168872,
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "network_id": "mainnet",
@@ -103,7 +103,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const response = await makeUsageQueryJson(c, [query], { address, age, network_id, contract }, { database });
     injectSymbol(response, network_id);
-    await injectPrices(response, network_id);
+    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
 
