@@ -1,7 +1,7 @@
 WITH transfers AS (
-    SELECT * FROM erc20_transfers
+    SELECT * FROM erc20_transfers ORDER BY timestamp DESC
     UNION ALL
-    SELECT * FROM native_transfers
+    SELECT * FROM native_transfers ORDER BY timestamp DESC
 )
 SELECT
     block_num,
@@ -21,4 +21,3 @@ JOIN contracts
 WHERE
     (timestamp >= now() - ({age: Int} * 86400) AND (from = {address: String} OR to = {address: String}))
     AND ({contract: String} = '' OR contract = {contract: String})
-ORDER BY timestamp DESC;
