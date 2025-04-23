@@ -47,8 +47,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token Holders by Contract Address',
-    description: 'The EVM Holders endpoint provides information about the addresses holding a specific token, including each holder’s balance. This is useful for analyzing token distribution for a particular contract.',
+    summary: 'Token Holders',
+    description: 'Provides ERC-20 token holder balances by contract address.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {

@@ -53,8 +53,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token Transfers by Wallet Address',
-    description: 'The EVM Transfers endpoint provides access to historical token transfer events for a specified address. This endpoint is ideal for tracking transaction history and analyzing token movements over time.',
+    summary: 'Transfers by Address',
+    description: 'Provides ERC-20 & Native transfer events.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {

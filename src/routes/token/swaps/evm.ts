@@ -64,7 +64,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'Swap Events',
-    description: 'The Swap endpoint delivers Uniswap V2 & V3 swap events.',
+    description: 'Provides Uniswap V2 & V3 swap events.',
     tags: ['EVM'],
     responses: {
         200: {

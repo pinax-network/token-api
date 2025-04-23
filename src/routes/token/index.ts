@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import balances from "./balances/index.js";
+import historical from "./historical/index.js";
 import transfers from "./transfers/index.js";
 import holders from "./holders/index.js";
 import tokens from "./tokens/index.js";
@@ -11,10 +12,11 @@ const router = new Hono();
 
 router.route('/balances', balances);
 router.route('/transfers', transfers);
-router.route('/holders', holders);
 router.route('/tokens', tokens);
-router.route('/ohlc', ohlc);
-router.route('/pools', pools);
+router.route('/holders', holders);
 router.route('/swaps', swaps);
+router.route('/pools', pools);
+router.route('/ohlc', ohlc);
+router.route('/historical', historical);
 
 export default router;

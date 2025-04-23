@@ -45,7 +45,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'Liquidity Pools',
-    description: 'The Pools endpoint delivers contract details for Uniswap V2 & V3 swap pools.',
+    description: 'Provides Uniswap V2 & V3 liquidity pool metadata.',
     tags: ['EVM'],
     responses: {
         200: {

@@ -37,8 +37,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'Token OHLCV prices by Contract Address',
-    description: 'The EVM Prices endpoint provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
+    summary: 'OHLCV by Contract',
+    description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
