@@ -25,11 +25,11 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- contract --
         address: evmAddressSchema,
         amount: z.string(),
+        value: z.number(),
 
         // -- chain --
         network_id: networkIdSchema,
@@ -61,7 +61,6 @@ const openapi = describeRoute({
                             {
                                 "block_num": 12022417,
                                 "datetime": "2021-03-12 07:35:19",
-                                "date": "2021-03-12",
                                 "address": "0x701bd63938518d7db7e0f00945110c80c67df532",
                                 "amount": "661800000021764825741967",
                                 "decimals": 18,

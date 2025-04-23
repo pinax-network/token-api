@@ -1,6 +1,6 @@
 SELECT
-    max(timestamp) as datetime,
     max(block_num) as block_num,
+    max(timestamp) as datetime,
     contract as address,
     decimals,
     trim(symbol) as symbol,
@@ -9,7 +9,7 @@ SELECT
     count() as holders,
     {network_id: String} as network_id
 FROM balances_by_contract FINAL
-LEFT JOIN contracts FINAL
+JOIN contracts
     ON balances_by_contract.contract = contracts.address
 WHERE
     contract = {contract: String} AND new_balance > 0

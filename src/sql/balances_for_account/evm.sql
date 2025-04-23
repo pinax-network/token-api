@@ -3,11 +3,12 @@ SELECT
     timestamp as datetime,
     toString(contract) AS contract,
     toString(new_balance) AS amount,
+    new_balance / pow(10, decimals) as value,
     decimals,
     trim(symbol) as symbol,
     {network_id: String} as network_id
 FROM balances FINAL
-LEFT JOIN contracts
+JOIN contracts
     ON balances.contract = contracts.address
 WHERE
     (address = {address: String} AND new_balance > 0)

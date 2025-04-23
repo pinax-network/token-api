@@ -11,11 +11,12 @@ SELECT
     from,
     to,
     toString(value) AS amount,
+    value / pow(10, contracts.decimals) as value,
     contracts.decimals as decimals,
     trim(contracts.symbol) as symbol,
     {network_id: String} as network_id
 FROM transfers
-LEFT JOIN contracts
+JOIN contracts
     ON contract = contracts.address
 WHERE
     (timestamp >= now() - ({age: Int} * 86400) AND (from = {address: String} OR to = {address: String}))

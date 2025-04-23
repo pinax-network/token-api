@@ -25,11 +25,11 @@ let responseSchema: any = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- balance --
         contract: evmAddressSchema,
         amount: z.string(),
+        value: z.number(),
 
         // -- network --
         network_id: networkIdSchema,
@@ -61,9 +61,9 @@ let openapi = describeRoute({
                             {
                                 "block_num": 21764208,
                                 "datetime": "2025-02-03 06:31:23",
-                                "date": "2025-02-03",
                                 "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "amount": "339640316263000000000000000",
+                                "value": 339640316.263,
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "network_id": "mainnet",

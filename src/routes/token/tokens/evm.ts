@@ -25,7 +25,6 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        date: z.string(),
 
         // -- contract --
         address: evmAddressSchema,
@@ -68,9 +67,8 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "date": "2025-03-26",
-                                "datetime": "2025-03-26 03:48:35",
                                 "block_num": 22128490,
+                                "datetime": "2025-03-26 03:48:35",
                                 "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "decimals": 18,
                                 "symbol": "GRT",

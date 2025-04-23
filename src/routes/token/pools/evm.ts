@@ -55,8 +55,8 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "datetime": "2025-03-26 03:48:35",
                                 "block_num": 22128490,
+                                "datetime": "2025-03-26 03:48:35",
                                 // ...
                             }
                         ]

@@ -1,4 +1,4 @@
-WITH 
+WITH
 metadata AS (
     SELECT
         p.pool,
