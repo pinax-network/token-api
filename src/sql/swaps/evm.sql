@@ -1,38 +1,34 @@
+WITH
+    {transaction_id:String} AS _tx,
+    {caller:String}         AS _caller,
+    {sender:String}         AS _sender,
+    {recipient:String}      AS _recipient,
+    {pool:String}           AS _pool,
+    {protocol:String}       AS _protocol,
+swaps_core AS (
+    SELECT  *
+    FROM    swaps
+    WHERE   (_tx       = '' OR transaction_id = _tx)
+        AND (_caller   = '' OR caller         = _caller)
+        AND (_sender   = '' OR sender         = _sender)
+        AND (_recipient= '' OR recipient      = _recipient)
+        AND (_pool     = '' OR pool           = _pool)
+        AND (_protocol = '' OR protocol       = _protocol)
+)
 SELECT
-    swaps.block_num as block_num,
-    swaps.timestamp as datetime,
-    swaps.transaction_id as transaction_id,
-    swaps.caller as caller,
-    swaps.pool as pool,
-    pools.factory as factory,
-    CAST(
-        ( toString(pools.token0), trim(c0.symbol), c0.decimals )
-        AS Tuple(address String, symbol  String, decimals UInt8)
-    ) AS token0,
-    CAST(
-        ( toString(pools.token1), trim(c1.symbol), c1.decimals )
-        AS Tuple(address String, symbol  String, decimals UInt8)
-    ) AS token1,
-    sender,
-    recipient,
-    toString(amount0) as amount0,
-    toString(amount1) as amount1,
-    swaps.amount0 / pow(10, c0.decimals) as value0,
-    swaps.amount1 / pow(10, c1.decimals) as value1,
-    pools.protocol as protocol,
-    {network_id: String} as network_id
-FROM swaps
-JOIN pools ON pools.pool = swaps.pool
-JOIN contracts c0 ON c0.address = pools.token0
-JOIN contracts c1 ON c1.address = pools.token1
-WHERE
-    isNotNull(c0.symbol) AND isNotNull(c1.symbol) AND isNotNull(c0.decimals) AND isNotNull(c1.decimals)
-    AND if ({transaction_id:String} == '', true, swaps.transaction_id = {transaction_id:String})
-    AND if ({caller:String}         == '', true, swaps.caller         = {caller:String})
-    AND if ({sender:String}         == '', true, swaps.sender         = {sender:String})
-    AND if ({recipient:String}      == '', true, swaps.recipient      = {recipient:String})
-    AND if ({pool:String}           == '', true, swaps.pool           = {pool:String})
-    AND if ({factory:String}        == '', true, pools.factory        = {factory:String})
-    AND if ({token:String}          == '', true, token0.address       = {token:String} OR token1.address = {token:String})
-    AND if ({symbol:String}         == '', true, token0.symbol        = {symbol:String} OR token1.symbol = {symbol:String})
-    AND if ({protocol:String}       == '', true, swaps.protocol       = {protocol:String})
+    s.block_num,
+    s.timestamp               AS datetime,
+    s.transaction_id,
+    s.caller,
+    s.pool,
+    s.sender,
+    s.recipient,
+    toString(s.amount0) as amount0,
+    toString(s.amount1) as amount1,
+    s.price         AS price0,
+    1.0 / price0    AS price1,
+
+    s.protocol,
+    {network_id:String} AS network_id
+FROM       swaps_core  AS s
+ORDER BY   datetime DESC

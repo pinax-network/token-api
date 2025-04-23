@@ -11,13 +11,16 @@ const route = new Hono();
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    token: z.optional(evmAddressSchema),
     caller: z.optional(evmAddressSchema),
     sender: z.optional(evmAddressSchema),
     recipient: z.optional(evmAddressSchema),
-    symbol: z.optional(z.string()),
     pool: z.optional(USDC_WETH),
-    factory: z.optional(evmAddressSchema),
+
+    // NOT IMPLEMENTED YET
+    // Need to be added to the Clickhouse MV
+    // factory: z.optional(evmAddressSchema),
+    // token: z.optional(evmAddressSchema),
+    // symbol: z.optional(z.string()),
 
     // NOT IMPLEMENTED YET
     // https://github.com/pinax-network/substreams-evm-tokens/issues/38
@@ -44,12 +47,14 @@ const responseSchema = z.object({
         recipient: evmAddressSchema,
         factory: evmAddressSchema,
         pool: evmAddressSchema,
-        token0: tokenSchema,
-        token1: tokenSchema,
+        // token0: tokenSchema, // TO-DO: issue with Uniswap V3 Clickhouse MV
+        // token1: tokenSchema, // TO-DO: issue with Uniswap V3 Clickhouse MV
         amount0: z.string(),
         amount1: z.string(),
-        value0: z.number(),
-        value1: z.number(),
+        price0: z.number(),
+        price1: z.number(),
+        // value0: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
+        // value1: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
         // price: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
         // fee: z.string(),
         protocol: z.string(),
@@ -69,28 +74,17 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 15543351,
-                                "datetime": "2022-09-16 02:53:11",
-                                "transaction_id": "0x28a73d36cd1944bad52b401a8ae2e0c59ac9863d9326cb7778159a80d3459c3e",
-                                "caller": "0x1111111254fb6c44bac0bed2854e76f90643097d",
+                                "block_num": 22332256,
+                                "datetime": "2025-04-23 14:19:35",
+                                "transaction_id": "0x8ec9070570d66a098234a105f3b4bf8bc4671f24811ad408dc24dc3019a7a193",
+                                "caller": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
                                 "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
-                                "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
-                                "token0": {
-                                  "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                  "symbol": "USDC",
-                                  "decimals": 6
-                                },
-                                "token1": {
-                                  "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-                                  "symbol": "WETH",
-                                  "decimals": 18
-                                },
-                                "sender": "0x1111111254fb6c44bac0bed2854e76f90643097d",
-                                "recipient": "0x74de5d4fcbf63e00296fd95d33236b9794016631",
-                                "amount0": "-101502640",
-                                "amount1": "69387500000000000",
-                                "value0": -101.50264,
-                                "value1": 0.0693875,
+                                "sender": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
+                                "recipient": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
+                                "amount0": "2717980487",
+                                "amount1": "-1521761641325805521",
+                                "price0": 560137491.5267727,
+                                "price1": 1.7852759637179246e-9,
                                 "protocol": "uniswap_v3",
                                 "network_id": "mainnet"
                             }
