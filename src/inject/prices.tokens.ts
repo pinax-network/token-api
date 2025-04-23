@@ -36,6 +36,10 @@ export const stables = new Set([
     '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // Polygon: USDC (Circle: USDC Token)
     '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // Polygon: USDC (Bridged via Polygon POS)
     '0x9c9e5fd8bbc25984b178fdce6117defa39d2db39', // Polygon: BUSD (Binance-Peg BUSD Token)
+
+    // Unichain
+    '0x078d782b760474a361dda0af3839290b0ef57ad6', // Unichain: USDC
+    '0x9151434b16b9763660705744891fA906F660EcC5', // Unichain: USDT0 Tether USD
 ]);
 
 export const natives = new Set([
@@ -48,14 +52,12 @@ export const natives = new Set([
     // BSC
     '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // BSC: WBNB
 
-    // Base
-    '0x4200000000000000000000000000000000000006', // Base: WETH
+    // Bridged WETH
+    // Base/Optimism/Unichain
+    '0x4200000000000000000000000000000000000006', // WETH
 
     // Arbitrum One
     '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // Arbitrum: WETH
-
-    // Optimism
-    '0x4200000000000000000000000000000000000006', // Optimism: WETH
 
     // Polygon (Matic)
     '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // Polygon: WPOL
