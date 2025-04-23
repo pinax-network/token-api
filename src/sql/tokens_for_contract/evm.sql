@@ -9,7 +9,7 @@ SELECT
     count() as holders,
     {network_id: String} as network_id
 FROM balances_by_contract FINAL
-LEFT JOIN contracts
+LEFT JOIN contracts FINAL
     ON balances_by_contract.contract = contracts.address
 WHERE
     contract = {contract: String} AND new_balance > 0
