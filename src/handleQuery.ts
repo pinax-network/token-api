@@ -4,6 +4,7 @@ import { makeQuery } from "./clickhouse/makeQuery.js";
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from "./config.js";
 import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./types/zod.js";
 import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
+import { MAX_EXECUTION_TIME } from "./clickhouse/client.js";
 
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result) {
@@ -52,6 +53,16 @@ export async function makeUsageQueryJson<T = unknown>(
 
     try {
         const result = await makeQuery<T>(query.join(" "), query_params, overwrite_config);
+
+        // Handle query execution timeout
+        if (result.statistics && result.statistics.elapsed >= MAX_EXECUTION_TIME) {
+            return {
+                status: 500 as ApiErrorResponse["status"],
+                code: "database_timeout" as ApiErrorResponse["code"],
+                message: 'Query took too long. Try adding updating the filters.'
+            };
+        }
+
         if (result.data.length === 0) {
             return {
                 status: 404 as ApiErrorResponse["status"],
