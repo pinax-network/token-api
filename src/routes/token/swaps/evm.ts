@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, WETH, USDC_WETH } from '../../../types/zod.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -11,22 +11,21 @@ const route = new Hono();
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+
+    // -- `swaps` filter --
+    pool: z.optional(USDC_WETH),
     caller: z.optional(evmAddressSchema),
     sender: z.optional(evmAddressSchema),
     recipient: z.optional(evmAddressSchema),
-    pool: z.optional(USDC_WETH),
-
-    // NOT IMPLEMENTED YET
-    // Need to be added to the Clickhouse MV
-    // factory: z.optional(evmAddressSchema),
-    // token: z.optional(evmAddressSchema),
-    // symbol: z.optional(z.string()),
-
-    // NOT IMPLEMENTED YET
-    // https://github.com/pinax-network/substreams-evm-tokens/issues/38
-    // https://github.com/pinax-network/substreams-evm-tokens/issues/32
     transaction_id: z.optional(evmTransactionSchema),
     protocol: z.optional(protocolSchema),
+
+    // -- `pools` filter --
+    factory: z.optional(evmAddressSchema),
+    token: z.optional(evmAddressSchema),
+
+    // -- `contracts` filter --
+    symbol: z.optional(z.string()),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -47,16 +46,16 @@ const responseSchema = z.object({
         recipient: evmAddressSchema,
         factory: evmAddressSchema,
         pool: evmAddressSchema,
-        // token0: tokenSchema, // TO-DO: issue with Uniswap V3 Clickhouse MV
-        // token1: tokenSchema, // TO-DO: issue with Uniswap V3 Clickhouse MV
+        token0: tokenSchema,
+        token1: tokenSchema,
         amount0: z.string(),
         amount1: z.string(),
         price0: z.number(),
         price1: z.number(),
-        // value0: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
-        // value1: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
-        // price: z.number(), // TO-DO: issue with Uniswap V3 Clickhouse MV
-        // fee: z.string(),
+        value0: z.number(),
+        value1: z.number(),
+        price: z.number(),
+        fee: z.string(),
         protocol: z.string(),
     })),
     statistics: z.optional(statisticsSchema),
@@ -74,19 +73,32 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22332256,
-                                "datetime": "2025-04-23 14:19:35",
-                                "transaction_id": "0x8ec9070570d66a098234a105f3b4bf8bc4671f24811ad408dc24dc3019a7a193",
-                                "caller": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
-                                "sender": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "recipient": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "amount0": "2717980487",
-                                "amount1": "-1521761641325805521",
-                                "price0": 560137491.5267727,
-                                "price1": 1.7852759637179246e-9,
+                                "block_num": 14710703,
+                                "datetime": "2025-04-24 01:44:22",
+                                "transaction_id": "0x86d9b194eb4fbf6a6881b3fb509e405ff55923a06c37252e7e05b75070329354",
+                                "caller": "0x0000000000bb343a4584faee3f532fbed4e0a768",
+                                "pool": "0x65081cb48d74a32e9ccfed75164b8c09972dbcf1",
+                                "factory": "0x1f98400000000000000000000000000000000003",
+                                "token0": {
+                                  "address": "0x078d782b760474a361dda0af3839290b0ef57ad6",
+                                  "symbol": "USDC",
+                                  "decimals": 6
+                                },
+                                "token1": {
+                                  "address": "0x4200000000000000000000000000000000000006",
+                                  "symbol": "WETH",
+                                  "decimals": 18
+                                },
+                                "sender": "0x0000000000bb343a4584faee3f532fbed4e0a768",
+                                "recipient": "0x0000000000bb343a4584faee3f532fbed4e0a768",
+                                "amount0": "-3191855",
+                                "amount1": "1779898235341342",
+                                "value0": -3.191855,
+                                "value1": 0.001779898235341342,
+                                "price0": 0.0005573439334595022,
+                                "price1": 1794.2242481996302,
                                 "protocol": "uniswap_v3",
-                                "network_id": "mainnet"
+                                "network_id": "unichain"
                             }
                         ]
                     }

@@ -1,23 +1,43 @@
-WITH transfers AS (
-    SELECT * FROM erc20_transfers ORDER BY timestamp DESC
+WITH
+    {age:Int}            AS _age,
+    {address:String}     AS _addr,
+    {contract:String}    AS _contract,
+    now() - _age * 86400 AS _ts_from,
+
+transfers AS (
+
+    SELECT  block_num,
+            timestamp as datetime,
+            transaction_id,
+            contract,
+            `from`,
+            `to`,
+            toString(erc20_transfers.value) as amount,
+            value / pow(10, c.decimals) AS value,
+            c.decimals AS decimals,
+            c.symbol as symbol
+    FROM erc20_transfers
+    JOIN contracts AS c ON c.address = erc20_transfers.contract
+    WHERE   timestamp >= _ts_from
+        AND (_addr = ''     OR (`from` = _addr OR `to` = _addr))
+        AND (_contract = '' OR contract = _contract)
+
     UNION ALL
-    SELECT * FROM native_transfers ORDER BY timestamp DESC
+
+    SELECT  block_num,
+            timestamp as datetime,
+            transaction_id,
+            contract,
+            `from`,
+            `to`,
+            toString(native_transfers.value) as amount,
+            value / pow(10, 18) AS value,
+            18 as decimals,
+            'Native' AS symbol
+    FROM native_transfers
+    WHERE timestamp >= _ts_from
+        AND (_addr = '' OR (`from` = _addr OR `to` = _addr))
 )
-SELECT
-    block_num,
-    timestamp as datetime,
-    transaction_id,
-    toString(contract) AS contract,
-    from,
-    to,
-    toString(value) AS amount,
-    value / pow(10, contracts.decimals) as value,
-    contracts.decimals as decimals,
-    trim(contracts.symbol) as symbol,
-    {network_id: String} as network_id
+SELECT *
 FROM transfers
-JOIN contracts
-    ON contract = contracts.address
-WHERE
-    (timestamp >= now() - ({age: Int} * 86400) AND (from = {address: String} OR to = {address: String}))
-    AND ({contract: String} = '' OR contract = {contract: String})
+ORDER BY   datetime DESC;
