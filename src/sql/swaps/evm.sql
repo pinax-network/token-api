@@ -17,6 +17,7 @@ swaps_core AS (
         AND (_recipient= '' OR recipient      = _recipient)
         AND (_pool     = '' OR pool           = _pool)
         AND (_protocol = '' OR protocol       = _protocol)
+    ORDER BY timestamp DESC
 )
 SELECT
     s.block_num         AS block_num,
@@ -45,4 +46,3 @@ WHERE
         if (_factory  = '', true, p.factory = _factory)
     AND if (_token    = '', true, c0.address = _token OR c1.address = _token)
     AND if (_symbol    = '', true, c0.symbol = _symbol OR c1.symbol = _symbol)
-ORDER BY s.timestamp DESC
