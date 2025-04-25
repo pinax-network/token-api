@@ -1,4 +1,4 @@
-WITH (
+WITH
     {transaction_id:String} AS _tx,
     {caller:String}         AS _caller,
     {sender:String}         AS _sender,
@@ -9,7 +9,18 @@ WITH (
     {token:String}          AS _token,
     {symbol:String}         AS _symbol,
     {age:Int}               AS _age,
-    now() - _age * 86400    AS _ts_from
+    now() - _age * 86400    AS _ts_from,
+swaps_core AS (
+    SELECT  *
+    FROM    swaps
+    WHERE   timestamp >= _ts_from
+        AND (_tx       = '' OR transaction_id = _tx)
+        AND (_caller   = '' OR caller         = _caller)
+        AND (_sender   = '' OR sender         = _sender)
+        AND (_recipient= '' OR recipient      = _recipient)
+        AND (_pool     = '' OR pool           = _pool)
+        AND (_protocol = '' OR protocol       = _protocol)
+    ORDER BY timestamp DESC
 )
 SELECT
     s.block_num         AS block_num,
@@ -30,17 +41,11 @@ SELECT
     1.0 / price0 AS price1,
     s.protocol as protocol,
     {network_id:String} as network_id
-FROM swaps AS s
+FROM swaps_core AS s
 JOIN pools      AS p USING (pool)
 JOIN contracts  AS c0 FINAL ON c0.address = p.token0
 JOIN contracts  AS c1 FINAL ON c1.address = p.token1
 WHERE
-        (_tx       = '' OR transaction_id = _tx)
-    AND (_caller   = '' OR caller         = _caller)
-    AND (_sender   = '' OR sender         = _sender)
-    AND (_recipient= '' OR recipient      = _recipient)
-    AND (_pool     = '' OR pool           = _pool)
-    AND (_protocol = '' OR protocol       = _protocol)
-    AND (_factory  = '' OR p.factory = _factory)
+        (_factory  = '' OR p.factory = _factory)
     AND (_token    = '' OR c0.address = _token OR c1.address = _token)
     AND (_symbol   = '' OR c0.symbol = _symbol OR c1.symbol = _symbol)
