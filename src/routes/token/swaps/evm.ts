@@ -2,8 +2,8 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH } from '../../../types/zod.js';
-import { config } from '../../../config.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, ageSchema } from '../../../types/zod.js';
+import { config, DEFAULT_AGE } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 
@@ -11,6 +11,9 @@ const route = new Hono();
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+
+    // -- `age` filter --
+    age: z.optional(ageSchema),
 
     // -- `swaps` filter --
     pool: z.optional(USDC_WETH),
@@ -80,14 +83,14 @@ const openapi = describeRoute({
                                 "pool": "0x65081cb48d74a32e9ccfed75164b8c09972dbcf1",
                                 "factory": "0x1f98400000000000000000000000000000000003",
                                 "token0": {
-                                  "address": "0x078d782b760474a361dda0af3839290b0ef57ad6",
-                                  "symbol": "USDC",
-                                  "decimals": 6
+                                    "address": "0x078d782b760474a361dda0af3839290b0ef57ad6",
+                                    "symbol": "USDC",
+                                    "decimals": 6
                                 },
                                 "token1": {
-                                  "address": "0x4200000000000000000000000000000000000006",
-                                  "symbol": "WETH",
-                                  "decimals": 18
+                                    "address": "0x4200000000000000000000000000000000000006",
+                                    "symbol": "WETH",
+                                    "decimals": 18
                                 },
                                 "sender": "0x0000000000bb343a4584faee3f532fbed4e0a768",
                                 "recipient": "0x0000000000bb343a4584faee3f532fbed4e0a768",
@@ -184,10 +187,12 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
+    const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
+
     const query = sqlQueries['swaps']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { protocol, pool, token, factory, symbol, caller, sender, recipient, network_id, transaction_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], { protocol, pool, token, factory, symbol, caller, sender, recipient, network_id, transaction_id, age }, { database });
     return handleUsageQueryError(c, response);
 });
 

@@ -8,15 +8,19 @@ WITH
     {factory:String}        AS _factory,
     {token:String}          AS _token,
     {symbol:String}         AS _symbol,
+    {age:Int}               AS _age,
+    now() - _age * 86400    AS _ts_from,
 swaps_core AS (
     SELECT  *
     FROM    swaps
-    WHERE   (_tx       = '' OR transaction_id = _tx)
+    WHERE   timestamp >= _ts_from
+        AND (_tx       = '' OR transaction_id = _tx)
         AND (_caller   = '' OR caller         = _caller)
         AND (_sender   = '' OR sender         = _sender)
         AND (_recipient= '' OR recipient      = _recipient)
         AND (_pool     = '' OR pool           = _pool)
         AND (_protocol = '' OR protocol       = _protocol)
+    ORDER BY timestamp DESC
 )
 SELECT
     s.block_num         AS block_num,
@@ -42,7 +46,6 @@ JOIN pools      AS p USING (pool)
 JOIN contracts  AS c0 FINAL ON c0.address = p.token0
 JOIN contracts  AS c1 FINAL ON c1.address = p.token1
 WHERE
-        if (_factory  = '', true, p.factory = _factory)
-    AND if (_token    = '', true, c0.address = _token OR c1.address = _token)
-    AND if (_symbol    = '', true, c0.symbol = _symbol OR c1.symbol = _symbol)
-ORDER BY s.timestamp DESC
+        (_factory  = '' OR p.factory = _factory)
+    AND (_token    = '' OR c0.address = _token OR c1.address = _token)
+    AND (_symbol   = '' OR c0.symbol = _symbol OR c1.symbol = _symbol)
