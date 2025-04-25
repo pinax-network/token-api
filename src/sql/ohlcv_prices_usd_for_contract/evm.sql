@@ -123,4 +123,6 @@ SELECT
     sum(transactions) AS transactions
 FROM normalized_prices
 GROUP BY datetime, ticker
-ORDER BY datetime DESC;
+ORDER BY datetime DESC
+LIMIT   {limit:int}
+OFFSET  {offset:int}

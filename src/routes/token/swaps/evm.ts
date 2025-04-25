@@ -2,8 +2,8 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, ageSchema } from '../../../types/zod.js';
-import { config, DEFAULT_AGE } from '../../../config.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema } from '../../../types/zod.js';
+import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 
@@ -12,23 +12,26 @@ const route = new Hono();
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
 
-    // -- `age` filter --
-    age: z.optional(ageSchema),
+    // -- `transactions` filter --
+    // transaction_id: z.optional(evmTransactionSchema),
 
     // -- `swaps` filter --
     pool: z.optional(USDC_WETH),
     caller: z.optional(evmAddressSchema),
     sender: z.optional(evmAddressSchema),
     recipient: z.optional(evmAddressSchema),
-    transaction_id: z.optional(evmTransactionSchema),
     protocol: z.optional(protocolSchema),
 
-    // -- `pools` filter --
-    factory: z.optional(evmAddressSchema),
-    token: z.optional(evmAddressSchema),
+    // // -- `pools` filter --
+    // factory: z.optional(evmAddressSchema),
+    // token: z.optional(evmAddressSchema),
 
-    // -- `contracts` filter --
-    symbol: z.optional(z.string()),
+    // // -- `contracts` filter --
+    // symbol: z.optional(z.string()),
+
+    // -- `time` filter --
+    startTime: z.optional(timestampSchema),
+    endTime: z.optional(timestampSchema)
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -157,16 +160,16 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         transaction_id = parsed.data;
     }
 
-    let token = c.req.query("token") ?? '';
-    if (token) {
-        const parsed = evmAddressSchema.safeParse(token);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
-        }
-        token = parsed.data;
-    }
+    // let token = c.req.query("token") ?? '';
+    // if (token) {
+    //     const parsed = evmAddressSchema.safeParse(token);
+    //     if (!parsed.success) {
+    //         return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
+    //     }
+    //     token = parsed.data;
+    // }
 
-    const symbol = c.req.query("symbol") ?? '';
+    // const symbol = c.req.query("symbol") ?? '';
     const protocol = c.req.query("protocol") ?? '';
     if (protocol) {
         const parsed = protocolSchema.safeParse(protocol);
@@ -175,24 +178,32 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    let factory = c.req.query("factory") ?? '';
-    if (factory) {
-        const parsed = evmAddressSchema.safeParse(factory);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid factory EVM address: ${parsed.error.message}` }, 400);
-        }
-        factory = parsed.data;
-    }
+    // let factory = c.req.query("factory") ?? '';
+    // if (factory) {
+    //     const parsed = evmAddressSchema.safeParse(factory);
+    //     if (!parsed.success) {
+    //         return c.json({ error: `Invalid factory EVM address: ${parsed.error.message}` }, 400);
+    //     }
+    //     factory = parsed.data;
+    // }
 
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
-    const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
+    // -- `time` filter --
+    const parseStart = timestampSchema.default(0).safeParse(c.req.query('startTime'));
+    if (!parseStart.success) return c.json({ error: `Invalid StartTime: ${parseStart.error.message}` }, 400);
+    const startTime = parseStart.data / 1000;
+
+    const MAX_TIME = 2000000000000;// 2033-05-18
+    const parseEnd = timestampSchema.default(MAX_TIME).safeParse(c.req.query('endTime'));
+    if (!parseEnd.success) return c.json({ error: `Invalid EndTime: ${parseEnd.error.message}` }, 400);
+    const endTime = parseEnd.data / 1000;
 
     const query = sqlQueries['swaps']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { protocol, pool, token, factory, symbol, caller, sender, recipient, network_id, transaction_id, age }, { database });
+    const response = await makeUsageQueryJson(c, [query], { protocol, pool, caller, sender, recipient, network_id, transaction_id, startTime, endTime }, { database });
     return handleUsageQueryError(c, response);
 });
 

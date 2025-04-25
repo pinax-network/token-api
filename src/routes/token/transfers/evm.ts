@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { config, DEFAULT_AGE } from '../../../config.js';
+import { config } from '../../../config.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
 
@@ -17,8 +17,13 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    age: z.optional(ageSchema),
+
+    // -- `token` filter --
     contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
+
+    // -- `time` filter --
+    startTime: z.optional(timestampSchema),
+    endTime: z.optional(timestampSchema)
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -93,15 +98,32 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
+    // const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
-    const contract = c.req.query("contract") ?? '';
+    let contract = c.req.query("contract") ?? '';
+    if (contract) {
+        const parsed = evmAddressSchema.safeParse(contract);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
+        }
+        contract = parsed.data;
+    }
+
+    // -- `time` filter --
+    const parseStart = timestampSchema.default(0).safeParse(c.req.query('startTime'));
+    if (!parseStart.success) return c.json({ error: `Invalid StartTime: ${parseStart.error.message}` }, 400);
+    const startTime = parseStart.data / 1000;
+
+    const MAX_TIME = 2000000000000;// 2033-05-18
+    const parseEnd = timestampSchema.default(MAX_TIME).safeParse(c.req.query('endTime'));
+    if (!parseEnd.success) return c.json({ error: `Invalid EndTime: ${parseEnd.error.message}` }, 400);
+    const endTime = parseEnd.data / 1000;
 
     const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { address, age, network_id, contract }, { database });
+    const response = await makeUsageQueryJson(c, [query], { address, network_id, contract, startTime, endTime }, { database });
     injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);

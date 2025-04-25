@@ -14,3 +14,5 @@ JOIN contracts
 WHERE
     contract = {contract: String} AND new_balance > 0
 GROUP BY contract, symbol, name, decimals
+LIMIT   {limit:int}
+OFFSET  {offset:int}

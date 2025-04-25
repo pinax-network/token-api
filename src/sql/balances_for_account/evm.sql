@@ -13,4 +13,6 @@ JOIN contracts
 WHERE
     (address = {address: String} AND new_balance > 0)
     AND ({contract: String} = '' OR contract = {contract: String})
-ORDER BY timestamp DESC;
+ORDER BY timestamp DESC
+LIMIT   {limit:int}
+OFFSET  {offset:int}
