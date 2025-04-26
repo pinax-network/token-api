@@ -2,23 +2,27 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { ageSchema, evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { config, DEFAULT_AGE } from '../../../config.js';
+import { config } from '../../../config.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { injectPrices } from '../../../inject/prices.js';
+import { now } from '../../../utils.js';
 
 const route = new Hono();
 
-const paramSchema = z.object({
-    address: Vitalik,
-});
-
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    age: z.optional(ageSchema),
+
+    // -- `token` filter --
+    from: z.optional(evmAddressSchema.openapi({ description: 'Filter by address' })),
+    to: z.optional(Vitalik),
     contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
+
+    // -- `time` filter --
+    startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch (default: -90 days from endTime)' }),
+    endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch (default: now)' }),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -26,6 +30,7 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
+        timestamp: z.number(),
 
         // -- transaction --
         transaction_id: z.string(),
@@ -44,16 +49,16 @@ const responseSchema = z.object({
         symbol: z.optional(z.string()),
         decimals: z.optional(z.number()),
 
-        // -- price --
-        price_usd: z.optional(z.number()),
-        value_usd: z.optional(z.number()),
-        low_liquidity: z.optional(z.boolean()),
+        // // -- price --
+        // price_usd: z.optional(z.number()),
+        // value_usd: z.optional(z.number()),
+        // low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
-    summary: 'Transfers by Address',
+    summary: 'Transfers Events',
     description: 'Provides ERC-20 & Native transfer events.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
@@ -65,19 +70,17 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22128243,
-                                "datetime": "2025-03-26 02:58:47",
-                                "transaction_id": "0x18c62cfa9c10a1e0a7bee36099151238e668ff61c97c7b9ab616aaa93c176e2c",
+                                "block_num": 22349873,
+                                "datetime": "2025-04-26 01:18:47",
+                                "timestamp": 1745630327,
+                                "transaction_id": "0xd80ed9764b0bc25b982668f66ec1cf46dbe27bcd01dffcd487f43c92f72b2a84",
                                 "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "from": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-                                "to": "0x2e4578e6c86380ca1759431fedeeae823e33357b",
-                                "amount": "4805168872000000000000",
-                                "value": 4805.168872,
+                                "from": "0x7d2fbc0eefdb8721b27d216469e79ef288910a83",
+                                "to": "0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804",
                                 "decimals": 18,
                                 "symbol": "GRT",
-                                "network_id": "mainnet",
-                                "price_usd": 0.1040243665135064,
-                                "value_usd": 499.85464790022
+                                "amount": "11068393958660000000000",
+                                "value": 11068.393958659999
                             }
                         ]
                     }
@@ -87,21 +90,62 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
-    if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
+route.get('/', openapi, validator('query', querySchema), async (c) => {
 
-    const address = parseAddress.data;
+    let from = c.req.query("from") ?? '';
+    if (from) {
+        const parsed = evmAddressSchema.safeParse(from);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid [from] EVM address: ${parsed.error.message}` }, 400);
+        }
+        from = parsed.data;
+    }
+
+    let to = c.req.query("to") ?? '';
+    if (to) {
+        const parsed = evmAddressSchema.safeParse(to);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid [to] EVM address: ${parsed.error.message}` }, 400);
+        }
+        to = parsed.data;
+    }
+
+
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const age = ageSchema.safeParse(c.req.query("age")).data ?? DEFAULT_AGE;
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
-    const contract = c.req.query("contract") ?? '';
+    let contract = c.req.query("contract") ?? '';
+    if (contract) {
+        const parsed = evmAddressSchema.safeParse(contract);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
+        }
+        contract = parsed.data;
+    }
+
+    // -- `time` filter --
+    let endTime = c.req.query('endTime') ?? now();
+    if (endTime) {
+        const parsed = timestampSchema.safeParse(endTime);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
+        }
+    }
+    let startTime = c.req.query('startTime') ?? '';
+    if (startTime) {
+        const parsed = timestampSchema.safeParse(startTime);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid startTime: ${parsed.error.message}` }, 400);
+        }
+    } else {
+        // -90 days if not provided
+        startTime = String(Number(endTime) - 86400 * 90);
+    }
 
     const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { address, age, network_id, contract }, { database });
+    const response = await makeUsageQueryJson(c, [query], { from, to, network_id, contract, startTime, endTime }, { database });
     injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);

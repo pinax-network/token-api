@@ -49,4 +49,6 @@ SELECT
     close_raw * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS close,
     toFloat64(ohlc.volume) * pow(10, -(SELECT t0_decimals FROM metadata)) AS volume,
     transactions
-FROM ohlc;
+FROM ohlc
+LIMIT   {limit:int}
+OFFSET  {offset:int}

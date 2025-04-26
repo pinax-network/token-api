@@ -37,11 +37,9 @@ export async function makeUsageQueryJson<T = unknown>(
     overwrite_config?: WebClickHouseClientConfigOptions
 ): Promise<ApiUsageResponse | ApiErrorResponse> {
     const limit = limitSchema.safeParse(ctx.req.query("limit")).data ?? DEFAULT_LIMIT;
-    query.push('LIMIT {limit: int}');
     query_params.limit = limit;
 
     const page = pageSchema.safeParse(ctx.req.query("page")).data ?? DEFAULT_PAGE;
-    query.push('OFFSET {offset: int}');
     // Since `page` starts at 1, `offset` should be positive for page > 1
     query_params.offset = query_params.limit * (page - 1);
 
