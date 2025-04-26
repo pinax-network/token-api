@@ -7,6 +7,7 @@ WITH s AS (
         AND ({recipient:String}  = '' OR recipient      = {recipient:String})
         AND ({pool:String}       = '' OR pool           = {pool:String})
         AND ({protocol:String}   = '' OR protocol       = {protocol:String})
+    ORDER BY timestamp DESC
     LIMIT   {limit:int}
     OFFSET  {offset:int}
 )

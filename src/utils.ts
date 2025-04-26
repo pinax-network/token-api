@@ -55,3 +55,7 @@ export function computePagination(current_page: number, rows_per_page: number, t
         total_pages: Math.max(Math.ceil(total_rows / rows_per_page), 1),
     });
 }
+
+export function now() {
+    return Math.floor(Date.now() / 1000);
+}
