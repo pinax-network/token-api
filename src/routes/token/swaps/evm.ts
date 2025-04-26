@@ -23,6 +23,9 @@ const querySchema = z.object({
     // -- `time` filter --
     startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch' }),
     endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch' }),
+
+    // -- `transaction` filter --
+    transaction_id: z.optional(z.string().openapi({ description: 'Filter by transaction ID' })),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({

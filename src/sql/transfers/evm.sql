@@ -7,6 +7,7 @@ t AS (
     SELECT *
     FROM transfers
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+        AND ({transaction_id:String} = '' OR transaction_id = {transaction_id:String})
         AND ({from:String} = ''  OR `from` = {from:String})
         AND ({to:String} = ''  OR `to` = {to:String})
         AND ({contract:String} = '' OR contract = {contract:String})
