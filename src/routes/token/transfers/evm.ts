@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -23,6 +23,9 @@ const querySchema = z.object({
     // -- `time` filter --
     startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch' }),
     endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch' }),
+
+    // -- `transaction` filter --
+    transaction_id: z.optional(z.string().openapi({ description: 'Filter by transaction ID' })),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -123,6 +126,15 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         contract = parsed.data;
     }
 
+    let transaction_id = c.req.query("transaction_id") ?? '';
+    if (transaction_id) {
+        const parsed = evmTransactionSchema.safeParse(transaction_id);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid EVM transaction ID: ${parsed.error.message}` }, 400);
+        }
+        transaction_id = parsed.data;
+    }
+
     // -- `time` filter --
     const endTime = c.req.query('endTime') ?? now();
     if (endTime) {
@@ -139,7 +151,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    const query = sqlQueries['transfers']?.['evm'];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { from, to, network_id, contract, startTime, endTime }, { database });

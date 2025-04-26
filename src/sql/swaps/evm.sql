@@ -2,6 +2,7 @@ WITH s AS (
     SELECT  *
     FROM    swaps
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+        AND ({transaction_id:String} = '' OR transaction_id = {transaction_id:String})
         AND ({caller:String}     = '' OR caller         = {caller:String})
         AND ({sender:String}     = '' OR sender         = {sender:String})
         AND ({recipient:String}  = '' OR recipient      = {recipient:String})
