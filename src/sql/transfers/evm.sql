@@ -42,7 +42,7 @@ SELECT
     t.block_num as block_num,
     t.timestamp as datetime,
     toUnixTimestamp(t.timestamp) as timestamp,
-    t.transaction_id as transaction_id,
+    toString(t.transaction_id) as transaction_id,
     contract,
     `from`,
     `to`,
@@ -51,5 +51,6 @@ SELECT
     toString(t.value) as amount,
     value / pow(10, decimals) AS value
 FROM t
-JOIN contracts AS c ON c.address = t.contract
+LEFT JOIN contracts AS c ON c.address = t.contract
     AND ({contract:String} = '' OR c.address = {contract:String})
+WHERE isNotNull(decimals)

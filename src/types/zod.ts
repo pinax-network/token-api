@@ -25,9 +25,9 @@ export type Commit = z.infer<typeof commit>;
 export const protocolSchema = z.enum(["uniswap_v2", "uniswap_v3"]).openapi({ description: "Protocol name", example: "uniswap_v3" });
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string()).openapi({
-    description: 'Filter by wallet address'
+    description: 'Filter by address'
 });
-export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string());
+export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string()).openapi({ description: 'Filter by transaction' });
 // z.enum argument type definition requires at least one element to be defined
 export const networkIdSchema = z.enum([config.networks.at(0) ?? config.defaultNetwork, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: config.defaultNetwork });
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
