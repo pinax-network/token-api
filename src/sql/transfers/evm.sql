@@ -1,10 +1,33 @@
 WITH transfers AS (
-    SELECT * FROM erc20_transfers
+    SELECT
+        block_num,
+        timestamp,
+        transaction_id,
+        contract,
+        `from`,
+        `to`,
+        value
+    FROM erc20_transfers
     UNION ALL
-    SELECT * FROM native_transfers
+    SELECT
+        block_num,
+        timestamp,
+        transaction_id,
+        contract,
+        `from`,
+        `to`,
+        value
+    FROM native_transfers
 ),
 t AS (
-    SELECT *
+    SELECT
+        block_num,
+        timestamp,
+        transaction_id,
+        contract,
+        `from`,
+        `to`,
+        value
     FROM transfers
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
         AND ({transaction_id:String} = '' OR transaction_id = {transaction_id:String})
@@ -29,3 +52,4 @@ SELECT
     value / pow(10, decimals) AS value
 FROM t
 JOIN contracts AS c ON c.address = t.contract
+    AND ({contract:String} = '' OR c.address = {contract:String})

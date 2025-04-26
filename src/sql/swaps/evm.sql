@@ -1,5 +1,16 @@
 WITH s AS (
-    SELECT  *
+    SELECT
+        block_num,
+        timestamp,
+        transaction_id,
+        caller,
+        pool,
+        sender,
+        recipient,
+        amount0,
+        amount1,
+        price,
+        protocol
     FROM    swaps
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
         AND ({transaction_id:String} = '' OR transaction_id = {transaction_id:String})
@@ -33,6 +44,8 @@ SELECT
     s.protocol as protocol,
     {network_id:String} as network_id
 FROM s
-JOIN pools      AS p USING (pool)
-JOIN contracts  AS c0 FINAL ON c0.address = p.token0
-JOIN contracts  AS c1 FINAL ON c1.address = p.token1
+JOIN pools      AS p ON p.pool = s.pool
+    AND ({pool:String}       = '' OR p.pool           = {pool:String})
+    AND ({protocol:String}   = '' OR p.protocol       = {protocol:String})
+JOIN contracts  AS c0 ON c0.address = p.token0
+JOIN contracts  AS c1 ON c1.address = p.token1
