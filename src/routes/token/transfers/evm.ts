@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -16,16 +16,17 @@ const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
 
     // -- `token` filter --
-    from: z.optional(evmAddressSchema.openapi({ description: 'Filter by address' })),
+    from: z.optional(evmAddressSchema),
     to: z.optional(Vitalik),
-    contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
+    contract: z.optional(evmAddressSchema),
 
     // -- `time` filter --
-    startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch' }),
-    endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch' }),
+    startTime: z.optional(timestampSchema),
+    endTime: z.optional(timestampSchema),
+    orderBy: z.optional(orderBySchema.default('desc')),
 
     // -- `transaction` filter --
-    transaction_id: z.optional(z.string().openapi({ description: 'Filter by transaction ID' })),
+    transaction_id: z.optional(evmTransactionSchema),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -151,10 +152,22 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const query = sqlQueries['transfers']?.['evm'];
+    let query = sqlQueries['transfers']?.['evm'];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { from, to, network_id, contract, startTime, endTime }, { database });
+    // reverse ORDER BY if defined
+    const orderBy = c.req.query('orderBy') ?? 'desc';
+    if (orderBy) {
+        const parsed = orderBySchema.safeParse(orderBy);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replace('ORDER BY timestamp DESC', 'ORDER BY timestamp ASC');
+        }
+    }
+
+    const response = await makeUsageQueryJson(c, [query], { from, to, transaction_id, network_id, contract, startTime, endTime }, { database });
     injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
