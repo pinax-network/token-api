@@ -29,3 +29,4 @@ SELECT
     value / pow(10, decimals) AS value
 FROM t
 JOIN contracts AS c ON c.address = t.contract
+    AND ({contract:String} = '' OR contract = {contract:String})
