@@ -21,8 +21,8 @@ const querySchema = z.object({
     contract: z.optional(evmAddressSchema.openapi({ description: 'Filter by contract address' })),
 
     // -- `time` filter --
-    startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch (default: -90 days from endTime)' }),
-    endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch (default: now)' }),
+    startTime: z.optional(timestampSchema).openapi({ description: 'Start time in seconds since epoch' }),
+    endTime: z.optional(timestampSchema).openapi({ description: 'End time in seconds since epoch' }),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -124,22 +124,19 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     // -- `time` filter --
-    let endTime = c.req.query('endTime') ?? now();
+    const endTime = c.req.query('endTime') ?? now();
     if (endTime) {
         const parsed = timestampSchema.safeParse(endTime);
         if (!parsed.success) {
             return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
         }
     }
-    let startTime = c.req.query('startTime') ?? '';
+    const startTime = c.req.query('startTime') ?? '0';
     if (startTime) {
         const parsed = timestampSchema.safeParse(startTime);
         if (!parsed.success) {
             return c.json({ error: `Invalid startTime: ${parsed.error.message}` }, 400);
         }
-    } else {
-        // -90 days if not provided
-        startTime = String(Number(endTime) - 86400 * 90);
     }
 
     const query = sqlQueries['transfers_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
