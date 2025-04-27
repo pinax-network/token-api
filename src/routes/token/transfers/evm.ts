@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchema, orderDirectionSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -23,7 +23,8 @@ const querySchema = z.object({
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
     endTime: z.optional(timestampSchema),
-    orderBy: z.optional(orderBySchema.default('desc')),
+    orderBy: z.optional(orderBySchema),
+    orderDirection: z.optional(orderDirectionSchema),
 
     // -- `transaction` filter --
     transaction_id: z.optional(evmTransactionSchema),
@@ -156,9 +157,9 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     // reverse ORDER BY if defined
-    const orderBy = c.req.query('orderBy') ?? 'desc';
+    const orderBy = c.req.query('orderDirection') ?? 'desc';
     if (orderBy) {
-        const parsed = orderBySchema.safeParse(orderBy);
+        const parsed = orderDirectionSchema.safeParse(orderBy);
         if (!parsed.success) {
             return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
         }
