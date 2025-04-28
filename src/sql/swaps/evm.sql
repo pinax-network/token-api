@@ -49,3 +49,4 @@ JOIN pools      AS p ON p.pool = s.pool
     AND ({protocol:String}   = '' OR p.protocol       = {protocol:String})
 JOIN contracts  AS c0 ON c0.address = p.token0
 JOIN contracts  AS c1 ON c1.address = p.token1
+ORDER BY timestamp DESC
