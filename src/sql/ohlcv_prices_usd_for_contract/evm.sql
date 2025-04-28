@@ -1,4 +1,4 @@
-WITH 
+WITH
 pool_metadata AS (
     SELECT
         p.pool,
@@ -7,15 +7,15 @@ pool_metadata AS (
         t1.symbol AS token1_symbol,
         t0.decimals AS token0_decimals,
         t1.decimals AS token1_decimals,
-        CASE 
+        CASE
             WHEN p.token0 = {contract: String} THEN 0
             WHEN p.token1 = {contract: String} THEN 1
             ELSE NULL
         END AS weth_position
     FROM pools AS p
-    LEFT JOIN contracts AS t0 FINAL ON p.token0 = t0.address
-    LEFT JOIN contracts AS t1 FINAL ON p.token1 = t1.address
-    WHERE 
+    LEFT JOIN contracts AS t0 ON p.token0 = t0.address
+    LEFT JOIN contracts AS t1 ON p.token1 = t1.address
+    WHERE
         isNotNull(t0.decimals) AND isNotNull(t1.decimals) AND
         (p.token0 = {contract: String} AND p.token1 IN {stablecoin_contracts: Array(String)})
         OR (p.token1 = {contract: String} AND p.token0 IN {stablecoin_contracts: Array(String)})
@@ -32,19 +32,19 @@ unified_ohlc AS (
         m.token1_symbol,
         m.token0_decimals,
         m.token1_decimals,
-        CASE 
+        CASE
             WHEN m.weth_position = 0 THEN argMinMerge(o.open0)
             WHEN m.weth_position = 1 THEN 1/argMinMerge(o.open0)
         END AS open_raw,
-        CASE 
+        CASE
             WHEN m.weth_position = 0 THEN quantileDeterministicMerge({high_quantile: Float32})(o.high0)
             WHEN m.weth_position = 1 THEN 1/quantileDeterministicMerge({low_quantile: Float32})(o.low0)
         END AS high_raw,
-        CASE 
+        CASE
             WHEN m.weth_position = 0 THEN quantileDeterministicMerge({low_quantile: Float32})(o.low0)
             WHEN m.weth_position = 1 THEN 1/quantileDeterministicMerge({high_quantile: Float32})(o.high0)
         END AS low_raw,
-        CASE 
+        CASE
             WHEN m.weth_position = 0 THEN argMaxMerge(o.close0)
             WHEN m.weth_position = 1 THEN 1/argMaxMerge(o.close0)
         END AS close_raw,
@@ -56,7 +56,7 @@ unified_ohlc AS (
         sum(o.transactions) AS transactions
     FROM ohlc_prices AS o
     INNER JOIN pool_metadata AS m ON o.pool = m.pool
-    WHERE o.timestamp >= parseDateTimeBestEffortOrZero({min_datetime: String}) 
+    WHERE o.timestamp >= parseDateTimeBestEffortOrZero({min_datetime: String})
       AND o.timestamp <= parseDateTimeBestEffort({max_datetime: String})
     GROUP BY datetime, m.weth_position, m.token0_symbol, m.token1_symbol, m.token0_decimals, m.token1_decimals
 ),
@@ -72,13 +72,13 @@ normalized_prices AS (
             WHEN weth_position = 1 THEN open_raw * pow(10, token1_decimals - token0_decimals)
         END AS open,
         CASE
-            WHEN weth_position = 0 THEN 
+            WHEN weth_position = 0 THEN
                 multiIf(
                     high_raw < open_raw, open_raw,
                     high_raw < close_raw, close_raw,
                     high_raw
                 ) * pow(10, token0_decimals - token1_decimals)
-            WHEN weth_position = 1 THEN 
+            WHEN weth_position = 1 THEN
                 multiIf(
                     high_raw < open_raw, open_raw,
                     high_raw < close_raw, close_raw,
@@ -86,13 +86,13 @@ normalized_prices AS (
                 ) * pow(10, token1_decimals - token0_decimals)
         END AS high,
         CASE
-            WHEN weth_position = 0 THEN 
+            WHEN weth_position = 0 THEN
                 multiIf(
                     low_raw > open_raw, open_raw,
                     low_raw > close_raw, close_raw,
                     low_raw
                 ) * pow(10, token0_decimals - token1_decimals)
-            WHEN weth_position = 1 THEN 
+            WHEN weth_position = 1 THEN
                 multiIf(
                     low_raw > open_raw, open_raw,
                     low_raw > close_raw, close_raw,

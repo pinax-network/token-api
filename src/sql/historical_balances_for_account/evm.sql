@@ -14,7 +14,7 @@ ohlc AS (
     FROM historical_balances
     WHERE address = {address: String} AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
     GROUP BY contract, datetime
-    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String}) 
+    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String})
        AND datetime <= parseDateTimeBestEffort({max_datetime: String})
     ORDER BY datetime DESC
 )
@@ -37,6 +37,6 @@ SELECT
     ) * pow(10, -decimals) AS low,
     close_raw * pow(10, -decimals) AS close
 FROM ohlc AS o
-INNER JOIN contracts AS c FINAL ON o.contract = c.address
+INNER JOIN contracts AS c ON o.contract = c.address
 LIMIT   {limit:int}
 OFFSET  {offset:int}

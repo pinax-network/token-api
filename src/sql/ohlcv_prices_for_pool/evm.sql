@@ -7,8 +7,8 @@ metadata AS (
         t1.symbol AS t1_symbol,
         t1.decimals AS t1_decimals
     FROM pools AS p
-    LEFT JOIN contracts AS t0 FINAL ON p.token0 = t0.address
-    LEFT JOIN contracts AS t1 FINAL ON p.token1 = t1.address
+    LEFT JOIN contracts AS t0 ON p.token0 = t0.address
+    LEFT JOIN contracts AS t1 ON p.token1 = t1.address
     WHERE p.pool = {pool: String}
 ),
 ohlc AS (
@@ -28,7 +28,7 @@ ohlc AS (
     FROM ohlc_prices
     WHERE pool = {pool: String}
     GROUP BY datetime
-    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String}) 
+    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String})
        AND datetime <= parseDateTimeBestEffort({max_datetime: String})
     ORDER BY datetime DESC
 )
