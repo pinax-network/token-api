@@ -12,6 +12,6 @@ JOIN contracts
     ON balances_by_contract.contract = contracts.address
 WHERE
     contract = {contract: String} AND new_balance > 0
-ORDER BY amount DESC
+ORDER BY value DESC
 LIMIT   {limit:int}
 OFFSET  {offset:int}
