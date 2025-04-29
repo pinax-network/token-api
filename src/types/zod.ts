@@ -34,7 +34,8 @@ export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).def
 export const limitSchema = z.coerce.number().int().min(1).max(1000).default(DEFAULT_LIMIT).openapi({ description: 'The maximum number of items returned in a single request.' });
 export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ description: 'The page number of the results to return.' });
 export const orderDirectionSchema = z.enum(["asc", "desc"]).default('desc').openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
-export const orderBySchema = z.enum(["timestamp"]).default("timestamp").openapi({ description: 'The field by which to order the results.' });
+export const orderBySchemaTimestamp = z.enum(["timestamp"]).default("timestamp").openapi({ description: 'The field by which to order the results.' });
+export const orderBySchemaAmount = z.enum(["amount"]).default("amount").openapi({ description: 'The field by which to order the results.' });
 export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
 export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in seconds').transform((t) => t * 1000).openapi({ description: 'UNIX timestamp in seconds.' });
 

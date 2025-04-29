@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchema, GRT, networkIdSchema, orderDirectionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchemaAmount, GRT, networkIdSchema, orderDirectionSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -17,7 +17,8 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    order_by: z.optional(orderBySchema.default('desc')),
+    orderBy: z.optional(orderBySchemaAmount),
+    orderDirection: z.optional(orderDirectionSchema),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -83,13 +84,27 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const order_direction = orderDirectionSchema.safeParse(c.req.query("order_direction")).data ?? "desc";
     const database = `${network_id}:${config.dbEvmSuffix}`;
 
-    const query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    let query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { contract, network_id, order_direction }, { database });
+    // reverse ORDER BY if defined
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
+        }
+    }
+
+    const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
     injectSymbol(response, network_id);
     // await injectPrices(response, network_id, contract);
     return handleUsageQueryError(c, response);

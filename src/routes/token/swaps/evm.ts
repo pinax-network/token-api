@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { describeRoute } from 'hono-openapi'
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod'
-import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema, orderBySchema, orderDirectionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -23,7 +23,7 @@ const querySchema = z.object({
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
     endTime: z.optional(timestampSchema),
-    orderBy: z.optional(orderBySchema),
+    orderBy: z.optional(orderBySchemaTimestamp),
     orderDirection: z.optional(orderDirectionSchema),
 
     // -- `transaction` filter --
@@ -189,14 +189,17 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     // reverse ORDER BY if defined
-    const orderBy = c.req.query('orderDirection') ?? 'desc';
-    if (orderBy) {
-        const parsed = orderDirectionSchema.safeParse(orderBy);
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
         if (!parsed.success) {
             return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
         }
         if (parsed.data === 'asc') {
-            query = query.replace('ORDER BY timestamp DESC', 'ORDER BY timestamp ASC');
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
         }
     }
 
