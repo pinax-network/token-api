@@ -16,8 +16,8 @@ SELECT
     protocol,
     {network_id: String} as network_id
 FROM pools
-JOIN contracts AS c0 FINAL ON c0.address = pools.token0
-JOIN contracts AS c1 FINAL ON c1.address = pools.token1
+JOIN contracts AS c0 ON c0.address = pools.token0
+JOIN contracts AS c1 ON c1.address = pools.token1
 WHERE
     isNotNull(c0.symbol) AND isNotNull(c1.symbol) AND
     if ({pool:String} == '', true, pools.pool  = {pool:String}) AND

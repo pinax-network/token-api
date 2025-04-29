@@ -54,3 +54,4 @@ FROM t
 LEFT JOIN contracts AS c ON c.address = t.contract
     AND ({contract:String} = '' OR c.address = {contract:String})
 WHERE isNotNull(decimals)
+ORDER BY timestamp DESC
