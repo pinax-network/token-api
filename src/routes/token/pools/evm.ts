@@ -47,6 +47,7 @@ const openapi = describeRoute({
     summary: 'Liquidity Pools',
     description: 'Provides Uniswap V2 & V3 liquidity pool metadata.',
     tags: ['EVM'],
+    security: [{ bearerAuth: [] }],
     responses: {
         200: {
             description: 'Successful Response',
