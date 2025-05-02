@@ -67,6 +67,7 @@ const openapi = describeRoute({
     summary: 'Swap Events',
     description: 'Provides Uniswap V2 & V3 swap events.',
     tags: ['EVM'],
+    security: [{ bearerAuth: [] }],
     responses: {
         200: {
             description: 'Successful Response',
