@@ -61,14 +61,6 @@ export async function makeUsageQueryJson<T = unknown>(
             };
         }
 
-        if (result.data.length === 0) {
-            return {
-                status: 404 as ApiErrorResponse["status"],
-                code: "not_found_data" as ApiErrorResponse["code"],
-                message: 'No data found'
-            };
-        }
-
         const total_results = result.rows_before_limit_at_least ?? 0;
         return {
             data: result.data,
