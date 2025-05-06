@@ -20,9 +20,9 @@ ohlc AS (
 )
 SELECT
     datetime,
-    name,
-    symbol,
-    decimals,
+    if (contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 'Native', name) AS name,
+    if (contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 18, decimals) AS decimals,
+    if (contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 'Native', trim(symbol)) AS symbol,
     {network_id: String} as network_id,
     open_raw * pow(10, -decimals) AS open,
     multiIf(
@@ -37,6 +37,6 @@ SELECT
     ) * pow(10, -decimals) AS low,
     close_raw * pow(10, -decimals) AS close
 FROM ohlc AS o
-INNER JOIN contracts AS c ON o.contract = c.address
+LEFT JOIN contracts AS c ON o.contract = c.address
 LIMIT   {limit:int}
 OFFSET  {offset:int}

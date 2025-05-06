@@ -4,11 +4,11 @@ SELECT
     toString(contract) AS contract,
     toString(new_balance) AS amount,
     new_balance / pow(10, decimals) as value,
-    decimals,
-    trim(symbol) as symbol,
+    if (contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 18, decimals) AS decimals,
+    if (contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 'Native', trim(symbol)) AS symbol,
     {network_id: String} as network_id
 FROM balances FINAL
-JOIN contracts
+LEFT JOIN contracts
     ON balances.contract = contracts.address
 WHERE
     (address = {address: String} AND new_balance > 0)
