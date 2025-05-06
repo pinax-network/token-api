@@ -107,8 +107,6 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const response = await makeUsageQueryJson(c, [query], {
         network_id,
         interval_minute: parseIntervalMinute.data,
-        high_quantile: 0.95,
-        low_quantile: 0.05,
         contract,
         stablecoin_contracts: [...stables],
         min_datetime,
