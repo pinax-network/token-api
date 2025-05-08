@@ -20,8 +20,8 @@ ohlc AS (
         ) AS datetime,
         CONCAT((SELECT t1_symbol FROM metadata), (SELECT t0_symbol FROM metadata)) AS ticker,
         1/argMinMerge(open0) AS open_raw,
-        1/quantileDeterministicMerge({low_quantile: Float32})(low0) AS high_raw,
-        1/quantileDeterministicMerge({high_quantile: Float32})(high0) AS low_raw,
+        1/quantileDeterministicMerge({low_quantile: Float32})(quantile0) AS high_raw,
+        1/quantileDeterministicMerge({high_quantile: Float32})(quantile0) AS low_raw,
         1/argMaxMerge(close0) AS close_raw,
         sum(gross_volume0) AS volume,
         sum(transactions) AS transactions
