@@ -53,7 +53,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = `${network_id}:evm-nft-tokens@v0.4.3`; // TODO: NFT database in config
+    const database = `${network_id}:${config.dbEvmNftSuffix}`;
 
     const query = sqlQueries['nft_metadata_for_collection']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
