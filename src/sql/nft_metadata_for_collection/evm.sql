@@ -29,5 +29,4 @@ SELECT
 FROM erc721_metadata_by_contract AS m
 FINAL
 LEFT JOIN `mainnet:evm-contracts@v0.3.1`.contracts AS c ON c.address = m.contract
-JOIN erc721_total_supply AS s ON s.contract = m.contract
 WHERE m.contract = {contract: String}
