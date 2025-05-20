@@ -28,6 +28,7 @@ const responseSchema = z.object({
         total_supply: z.number(),
         owners: z.number(),
         total_transfers: z.number(),
+        network_id: networkIdSchema,
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -53,7 +54,8 @@ const openapi = describeRoute({
                                 "base_uri": "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/",
                                 "total_supply": 8888,
                                 "owners": 4999,
-                                "total_transfers": 185015
+                                "total_transfers": 185015,
+                                "network_id": "mainnet"
                             }
                         ]
                     }

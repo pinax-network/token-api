@@ -24,11 +24,11 @@ const responseSchema = z.object({
         token_id: z.string(),
         token_standard: z.string(),
         contract: evmAddress,
-        symbol: z.optional(z.string()),
         owner: evmAddress,
+        symbol: z.optional(z.string()),
         uri: z.optional(z.string()),
 
-        // Offchain metadata pulled from the URI
+        // OPTIONAL: Offchain metadata pulled from the URI
         name: z.optional(z.string()),
         image: z.optional(z.string()),
         description: z.optional(z.string()),
@@ -58,8 +58,8 @@ const openapi = describeRoute({
                                 "token_id": 888,
                                 "token_standard": "ERC721",
                                 "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "symbol": "PPG",
                                 "owner": "0x26b95d665d28ec4c53ebee834fc2a274d32f5a76",
+                                "symbol": "PPG",
                                 "uri": "https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/888",
                                 "name": "Pudgy Penguin #888",
                                 "description": "A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.",
