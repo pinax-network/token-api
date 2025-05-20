@@ -19,7 +19,21 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
+        // NFT token metadata
+        token_id: z.number(),
+        token_standard: z.enum(['ERC721', 'ERC1155']),
+        contract: evmAddress,
+        owner: evmAddress,
 
+        // OPTIONAL: Contract Metadata
+        symbol: z.optional(z.string()),
+
+        // OPTIONAL: Token metadata
+        uri: z.optional(z.string()),
+        name: z.optional(z.string()),
+        image: z.optional(z.string()),
+        description: z.optional(z.string()),
+        network_id: networkIdSchema,
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -37,8 +51,15 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-
-                            }
+                                "token_id": 814,
+                                "token_standard": "ERC721",
+                                "contract": "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
+                                "owner": "0xe2a83b15fc300d8457eb9e176f98d92a8ff40a49",
+                                "symbol": "MAYC",
+                                "name": "MutantApeYachtClub",
+                                "image": "ipfs://QmYRCDk7ZvCANi7YVLGLAiVdGT5CuXy6hqnN2N3YGsNi7a",
+                                "network_id": "mainnet"
+                            },
                         ]
                     }
                 },

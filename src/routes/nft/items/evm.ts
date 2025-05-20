@@ -22,13 +22,15 @@ const responseSchema = z.object({
     data: z.array(z.object({
         // NFT token metadata
         token_id: z.string(),
-        token_standard: z.string(),
+        token_standard: z.enum(['ERC721', 'ERC1155']),
         contract: evmAddress,
         owner: evmAddress,
-        symbol: z.optional(z.string()),
-        uri: z.optional(z.string()),
 
-        // OPTIONAL: Offchain metadata pulled from the URI
+        // OPTIONAL: Contract Metadata
+        symbol: z.optional(z.string()),
+
+        // OPTIONAL: Token Metadata
+        uri: z.optional(z.string()),
         name: z.optional(z.string()),
         image: z.optional(z.string()),
         description: z.optional(z.string()),
