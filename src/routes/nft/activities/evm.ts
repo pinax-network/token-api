@@ -31,6 +31,21 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
+        // NFT token metadata
+        "@type": z.enum(['TRANSFER', 'MINT', 'BURN']),
+        block_num: z.number(),
+        block_hash: z.string(),
+        timestamp: z.string(),
+        tx_hash: z.string(),
+        contract: evmAddress,
+        symbol: z.optional(z.string()),
+        name: z.optional(z.string()),
+        from: evmAddress,
+        to: evmAddress,
+        token_id: z.number(),
+        amount: z.number(),
+        transfer_type: z.optional(z.string()),
+        token_standard: z.optional(z.string()),
 
     })),
     statistics: z.optional(statisticsSchema),
@@ -49,8 +64,21 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-
-                            }
+                                "@type": "TRANSFER",
+                                "block_num": 17039906,
+                                "block_hash": "0xaa770b7f61e7b50f2f77dca88e4ee7e3306118ab5e86ae7fda10e72578e45f25",
+                                "timestamp": "2023-04-13 17:27:59",
+                                "tx_hash": "0xd00e529a5b41da7c612ae1904a35df4756399a444ee6c9710704efab37ba1feb",
+                                "contract": "0x52352040b5262d64973b004d031bc041720aa434",
+                                "symbol": "HD",
+                                "name": "HeeDong",
+                                "from": "0x0000000000000000000000000000000000000000",
+                                "to": "0x3a6a0e027b1e8271815930d959f6c024a9be9fa7",
+                                "token_id": 1448,
+                                "amount": 1,
+                                "transfer_type": "Single",
+                                "token_standard": "ERC721"
+                            },
                         ]
                     }
                 },
@@ -119,7 +147,7 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     const query = sqlQueries['nft_activities']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { anyAddress, fromAddress, toAddress, startTime, endTime, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], { anyAddress, fromAddress, toAddress, contract, startTime, endTime, network_id }, { database });
     return handleUsageQueryError(c, response);
 });
 
