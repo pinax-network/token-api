@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -10,7 +10,7 @@ import { config } from '../../../config.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    contract: evmAddress,
+    contract: PudgyPenguins,
 });
 
 const querySchema = z.object({
@@ -19,7 +19,15 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
-        
+        contract: evmAddressSchema,
+        contract_creation: z.string(),
+        contract_creator: evmAddressSchema,
+        symbol: z.string(),
+        name: z.string(),
+        base_uri: z.string(),
+        total_supply: z.number(),
+        owners: z.number(),
+        total_transfers: z.number(),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -37,7 +45,15 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                
+                                "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
+                                "contract_creation": "2021-07-22 12:26:01",
+                                "contract_creator": "0xe9da256a28630efdc637bfd4c65f0887be1aeda8",
+                                "symbol": "PPG",
+                                "name": "PudgyPenguins",
+                                "base_uri": "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/",
+                                "total_supply": 8888,
+                                "owners": 4999,
+                                "total_transfers": 185015
                             }
                         ]
                     }

@@ -44,6 +44,7 @@ export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7e
 export const WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' }); // WETH (Wrapped Ethereum)
 export const GRT = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' }); // GRT
 export const USDC_WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
+export const PudgyPenguins = evmAddressSchema.openapi({ description: 'Filter by NFT contract address', example: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8' }); // Pudgy Penguins
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,

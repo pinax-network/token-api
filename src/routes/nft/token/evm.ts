@@ -20,13 +20,13 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
-        
+
     })),
     statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
-    summary: 'NFT token',
+    summary: 'NFT Token',
     description: 'Provides single NFT token information.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
@@ -38,7 +38,7 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                
+
                             }
                         ]
                     }
