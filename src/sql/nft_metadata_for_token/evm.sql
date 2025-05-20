@@ -13,6 +13,6 @@ SELECT
 
 FROM erc721_metadata_by_token AS t
 FINAL
-JOIN erc721_metadata_by_contract AS m USING (contract)
 JOIN erc721_owners AS o USING (contract, token_id)
+LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
 WHERE contract = {contract: String} AND token_id = {token_id: UInt256}

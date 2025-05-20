@@ -21,7 +21,7 @@ FROM (
     WHERE from = {address: String}
     UNION ALL
     SELECT *
-    FROM erc721_transfers
+    FROM erc1155_transfers
     WHERE to = {address: String}
 ) AS t
 LEFT JOIN erc721_metadata_by_contract AS m ON m.contract = t.contract
