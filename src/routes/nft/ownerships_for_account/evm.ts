@@ -56,6 +56,7 @@ const openapi = describeRoute({
                                 "contract": "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
                                 "owner": "0xe2a83b15fc300d8457eb9e176f98d92a8ff40a49",
                                 "symbol": "MAYC",
+                                "uri": "https://boredapeyachtclub.com/api/mutants/814",
                                 "name": "MutantApeYachtClub",
                                 "image": "ipfs://QmYRCDk7ZvCANi7YVLGLAiVdGT5CuXy6hqnN2N3YGsNi7a",
                                 "network_id": "mainnet"
