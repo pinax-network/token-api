@@ -10,12 +10,12 @@ import { config } from '../../../config.js';
 const route = new Hono();
 
 const paramSchema = z.object({
+    contract: evmAddress,
     token: z.coerce.number().int(),
 });
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
-    contract: evmAddress,
 });
 
 const responseSchema = z.object({
@@ -48,8 +48,8 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:token', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.query("contract"));
+route.get('/:contract/:token', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
+    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
     if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
 
     const token_id = c.req.param("token");
