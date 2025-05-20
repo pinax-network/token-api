@@ -8,7 +8,7 @@ import networks from './networks.js'
 
 const router = new Hono()
 
-router.route('/', nft)
+router.route('/nft', nft)
 router.route('/', token)
 router.route('/', health)
 router.route('/', version)
