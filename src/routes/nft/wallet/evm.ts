@@ -19,7 +19,7 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
-        
+
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -37,7 +37,7 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                
+
                             }
                         ]
                     }

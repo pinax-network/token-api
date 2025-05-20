@@ -24,7 +24,7 @@ const responseSchema = z.object({
         contract_creator: evmAddressSchema,
         symbol: z.string(),
         name: z.string(),
-        base_uri: z.string(),
+        base_uri: z.optional(z.string()),
         total_supply: z.number(),
         owners: z.number(),
         total_transfers: z.number(),
@@ -33,8 +33,8 @@ const responseSchema = z.object({
 });
 
 const openapi = describeRoute({
-    summary: 'NFT Metadata',
-    description: 'Provides NFT collection metadata.',
+    summary: 'NFT Collections',
+    description: 'Provides single NFT collection metadata, total supply, owners & total transfers.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -67,7 +67,10 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
     if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
 
+    // REQUIRED URL param
     const contract = parseContract.data;
+
+    // OPTIONAL URL query
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmNftSuffix}`;
 
