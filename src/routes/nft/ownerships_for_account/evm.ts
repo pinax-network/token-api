@@ -40,7 +40,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'NFT Ownerships',
-    description: 'Provides NFT Ownerships.',
+    description: 'Provides NFT Ownerships for Account.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
