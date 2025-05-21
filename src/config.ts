@@ -35,6 +35,7 @@ export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 // Token Substreams
 // https://github.com/pinax-network/substreams-evm-tokens
 export const DEFAULT_DB_EVM_SUFFIX = "evm-tokens@v1.11.0:db_out";
+export const DEFAULT_DB_EVM_NFT_SUFFIX = "evm-nft-tokens@v0.4.3";
 // https://github.com/pinax-network/substreams-svm-tokens
 export const DEFAULT_DB_SVM_SUFFIX = "svm-tokens@v1.0.0:db_out"; // NOT YET IMPLEMENTED
 // https://github.com/pinax-network/substreams-antelope-tokens
@@ -71,6 +72,7 @@ const opts = program
     .addOption(new Option("--networks <string>", "Supported The Graph Network IDs").env("NETWORKS").default(DEFAULT_NETWORKS))
     .addOption(new Option("--default-network <string>", "Default Network ID").env("DEFAULT_NETWORK_ID").default(DEFAULT_DEFAULT_NETWORK_ID))
     .addOption(new Option("--db-evm-suffix <string>", "EVM Token Clickhouse database suffix").env("DB_EVM_SUFFIX").default(DEFAULT_DB_EVM_SUFFIX))
+    .addOption(new Option("--db-evm-nft-suffix <string>", "EVM NFT Token Clickhouse database suffix").env("DB_EVM_NFT_SUFFIX").default(DEFAULT_DB_EVM_NFT_SUFFIX))
     .addOption(new Option("--db-svm-suffix <string>", "SVM (Solana) Token Clickhouse database suffix").env("DB_SVM_SUFFIX").default(DEFAULT_DB_SVM_SUFFIX))
     .addOption(new Option("--db-antelope-suffix <string>", "Antelope Token Clickhouse database suffix").env("DB_ANTELOPE_SUFFIX").default(DEFAULT_DB_ANTELOPE_SUFFIX))
     .addOption(new Option("--mcp-username <string>", "Database user for MCP").env("MCP_USERNAME").default(DEFAULT_MCP_USERNAME))
@@ -97,6 +99,7 @@ export const config = z.object({
     networks: z.string().transform((networks) => networks.split(',')),
     defaultNetwork: z.string(),
     dbEvmSuffix: z.string(),
+    dbEvmNftSuffix: z.string(),
     dbSvmSuffix: z.string(),
     dbAntelopeSuffix: z.string(),
     mcpUsername: z.string(),
