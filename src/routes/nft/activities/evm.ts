@@ -53,7 +53,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'NFT Activities',
-    description: 'Provides NFT Activities (ex: transfers, mints, sales).',
+    description: 'Provides NFT Activities (ex: transfers, mints & burns).',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
