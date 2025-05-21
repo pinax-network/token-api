@@ -19,6 +19,6 @@ WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
     AND ({contract:String}          = '' OR contract       = {contract:String})
     AND ({fromAddress:String}       = '' OR from           = {fromAddress:String})
     AND ({toAddress:String}         = '' OR to             = {toAddress:String})
-    AND ({anyAddress:String}        = '' OR to = {anyAddress:String} OR from = {anyAddress:String})
+    AND ({anyAddress:String}        = '' OR (to = {anyAddress:String} OR from = {anyAddress:String}))
 LIMIT {limit:int}
 OFFSET {offset:int}

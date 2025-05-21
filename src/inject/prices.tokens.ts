@@ -45,6 +45,7 @@ export const stables = new Set([
 export const natives = new Set([
     // Native
     '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    '0x0000000000000000000000000000000000000000',
 
     // Mainnet
     '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', // Mainnet: WETH
