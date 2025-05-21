@@ -4,7 +4,6 @@ SELECT
     c.creator AS contract_creator,
     m.symbol,
     m.name,
-    m.base_uri,
     (
         SELECT
             uniq(token_id)
