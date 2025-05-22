@@ -19,22 +19,19 @@ const querySchema = z.object({
 
 const responseSchema = z.object({
     data: z.array(z.object({
-        contract: evmAddressSchema,
-        contract_creation: z.string(),
-        contract_creator: evmAddressSchema,
-        symbol: z.string(),
-        name: z.string(),
-        total_supply: z.number(),
-        owners: z.number(),
-        total_transfers: z.number(),
+        token_standard: z.string(),
+        owner: evmAddressSchema,
+        quantity: z.number(),
+        quantity_unique: z.number(),
+        percentage: z.number(),
         network_id: networkIdSchema,
     })),
     statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
-    summary: 'NFT Collection',
-    description: 'Provides single NFT collection metadata, total supply, owners & total transfers.',
+    summary: 'NFT Holders',
+    description: 'Provides NFT holders per contract.',
     tags: ['EVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -45,14 +42,11 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "contract_creation": "2021-07-22 12:26:01",
-                                "contract_creator": "0xe9da256a28630efdc637bfd4c65f0887be1aeda8",
-                                "symbol": "PPG",
-                                "name": "PudgyPenguins",
-                                "total_supply": 8888,
-                                "owners": 4999,
-                                "total_transfers": 185015,
+                                "token_standard": "ERC721",
+                                "owner": "0x29469395eaf6f95920e59f858042f0e28d98a20b",
+                                "quantity": 557,
+                                "quantity_unique": 557,
+                                "percentage": 0.06266876687668767,
                                 "network_id": "mainnet"
                             }
                         ]
@@ -74,7 +68,7 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmNftSuffix}`;
 
-    const query = sqlQueries['nft_metadata_for_collection']?.['evm'];
+    const query = sqlQueries['nft_holders']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
