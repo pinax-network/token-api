@@ -140,6 +140,9 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
         }
     }
 
+    if (anyAddress && (fromAddress || toAddress))
+        return c.json({ error: 'Cannot specify `any` with `from` or `to`' }, 400);
+
     // OPTIONAL URL query
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmNftSuffix}`;
