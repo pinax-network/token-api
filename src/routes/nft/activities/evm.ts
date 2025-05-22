@@ -144,8 +144,22 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmNftSuffix}`;
 
-    const query = sqlQueries['nft_activities']?.['evm'];
+    let query = sqlQueries['nft_activities']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
+        }
+    }
 
     const response = await makeUsageQueryJson(c, [query], { anyAddress, fromAddress, toAddress, contract, startTime, endTime, network_id }, { database });
     return handleUsageQueryError(c, response);

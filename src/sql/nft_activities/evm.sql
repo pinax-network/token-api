@@ -58,5 +58,6 @@ combined AS (
     SELECT * FROM erc1155
 )
 SELECT * FROM combined
+ORDER BY timestamp DESC
 LIMIT {limit:int}
 OFFSET {offset:int}
