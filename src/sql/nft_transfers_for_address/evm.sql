@@ -11,7 +11,7 @@ SELECT DISTINCT
     name,
     from,
     to,
-    token_id,
+    toString(token_id) AS token_id,
     amount,
     transfer_type,
     token_standard

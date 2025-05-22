@@ -40,7 +40,7 @@ const responseSchema = z.object({
 
         // Sale
         token: z.string(),
-        token_id: z.number(),
+        token_id: z.string(),
         symbol: z.string(),
         name: z.string(),
         offerer: evmAddress,
@@ -68,7 +68,7 @@ const openapi = describeRoute({
                                 "block_num": 15197755,
                                 "tx_hash": "0xb1306f86242d8fb4356b1aa28f49788d41c09ba3ba99de2785386865baa3229b",
                                 "token": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "token_id": 1474,
+                                "token_id": '1474',
                                 "symbol": "PPG",
                                 "name": "PudgyPenguins",
                                 "offerer": "0xa7b9c7cb5dfaf482ce2d3166b955e685e080cbbc",

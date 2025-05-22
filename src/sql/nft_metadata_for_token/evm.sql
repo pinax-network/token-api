@@ -1,6 +1,6 @@
 WITH erc721 AS (
     SELECT
-        token_id,
+        toString(token_id) AS token_id,
         'ERC721' AS token_standard,
         contract,
         o.owner AS owner,
@@ -16,7 +16,7 @@ WITH erc721 AS (
     FINAL
     JOIN erc721_owners AS o USING (contract, token_id)
     LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
-    WHERE contract = {contract: String} AND token_id = {token_id: UInt256}
+    WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256}
 ),
 erc1155_metadata_by_contract AS (
     SELECT DISTINCT
@@ -26,7 +26,7 @@ erc1155_metadata_by_contract AS (
 ),
 erc1155 AS (
     SELECT
-        token_id,
+        toString(token_id) AS token_id,
         'ERC1155' AS token_standard,
         contract,
         o.owner AS owner,
@@ -41,7 +41,7 @@ erc1155 AS (
     FINAL
     LEFT JOIN erc1155_balances AS o USING (contract, token_id)
     LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
-    WHERE contract = {contract: String} AND token_id = {token_id: UInt256} AND balance > 0
+    WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256} AND balance > 0
 ),
 combined AS (
     SELECT * FROM erc721

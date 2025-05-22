@@ -1,6 +1,6 @@
 WITH erc721 AS (
     SELECT DISTINCT
-        o.token_id,
+        toString(o.token_id) AS token_id,
         o.token_standard,
         o.contract,
         o.owner AS owner,
@@ -20,7 +20,7 @@ WITH erc721 AS (
 ),
 erc1155 AS (
     SELECT DISTINCT
-        o.token_id,
+        toString(o.token_id) AS token_id,
         o.token_standard,
         o.contract,
         o.owner AS owner,

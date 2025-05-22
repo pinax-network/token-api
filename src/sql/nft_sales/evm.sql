@@ -6,7 +6,7 @@ SELECT
     block_num,
     tx_hash,
     offer_token as token,
-    offer_token_id AS token_id,
+    toString(offer_token_id) AS token_id,
     m.symbol,
     m.name,
     offerer,

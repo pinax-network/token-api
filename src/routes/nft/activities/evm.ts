@@ -42,7 +42,7 @@ const responseSchema = z.object({
         name: z.optional(z.string()),
         from: evmAddress,
         to: evmAddress,
-        token_id: z.number(),
+        token_id: z.string(),
         amount: z.number(),
         transfer_type: z.optional(z.string()),
         token_standard: z.optional(z.string()),
@@ -74,7 +74,7 @@ const openapi = describeRoute({
                                 "name": "HeeDong",
                                 "from": "0x0000000000000000000000000000000000000000",
                                 "to": "0x3a6a0e027b1e8271815930d959f6c024a9be9fa7",
-                                "token_id": 1448,
+                                "token_id": '1448',
                                 "amount": 1,
                                 "transfer_type": "Single",
                                 "token_standard": "ERC721"
