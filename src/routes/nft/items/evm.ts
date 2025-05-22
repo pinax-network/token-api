@@ -61,9 +61,9 @@ const openapi = describeRoute({
                                 "token_standard": "ERC721",
                                 "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
                                 "owner": "0x26b95d665d28ec4c53ebee834fc2a274d32f5a76",
-                                "symbol": "PPG",
                                 "uri": "https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/888",
                                 "name": "Pudgy Penguin #888",
+                                "symbol": "PPG",
                                 "description": "A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.",
                                 "image": "https://ipfs.io/ipfs/QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/888.png",
                                 "attributes": [
