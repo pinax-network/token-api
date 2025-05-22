@@ -141,8 +141,22 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = `${network_id}:${config.dbEvmNftSuffix}`;
 
-    const query = sqlQueries['nft_sales']?.['evm'];
+    let query = sqlQueries['nft_sales']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
+        }
+    }
 
     const sale_currency = nativeSymbols.get(network_id)?.symbol ?? 'Native';
     const response = await makeUsageQueryJson(c, [query], { anyAddress, offererAddress, recipientAddress, token, startTime, endTime, network_id, sale_currency, nativeContracts: Array.from(nativeContracts) }, { database });
