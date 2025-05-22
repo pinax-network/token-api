@@ -6,9 +6,9 @@ WITH erc721 AS (
     ) AS total_supply
     SELECT
         'ERC721' AS token_standard,
-        owner,
+        owner as address,
         count() AS quantity,
-        quantity AS quantity_unique,
+        uniq(token_id) AS unique_tokens,
         quantity / total_supply AS percentage,
         { network_id :String } as network_id
     FROM erc721_owners FINAL
@@ -26,7 +26,7 @@ erc1155 AS (
         'ERC1155' AS token_standard,
         owner,
         sum(balance) AS quantity,
-        uniq(token_id) AS quantity_unique,
+        uniq(token_id) AS unique_tokens,
         quantity / total_supply AS percentage,
         { network_id :String } as network_id
     FROM erc1155_balances FINAL

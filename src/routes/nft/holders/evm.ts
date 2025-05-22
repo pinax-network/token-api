@@ -20,10 +20,10 @@ const querySchema = z.object({
 const responseSchema = z.object({
     data: z.array(z.object({
         token_standard: z.string(),
-        owner: evmAddressSchema,
-        quantity: z.number(),
-        quantity_unique: z.number(),
-        percentage: z.number(),
+        address: evmAddressSchema,
+        quantity: z.number().openapi({ description: 'Number of tokens held by this address' }),
+        unique_tokens: z.number().openapi({ description: 'Number of unique token IDs held by this address' }),
+        percentage: z.number().openapi({ description: 'Percentage of total supply held by this address' }),
         network_id: networkIdSchema,
     })),
     statistics: z.optional(statisticsSchema),
@@ -43,10 +43,10 @@ const openapi = describeRoute({
                         data: [
                             {
                                 "token_standard": "ERC721",
-                                "owner": "0x29469395eaf6f95920e59f858042f0e28d98a20b",
-                                "quantity": 557,
-                                "quantity_unique": 557,
-                                "percentage": 0.06266876687668767,
+                                "address": "0xaaa2da255df9ee74c7075bcb6d81f97940908a5d",
+                                "quantity": 223,
+                                "unique_tokens": 223,
+                                "percentage": 0.0223,
                                 "network_id": "mainnet"
                             }
                         ]
