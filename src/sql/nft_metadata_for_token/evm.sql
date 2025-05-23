@@ -1,6 +1,6 @@
 WITH erc721 AS (
     SELECT
-        toString(token_id) AS token_id,
+        token_id,
         'ERC721' AS token_standard,
         contract,
         o.owner AS owner,
@@ -17,7 +17,7 @@ WITH erc721 AS (
 ),
 erc1155 AS (
     SELECT
-        toString(token_id) AS token_id,
+        token_id,
         'ERC1155' AS token_standard,
         contract,
         o.owner AS owner,
@@ -36,5 +36,29 @@ combined AS (
     SELECT * FROM erc721
     UNION ALL
     SELECT * FROM erc1155
+),
+filtered_nft_metadata AS (
+    SELECT
+        contract,
+        token_id,
+        name,
+        description,
+        media_uri AS image,
+        attributes
+    FROM nft_metadata
+    WHERE contract = {contract: String} AND token_id = {token_id: UInt256}
 )
-SELECT * FROM combined
+SELECT
+    token_standard,
+    contract,
+    toString(token_id) AS token_id,
+    owner,
+    uri,
+    if(length(m.name) > 0, m.name, c.name) AS name,
+    if(length(m.description) > 0, m.description, c.description) AS description,
+    if(length(m.image) > 0, m.image, c.image) AS image,
+    if(length(m.attributes) > 0, m.attributes, c.attributes) AS attributes,
+    network_id
+FROM combined AS c
+LEFT JOIN filtered_nft_metadata AS m USING (contract, token_id)
+ORDER BY token_standard
