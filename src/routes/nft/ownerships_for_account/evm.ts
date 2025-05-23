@@ -20,7 +20,7 @@ const querySchema = z.object({
 const responseSchema = z.object({
     data: z.array(z.object({
         // NFT token metadata
-        token_id: z.number(),
+        token_id: z.string(),
         token_standard: z.enum(['ERC721', 'ERC1155']),
         contract: evmAddress,
         owner: evmAddress,
@@ -51,7 +51,7 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "token_id": 814,
+                                "token_id": '814',
                                 "token_standard": "ERC721",
                                 "contract": "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
                                 "owner": "0xe2a83b15fc300d8457eb9e176f98d92a8ff40a49",

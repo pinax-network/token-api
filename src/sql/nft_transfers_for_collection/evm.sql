@@ -2,7 +2,7 @@ SELECT
     timestamp,
     block_num AS block_number,
     tx_hash AS transaction_hash,
-    offer_token_id AS token_id,
+    toString(offer_token_id) AS token_id,
     offerer AS `from`,
     recipient AS `to`,
     if (consideration_token  = '0x0000000000000000000000000000000000000000',
