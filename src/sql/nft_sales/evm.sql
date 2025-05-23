@@ -19,15 +19,6 @@ WITH filtered_orders AS (
         AND ({recipientAddress:String}  = '' OR recipient      = {recipientAddress:String})
         AND ({anyAddress:String}        = '' OR (offerer = {anyAddress:String} OR recipient = {anyAddress:String}))
 ),
-erc1155_metadata_by_contract AS (
-    SELECT DISTINCT
-        contract,
-        'TO IMPLEMENT OFFCHAIN' AS symbol,
-        'TO IMPLEMENT OFFCHAIN' AS name
-    FROM erc1155_balances
-    FINAL
-    WHERE contract = {contract: String}
-),
 metadata_by_contract AS (
     SELECT
         contract,

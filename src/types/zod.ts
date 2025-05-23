@@ -42,7 +42,6 @@ export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in se
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()
   .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
-  .transform((val) => val === '' ? '' : parseInt(val, 10))
   .openapi({ description: 'NFT token ID' });
 
 // Used for examples

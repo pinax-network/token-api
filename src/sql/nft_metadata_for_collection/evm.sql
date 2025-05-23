@@ -28,15 +28,6 @@ WITH erc721 AS (
     FINAL
     WHERE m.contract = {contract: String}
 ),
-erc1155_metadata_by_contract AS (
-    SELECT DISTINCT
-        contract,
-        'TO IMPLEMENT OFFCHAIN' AS name,
-        'TO IMPLEMENT OFFCHAIN' AS symbol
-    FROM erc1155_balances
-    FINAL
-    WHERE contract = {contract:String} AND balance > 0
-),
 erc1155 AS (
     SELECT
         {contract: String} AS contract,
@@ -85,6 +76,7 @@ contract_creation AS (
     WHERE address = {contract: String}
 )
 SELECT
+    token_standard,
     contract,
     timestamp AS contract_creation,
     creator AS contract_creator,

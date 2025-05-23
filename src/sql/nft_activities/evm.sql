@@ -83,10 +83,9 @@ erc721_metadata_by_contract AS (
 erc1155_metadata_by_contract AS (
     SELECT DISTINCT
         contract,
-        token_id,
         name,
-        '' AS symbol
-    FROM nft_metadata
+        symbol
+    FROM erc721_metadata_by_contract
     WHERE contract = {contract:String}
 )
 SELECT
@@ -106,5 +105,5 @@ SELECT
     transfer_type
 FROM limit_combined AS c
 LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
-LEFT JOIN erc1155_metadata_by_contract AS m2 USING (contract, token_id)
+LEFT JOIN erc1155_metadata_by_contract AS m2 USING (contract)
 ORDER BY c.timestamp DESC
