@@ -40,7 +40,10 @@ export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').ope
 export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in seconds').transform((t) => t * 1000).openapi({ description: 'UNIX timestamp in seconds.' });
 
 // NFT schemas
-export const tokenIdSchema = z.coerce.string().regex(/^\d+$/).transform((id) => parseInt(id, 10)).openapi({ description: 'NFT token ID' });
+export const tokenIdSchema = z.coerce.string()
+  .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
+  .transform((val) => val === '' ? '' : parseInt(val, 10))
+  .openapi({ description: 'NFT token ID' });
 
 // Used for examples
 export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
@@ -48,7 +51,7 @@ export const WETH = evmAddressSchema.openapi({ description: 'Filter by contract 
 export const GRT = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' }); // GRT
 export const USDC_WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
 export const PudgyPenguins = evmAddressSchema.openapi({ description: 'Filter by NFT contract address', example: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8' }); // Pudgy Penguins
-export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '888' });
+export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '5712' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins, PudgyPenguinsItem, tokenIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -17,12 +17,13 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+    contract: PudgyPenguins,
 
     // -- `token` filter --
+    token_id: z.optional(PudgyPenguinsItem),
     any: z.optional(evmAddressSchema),
     offerer: z.optional(evmAddressSchema),
     recipient: z.optional(evmAddressSchema),
-    token: z.optional(PudgyPenguins),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -112,13 +113,22 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
         anyAddress = parsed.data;
     }
 
-    let token = c.req.query("token") ?? '';
-    if (token) {
-        const parsed = evmAddressSchema.safeParse(token);
+    let contract = c.req.query("contract") ?? '';
+    if (contract) {
+        const parsed = evmAddressSchema.safeParse(contract);
         if (!parsed.success) {
-            return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
         }
-        token = parsed.data;
+        contract = parsed.data;
+    }
+
+    let token_id: string | number = c.req.query("token_id") ?? '';
+    if (token_id) {
+        const parsed = tokenIdSchema.safeParse(token_id);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid token_id: ${parsed.error.message}` }, 400);
+        }
+        token_id = parsed.data;
     }
 
     // -- `time` filter --
@@ -159,7 +169,7 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     }
 
     const sale_currency = nativeSymbols.get(network_id)?.symbol ?? 'Native';
-    const response = await makeUsageQueryJson(c, [query], { anyAddress, offererAddress, recipientAddress, token, startTime, endTime, network_id, sale_currency, nativeContracts: Array.from(nativeContracts) }, { database });
+    const response = await makeUsageQueryJson(c, [query], { anyAddress, offererAddress, recipientAddress, contract, token_id, startTime, endTime, network_id, sale_currency, nativeContracts: Array.from(nativeContracts) }, { database });
     return handleUsageQueryError(c, response);
 });
 

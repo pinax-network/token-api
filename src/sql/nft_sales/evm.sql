@@ -1,5 +1,5 @@
-WITH sorted_orders AS (
-    SELECT DISTINCT
+WITH filtered_orders AS (
+    SELECT
         timestamp,
         block_num,
         tx_hash,
@@ -13,11 +13,11 @@ WITH sorted_orders AS (
     FINAL
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
         AND consideration_token IN {nativeContracts: Array(String)}
-        AND ({token:String}             = '' OR offer_token    = {token:String})
+        AND offer_token = {contract:String}
+        AND ({token_id:String}             = '' OR offer_token_id = {token_id:String})
         AND ({offererAddress:String}    = '' OR offerer        = {offererAddress:String})
         AND ({recipientAddress:String}  = '' OR recipient      = {recipientAddress:String})
         AND ({anyAddress:String}        = '' OR (offerer = {anyAddress:String} OR recipient = {anyAddress:String}))
-    ORDER BY offer_token
 ),
 erc1155_metadata_by_contract AS (
     SELECT DISTINCT
@@ -26,6 +26,7 @@ erc1155_metadata_by_contract AS (
         'TO IMPLEMENT OFFCHAIN' AS name
     FROM erc1155_balances
     FINAL
+    WHERE contract = {contract: String}
 ),
 metadata_by_contract AS (
     SELECT
@@ -33,7 +34,8 @@ metadata_by_contract AS (
         symbol,
         name
     FROM erc721_metadata_by_contract
-    UNION ALL
+    WHERE contract = {contract: String}
+    UNION DISTINCT
     SELECT
         contract,
         symbol,
@@ -46,14 +48,15 @@ SELECT
     tx_hash,
     token,
     token_id,
-    m.symbol,
-    m.name,
+    m.symbol AS symbol,
+    m.name AS name,
     offerer,
     recipient,
-    sale_amount,
+    sum(sale_amount) AS sale_amount,
     sale_currency
-FROM sorted_orders
+FROM filtered_orders
 JOIN metadata_by_contract AS m ON m.contract = token
+GROUP BY timestamp, block_num, tx_hash, token, token_id, symbol, name, offerer, recipient, sale_currency
 ORDER BY timestamp DESC
 LIMIT {limit:int}
 OFFSET {offset:int}
