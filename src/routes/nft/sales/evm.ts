@@ -158,7 +158,7 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     if (orderDirection) {
         const parsed = orderDirectionSchema.safeParse(orderDirection);
         if (!parsed.success) {
-            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid orderDirection: ${parsed.error.message}` }, 400);
         }
         if (parsed.data === 'asc') {
             query = query.replaceAll(' DESC', ' ASC');
