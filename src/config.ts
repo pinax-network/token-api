@@ -82,11 +82,16 @@ const opts = program
 
 function parseDatabases(dbs: string): Record<string, string> {
     return Object.assign({}, ...dbs.split(';').map((db) => {
+        if (!db.includes(':')) {
+            console.warn(`Malformed database entry: "${db}". Skipping.`);
+            return null;
+        }
+
         const [network_id, db_suffix] = db.split(':', 2);
 
         if (network_id && db_suffix)
             return { [ network_id ]: `${network_id}:${db_suffix}` };
-    }));
+    }).filter(Boolean));
 }
 
 let config = z.object({
