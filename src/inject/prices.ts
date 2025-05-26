@@ -34,7 +34,7 @@ interface ComputedPrice {
 }
 
 export async function injectPrices(response: ApiUsageResponse|ApiErrorResponse, network_id: string, contract?: string) {
-    const database = `${network_id}:${config.dbEvmSuffix}`;
+    const database = config.tokenDatabases[network_id];
     const prices = await getPrices(database);
 
     // Native price

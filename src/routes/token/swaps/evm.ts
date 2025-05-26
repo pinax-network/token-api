@@ -168,7 +168,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = `${network_id}:${config.dbEvmSuffix}`;
+    const database = config.tokenDatabases[network_id];
 
     // -- `time` filter --
     const endTime = c.req.query('endTime') ?? now();

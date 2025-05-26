@@ -75,7 +75,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = `${network_id}:${config.dbEvmNftSuffix}`;
+    const database = config.nftDatabases[network_id];
 
     const query = sqlQueries['nft_ownerships_for_account']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);

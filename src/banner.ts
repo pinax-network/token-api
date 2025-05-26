@@ -1,5 +1,5 @@
 import pkg from "../package.json" with { type: "json" };
-import { APP_VERSION, config } from "./config.js";
+import { APP_VERSION } from "./config.js";
 
 export function banner() {
     let text = `
@@ -13,9 +13,6 @@ export function banner() {
 `;
     text += `                 Token API v${APP_VERSION}\n`
     text += `               ${pkg.homepage}\n`
-    text += `                      ${config.dbEvmSuffix}\n`
-    text += `                      ${config.dbSvmSuffix}\n`
-    text += `                    ${config.dbAntelopeSuffix}\n`
 
     return text;
 }
