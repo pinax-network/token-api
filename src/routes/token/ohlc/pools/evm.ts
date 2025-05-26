@@ -72,7 +72,7 @@ route.get('/:pool', openapi, validator('param', paramSchema), validator('query',
 
     const pool = parsePool.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.tokenDatabases[network_id];
+    const database = config.uniswapDatabases[network_id];
 
     const query = sqlQueries['ohlcv_prices_for_pool']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for OHLCV pool prices could not be loaded' }, 500);
