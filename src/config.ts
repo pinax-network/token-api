@@ -34,8 +34,8 @@ export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 
 // Token Substreams
 // https://github.com/pinax-network/substreams-evm-tokens
-export const DEFAULT_DB_EVM_SUFFIX = "evm-tokens@v1.11.0:db_out";
-export const DEFAULT_DB_EVM_NFT_SUFFIX = "evm-nft-tokens@v0.4.3";
+export const DEFAULT_DB_EVM_SUFFIX = "evm-tokens@v1.14.0";
+export const DEFAULT_DB_EVM_NFT_SUFFIX = "evm-nft-tokens@v0.5.0";
 // https://github.com/pinax-network/substreams-svm-tokens
 export const DEFAULT_DB_SVM_SUFFIX = "svm-tokens@v1.0.0:db_out"; // NOT YET IMPLEMENTED
 // https://github.com/pinax-network/substreams-antelope-tokens

@@ -8,7 +8,7 @@ WITH erc721 AS (
         'TO IMPLEMENT OFFCHAIN' AS name,
         'TO IMPLEMENT OFFCHAIN' AS description,
         'TO IMPLEMENT OFFCHAIN' AS image,
-        'TO IMPLEMENT OFFCHAIN [{trait_type, value}]' AS attributes,
+        [] AS attributes,
         {network_id:String} as network_id
     FROM erc721_metadata_by_token AS t
     FINAL
@@ -25,7 +25,7 @@ erc1155 AS (
         'TO IMPLEMENT OFFCHAIN' AS name,
         'TO IMPLEMENT OFFCHAIN' AS description,
         'TO IMPLEMENT OFFCHAIN' AS image,
-        'TO IMPLEMENT OFFCHAIN [{trait_type, value}]' AS attributes,
+        [] AS attributes,
         {network_id:String} as network_id
     FROM erc1155_metadata_by_token AS t
     FINAL
@@ -57,7 +57,23 @@ SELECT
     if(length(m.name) > 0, m.name, c.name) AS name,
     if(length(m.description) > 0, m.description, c.description) AS description,
     if(length(m.image) > 0, m.image, c.image) AS image,
-    if(length(m.attributes) > 0, m.attributes, c.attributes) AS attributes,
+    if(length(m.attributes) > 0,
+        arrayMap(
+            trait -> mapUpdate(
+                map(
+                    'trait_type', JSONExtractString(trait, 'trait_type'),
+                    'value', JSONExtractString(trait, 'value')
+                ),
+                IF(
+                    JSONHas(trait, 'display_type'),
+                    map('display_type', JSONExtractString(trait, 'display_type')),
+                    CAST(map() AS Map(String, String))
+                )
+            ),
+            JSONExtractArrayRaw(m.attributes)
+        ),
+        c.attributes
+    ) AS attributes,
     network_id
 FROM combined AS c
 LEFT JOIN filtered_nft_metadata AS m USING (contract, token_id)

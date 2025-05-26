@@ -34,6 +34,7 @@ const responseSchema = z.object({
         attributes: z.optional(z.array(z.object({
             trait_type: z.string(),
             value: z.string(),
+            display_type: z.optional(z.string()),
         }))),
         network_id: networkIdSchema,
 
@@ -62,7 +63,28 @@ const openapi = describeRoute({
                                 "name": "Pudgy Penguin #5712",
                                 "description": "A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.",
                                 "image": "ipfs://QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/5712.png",
-                                "attributes": "[{\"trait_type\":\"Background\",\"value\":\"Blue\"},{\"trait_type\":\"Skin\",\"value\":\"Olive Green\"},{\"trait_type\":\"Body\",\"value\":\"Turtleneck Green\"},{\"trait_type\":\"Face\",\"value\":\"Scar\"},{\"trait_type\":\"Head\",\"value\":\"Party Hat\"}]",
+                                "attributes": [
+                                    {
+                                        "trait_type": "Background",
+                                        "value": "Blue"
+                                    },
+                                    {
+                                        "trait_type": "Skin",
+                                        "value": "Olive Green"
+                                    },
+                                    {
+                                        "trait_type": "Body",
+                                        "value": "Turtleneck Green"
+                                    },
+                                    {
+                                        "trait_type": "Face",
+                                        "value": "Scar"
+                                    },
+                                    {
+                                        "trait_type": "Head",
+                                        "value": "Party Hat"
+                                    }
+                                ],
                                 "network_id": "mainnet"
                             }
                         ]
