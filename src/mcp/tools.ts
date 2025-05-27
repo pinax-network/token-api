@@ -8,8 +8,25 @@ export default [
         name: "list_databases",
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
-        execute: async ({ reportProgress }) => {
-            return runSQLMCP(`SHOW DATABASES LIKE '%${config.dbEvmSuffix}'`, reportProgress);
+        execute: async () => {
+            return JSON.stringify(
+                Object.values(config.tokenDatabases).concat(
+                    Object.values(config.nftDatabases),
+                    Object.values(config.uniswapDatabases)
+                ).map((db) => {
+                    const [network, suffix] = db.split(':', 2);
+                    if (!suffix)
+                        throw new Error(`Could not parse suffix for network: ${network}`);
+
+                    const [database, version] = suffix.split('@', 2);
+
+                    return {
+                        network,
+                        database,
+                        version
+                    }
+                })
+            );
         },
     },
     {
