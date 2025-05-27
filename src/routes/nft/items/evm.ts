@@ -26,9 +26,6 @@ const responseSchema = z.object({
         contract: evmAddress,
         owner: evmAddress,
 
-        // OPTIONAL: Contract Metadata
-        symbol: z.optional(z.string()),
-
         // OPTIONAL: Token Metadata
         uri: z.optional(z.string()),
         name: z.optional(z.string()),
@@ -37,6 +34,7 @@ const responseSchema = z.object({
         attributes: z.optional(z.array(z.object({
             trait_type: z.string(),
             value: z.string(),
+            display_type: z.optional(z.string()),
         }))),
         network_id: networkIdSchema,
 
@@ -57,38 +55,37 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "token_id": 888,
                                 "token_standard": "ERC721",
                                 "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "owner": "0x26b95d665d28ec4c53ebee834fc2a274d32f5a76",
-                                "symbol": "PPG",
-                                "uri": "https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/888",
-                                "name": "Pudgy Penguin #888",
+                                "token_id": "5712",
+                                "owner": "0x29469395eaf6f95920e59f858042f0e28d98a20b",
+                                "uri": "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/5712",
+                                "name": "Pudgy Penguin #5712",
                                 "description": "A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.",
-                                "image": "https://ipfs.io/ipfs/QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/888.png",
+                                "image": "ipfs://QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/5712.png",
                                 "attributes": [
                                     {
                                         "trait_type": "Background",
-                                        "value": "Purple"
+                                        "value": "Blue"
                                     },
                                     {
                                         "trait_type": "Skin",
-                                        "value": "Mint"
+                                        "value": "Olive Green"
                                     },
                                     {
                                         "trait_type": "Body",
-                                        "value": "Christmas Sweater Red"
+                                        "value": "Turtleneck Green"
                                     },
                                     {
                                         "trait_type": "Face",
-                                        "value": "Aviator"
+                                        "value": "Scar"
                                     },
                                     {
                                         "trait_type": "Head",
-                                        "value": "Hat Red"
+                                        "value": "Party Hat"
                                     }
                                 ],
-                                "network_id": "mainnet",
+                                "network_id": "mainnet"
                             }
                         ]
                     }

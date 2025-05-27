@@ -30,7 +30,7 @@ SELECT
     c.creator AS contract_creator,
     m.symbol,
     m.name,
-    token_id,
+    toString(token_id) AS token_id,
     last_sale,
     if (token.consideration_token  = '0x0000000000000000000000000000000000000000',
         toDecimal256(token.consideration_amount, 18) / toDecimal256(1000000000000000000, 0),
@@ -50,4 +50,4 @@ LEFT JOIN erc721_metadata_by_contract AS m ON m.contract = t.contract
 LEFT JOIN `mainnet:evm-contracts@v0.3.1`.contracts AS c ON c.address = t.contract
 LEFT JOIN last_token_sale AS token ON token.offer_token = t.contract AND token.offer_token_id = t.token_id
 LEFT JOIN last_collection_sale AS collection ON collection.offer_token = t.contract
-WHERE contract = {contract: String} AND token_id = {token_id: UInt256}
+WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256}

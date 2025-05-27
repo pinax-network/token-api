@@ -23,7 +23,7 @@ SELECT DISTINCT
     o.contract AS contract,
     m.symbol,
     m.name,
-    o.token_id,
+    toString(o.token_id) AS token_id,
     s.last_sale,
     if (s.consideration_token  = '0x0000000000000000000000000000000000000000',
         toDecimal256(s.consideration_amount, 18) / toDecimal256(1000000000000000000, 0),

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins, PudgyPenguinsItem, tokenIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -17,12 +17,13 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+    contract: PudgyPenguins,
 
     // -- `token` filter --
+    token_id: z.optional(PudgyPenguinsItem),
     any: z.optional(evmAddressSchema),
     offerer: z.optional(evmAddressSchema),
     recipient: z.optional(evmAddressSchema),
-    token: z.optional(PudgyPenguins),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -40,7 +41,7 @@ const responseSchema = z.object({
 
         // Sale
         token: z.string(),
-        token_id: z.number(),
+        token_id: z.string(),
         symbol: z.string(),
         name: z.string(),
         offerer: evmAddress,
@@ -68,7 +69,7 @@ const openapi = describeRoute({
                                 "block_num": 15197755,
                                 "tx_hash": "0xb1306f86242d8fb4356b1aa28f49788d41c09ba3ba99de2785386865baa3229b",
                                 "token": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "token_id": 1474,
+                                "token_id": '1474',
                                 "symbol": "PPG",
                                 "name": "PudgyPenguins",
                                 "offerer": "0xa7b9c7cb5dfaf482ce2d3166b955e685e080cbbc",
@@ -112,13 +113,22 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
         anyAddress = parsed.data;
     }
 
-    let token = c.req.query("token") ?? '';
-    if (token) {
-        const parsed = evmAddressSchema.safeParse(token);
+    let contract = c.req.query("contract") ?? '';
+    if (contract) {
+        const parsed = evmAddressSchema.safeParse(contract);
         if (!parsed.success) {
-            return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
         }
-        token = parsed.data;
+        contract = parsed.data;
+    }
+
+    let token_id: string | number = c.req.query("token_id") ?? '';
+    if (token_id) {
+        const parsed = tokenIdSchema.safeParse(token_id);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid token_id: ${parsed.error.message}` }, 400);
+        }
+        token_id = parsed.data;
     }
 
     // -- `time` filter --
@@ -141,11 +151,25 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = config.nftDatabases[network_id];
 
-    const query = sqlQueries['nft_sales']?.['evm'];
+    let query = sqlQueries['nft_sales']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderDirection: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
+        }
+    }
+
     const sale_currency = nativeSymbols.get(network_id)?.symbol ?? 'Native';
-    const response = await makeUsageQueryJson(c, [query], { anyAddress, offererAddress, recipientAddress, token, startTime, endTime, network_id, sale_currency, nativeContracts: Array.from(nativeContracts) }, { database });
+    const response = await makeUsageQueryJson(c, [query], { anyAddress, offererAddress, recipientAddress, contract, token_id, startTime, endTime, network_id, sale_currency, nativeContracts: Array.from(nativeContracts) }, { database });
     return handleUsageQueryError(c, response);
 });
 

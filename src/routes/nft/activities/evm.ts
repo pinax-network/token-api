@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -15,12 +15,12 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+    contract: PudgyPenguins,
 
     // -- `token` filter --
     any: z.optional(Vitalik),
     from: z.optional(evmAddressSchema),
     to: z.optional(evmAddressSchema),
-    contract: z.optional(evmAddressSchema),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -42,7 +42,7 @@ const responseSchema = z.object({
         name: z.optional(z.string()),
         from: evmAddress,
         to: evmAddress,
-        token_id: z.number(),
+        token_id: z.string(),
         amount: z.number(),
         transfer_type: z.optional(z.string()),
         token_standard: z.optional(z.string()),
@@ -74,7 +74,7 @@ const openapi = describeRoute({
                                 "name": "HeeDong",
                                 "from": "0x0000000000000000000000000000000000000000",
                                 "to": "0x3a6a0e027b1e8271815930d959f6c024a9be9fa7",
-                                "token_id": 1448,
+                                "token_id": '1448',
                                 "amount": 1,
                                 "transfer_type": "Single",
                                 "token_standard": "ERC721"
@@ -147,8 +147,22 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = config.nftDatabases[network_id];
 
-    const query = sqlQueries['nft_activities']?.['evm'];
+    let query = sqlQueries['nft_activities']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+
+    const orderDirection = c.req.query('orderDirection') ?? 'desc';
+    if (orderDirection) {
+        const parsed = orderDirectionSchema.safeParse(orderDirection);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
+        }
+        if (parsed.data === 'asc') {
+            query = query.replaceAll(' DESC', ' ASC');
+        }
+        if (parsed.data === 'desc') {
+            query = query.replaceAll(' ASC', ' DESC');
+        }
+    }
 
     const response = await makeUsageQueryJson(c, [query], { anyAddress, fromAddress, toAddress, contract, startTime, endTime, network_id }, { database });
     return handleUsageQueryError(c, response);
