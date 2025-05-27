@@ -32,14 +32,9 @@ export const DEFAULT_NETWORKS = DEFAULT_DEFAULT_NETWORK_ID;
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 
-// Token Substreams
-// https://github.com/pinax-network/substreams-evm-tokens
-export const DEFAULT_DB_EVM_SUFFIX = "evm-tokens@v1.14.0";
-export const DEFAULT_DB_EVM_NFT_SUFFIX = "evm-nft-tokens@v0.5.0";
-// https://github.com/pinax-network/substreams-svm-tokens
-export const DEFAULT_DB_SVM_SUFFIX = "svm-tokens@v1.0.0:db_out"; // NOT YET IMPLEMENTED
-// https://github.com/pinax-network/substreams-antelope-tokens
-export const DEFAULT_DB_ANTELOPE_SUFFIX = "antelope-tokens@v1.0.0:db_out"; // NOT YET IMPLEMENTED
+export const DEFAULT_DBS_TOKEN = "mainnet:evm-tokens@v1.14.0";
+export const DEFAULT_DBS_NFT = "mainnet:evm-nft-tokens@v0.4.3";
+export const DEFAULT_DBS_UNISWAP = "mainnet:evm-uniswaps@v0.1.5";
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text()).replace(/\n/, "").slice(0, 7);
@@ -69,12 +64,10 @@ const opts = program
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified API username").env("PASSWORD").default(DEFAULT_PASSWORD))
-    .addOption(new Option("--networks <string>", "Supported The Graph Network IDs").env("NETWORKS").default(DEFAULT_NETWORKS))
     .addOption(new Option("--default-network <string>", "Default Network ID").env("DEFAULT_NETWORK_ID").default(DEFAULT_DEFAULT_NETWORK_ID))
-    .addOption(new Option("--db-evm-suffix <string>", "EVM Token Clickhouse database suffix").env("DB_EVM_SUFFIX").default(DEFAULT_DB_EVM_SUFFIX))
-    .addOption(new Option("--db-evm-nft-suffix <string>", "EVM NFT Token Clickhouse database suffix").env("DB_EVM_NFT_SUFFIX").default(DEFAULT_DB_EVM_NFT_SUFFIX))
-    .addOption(new Option("--db-svm-suffix <string>", "SVM (Solana) Token Clickhouse database suffix").env("DB_SVM_SUFFIX").default(DEFAULT_DB_SVM_SUFFIX))
-    .addOption(new Option("--db-antelope-suffix <string>", "Antelope Token Clickhouse database suffix").env("DB_ANTELOPE_SUFFIX").default(DEFAULT_DB_ANTELOPE_SUFFIX))
+    .addOption(new Option("--token-databases <string>", "Token Clickhouse databases").env("DBS_TOKEN").default(DEFAULT_DBS_TOKEN))
+    .addOption(new Option("--nft-databases <string>", "NFT Clickhouse databases").env("DBS_NFT").default(DEFAULT_DBS_NFT))
+    .addOption(new Option("--uniswap-databases <string>", "Uniswap Clickhouse databases").env("DBS_UNISWAP").default(DEFAULT_DBS_UNISWAP))
     .addOption(new Option("--mcp-username <string>", "Database user for MCP").env("MCP_USERNAME").default(DEFAULT_MCP_USERNAME))
     .addOption(new Option("--mcp-password <string>", "Password associated with the specified MCP username").env("MCP_PASSWORD").default(DEFAULT_MCP_PASSWORD))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
@@ -87,7 +80,21 @@ const opts = program
     .parse()
     .opts();
 
-export const config = z.object({
+function parseDatabases(dbs: string): Record<string, string> {
+    return Object.assign({}, ...dbs.split(';').map((db) => {
+        if (!db.includes(':')) {
+            console.warn(`Malformed database entry: "${db}". Skipping.`);
+            return null;
+        }
+
+        const [network_id, db_suffix] = db.split(':', 2);
+
+        if (network_id && db_suffix)
+            return { [ network_id ]: `${network_id}:${db_suffix}` };
+    }).filter(Boolean));
+}
+
+let config = z.object({
     port: z.string(),
     hostname: z.string(),
     ssePort: z.coerce.number(),
@@ -96,12 +103,10 @@ export const config = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
-    networks: z.string().transform((networks) => networks.split(',')),
     defaultNetwork: z.string(),
-    dbEvmSuffix: z.string(),
-    dbEvmNftSuffix: z.string(),
-    dbSvmSuffix: z.string(),
-    dbAntelopeSuffix: z.string(),
+    tokenDatabases: z.string().transform(parseDatabases),
+    nftDatabases: z.string().transform(parseDatabases),
+    uniswapDatabases: z.string().transform(parseDatabases),
     mcpUsername: z.string(),
     mcpPassword: z.string(),
     maxLimit: z.coerce.number(),
@@ -112,4 +117,13 @@ export const config = z.object({
     prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
     disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
     verbose: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
-}).parse(opts);
+}).transform((data) => ({
+    ...data,
+    networks: [...new Set([
+        ...Object.keys(data.tokenDatabases),
+        ...Object.keys(data.nftDatabases),
+        ...Object.keys(data.uniswapDatabases)
+    ])]
+})).parse(opts);
+
+export { config };
