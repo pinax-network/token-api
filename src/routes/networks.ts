@@ -69,12 +69,15 @@ async function validateNetworks() {
     if (!config.networks.includes(config.defaultNetwork)) {
         throw new Error(`Default network ${config.defaultNetwork} not found`);
     }
-    const query = `SHOW DATABASES LIKE '%:${config.dbEvmSuffix}'`;
+    const query = `SHOW DATABASES`;
     const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
     const dbs = await result.json<{ name: string; }>();
     for (const network of config.networks) {
-        if (!dbs.find(db => db.name === `${network}:${config.dbEvmSuffix}`)) {
-            throw new Error(`Database ${network}:${config.dbEvmSuffix} not found`);
+        if (!dbs.find(db => db.name === config.tokenDatabases[network]
+            || db.name === config.nftDatabases[network]
+            || db.name === config.uniswapDatabases[network])
+        ) {
+            throw new Error(`Databases for ${network} not found`);
         }
     }
 }
