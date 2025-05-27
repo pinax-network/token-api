@@ -83,7 +83,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const address = parseAddress.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const contracts = parseContracts.data ?? [];
-    const database = config.tokenDatabases[network_id];
+    const database = `${network_id}:evm-tokens@v1.11.0:db_out`; // Hotfix
 
     const query = sqlQueries['historical_balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);

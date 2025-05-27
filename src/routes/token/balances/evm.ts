@@ -84,7 +84,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.tokenDatabases[network_id];
+    const database = `${network_id}:evm-tokens@v1.11.0:db_out`; // Hotfix
 
     const contract = c.req.query("contract") ?? '';
 
