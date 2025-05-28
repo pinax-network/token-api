@@ -86,8 +86,8 @@ function parseDatabases(dbs: string): Record<string, string> {
             console.warn(`Malformed database entry: "${db}". Skipping.`);
             return null;
         }
-
-        const [network_id, db_suffix] = db.split(':', 2);
+        const [network_id, ...rest] = db.split(':');
+        const db_suffix = rest.join(':');
 
         if (network_id && db_suffix)
             return { [ network_id ]: `${network_id}:${db_suffix}` };
