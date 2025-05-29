@@ -5,14 +5,15 @@ SELECT
     decimals,
     trim(symbol) as symbol,
     name,
-    toString(sum(new_balance)) as circulating_supply,
+    toString(sum(balance)) as circulating_supply,
     count() as holders,
     {network_id: String} as network_id
-FROM balances_by_contract FINAL
-JOIN contracts
-    ON balances_by_contract.contract = contracts.address
+FROM balances_by_contract
+FINAL
+JOIN erc20_metadata_initialize
+    ON balances_by_contract.contract = erc20_metadata_initialize.address
 WHERE
-    contract = {contract: String} AND new_balance > 0
+    contract = {contract: String} AND balance > 0
 GROUP BY contract, symbol, name, decimals
 LIMIT   {limit:int}
 OFFSET  {offset:int}

@@ -123,7 +123,7 @@ let config = z.object({
         ...Object.keys(data.tokenDatabases),
         ...Object.keys(data.nftDatabases),
         ...Object.keys(data.uniswapDatabases)
-    ])]
+    ])].sort()
 })).parse(opts);
 
 export { config };

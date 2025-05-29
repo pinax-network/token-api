@@ -72,10 +72,23 @@ export async function makeUsageQueryJson<T = unknown>(
             duration_ms: Number(new Date()) - Number(request_time),
         };
     } catch (err) {
+        let message: string;
+        const filter_error_messages = ['Unknown', 'does not exist']
+  
+        if (err instanceof Error)
+            message = err.message;
+        else if (typeof err === 'string')
+            message = err;
+        else
+            message = 'An unknown error occurred';
+
+        if (filter_error_messages.some(w => message.includes(w)))
+            message = 'Endpoint is currently not supported for this network';
+
         return {
             status: 500 as ApiErrorResponse["status"],
             code: "bad_database_response" as ApiErrorResponse["code"],
-            message: `${err}`
+            message
         };
     }
 }

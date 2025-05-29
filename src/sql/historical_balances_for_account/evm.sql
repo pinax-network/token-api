@@ -37,6 +37,6 @@ SELECT
     ) * pow(10, -decimals) AS low,
     close_raw * pow(10, -decimals) AS close
 FROM ohlc AS o
-INNER JOIN contracts AS c ON o.contract = c.address
+INNER JOIN erc20_metadata_initialize AS c ON o.contract = c.address
 LIMIT   {limit:int}
 OFFSET  {offset:int}
