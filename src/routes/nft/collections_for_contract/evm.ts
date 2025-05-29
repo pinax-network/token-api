@@ -46,15 +46,16 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
+                                "token_standard": "ERC721",
                                 "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
                                 "contract_creation": "2021-07-22 12:26:01",
                                 "contract_creator": "0xe9da256a28630efdc637bfd4c65f0887be1aeda8",
                                 "name": "PudgyPenguins",
                                 "symbol": "PPG",
-                                "owners": 4999,
-                                "total_supply": 8888,
-                                "total_unique_supply": 8888,
-                                "total_transfers": 185015,
+                                "owners": 12284,
+                                "total_supply": 29064,
+                                "total_unique_supply": 29064,
+                                "total_transfers": 186252,
                                 "network_id": "mainnet"
                             }
                         ]

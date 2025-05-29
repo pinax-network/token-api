@@ -38,7 +38,7 @@ const responseSchema = z.object({
 
         // -- icon --
         icon: z.object({
-          web3icon: z.string()
+            web3icon: z.string()
         }),
 
         // -- contract --
@@ -67,20 +67,18 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22128490,
-                                "datetime": "2025-03-26 03:48:35",
+                                "block_num": 22589353,
+                                "datetime": "2025-05-29 15:40:11",
                                 "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "name": "Graph Token",
+                                "circulating_supply": "16667753581.233711",
+                                "holders": 139562,
                                 "network_id": "mainnet",
-                                "circulating_supply": "10800262823318213436822328009",
-                                "holders": 170271,
                                 "icon": {
-                                  "web3icon": "GRT"
-                                },
-                                "price_usd": 0.1040243665135064,
-                                "market_cap": 1123490498.375051
+                                    "web3icon": "GRT"
+                                }
                             }
                         ]
                     }

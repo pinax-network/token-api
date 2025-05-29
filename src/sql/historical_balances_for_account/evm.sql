@@ -24,18 +24,18 @@ SELECT
     symbol,
     decimals,
     {network_id: String} as network_id,
-    open_raw * pow(10, -decimals) AS open,
+    open_raw AS open,
     multiIf(
         high_raw < open_raw, open_raw,
         high_raw < close_raw, close_raw,
         high_raw
-    ) * pow(10, -decimals) AS high,
+    ) AS high,
     multiIf(
         low_raw > open_raw, open_raw,
         low_raw > close_raw, close_raw,
         low_raw
-    ) * pow(10, -decimals) AS low,
-    close_raw * pow(10, -decimals) AS close
+    ) AS low,
+    close_raw AS close
 FROM ohlc AS o
 INNER JOIN erc20_metadata_initialize AS c ON o.contract = c.address
 LIMIT   {limit:int}

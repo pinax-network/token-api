@@ -48,15 +48,14 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "datetime": "2025-04-22 01:00:00",
+                                "datetime": "2025-05-29 15:00:00",
                                 "ticker": "WETHUSDC",
-                                "open": 1568.1231985920829,
-                                "high": 1588.0055525937228,
-                                "low": 1567.4961060936091,
-                                "close": 1587.846767916931,
-                                "volume": 7313447103818,
-                                "uaw": 53,
-                                "transactions": 309
+                                "open": 2674.206768283323,
+                                "high": 2674.206768283323,
+                                "low": 2648.1288363948797,
+                                "close": 2648.1288363948797,
+                                "volume": 5062048.294222999,
+                                "transactions": 169
                             }
                         ]
                     }

@@ -52,14 +52,12 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "token_id": '814',
+                                "token_id": "12",
                                 "token_standard": "ERC721",
-                                "contract": "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
-                                "owner": "0xe2a83b15fc300d8457eb9e176f98d92a8ff40a49",
-                                "symbol": "MAYC",
-                                "uri": "https://boredapeyachtclub.com/api/mutants/814",
-                                "name": "MutantApeYachtClub",
-                                "image": "ipfs://QmYRCDk7ZvCANi7YVLGLAiVdGT5CuXy6hqnN2N3YGsNi7a",
+                                "contract": "0x000386e3f7559d9b6a2f5c46b4ad1a9587d59dc3",
+                                "owner": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+                                "symbol": "BANC",
+                                "name": "Bored Ape Nike Club",
                                 "network_id": "mainnet"
                             },
                         ]
