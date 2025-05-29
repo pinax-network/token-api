@@ -1,7 +1,7 @@
-import { Hono } from 'hono'
-import { describeRoute } from 'hono-openapi'
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { z } from 'zod'
+import { z } from 'zod';
 import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
@@ -76,32 +76,32 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22349926,
-                                "datetime": "2025-04-26 01:29:23",
-                                "timestamp": 1745630963,
-                                "transaction_id": "0xbedbd3f7a7774b858c96aa39bcc3106c8741b61f0ee1434f7a682061b714129f",
-                                "caller": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
-                                "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+                                "block_num": 22589391,
+                                "datetime": "2025-05-29 15:47:47",
+                                "timestamp": 1748533667,
+                                "transaction_id": "0x1ce019b0ad129b8bd21b6c83b75de5e5fd7cd07f2ee739ca3198adcbeb61f5a9",
+                                "caller": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+                                "pool": "0xb98437c7ba28c6590dd4e1cc46aa89eed181f97108e5b6221730d41347bc817f",
+                                "factory": "0x000000000004444c5dc75cb358380d2e3de08a90",
                                 "token0": {
+                                    "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                                    "symbol": "WBTC",
+                                    "decimals": 8
+                                },
+                                "token1": {
                                     "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                                     "symbol": "USDC",
                                     "decimals": 6
                                 },
-                                "token1": {
-                                    "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-                                    "symbol": "WETH",
-                                    "decimals": 18
-                                },
-                                "sender": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "recipient": "0x5141b82f5ffda4c6fe1e372978f1c5427640a190",
-                                "amount0": "7044734362",
-                                "amount1": "-3900976535378616196",
-                                "value0": 7044.734362,
-                                "value1": -3.900976535378616,
-                                "price0": 0.0005539546527418627,
-                                "price1": 1805.2019150852589,
-                                "protocol": "uniswap_v3",
+                                "sender": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+                                "recipient": null,
+                                "amount0": "-894320",
+                                "amount1": "957798098",
+                                "value0": -0.0089432,
+                                "value1": 957.798098,
+                                "price0": 107417.48517180652,
+                                "price1": 0.00000930947134352077,
+                                "protocol": "uniswap_v4",
                                 "network_id": "mainnet"
                             }
                         ]
@@ -110,7 +110,7 @@ const openapi = describeRoute({
             }
         },
     },
-})
+});
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
     let pool = c.req.query("pool") ?? '';

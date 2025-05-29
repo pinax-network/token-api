@@ -58,7 +58,7 @@ const openapi = describeRoute({
                                 "token_standard": "ERC721",
                                 "contract": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
                                 "token_id": "5712",
-                                "owner": "0x29469395eaf6f95920e59f858042f0e28d98a20b",
+                                "owner": "0x9379557bdf32f5ee296ca7b360ccb8dcb9543d8e",
                                 "uri": "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/5712",
                                 "name": "Pudgy Penguin #5712",
                                 "description": "A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.",

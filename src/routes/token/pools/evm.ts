@@ -1,7 +1,7 @@
-import { Hono } from 'hono'
-import { describeRoute } from 'hono-openapi'
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { z } from 'zod'
+import { z } from 'zod';
 import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
@@ -56,23 +56,23 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 12376729,
-                                "datetime": "2021-05-05 21:42:11",
-                                "transaction_id": "0x125e0b641d4a4b08806bf52c0c6757648c9963bcda8681e4f996f09e00d4c2cc",
-                                "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
-                                "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+                                "block_num": 22589384,
+                                "datetime": "2025-05-29 15:46:23",
+                                "transaction_id": "0x43cee95f1449b6b4d394fab31234fd6decdcd049153cc1338fe627e5483a3d36",
+                                "factory": "0x000000000004444c5dc75cb358380d2e3de08a90",
+                                "pool": "0x12b900f4e5c4b1d2aab6870220345c668b068fc6e588dd59dfe6f223d60608f1",
                                 "token0": {
-                                  "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                  "symbol": "USDC",
-                                  "decimals": 6
+                                    "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "symbol": "USDT",
+                                    "decimals": 6
                                 },
                                 "token1": {
-                                  "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-                                  "symbol": "WETH",
-                                  "decimals": 18
+                                    "address": "0xf2c88757f8d03634671208935974b60a2a28bdb3",
+                                    "symbol": "SHELL",
+                                    "decimals": 18
                                 },
-                                "fee": 500,
-                                "protocol": "uniswap_v3",
+                                "fee": 699000,
+                                "protocol": "uniswap_v4",
                                 "network_id": "mainnet"
                             }
                         ]
@@ -81,7 +81,7 @@ const openapi = describeRoute({
             }
         },
     },
-})
+});
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
     let pool = c.req.query("pool") ?? '';

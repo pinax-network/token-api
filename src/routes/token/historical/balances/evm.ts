@@ -54,16 +54,15 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 21764208,
-                                "datetime": "2025-02-03 06:31:23",
-                                "date": "2025-02-03",
-                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "amount": "339640316263000000000000000",
+                                "datetime": "2025-01-26 13:00:00",
+                                "name": "Wrapped Ether",
+                                "symbol": "WETH",
                                 "decimals": 18,
-                                "symbol": "GRT",
                                 "network_id": "mainnet",
-                                "price_usd": 0.10426804866144047,
-                                "value_usd": 35413633.023497514
+                                "open": 16.32030978771529,
+                                "high": 16.32030978771529,
+                                "low": 16.32030978771529,
+                                "close": 16.32030978771529
                             }
                         ]
                     }

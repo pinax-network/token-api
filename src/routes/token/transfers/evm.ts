@@ -84,7 +84,6 @@ const openapi = describeRoute({
                                 "to": "0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804",
                                 "decimals": 18,
                                 "symbol": "GRT",
-                                "amount": "11068393958660000000000",
                                 "value": 11068.393958659999
                             }
                         ]

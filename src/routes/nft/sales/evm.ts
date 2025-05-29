@@ -65,16 +65,16 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "timestamp": "2022-07-23 08:05:09",
-                                "block_num": 15197755,
-                                "tx_hash": "0xb1306f86242d8fb4356b1aa28f49788d41c09ba3ba99de2785386865baa3229b",
+                                "timestamp": "2025-05-29 07:52:47",
+                                "block_num": 22587041,
+                                "tx_hash": "0x6755df1514a066150357d454254e1ce6c1e043f873193125dc98d4c4417861ff",
                                 "token": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
-                                "token_id": '1474',
+                                "token_id": "6398",
                                 "symbol": "PPG",
                                 "name": "PudgyPenguins",
-                                "offerer": "0xa7b9c7cb5dfaf482ce2d3166b955e685e080cbbc",
-                                "recipient": "0x7ba514930f8be109e7e65a8dc2012c5d30d1c2df",
-                                "sale_amount": 0.084,
+                                "offerer": "0xf671888173bf2fe28d71fba3106cf36d10f470fe",
+                                "recipient": "0x43bf952762b087195b8ea70cf81cb6715b6bf5a9",
+                                "sale_amount": 10.0667234,
                                 "sale_currency": "ETH"
                             }
                         ]

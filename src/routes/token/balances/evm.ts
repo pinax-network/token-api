@@ -59,16 +59,14 @@ let openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 21764208,
-                                "datetime": "2025-02-03 06:31:23",
-                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "amount": "339640316263000000000000000",
-                                "value": 339640316.263,
+                                "block_num": 22586773,
+                                "datetime": "2025-05-29 06:58:47",
+                                "contract": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                                "amount": "237637742936991878321",
+                                "value": 237.63774293699188,
                                 "decimals": 18,
-                                "symbol": "GRT",
-                                "network_id": "mainnet",
-                                "price_usd": 0.10426804866144047,
-                                "value_usd": 35413633.023497514
+                                "symbol": "ETH",
+                                "network_id": "mainnet"
                             }
                         ]
                     }

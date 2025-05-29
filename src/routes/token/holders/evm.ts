@@ -60,15 +60,14 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 12022417,
-                                "datetime": "2021-03-12 07:35:19",
-                                "address": "0x701bd63938518d7db7e0f00945110c80c67df532",
-                                "amount": "661800000021764825741967",
+                                "block_num": 22578579,
+                                "last_balance_update": "2025-05-28 03:25:47",
+                                "address": "0x36aff7001294dae4c2ed4fdefc478a00de77f090",
+                                "amount": "2868440291872963359806035918",
+                                "value": 2868440291.8729634,
                                 "decimals": 18,
-                                "symbol": "WETH",
-                                "network_id": "mainnet",
-                                "price_usd": 2008.9052012472073,
-                                "value_usd": 1329493462.2291253
+                                "symbol": "GRT",
+                                "network_id": "mainnet"
                             }
                         ]
                     }
