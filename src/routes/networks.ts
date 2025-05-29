@@ -51,8 +51,10 @@ const openapi = describeRoute({
 export function getNetwork(id: string) {
     const network = registry.getNetworkById(id);
     if (!network) {
-        throw new Error(`Network ${id} not found`);
+        logger.warn(`Network ${id} not found`);
+        return {};
     }
+
     return {
         id,
         fullName: network.fullName,
