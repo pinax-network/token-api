@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, Vitalik } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, Vitalik, tokenStandardSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -15,13 +15,14 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     network_id: z.optional(networkIdSchema),
+    token_standard: z.optional(tokenStandardSchema)
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
     data: z.array(z.object({
         // NFT token metadata
         token_id: z.string(),
-        token_standard: z.enum(['ERC721', 'ERC1155']),
+        token_standard: tokenStandardSchema,
         contract: evmAddress,
         owner: evmAddress,
 
@@ -73,14 +74,18 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
     if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
+    const parseTokenStandard = tokenStandardSchema.safeParse(c.req.query("token_standard") ?? '');
+    if (!parseTokenStandard.success) return c.json({ error: `Invalid Token standard: ${parseTokenStandard.error.message}` }, 400);
+
     const address = parseAddress.data;
+    const token_standard = parseTokenStandard.data;
     const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
     const database = config.nftDatabases[network_id];
 
     const query = sqlQueries['nft_ownerships_for_account']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { address, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], { address, token_standard, network_id }, { database });
     return handleUsageQueryError(c, response);
 });
 
