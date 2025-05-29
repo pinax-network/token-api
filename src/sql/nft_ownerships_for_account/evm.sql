@@ -44,6 +44,7 @@ combined AS (
     SELECT * FROM erc1155
 )
 SELECT * FROM combined
+WHERE ({token_standard: String} = '' OR token_standard = {token_standard: String})
 ORDER BY token_standard, contract, token_id
 LIMIT {limit:int}
 OFFSET {offset:int}

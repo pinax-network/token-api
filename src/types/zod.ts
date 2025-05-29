@@ -43,6 +43,7 @@ export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in se
 export const tokenIdSchema = z.coerce.string()
   .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
   .openapi({ description: 'NFT token ID' });
+export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']);
 
 // Used for examples
 export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address

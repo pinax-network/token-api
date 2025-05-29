@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, tokenIdSchema, PudgyPenguins, PudgyPenguinsItem } from '../../../types/zod.js';
+import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, tokenIdSchema, PudgyPenguins, PudgyPenguinsItem, tokenStandardSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -22,7 +22,7 @@ const responseSchema = z.object({
     data: z.array(z.object({
         // NFT token metadata
         token_id: z.string(),
-        token_standard: z.enum(['ERC721', 'ERC1155']),
+        token_standard: tokenStandardSchema,
         contract: evmAddress,
         owner: evmAddress,
 
