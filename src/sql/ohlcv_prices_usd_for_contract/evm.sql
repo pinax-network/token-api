@@ -13,7 +13,7 @@ filtered_pools AS (
         pool,
         pow(
             10,
-            abs((SELECT decimals FROM contracts WHERE address = {contract: String}) - decimals)
+            abs((SELECT decimals FROM contracts FINAL WHERE address = {contract: String}) - decimals)
         ) AS decimals_factor,
         decimals
     FROM pools AS p
@@ -45,7 +45,7 @@ normalized_prices AS (
 )
 SELECT
     datetime,
-    CONCAT((SELECT symbol FROM contracts WHERE address = {contract: String}), 'USD') AS ticker,
+    CONCAT((SELECT symbol FROM contracts FINAL WHERE address = {contract: String}), 'USD') AS ticker,
     quantileExactWeighted(open, n.transactions + n.uaw) AS open,
     quantileExactWeighted(high, n.transactions + n.uaw) AS high,
     quantileExactWeighted(low, n.transactions + n.uaw) AS low,
