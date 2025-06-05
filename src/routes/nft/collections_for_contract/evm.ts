@@ -52,10 +52,10 @@ const openapi = describeRoute({
                                 "contract_creator": "0xe9da256a28630efdc637bfd4c65f0887be1aeda8",
                                 "name": "PudgyPenguins",
                                 "symbol": "PPG",
-                                "owners": 12284,
-                                "total_supply": 29064,
-                                "total_unique_supply": 29064,
-                                "total_transfers": 186252,
+                                "owners": 12258,
+                                "total_supply": 8888,
+                                "total_unique_supply": 8888,
+                                "total_transfers": 185128,
                                 "network_id": "mainnet"
                             }
                         ]
