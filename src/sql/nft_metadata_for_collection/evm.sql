@@ -6,7 +6,7 @@ WITH erc721 AS (
         m.symbol,
         (
             SELECT
-                count(token_id)
+                uniq(token_id)
             FROM erc721_owners
             WHERE contract = {contract: String}
         ) AS total_supply,
@@ -19,7 +19,7 @@ WITH erc721 AS (
         ) AS owners,
         (
             SELECT
-                count(*)
+                uniq(global_sequence)
             FROM erc721_transfers
             WHERE contract = {contract: String}
         ) AS total_transfers,
@@ -36,7 +36,7 @@ erc1155 AS (
         m.symbol,
         (
             SELECT
-                count(token_id)
+                uniq(token_id)
             FROM erc1155_balances
             WHERE contract = {contract: String} AND balance > 0
         ) AS total_supply,
@@ -54,7 +54,7 @@ erc1155 AS (
         ) AS owners,
         (
             SELECT
-                count(*)
+                uniq(global_sequence)
             FROM erc1155_transfers
             WHERE contract = {contract: String}
         ) AS total_transfers,
