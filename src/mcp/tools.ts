@@ -18,12 +18,13 @@ export default [
                     if (!suffix)
                         throw new Error(`Could not parse suffix for network: ${network}`);
 
-                    const [database, version] = suffix.split('@', 2);
+                    const [name, version] = suffix.split('@', 2);
 
                     return {
+                        database: db,
                         network,
-                        database,
-                        version
+                        name, 
+                        version,
                     }
                 })
             );
