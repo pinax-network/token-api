@@ -8,14 +8,10 @@ import pkg from "../package.json" with { type: "json" };
 // defaults
 export const DEFAULT_PORT = "8000";
 export const DEFAULT_HOSTNAME = "localhost";
-export const DEFAULT_SSE_PORT = "8080";
-export const DEFAULT_SSE_ENDPOINT = "sse";
 export const DEFAULT_URL = "http://localhost:8123";
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
-export const DEFAULT_MCP_USERNAME = "default";
-export const DEFAULT_MCP_PASSWORD = "";
 export const DEFAULT_MAX_LIMIT = 10000;
 export const DEFAULT_LARGE_QUERIES_ROWS_TRIGGER = 10_000_000; // 10M rows
 export const DEFAULT_LARGE_QUERIES_BYTES_TRIGGER = 1_000_000_000; // 1Gb
@@ -58,8 +54,6 @@ const opts = program
     .showHelpAfterError()
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
-    .addOption(new Option("--sse-port <number>", "HTTP port on which to attach the MCP SSE server").env("SSE_PORT").default(DEFAULT_SSE_PORT))
-    .addOption(new Option("--sse-endpoint <string>", "Endpoint name for the MCP SSE server").env("SSE_ENDPOINT").default(DEFAULT_SSE_ENDPOINT))
     .addOption(new Option("--url <string>", "Database HTTP hostname").env("URL").default(DEFAULT_URL))
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
@@ -68,8 +62,6 @@ const opts = program
     .addOption(new Option("--token-databases <string>", "Token Clickhouse databases").env("DBS_TOKEN").default(DEFAULT_DBS_TOKEN))
     .addOption(new Option("--nft-databases <string>", "NFT Clickhouse databases").env("DBS_NFT").default(DEFAULT_DBS_NFT))
     .addOption(new Option("--uniswap-databases <string>", "Uniswap Clickhouse databases").env("DBS_UNISWAP").default(DEFAULT_DBS_UNISWAP))
-    .addOption(new Option("--mcp-username <string>", "Database user for MCP").env("MCP_USERNAME").default(DEFAULT_MCP_USERNAME))
-    .addOption(new Option("--mcp-password <string>", "Password associated with the specified MCP username").env("MCP_PASSWORD").default(DEFAULT_MCP_PASSWORD))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .addOption(new Option("--max-rows-trigger <number>", "Queries returning rows above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_ROWS_TRIGGER").default(DEFAULT_LARGE_QUERIES_ROWS_TRIGGER))
     .addOption(new Option("--max-bytes-trigger <number>", "Queries processing bytes above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_BYTES_TRIGGER").default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER))
@@ -97,8 +89,6 @@ function parseDatabases(dbs: string): Record<string, string> {
 let config = z.object({
     port: z.string(),
     hostname: z.string(),
-    ssePort: z.coerce.number(),
-    sseEndpoint: z.string(),
     url: z.string(),
     database: z.string(),
     username: z.string(),
@@ -107,8 +97,6 @@ let config = z.object({
     tokenDatabases: z.string().transform(parseDatabases),
     nftDatabases: z.string().transform(parseDatabases),
     uniswapDatabases: z.string().transform(parseDatabases),
-    mcpUsername: z.string(),
-    mcpPassword: z.string(),
     maxLimit: z.coerce.number(),
     maxRowsTrigger: z.coerce.number(),
     maxBytesTrigger: z.coerce.number(),

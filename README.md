@@ -22,22 +22,17 @@
 - Represent raw, parameterized queries that can be directly executed within a ClickHouse environment.
 - Provide an unambiguous means of data manipulation and retrieval, enabling straightforward operational transparency (e.g., paste into a ClickHouse client for immediate testing).
 
-### 3. MCP Server (Including SQL Context)
-
-- Hosts the service logic while embedding the relevant SQL statements to orchestrate data queries.
-- Ensures that each database operation is correctly contextualized, allowing consistent use across various application layers or microservices.
-
-### 4. HTTP Routes (Wrapping Query & Parameters)
+### 3. HTTP Routes (Wrapping Query & Parameters)
 
 - Expose each SQL operation via HTTP endpoints, encapsulating user inputs and query parameters into well-defined APIs.
 - Streamline external access to database functionality by abstracting the underlying SQL implementation from the client.
 
-### 5. On-the-Fly Data Injection
+### 4. On-the-Fly Data Injection
 
 - Accommodates immediate adjustments or patches where Substreams data is incomplete or erroneous.
 - Allows custom logic to amend, replace, or enrich dataset records before they are processed or stored, ensuring robust data integrity despite upstream issues.
 
-### 6. Substreams SQL Sink
+### 5. Substreams SQL Sink
 
 ```mermaid
 flowchart LR
@@ -45,7 +40,6 @@ flowchart LR
   S2[SVM Tokens.spkg] --> Sink
   S3[Antelope Tokens.spkg] --> Sink
   Sink --> Clickhouse
-  Clickhouse((Clickhouse)) --> Server{MCP Server}
   Clickhouse --> API{Token API}
 ```
 
@@ -56,7 +50,7 @@ flowchart LR
 - [x] Tokens
 - [x] Transfers
 - [x] OHLC
-  - [x] Prices
+- [x] Prices
 
 ## Supported Networks
 
@@ -88,22 +82,14 @@ PORT=8000
 HOSTNAME=localhost
 IDLE_TIMEOUT=60
 
-# MCP Server
-SSE_PORT=8080
-SSE_ENDPOINT=sse
-
 # Clickhouse Database
 URL=http://127.0.0.1:8123
-DATABASE=default
 USERNAME=default
 PASSWORD=
-MCP_USERNAME=default
-MCP_PASSWORD=
 MAX_LIMIT=10000
-NETWORKS=mainnet,bsc,base,optimism,arbitrum-one
-DB_EVM_SUFFIX=evm-tokens@v1.9.0:db_out
-DB_SVM_SUFFIX=svm-tokens@v1.0.0:db_out
-DB_ANTELOPE_SUFFIX=antelope-tokens@v1.0.0:db_out
+DBS_TOKEN=mainnet:evm-tokens@v1.14.0
+DBS_NFT=mainnet:evm-nft-tokens@v0.5.1
+DBS_UNISWAP=mainnet:evm-uniswaps@v0.1.5
 
 # OpenAPI
 DISABLE_OPENAPI_SERVERS=false
