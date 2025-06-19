@@ -8,26 +8,41 @@ export default [
         name: "list_databases",
         description: "List available databases",
         parameters: z.object({}), // Always needs a parameter (even if empty)
-        execute: async () => {
-            return JSON.stringify(
-                Object.values(config.tokenDatabases).concat(
-                    Object.values(config.nftDatabases),
-                    Object.values(config.uniswapDatabases)
-                ).map((db) => {
-                    const [network, suffix] = db.split(':', 2);
-                    if (!suffix)
-                        throw new Error(`Could not parse suffix for network: ${network}`);
+        execute: async (_, { reportProgress }) => {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const results = await Promise.all(
+                        Object.values(config.tokenDatabases).concat(
+                            Object.values(config.nftDatabases),
+                            Object.values(config.uniswapDatabases)
+                        ).map(async (db) => {
+                            const [network, suffix] = db.split(':', 2);
+                            if (!suffix)
+                                throw new Error(`Could not parse suffix for network: ${network}`);
 
-                    const [name, version] = suffix.split('@', 2);
+                            const [name, version] = suffix.split('@', 2);
+                            const query = `SELECT comment FROM system.databases WHERE name = ${escapeSQL(db).replaceAll('"', "'")};`;
+                            const result = JSON.parse(await runSQLMCP(query, reportProgress));
+                            let description = '';
 
-                    return {
-                        database: db,
-                        network,
-                        name, 
-                        version,
-                    }
-                })
-            );
+                            if (result && result.length > 0)
+                                description = result[0]?.comment ?? '';
+
+                            return {
+                                database: db,
+                                network,
+                                name, 
+                                version,
+                                description
+                            };
+                        })
+                    );
+        
+                    resolve(JSON.stringify(results));
+                } catch (error) {
+                    reject(error);
+                }
+            });
         },
     },
     {
@@ -38,10 +53,11 @@ export default [
         }),
         execute: async (args, { reportProgress }) => {
             // Filter out backfill tables as well (TODO: could be done with user permissions ?)
-            const query = `SHOW TABLES
-                FROM ${escapeSQL(args.database)}
+            const query = `SELECT name, comment AS description
+                FROM system.tables
                 WHERE
-                    name NOT LIKE 'backfill_%'
+                    database = ${escapeSQL(args.database).replaceAll('"', "'")}
+                    AND name NOT LIKE 'backfill_%'
                     AND name NOT LIKE '.inner_%'
                     AND name NOT LIKE '%_mv'
                     AND name NOT LIKE 'cursors';

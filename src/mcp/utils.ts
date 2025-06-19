@@ -7,19 +7,20 @@ import { config } from "../config.js";
 
 export async function runSQLMCP(sql: string, reportProgress?: (progress: Progress) => Promise<void>): Promise<string> {
     let response;
+
     try {
         response = await makeQuery(sql, {}, { username: config.mcpUsername, password: config.mcpPassword }, reportProgress);
     } catch (error) {
         throw new UserError(`Error while running SQL query: ${error}`);
     }
 
-    if (response.data) {
-        const json = JSON.stringify(response);
+    if (response.data && response.data.length > 0) {
+        const json = JSON.stringify(response.data);
 
         if (!json)
             throw new UserError(`Error parsing SQL query response to JSON`);
-
-        return JSON.stringify(json);
+        
+        return json;
     } else {
         throw new UserError(`SQL query response didn't contain any data.`);
     }
