@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, intervalSchema, timestampSchema, networkIdSchema, USDC_WETH } from '../../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, intervalSchema, timestampSchema, EVM_networkIdSchema, USDC_WETH } from '../../../../types/zod.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
@@ -14,7 +14,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
     interval: intervalSchema,
     startTime: z.optional(timestampSchema),
     endTime: z.optional(timestampSchema)
@@ -70,7 +70,7 @@ route.get('/:pool', openapi, validator('param', paramSchema), validator('query',
     if (!parsePool.success) return c.json({ error: `Invalid EVM pool: ${parsePool.error.message}` }, 400);
 
     const pool = parsePool.data;
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
     const database = `${network_id}:evm-tokens@v1.11.0:db_out`; // Hotfix
 
     const query = sqlQueries['ohlcv_prices_for_pool']?.['evm']; // TODO: Load different chain_type queries based on network_id

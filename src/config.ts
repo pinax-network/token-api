@@ -23,8 +23,8 @@ export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
-export const DEFAULT_DEFAULT_NETWORK_ID = "mainnet";
-export const DEFAULT_NETWORKS = DEFAULT_DEFAULT_NETWORK_ID;
+export const DEFAULT_DEFAULT_EVM_NETWORK = "mainnet";
+export const DEFAULT_DEFAULT_SVM_NETWORK = "solana";
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 
@@ -58,7 +58,8 @@ const opts = program
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified API username").env("PASSWORD").default(DEFAULT_PASSWORD))
-    .addOption(new Option("--default-network <string>", "Default Network ID").env("DEFAULT_NETWORK_ID").default(DEFAULT_DEFAULT_NETWORK_ID))
+    .addOption(new Option("--default-evm-network <string>", "Default EVM Network ID").env("DEFAULT_EVM_NETWORK").default(DEFAULT_DEFAULT_EVM_NETWORK))
+    .addOption(new Option("--default-svm-network <string>", "Default SVM Network ID").env("DEFAULT_SVM_NETWORK").default(DEFAULT_DEFAULT_SVM_NETWORK))
     .addOption(new Option("--token-databases <string>", "Token Clickhouse databases").env("DBS_TOKEN").default(DEFAULT_DBS_TOKEN))
     .addOption(new Option("--nft-databases <string>", "NFT Clickhouse databases").env("DBS_NFT").default(DEFAULT_DBS_NFT))
     .addOption(new Option("--uniswap-databases <string>", "Uniswap Clickhouse databases").env("DBS_UNISWAP").default(DEFAULT_DBS_UNISWAP))
@@ -72,7 +73,7 @@ const opts = program
     .parse()
     .opts();
 
-function parseDatabases(dbs: string): Record<string, string> {
+function parseDatabases(dbs: string): Record<string, { name: string; type: 'svm' | 'evm' }> {
     return Object.assign({}, ...dbs.split(';').map((db) => {
         if (!db.includes(':')) {
             console.warn(`Malformed database entry: "${db}". Skipping.`);
@@ -82,7 +83,12 @@ function parseDatabases(dbs: string): Record<string, string> {
         const db_suffix = rest.join(':');
 
         if (network_id && db_suffix)
-            return { [ network_id ]: `${network_id}:${db_suffix}` };
+            return {
+                [network_id]: {
+                    name: `${network_id}:${db_suffix}`,
+                    type: network_id === 'solana' ? 'svm' : 'evm' // TODO: Get type from registry
+                }
+            };
     }).filter(Boolean));
 }
 
@@ -93,7 +99,8 @@ let config = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
-    defaultNetwork: z.string(),
+    defaultEvmNetwork: z.string(),
+    defaultSvmNetwork: z.string(),
     tokenDatabases: z.string().transform(parseDatabases),
     nftDatabases: z.string().transform(parseDatabases),
     uniswapDatabases: z.string().transform(parseDatabases),
@@ -107,11 +114,39 @@ let config = z.object({
     verbose: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
 }).transform((data) => ({
     ...data,
-    networks: [...new Set([
-        ...Object.keys(data.tokenDatabases),
-        ...Object.keys(data.nftDatabases),
-        ...Object.keys(data.uniswapDatabases)
-    ])].sort()
+    evmNetworks: Object.keys(
+        {
+            ...data.tokenDatabases,
+            ...data.nftDatabases,
+            ...data.uniswapDatabases
+        }
+    ).filter(
+        networkId => {
+            return {
+                ...data.tokenDatabases,
+                ...data.nftDatabases,
+                ...data.uniswapDatabases
+            }[networkId]?.type === 'evm'
+        }
+    ).sort(),
+    svmNetworks: Object.keys(
+        {
+            ...data.tokenDatabases,
+            ...data.nftDatabases,
+            ...data.uniswapDatabases
+        }
+    ).filter(
+        networkId => {
+            return {
+                ...data.tokenDatabases,
+                ...data.nftDatabases,
+                ...data.uniswapDatabases
+            }[networkId]?.type === 'svm'
+        }
+    ).sort()
+})).transform((data) => ({
+    ...data,
+    networks: [ ...data.evmNetworks, ...data.svmNetworks ]
 })).parse(opts);
 
 export { config };

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -11,7 +11,7 @@ import { now } from '../../../utils.js';
 const route = new Hono();
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
 
     // -- `swaps` filter --
     pool: z.optional(USDC_WETH),
@@ -38,7 +38,7 @@ const responseSchema = z.object({
         timestamp: z.number(),
 
         // -- chain --
-        network_id: networkIdSchema,
+        network_id: EVM_networkIdSchema,
 
         // -- transaction --
         transaction_id: z.string(),
@@ -167,8 +167,8 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.uniswapDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.uniswapDatabases[network_id].name;
 
     // -- `time` filter --
     const endTime = c.req.query('endTime') ?? now();

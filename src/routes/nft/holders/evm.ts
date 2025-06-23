@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
+import { statisticsSchema, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -14,7 +14,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
 });
 
 const responseSchema = z.object({
@@ -24,7 +24,7 @@ const responseSchema = z.object({
         quantity: z.number().openapi({ description: 'Number of tokens held by this address' }),
         unique_tokens: z.number().openapi({ description: 'Number of unique token IDs held by this address' }),
         percentage: z.number().openapi({ description: 'Percentage of total supply held by this address' }),
-        network_id: networkIdSchema,
+        network_id: EVM_networkIdSchema,
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -65,8 +65,8 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     const contract = parseContract.data;
 
     // OPTIONAL URL query
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.nftDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.nftDatabases[network_id].name;
 
     const query = sqlQueries['nft_holders']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
