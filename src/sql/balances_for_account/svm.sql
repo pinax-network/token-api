@@ -1,7 +1,8 @@
 SELECT
     block_num,
     timestamp as datetime,
-    program_id AS contract,
+    toString(program_id) AS program,
+    toString(mint) AS contract,
     amount,
     amount / pow(10, decimals) as value,
     decimals,

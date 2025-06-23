@@ -27,6 +27,7 @@ let responseSchema: any = z.object({
         datetime: z.string(),
 
         // -- balance --
+        program: svmAddressSchema,
         contract: svmAddressSchema,
         amount: z.string(),
         value: z.number(),
@@ -35,13 +36,7 @@ let responseSchema: any = z.object({
         network_id: SVM_networkIdSchema,
 
         // -- contract --
-        symbol: z.optional(z.string()),
-        decimals: z.optional(z.number()),
-
-        // -- price --
-        price_usd: z.optional(z.number()),
-        value_usd: z.optional(z.number()),
-        low_liquidity: z.optional(z.boolean()),
+        decimals: z.optional(z.number())
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -59,14 +54,14 @@ let openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22586773,
-                                "datetime": "2025-05-29 06:58:47",
-                                "contract": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-                                "amount": "237637742936991878321",
-                                "value": 237.63774293699188,
-                                "decimals": 18,
-                                "symbol": "ETH",
-                                "network_id": "mainnet"
+                                "block_num": 348751104,
+                                "datetime": "2025-06-23 20:51:09",
+                                "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                                "contract": "So11111111111111111111111111111111111111112",
+                                "amount": 369241,
+                                "value": 0.000369241,
+                                "decimals": 9,
+                                "network_id": "solana"
                             }
                         ]
                     }
