@@ -82,7 +82,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.tokenDatabases[network_id].name;
+    const database = config.nftDatabases[network_id]!.name;
 
     const contract = c.req.query("contract") ?? '';
 

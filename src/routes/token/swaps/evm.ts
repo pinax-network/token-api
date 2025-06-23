@@ -168,7 +168,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.uniswapDatabases[network_id].name;
+    const database = config.nftDatabases[network_id]!.name;
 
     // -- `time` filter --
     const endTime = c.req.query('endTime') ?? now();
