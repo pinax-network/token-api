@@ -68,16 +68,17 @@ export function getNetwork(id: string) {
 }
 
 async function validateNetworks() {
-    if (!config.networks.includes(config.defaultNetwork)) {
-        throw new Error(`Default network ${config.defaultNetwork} not found`);
+    if (!config.networks.includes(config.defaultEvmNetwork) && !config.networks.includes(config.defaultSvmNetwork)) {
+        throw new Error(`Default network for EVM or SVM not found`);
     }
+
     const query = `SHOW DATABASES`;
     const result = await client({ database: config.database }).query({ query, format: "JSONEachRow" });
     const dbs = await result.json<{ name: string; }>();
     for (const network of config.networks) {
-        if (!dbs.find(db => db.name === config.tokenDatabases[network]
-            || db.name === config.nftDatabases[network]
-            || db.name === config.uniswapDatabases[network])
+        if (!dbs.find(db => db.name === config.tokenDatabases[network]?.name
+            || db.name === config.nftDatabases[network]?.name
+            || db.name === config.uniswapDatabases[network]?.name)
         ) {
             throw new Error(`Databases for ${network} not found`);
         }
@@ -89,7 +90,8 @@ async function validateNetworks() {
 await validateNetworks();
 
 logger.trace(`Supported networks:\n`, config.networks);
-logger.trace(`Default network: ${config.defaultNetwork}`);
+logger.trace(`Default EVM network: ${config.defaultEvmNetwork}`);
+logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
 
 route.get('/networks', openapi, async (c) => {
     return c.json({ networks: config.networks.map(id => getNetwork(id)) });

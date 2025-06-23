@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -10,7 +10,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 const route = new Hono();
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
     pool: z.optional(USDC_WETH),
     factory: z.optional(evmAddressSchema),
     token: z.optional(evmAddressSchema),
@@ -25,7 +25,7 @@ const responseSchema = z.object({
         datetime: z.string(),
 
         // -- chain --
-        network_id: networkIdSchema,
+        network_id: EVM_networkIdSchema,
 
         // -- transaction --
         transaction_id: z.string(),
@@ -120,8 +120,8 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         factory = parsed.data;
     }
 
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.uniswapDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.uniswapDatabases[network_id].name;
 
     const query = sqlQueries['pools']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);

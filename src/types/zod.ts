@@ -10,6 +10,11 @@ export type EvmAddress = z.infer<typeof evmAddress>;
 export const evmTransaction = z.coerce.string().regex(new RegExp("^(0[xX])?[0-9a-fA-F]{64}$"));
 export type EvmTransaction = z.infer<typeof evmTransaction>;
 
+export const svmAddress = z.coerce.string().regex(new RegExp("^[1-9A-HJ-NP-Za-km-z]{32,44}$"));
+export type SvmAddress = z.infer<typeof evmAddress>;
+export const svmTransaction = z.coerce.string().regex(new RegExp("^[1-9A-HJ-NP-Za-km-z]{87,88}$"));
+export type SvmTransaction = z.infer<typeof evmTransaction>;
+
 export const blockNumHash = z.object({
     "block_num": z.coerce.number().int(),
     "block_hash": z.coerce.string()
@@ -28,8 +33,16 @@ export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => add
     description: 'Filter by address'
 });
 export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string()).openapi({ description: 'Filter by transaction' });
+
+export const svmAddressSchema = svmAddress.toLowerCase().pipe(z.string()).openapi({
+    description: 'Filter by address'
+});
+export const svmTransactionSchema = svmTransaction.toLowerCase().pipe(z.string()).openapi({ description: 'Filter by transaction' });
+
 // z.enum argument type definition requires at least one element to be defined
-export const networkIdSchema = z.enum([config.networks.at(0) ?? config.defaultNetwork, ...config.networks.slice(1)]).openapi({ description: "The Graph Network ID https://thegraph.com/networks", example: config.defaultNetwork });
+export const EVM_networkIdSchema = z.enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for EVM networks https://thegraph.com/networks", example: config.defaultEvmNetwork });
+export const SVM_networkIdSchema = z.enum([config.svmNetworks.at(0) ?? config.defaultSvmNetwork, ...config.svmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for SVM networks https://thegraph.com/networks", example: config.defaultSvmNetwork });
+
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
 export const limitSchema = z.coerce.number().int().min(1).max(1000).default(DEFAULT_LIMIT).openapi({ description: 'The maximum number of items returned in a single request.' });
 export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ description: 'The page number of the results to return.' });
@@ -52,6 +65,9 @@ export const GRT = evmAddressSchema.openapi({ description: 'Filter by contract a
 export const USDC_WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
 export const PudgyPenguins = evmAddressSchema.openapi({ description: 'Filter by NFT contract address', example: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8' }); // Pudgy Penguins
 export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '5712' });
+
+// Solana examples
+export const JupyterLabs = svmAddressSchema.openapi({ example: 'AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,

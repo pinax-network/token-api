@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
+import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -14,7 +14,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
     contract: PudgyPenguins,
 
     // -- `token` filter --
@@ -144,8 +144,8 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
         return c.json({ error: 'Cannot specify `any` with `from` or `to`' }, 400);
 
     // OPTIONAL URL query
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.nftDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.nftDatabases[network_id].name;
 
     let query = sqlQueries['nft_activities']?.['evm'];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);

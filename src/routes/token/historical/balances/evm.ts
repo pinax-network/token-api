@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, networkIdSchema, ageSchema, intervalSchema, timestampSchema } from '../../../../types/zod.js';
+import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema } from '../../../../types/zod.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config, DEFAULT_AGE } from '../../../../config.js';
@@ -17,7 +17,7 @@ const paramSchema = z.object({
 
 const querySchema = z.object({
     interval: intervalSchema,
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
     contracts: z.optional(z.string().array()),
     startTime: z.optional(timestampSchema),
     endTime: z.optional(timestampSchema)
@@ -80,9 +80,9 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
     if (!parseContracts.success) return c.json({ error: `Invalid EVM contracts: ${parseContracts.error.message}` }, 400);
 
     const address = parseAddress.data;
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
     const contracts = parseContracts.data ?? [];
-    const database = config.tokenDatabases[network_id];
+    const database = config.tokenDatabases[network_id].name;
 
     const query = sqlQueries['historical_balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
