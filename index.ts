@@ -5,12 +5,6 @@ import { logger } from './src/logger.js';
 import routes from './src/routes/index.js';
 import { openAPISpecs } from 'hono-openapi';
 import { APIErrorResponse } from "./src/utils.js";
-import { startMcpServer } from "./src/mcp/index.js";
-
-// Start MCP server
-await startMcpServer().catch((error) => {
-    console.error("Error starting MCP server:", error);
-});
 
 const app = new Hono();
 

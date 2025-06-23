@@ -5,14 +5,12 @@ import { logger } from "../logger.js";
 
 import type { ResponseJSON } from "@clickhouse/client-web";
 import { isProgressRow, ProgressRow } from "@clickhouse/client";
-import { Progress } from 'fastmcp';
 import { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
 
 export async function makeQuery<T = unknown>(
     query: string,
     query_params?: Record<string, unknown>,
-    overwrite_config?: WebClickHouseClientConfigOptions,
-    reportProgressMCP?: (progress: Progress) => Promise<void>
+    overwrite_config?: WebClickHouseClientConfigOptions
 ) {
     const query_id = crypto.randomUUID();
     logger.trace({ query_id, overwrite_config, query, query_params });
@@ -33,13 +31,6 @@ export async function makeQuery<T = unknown>(
             try {
                 const decodedRow = row.json() as ProgressRow | { row?: T, rows_before_limit_at_least?: number, meta?: any[]; };
                 if (isProgressRow(decodedRow)) {
-                    // Send notification if query is coming from MCP
-                    if (reportProgressMCP)
-                        reportProgressMCP({
-                            progress: Number(decodedRow.progress.read_rows),
-                            total: Number(decodedRow.progress.total_rows_to_read)
-                        });
-
                     statistics = {
                         bytes_read: Number(decodedRow.progress.read_bytes),
                         rows_read: Number(decodedRow.progress.read_rows),

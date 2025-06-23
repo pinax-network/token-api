@@ -34,8 +34,7 @@
         "build": "bun build --compile index.ts --outfile token-api",
         "test": "bun test --coverage",
         "clean": "bun i --force",
-        "lint": "bun run tsc --noEmit --skipLibCheck --pretty",
-        "inspector": "bunx @modelcontextprotocol/inspector"
+        "lint": "bun run tsc --noEmit --skipLibCheck --pretty"
     },
     "dependencies": {
         "@clickhouse/client": "^1.11.0",
@@ -47,7 +46,6 @@
         "@web3icons/core": "^4.0.10",
         "commander": "^13.1.0",
         "dotenv": "^16.4.7",
-        "fastmcp": "^1.20.3",
         "hono": "^4.7.5",
         "hono-openapi": "^0.4.6",
         "tslog": "^4.9.3",
