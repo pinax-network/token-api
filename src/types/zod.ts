@@ -34,10 +34,10 @@ export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => add
 });
 export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string()).openapi({ description: 'Filter by transaction' });
 
-export const svmAddressSchema = svmAddress.toLowerCase().pipe(z.string()).openapi({
+export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
     description: 'Filter by address'
 });
-export const svmTransactionSchema = svmTransaction.toLowerCase().pipe(z.string()).openapi({ description: 'Filter by transaction' });
+export const svmTransactionSchema = svmTransaction.pipe(z.string()).openapi({ description: 'Filter by transaction' });
 
 // z.enum argument type definition requires at least one element to be defined
 export const EVM_networkIdSchema = z.enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for EVM networks https://thegraph.com/networks", example: config.defaultEvmNetwork });
