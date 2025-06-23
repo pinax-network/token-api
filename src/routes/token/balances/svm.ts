@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema } from '../../../types/zod.js';
+import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema, JupyterLabs } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config, DEFAULT_AGE } from '../../../config.js';
@@ -12,11 +12,11 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: Vitalik,
+    address: JupyterLabs,
 });
 
 let querySchema: any = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: z.optional(SVM_networkIdSchema),
     contract: z.optional(z.string()),
 }).merge(paginationQuery);
 
@@ -27,12 +27,12 @@ let responseSchema: any = z.object({
         datetime: z.string(),
 
         // -- balance --
-        contract: evmAddressSchema,
+        contract: svmAddressSchema,
         amount: z.string(),
         value: z.number(),
 
         // -- network --
-        network_id: EVM_networkIdSchema,
+        network_id: SVM_networkIdSchema,
 
         // -- contract --
         symbol: z.optional(z.string()),
@@ -48,8 +48,8 @@ let responseSchema: any = z.object({
 
 let openapi = describeRoute({
     summary: 'Balances by Address',
-    description: 'Provides latest ERC-20 & Native balances by wallet address.',
-    tags: ['EVM'],
+    description: 'Provides Solana tokens balances by wallet address.',
+    tags: ['SVM'],
     security: [{ bearerAuth: [] }],
     responses: {
         200: {
@@ -77,16 +77,16 @@ let openapi = describeRoute({
 });
 
 route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
+    const parseAddress = svmAddressSchema.safeParse(c.req.param("address"));
     if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
 
     const address = parseAddress.data;
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const network_id = SVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultSvmNetwork;
+    const database = config.tokenDatabases[network_id]!.name;
 
     const contract = c.req.query("contract") ?? '';
 
-    const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    const query = sqlQueries['balances_for_account']?.[config.tokenDatabases[network_id]!.type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });

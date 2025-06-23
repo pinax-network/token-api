@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, EVM_networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -13,7 +13,7 @@ import { now } from '../../../utils.js';
 const route = new Hono();
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
 
     // -- `token` filter --
     from: z.optional(evmAddressSchema),
@@ -48,7 +48,7 @@ const responseSchema = z.object({
         value: z.number(),
 
         // -- chain --
-        network_id: networkIdSchema,
+        network_id: EVM_networkIdSchema,
 
         // -- contract --
         symbol: z.optional(z.string()),
@@ -115,8 +115,8 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
 
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.tokenDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.nftDatabases[network_id]!.name;
 
     let contract = c.req.query("contract") ?? '';
     if (contract) {

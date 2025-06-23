@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { GRT, evmAddressSchema, statisticsSchema, networkIdSchema } from '../../../types/zod.js';
+import { GRT, evmAddressSchema, statisticsSchema, EVM_networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -17,7 +17,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    network_id: z.optional(networkIdSchema),
+    network_id: z.optional(EVM_networkIdSchema),
 });
 
 const responseSchema = z.object({
@@ -34,7 +34,7 @@ const responseSchema = z.object({
         holders: z.number(),
 
         // -- chain --
-        network_id: networkIdSchema,
+        network_id: EVM_networkIdSchema,
 
         // -- icon --
         icon: z.object({
@@ -93,8 +93,8 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
 
     const contract = parseContract.data;
-    const network_id = networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultNetwork;
-    const database = config.tokenDatabases[network_id];
+    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const database = config.nftDatabases[network_id]!.name;
 
     const query = sqlQueries['tokens_for_contract']?.['evm'];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
