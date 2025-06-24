@@ -35,7 +35,6 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
-        timestamp: z.number(),
 
         // -- transaction --
         transaction_id: z.string(),
@@ -46,21 +45,19 @@ const responseSchema = z.object({
         from: svmAddressSchema,
         to: svmAddressSchema,
         amount: z.string(),
+        decimals: z.optional(z.number()),
         value: z.number(),
 
         // -- chain --
-        network_id: SVM_networkIdSchema,
-
-        // -- contract --
-        decimals: z.optional(z.number())
+        network_id: SVM_networkIdSchema
     })),
     statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute({
     summary: 'Transfers Events',
-    description: 'Provides ERC-20 & Native transfer events.',
-    tags: ['EVM'],
+    description: 'Provides SVM transfer events.',
+    tags: ['SVM'],
     security: [{ bearerAuth: [] }],
     responses: {
         200: {
@@ -70,16 +67,17 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22349873,
-                                "datetime": "2025-04-26 01:18:47",
-                                "timestamp": 1745630327,
-                                "transaction_id": "0xd80ed9764b0bc25b982668f66ec1cf46dbe27bcd01dffcd487f43c92f72b2a84",
-                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "from": "0x7d2fbc0eefdb8721b27d216469e79ef288910a83",
-                                "to": "0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804",
-                                "decimals": 18,
-                                "symbol": "GRT",
-                                "value": 11068.393958659999
+                                "block_num": 348911604,
+                                "datetime": "2025-06-24 14:47:56",
+                                "transaction_id": "26UfUmbCB4jdEh8b6xZJYa3wfFSQ73KLiNfx5gw7D72BZSa747emfCiBgWVsCx1uLBv9JCX1dsPfEbQAVybe2wyC",
+                                "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                                "contract": "EiADDho35vjYwZWfjFveF3BQC6kQcyCwz7tdeJuLx3ks",
+                                "from": "AVNfV6msTPyVvTLedqsfSPE7yMZSyVrAG8u5STKWE7R8",
+                                "to": "G6jwgA3pTTRYv86fWkkuHRtyHfxJjzWLbcqcVXqBQDVr",
+                                "amount": 2123240101,
+                                "decimals": 6,
+                                "value": 2123.240101,
+                                "network_id": "solana"
                             }
                         ]
                     }
@@ -94,7 +92,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (from) {
         const parsed = svmAddressSchema.safeParse(from);
         if (!parsed.success) {
-            return c.json({ error: `Invalid [from] EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid [from] SVM address: ${parsed.error.message}` }, 400);
         }
         from = parsed.data;
     }
@@ -103,7 +101,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (to) {
         const parsed = svmAddressSchema.safeParse(to);
         if (!parsed.success) {
-            return c.json({ error: `Invalid [to] EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid [to] SVM address: ${parsed.error.message}` }, 400);
         }
         to = parsed.data;
     }
@@ -116,7 +114,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (contract) {
         const parsed = svmAddressSchema.safeParse(contract);
         if (!parsed.success) {
-            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid contract SVM address: ${parsed.error.message}` }, 400);
         }
         contract = parsed.data;
     }
@@ -125,7 +123,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     if (transaction_id) {
         const parsed = svmTransactionSchema.safeParse(transaction_id);
         if (!parsed.success) {
-            return c.json({ error: `Invalid EVM transaction ID: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid SVM transaction ID: ${parsed.error.message}` }, 400);
         }
         transaction_id = parsed.data;
     }
