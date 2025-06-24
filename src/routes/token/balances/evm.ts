@@ -82,11 +82,11 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.tokenDatabases[network_id]!;
 
     const contract = c.req.query("contract") ?? '';
 
-    const query = sqlQueries['balances_for_account']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    const query = sqlQueries['balances_for_account']?.[type]; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });

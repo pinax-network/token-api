@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, EVM_networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
+import { svmAddressSchema, statisticsSchema, paginationQuery, SVM_networkIdSchema, timestampSchema, svmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, JupyterLabs } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -13,12 +13,12 @@ import { now } from '../../../utils.js';
 const route = new Hono();
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: z.optional(SVM_networkIdSchema),
 
     // -- `token` filter --
-    from: z.optional(evmAddressSchema),
-    to: z.optional(Vitalik),
-    contract: z.optional(evmAddressSchema),
+    from: z.optional(svmAddressSchema),
+    to: z.optional(JupyterLabs),
+    contract: z.optional(svmAddressSchema),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -27,7 +27,7 @@ const querySchema = z.object({
     orderDirection: z.optional(orderDirectionSchema),
 
     // -- `transaction` filter --
-    transaction_id: z.optional(evmTransactionSchema),
+    transaction_id: z.optional(svmTransactionSchema),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -41,23 +41,18 @@ const responseSchema = z.object({
         transaction_id: z.string(),
 
         // -- transfer --
-        contract: evmAddressSchema,
-        from: evmAddressSchema,
-        to: evmAddressSchema,
+        program: svmAddressSchema,
+        contract: svmAddressSchema,
+        from: svmAddressSchema,
+        to: svmAddressSchema,
         amount: z.string(),
         value: z.number(),
 
         // -- chain --
-        network_id: EVM_networkIdSchema,
+        network_id: SVM_networkIdSchema,
 
         // -- contract --
-        symbol: z.optional(z.string()),
-        decimals: z.optional(z.number()),
-
-        // // -- price --
-        // price_usd: z.optional(z.number()),
-        // value_usd: z.optional(z.number()),
-        // low_liquidity: z.optional(z.boolean()),
+        decimals: z.optional(z.number())
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -95,10 +90,9 @@ const openapi = describeRoute({
 });
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
-
     let from = c.req.query("from") ?? '';
     if (from) {
-        const parsed = evmAddressSchema.safeParse(from);
+        const parsed = svmAddressSchema.safeParse(from);
         if (!parsed.success) {
             return c.json({ error: `Invalid [from] EVM address: ${parsed.error.message}` }, 400);
         }
@@ -107,7 +101,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
 
     let to = c.req.query("to") ?? '';
     if (to) {
-        const parsed = evmAddressSchema.safeParse(to);
+        const parsed = svmAddressSchema.safeParse(to);
         if (!parsed.success) {
             return c.json({ error: `Invalid [to] EVM address: ${parsed.error.message}` }, 400);
         }
@@ -115,12 +109,12 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
 
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
+    const network_id = SVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultSvmNetwork;
     const { database, type } = config.tokenDatabases[network_id]!;
 
     let contract = c.req.query("contract") ?? '';
     if (contract) {
-        const parsed = evmAddressSchema.safeParse(contract);
+        const parsed = svmAddressSchema.safeParse(contract);
         if (!parsed.success) {
             return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
         }
@@ -129,7 +123,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
 
     let transaction_id = c.req.query("transaction_id") ?? '';
     if (transaction_id) {
-        const parsed = evmTransactionSchema.safeParse(transaction_id);
+        const parsed = svmTransactionSchema.safeParse(transaction_id);
         if (!parsed.success) {
             return c.json({ error: `Invalid EVM transaction ID: ${parsed.error.message}` }, 400);
         }
@@ -171,7 +165,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     const response = await makeUsageQueryJson(c, [query], { from, to, transaction_id, network_id, contract, startTime, endTime }, { database });
-    injectSymbol(response, network_id);
+    // injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });

@@ -73,7 +73,7 @@ const opts = program
     .parse()
     .opts();
 
-function parseDatabases(dbs: string): Record<string, { name: string; type: 'svm' | 'evm' }> {
+function parseDatabases(dbs: string): Record<string, { database: string; type: 'svm' | 'evm' }> {
     return Object.assign({}, ...dbs.split(';').map((db) => {
         if (!db.includes(':')) {
             console.warn(`Malformed database entry: "${db}". Skipping.`);
@@ -85,7 +85,7 @@ function parseDatabases(dbs: string): Record<string, { name: string; type: 'svm'
         if (network_id && db_suffix)
             return {
                 [network_id]: {
-                    name: `${network_id}:${db_suffix}`,
+                    database: `${network_id}:${db_suffix}`,
                     type: network_id === 'solana' ? 'svm' : 'evm' // TODO: Get type from registry
                 }
             };

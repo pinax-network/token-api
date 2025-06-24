@@ -108,9 +108,9 @@ route.get('/contract/:contract/token_id/:token_id', openapi, validator('param', 
 
     // OPTIONAL URL query
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.nftDatabases[network_id]!;
 
-    const query = sqlQueries['nft_metadata_for_token']?.['evm'];
+    const query = sqlQueries['nft_metadata_for_token']?.[type];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { contract, token_id, network_id }, { database });

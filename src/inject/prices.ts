@@ -41,7 +41,7 @@ export async function injectPrices(
     if (!config.tokenDatabases[network_id])
         throw new Error(`Could not find database for network_id: ${network_id}`);
 
-    const database = config.tokenDatabases[network_id].name;
+    const database = config.tokenDatabases[network_id].database;
     const prices = await getPrices(database);
 
     // Native price

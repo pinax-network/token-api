@@ -83,9 +83,9 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
 
     const contract = parseContract.data;
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.tokenDatabases[network_id]!;
 
-    let query = sqlQueries['holders_for_contract']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    let query = sqlQueries['holders_for_contract']?.[type]; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     // reverse ORDER BY if defined
