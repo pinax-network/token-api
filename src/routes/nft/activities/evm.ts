@@ -145,9 +145,9 @@ route.get('/', openapi, validator('param', paramSchema), validator('query', quer
 
     // OPTIONAL URL query
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.nftDatabases[network_id]!;
 
-    let query = sqlQueries['nft_activities']?.['evm'];
+    let query = sqlQueries['nft_activities']?.[type];
     if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
 
     const orderDirection = c.req.query('orderDirection') ?? 'desc';

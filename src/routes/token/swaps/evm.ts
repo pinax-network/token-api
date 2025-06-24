@@ -168,7 +168,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.uniswapDatabases[network_id]!;
 
     // -- `time` filter --
     const endTime = c.req.query('endTime') ?? now();
@@ -186,7 +186,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    let query = sqlQueries['swaps']?.['evm'];
+    let query = sqlQueries['swaps']?.[type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     // reverse ORDER BY if defined

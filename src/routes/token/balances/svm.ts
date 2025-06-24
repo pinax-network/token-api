@@ -77,7 +77,7 @@ route.get('/:address', openapi, validator('param', paramSchema), validator('quer
 
     const address = parseAddress.data;
     const network_id = SVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultSvmNetwork;
-    const database = config.tokenDatabases[network_id]!.name;
+    const { database, type } = config.tokenDatabases[network_id]!;
 
     const contract = c.req.query("contract") ?? '';
 

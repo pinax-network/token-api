@@ -121,9 +121,9 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = config.nftDatabases[network_id]!.name;
+    const { database, type } = config.uniswapDatabases[network_id]!;
 
-    const query = sqlQueries['pools']?.['evm'];
+    const query = sqlQueries['pools']?.[type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], { protocol, pool, token, factory, symbol, network_id }, { database });
