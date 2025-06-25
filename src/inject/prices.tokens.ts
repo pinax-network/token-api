@@ -40,6 +40,13 @@ export const stables = new Set([
     // Unichain
     '0x078d782b760474a361dda0af3839290b0ef57ad6', // Unichain: USDC
     '0x9151434b16b9763660705744891fA906F660EcC5', // Unichain: USDT0 Tether USD
+
+    // Solana
+    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // Solana: USDC (USD Coin)
+    'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // Solana: USDT (Tether USD)
+    '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo', // Solana: PYUSD (PayPal USD)
+    'A8C5Q8KYYotEuUG2KDjqo83s5jJqS7dGSkWTHh3ZnEMh', // Solana: USH (Hedge USD)
+    '5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm', // Solana: USDS (SPARK USD)
 ]);
 
 export const natives = new Set([
@@ -62,4 +69,7 @@ export const natives = new Set([
 
     // Polygon (Matic)
     '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // Polygon: WPOL
+
+    // Solana
+    'So11111111111111111111111111111111111111112', // WSOL
 ]);
