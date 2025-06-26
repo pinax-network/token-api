@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema, paginationQuery } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -16,7 +16,7 @@ const querySchema = z.object({
     token: z.optional(evmAddressSchema),
     symbol: z.optional(z.string()),
     protocol: z.optional(protocolSchema),
-});
+}).merge(paginationQuery);
 
 const responseSchema = z.object({
     data: z.array(z.object({
