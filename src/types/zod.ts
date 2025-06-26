@@ -28,6 +28,7 @@ export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
 export const protocolSchema = z.enum(["uniswap_v2", "uniswap_v3"]).openapi({ description: "Protocol name", example: "uniswap_v3" });
+export const svmProtocolSchema = z.enum(["raydium_amm_v4"]).openapi({ description: "Protocol name", example: "raydium_amm_v4" });
 
 export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string()).openapi({
     description: 'Filter by address'
