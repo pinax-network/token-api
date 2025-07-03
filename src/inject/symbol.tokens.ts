@@ -26,4 +26,5 @@ export const natives = new Map<string, Symbol>([
     ["optimism", { symbol: 'ETH', decimals: 18, name: "Optimism" }],
     ["matic", { symbol: 'POL', decimals: 18, name: "Polygon" }],
     ["unichain", { symbol: 'ETH', decimals: 18, name: "Ethereum" }],
+    ["solana", { symbol: 'SOL', decimals: 18, name: "Solana" }],
 ])
