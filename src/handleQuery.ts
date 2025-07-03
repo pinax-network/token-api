@@ -57,7 +57,7 @@ export async function makeUsageQueryJson<T = unknown>(
             return {
                 status: 500 as ApiErrorResponse["status"],
                 code: "database_timeout" as ApiErrorResponse["code"],
-                message: 'Query took too long. Consider applying startTime and endTime filters.'
+                message: 'Query took too long. Consider applying more filter parameters if possible.'
             };
         }
 
