@@ -15,5 +15,3 @@ JOIN erc20_metadata_initialize
 WHERE
     contract = {contract: String} AND balance > 0
 GROUP BY contract, symbol, name, decimals
-LIMIT   {limit:int}
-OFFSET  {offset:int}

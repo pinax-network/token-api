@@ -70,6 +70,7 @@ export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token
 // Solana examples
 export const JupyterLabs = svmAddressSchema.openapi({ example: 'AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49' });
 export const USDC_WSOL = svmAddressSchema.openapi({ description: 'Filter by pool address', example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
+export const WSOL = svmAddressSchema.openapi({ description: 'Filter by contract address', example: 'So11111111111111111111111111111111111111112' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,
