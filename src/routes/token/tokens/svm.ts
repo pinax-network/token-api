@@ -47,9 +47,9 @@ const responseSchema = z.object({
         decimals: z.optional(z.number()),
 
         // -- price --
-        price_usd: z.optional(z.number()),
-        market_cap: z.optional(z.number()),
-        low_liquidity: z.optional(z.boolean()),
+        // price_usd: z.optional(z.number()),
+        // market_cap: z.optional(z.number()),
+        // low_liquidity: z.optional(z.boolean()),
     })),
     statistics: z.optional(statisticsSchema),
 });
@@ -67,18 +67,15 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22589353,
-                                "datetime": "2025-05-29 15:40:11",
-                                "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
-                                "decimals": 18,
-                                "symbol": "GRT",
-                                "name": "Graph Token",
-                                "circulating_supply": "16667753581.233711",
-                                "holders": 139562,
-                                "network_id": "mainnet",
-                                "icon": {
-                                    "web3icon": "GRT"
-                                }
+                                "block_num": 279194558,
+                                "datetime": "2024-07-23 10:54:15",
+                                "contract": "11112zAgXhc6hGfdfr5anSY91mq7Cs4HHpSVEQc4ASG\u0000",
+                                "decimals": 9,
+                                "symbol": "TO IMPLEMENT",
+                                "name": "TO IMPLEMENT",
+                                "circulating_supply": "1000048190.3747444",
+                                "holders": 74,
+                                "network_id": "solana"
                             }
                         ]
                     }

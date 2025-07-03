@@ -1,7 +1,7 @@
 SELECT
     max(block_num) AS block_num,
     max(timestamp) AS datetime,
-    mint AS contract,
+    toString(mint) AS contract,
     decimals,
     'TO IMPLEMENT' AS symbol,
     'TO IMPLEMENT' AS name,
