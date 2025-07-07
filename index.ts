@@ -27,8 +27,8 @@ app.get('/openapi', openAPISpecs(app, {
             description: 'Power your apps & AI agents with real-time token data.',
         },
         servers: config.disableOpenapiServers ?
-            [{ url: `http://localhost:${config.port}`, description: `${APP_DESCRIPTION} - Local` }] :
-            [{ url: `https://token-api.thegraph.com`, description: `${APP_DESCRIPTION} - Production` }],
+            [{ url: `http://${config.hostname}:${config.port}`, description: `${APP_DESCRIPTION} - Local` }] :
+            [{ url: config.apiUrl, description: `${APP_DESCRIPTION} - Remote` }],
         components: {
             securitySchemes: {
                 bearerAuth: {
