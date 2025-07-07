@@ -9,6 +9,7 @@ import pkg from "../package.json" with { type: "json" };
 export const DEFAULT_PORT = "8000";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_URL = "http://localhost:8123";
+export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}}`;
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
@@ -55,6 +56,7 @@ const opts = program
     .addOption(new Option("-p, --port <number>", "HTTP port on which to attach the API").env("PORT").default(DEFAULT_PORT))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
     .addOption(new Option("--url <string>", "Database HTTP hostname").env("URL").default(DEFAULT_URL))
+    .addOption(new Option("--api-url <string>", "API HTTP hostname").env("API_URL").default(DEFAULT_API_URL))
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--username <string>", "Database user for API").env("USERNAME").default(DEFAULT_USERNAME))
     .addOption(new Option("--password <string>", "Password associated with the specified API username").env("PASSWORD").default(DEFAULT_PASSWORD))
@@ -96,6 +98,7 @@ let config = z.object({
     port: z.string(),
     hostname: z.string(),
     url: z.string(),
+    apiUrl: z.string(),
     database: z.string(),
     username: z.string(),
     password: z.string(),
