@@ -1,27 +1,32 @@
-WITH
-filtered_transfers AS (
-    SELECT
-        block_num,
-        timestamp AS datetime,
-        tx_hash AS transaction_id,
-        toString(program_id) AS program,
-        toString(mint) AS contract,
-        toString(source) AS `from`,
-        toString(destination) AS `to`,
-        amount,
-        decimals,
-        amount / pow(10, decimals) AS value
+WITH sorted AS (
+    SELECT *
     FROM transfers
     WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
-        AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
-        AND ({from:String} = ''  OR source = {from:String})
-        AND ({to:String} = ''  OR destination = {to:String})
-        AND ({contract:String} = '' OR mint = {contract:String})
+    ORDER BY timestamp DESC
+),
+filtered AS (
+    SELECT *
+    FROM sorted
+    WHERE ({signature:String}           = '' OR tx_hash = {signature:String})
+        AND ({source:String}            = '' OR source = {source:String})
+        AND ({destination:String}       = '' OR destination = {destination:String})
+        AND ({mint:String}              = '' OR mint_raw = {mint:String})
 )
 SELECT
-    *,
+    block_num,
+    toUnixTimestamp(timestamp) AS datetime,
+    if (
+        timestamp = 0,
+        toDateTime(1584332940 + intDiv(block_num * 2, 5), 'UTC'),
+        timestamp
+    ) AS timestamp,
+    tx_hash AS signature,
+    toString(program_id) AS program,
+    toString(mint_raw) AS mint,
+    toString(source) AS source,
+    toString(destination) AS destination,
+    amount,
     {network_id: String} AS network_id
-FROM filtered_transfers AS t
-ORDER BY datetime DESC
+FROM filtered
 LIMIT   {limit:int}
 OFFSET  {offset:int}

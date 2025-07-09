@@ -68,17 +68,21 @@ export const PudgyPenguins = evmAddressSchema.openapi({ description: 'Filter by 
 export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '5712' });
 
 // Solana examples
-export const JupyterLabs = svmAddressSchema.openapi({ example: 'AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49' });
-
 export const filterByAmm = svmAddressSchema.openapi({ description: 'Filter by amm address' });
 export const filterByAmmPool = svmAddressSchema.openapi({ description: 'Filter by amm pool address' });
 export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program' });
 export const filterByUser = svmAddressSchema.openapi({ description: 'Filter by user address' });
 export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint adddress' });
+export const filterByTokenAccount = svmAddressSchema.openapi({ description: 'Filter by token account address' });
+export const filterByOwner = svmAddressSchema.openapi({ description: 'Filter by owner address' });
+
+export const JupyterLabsTokenAccount = filterByTokenAccount.openapi({ example: 'AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49' });
+export const JupyterLabsOwner = filterByOwner.openapi({ example: 'PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu' });
+
 export const RaydiumV4 = filterByProgramId.openapi({ example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8' });
 export const USDC_WSOL = filterByAmmPool.openapi({ example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
 export const WSOL = svmAddressSchema.openapi({ description: 'Filter by contract address', example: 'So11111111111111111111111111111111111111112' });
-export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program' });
+export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program', example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,

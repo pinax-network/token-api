@@ -25,8 +25,8 @@ SELECT
     trimRight(toString(program_id), char(0)) AS program_id,
     program_name,
     trimRight(toString(amm), char(0)) AS amm,
-    amm_name
-    amm_pool,
+    amm_name,
+    trimRight(toString(amm_pool), char(0)) AS amm_pool,
     user,
     trimRight(toString(input_mint), char(0)) AS input_mint,
     input_amount,

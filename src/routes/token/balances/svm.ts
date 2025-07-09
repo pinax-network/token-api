@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema, JupyterLabs } from '../../../types/zod.js';
+import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema, JupyterLabsTokenAccount } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config, DEFAULT_AGE } from '../../../config.js';
@@ -12,7 +12,7 @@ import { injectPrices } from '../../../inject/prices.js';
 const route = new Hono();
 
 const paramSchema = z.object({
-    address: JupyterLabs,
+    address: JupyterLabsTokenAccount,
 });
 
 let querySchema: any = z.object({
