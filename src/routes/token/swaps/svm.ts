@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, svmProtocolSchema, tokenSchema, svmTransactionSchema, paginationQuery, USDC_WSOL, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
+import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, svmProtocolSchema, tokenSchema, svmTransactionSchema, paginationQuery, USDC_WSOL, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema, RaydiumV4, filterByAmm, filterByUser, SolanaProgramIds, filterByAmmPool, filterByMint } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -14,9 +14,12 @@ const querySchema = z.object({
     network_id: z.optional(SVM_networkIdSchema),
 
     // -- `swaps` filter --
-    pool: z.optional(USDC_WSOL),
-    sender: z.optional(svmAddressSchema),
-    protocol: z.optional(svmProtocolSchema),
+    program_id: SolanaProgramIds,
+    amm: z.optional(filterByAmm),
+    amm_pool: z.optional(filterByAmmPool),
+    user: z.optional(filterByUser),
+    input_mint: z.optional(filterByMint),
+    output_mint: z.optional(filterByMint),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -25,7 +28,7 @@ const querySchema = z.object({
     orderDirection: z.optional(orderDirectionSchema),
 
     // -- `transaction` filter --
-    transaction_id: z.optional(svmTransactionSchema),
+    signature: z.optional(svmTransactionSchema),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -35,21 +38,25 @@ const responseSchema = z.object({
         datetime: z.string(),
         timestamp: z.number(),
 
+        // -- ordering --
+        transaction_index: z.number(),
+        instruction_index: z.number(),
+
         // -- transaction --
-        transaction_id: z.string(),
+        signature: z.string(),
+        program_id: svmAddressSchema,
+        program_name: z.string(),
 
         // -- swap --
-        pool: svmAddressSchema,
-        token0: tokenSchema,
-        token1: tokenSchema,
-        sender: svmAddressSchema,
-        amount0: z.string(),
-        amount1: z.string(),
-        value0: z.number(),
-        value1: z.number(),
-        price0: z.number(),
-        price1: z.number(),
-        protocol: z.string(),
+        user: svmAddressSchema,
+        amm: svmAddressSchema,
+        amm_name: z.string(),
+        amm_pool: z.optional(svmAddressSchema),
+
+        input_mint: tokenSchema,
+        input_amount: z.number(),
+        output_mint: tokenSchema,
+        output_amount: z.number(),
 
         // -- chain --
         network_id: SVM_networkIdSchema,
@@ -59,7 +66,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute({
     summary: 'Swap Events',
-    description: 'Provides Raydium swap events.',
+    description: 'Provides AMM Swap events.',
     tags: ['SVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -69,32 +76,7 @@ const openapi = describeRoute({
                 'application/json': {
                     schema: resolver(responseSchema), example: {
                         data: [
-                            {
-                                "block_num": 351750524,
-                                "datetime": "2025-07-07 16:02:09",
-                                "timestamp": 1751904129,
-                                "transaction_id": "64qhvcRb5siuSVoH7ZoNTVgDqnMcxmPZrw6ZKtTWSjJ6e8sexhT9EpjuwhmzkjjJV9JxegKmr2gD7mkiA3QcnUH6",
-                                "pool": "3LcXtfrBixJu3ZZanoz6DfwFGThZ85ufVJe5co71b4eg",
-                                "token0": {
-                                    "address": "3tGNX8UMyxy48WQnWr7TQyUBGuwiS6ZcBhPSiR5RYMfM",
-                                    "symbol": "TO IMPLEMENT",
-                                    "decimals": 6
-                                },
-                                "token1": {
-                                    "address": "So11111111111111111111111111111111111111112",
-                                    "symbol": "TO IMPLEMENT",
-                                    "decimals": 9
-                                },
-                                "sender": "B3TehHmo3oWNJxr4VC3D2t8eLRZ7um3tpJCZ7PJKnGYP",
-                                "amount0": "-12042561",
-                                "amount1": "1869917",
-                                "value0": -12.042561,
-                                "value1": 0.001869917,
-                                "price0": 0.006440158039100132,
-                                "price1": 155.2756926039237,
-                                "protocol": "raydium_amm_v4",
-                                "network_id": "solana"
-                            }
+
                         ]
                     }
                 },
@@ -104,31 +86,67 @@ const openapi = describeRoute({
 });
 
 route.get('/', openapi, validator('query', querySchema), async (c) => {
-    let pool = c.req.query("pool") ?? '';
-    if (pool) {
-        const parsed = svmAddressSchema.safeParse(pool);
+    let program_id = c.req.query("program_id") ?? '';
+    if (program_id) {
+        const parsed = svmAddressSchema.safeParse(program_id);
         if (!parsed.success) {
-            return c.json({ error: `Invalid pool SVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid program_id SVM address: ${parsed.error.message}` }, 400);
         }
-        pool = parsed.data;
+        program_id = parsed.data;
     }
 
-    let sender = c.req.query("sender") ?? '';
-    if (sender) {
-        const parsed = svmAddressSchema.safeParse(sender);
+    let amm = c.req.query("amm") ?? '';
+    if (amm) {
+        const parsed = svmAddressSchema.safeParse(amm);
         if (!parsed.success) {
-            return c.json({ error: `Invalid sender SVM address: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid amm SVM address: ${parsed.error.message}` }, 400);
         }
-        sender = parsed.data;
+        amm = parsed.data;
     }
 
-    let transaction_id = c.req.query("transaction_id") ?? '';
-    if (transaction_id) {
-        const parsed = svmTransactionSchema.safeParse(transaction_id);
+    let amm_pool = c.req.query("amm_pool") ?? '';
+    if (amm_pool) {
+        const parsed = svmAddressSchema.safeParse(amm_pool);
         if (!parsed.success) {
-            return c.json({ error: `Invalid SVM transaction ID: ${parsed.error.message}` }, 400);
+            return c.json({ error: `Invalid amm_pool SVM address: ${parsed.error.message}` }, 400);
         }
-        transaction_id = parsed.data;
+        amm_pool = parsed.data;
+    }
+
+    let user = c.req.query("user") ?? '';
+    if (user) {
+        const parsed = svmAddressSchema.safeParse(user);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid user SVM address: ${parsed.error.message}` }, 400);
+        }
+        user = parsed.data;
+    }
+
+    let input_mint = c.req.query("input_mint") ?? '';
+    if (input_mint) {
+        const parsed = svmAddressSchema.safeParse(input_mint);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid input_mint SVM address: ${parsed.error.message}` }, 400);
+        }
+        input_mint = parsed.data;
+    }
+
+    let output_mint = c.req.query("output_mint") ?? '';
+    if (output_mint) {
+        const parsed = svmAddressSchema.safeParse(output_mint);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid output_mint SVM address: ${parsed.error.message}` }, 400);
+        }
+        output_mint = parsed.data;
+    }
+
+    let signature = c.req.query("signature") ?? '';
+    if (signature) {
+        const parsed = svmTransactionSchema.safeParse(signature);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid SVM transaction signature: ${parsed.error.message}` }, 400);
+        }
+        signature = parsed.data;
     }
 
     // const symbol = c.req.query("symbol") ?? '';
@@ -177,7 +195,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const response = await makeUsageQueryJson(c, [query], { protocol, pool, sender, network_id, transaction_id, startTime, endTime }, { database });
+    const response = await makeUsageQueryJson(c, [query], { protocol, program_id, amm, amm_pool, user, input_mint, output_mint, network_id, signature, startTime, endTime }, { database });
     return handleUsageQueryError(c, response);
 });
 

@@ -38,7 +38,7 @@ export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr
 export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
     description: 'Filter by address'
 });
-export const svmTransactionSchema = svmTransaction.pipe(z.string()).openapi({ description: 'Filter by transaction' });
+export const svmTransactionSchema = svmTransaction.pipe(z.string()).openapi({ description: 'Filter by transaction signature' });
 
 // z.enum argument type definition requires at least one element to be defined
 export const EVM_networkIdSchema = z.enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for EVM networks https://thegraph.com/networks", example: config.defaultEvmNetwork });
@@ -55,8 +55,8 @@ export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in se
 
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()
-  .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
-  .openapi({ description: 'NFT token ID' });
+    .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
+    .openapi({ description: 'NFT token ID' });
 export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']);
 
 // Used for examples
@@ -69,12 +69,26 @@ export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token
 
 // Solana examples
 export const JupyterLabs = svmAddressSchema.openapi({ example: 'AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49' });
-export const USDC_WSOL = svmAddressSchema.openapi({ description: 'Filter by pool address', example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
+
+export const filterByAmm = svmAddressSchema.openapi({ description: 'Filter by amm address' });
+export const filterByAmmPool = svmAddressSchema.openapi({ description: 'Filter by amm pool address' });
+export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program' });
+export const filterByUser = svmAddressSchema.openapi({ description: 'Filter by user address' });
+export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint adddress' });
+export const RaydiumV4 = filterByProgramId.openapi({ example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8' });
+export const USDC_WSOL = filterByAmmPool.openapi({ example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
 export const WSOL = svmAddressSchema.openapi({ description: 'Filter by contract address', example: 'So11111111111111111111111111111111111111112' });
+export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,
     symbol: z.string(),
+    decimals: z.number(),
+});
+
+export const mintSchema = z.object({
+    address: evmAddressSchema,
+    // symbol: z.string(),
     decimals: z.number(),
 });
 
