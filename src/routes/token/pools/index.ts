@@ -5,6 +5,6 @@ import svm from "./svm.js";
 const router = new Hono()
 
 router.route('/evm', evm)
-router.route('/svm', svm)
+//router.route('/svm', svm)
 
 export default router
