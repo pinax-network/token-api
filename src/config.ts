@@ -149,7 +149,7 @@ let config = z.object({
     ).sort()
 })).transform((data) => ({
     ...data,
-    networks: [ ...data.evmNetworks, ...data.svmNetworks ]
+    networks: [...data.evmNetworks, ...data.svmNetworks]
 })).parse(opts);
 
 export { config };

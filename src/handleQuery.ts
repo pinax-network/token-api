@@ -74,7 +74,7 @@ export async function makeUsageQueryJson<T = unknown>(
     } catch (err) {
         let message: string;
         const filter_error_messages = ['Unknown', 'does not exist']
-  
+
         if (err instanceof Error)
             message = err.message;
         else if (typeof err === 'string')
@@ -82,8 +82,8 @@ export async function makeUsageQueryJson<T = unknown>(
         else
             message = 'An unknown error occurred';
 
-        if (filter_error_messages.some(w => message.includes(w)))
-            message = 'Endpoint is currently not supported for this network';
+        // if (filter_error_messages.some(w => message.includes(w)))
+        //     message = 'Endpoint is currently not supported for this network';
 
         return {
             status: 500 as ApiErrorResponse["status"],
