@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { svmAddressSchema, statisticsSchema, paginationQuery, SVM_networkIdSchema, timestampSchema, svmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, WSOL } from '../../../types/zod.js';
+import { svmAddressSchema, statisticsSchema, paginationQuery, SVM_networkIdSchema, timestampSchema, svmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, WSOL, filterByTokenAccount } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -16,8 +16,8 @@ const querySchema = z.object({
     // -- `token` filter --
     // from: z.optional(svmAddressSchema),
     // to: z.optional(JupyterLabs),
-    source: z.optional(svmAddressSchema),
-    destination: z.optional(svmAddressSchema),
+    source: z.optional(filterByTokenAccount),
+    destination: z.optional(filterByTokenAccount),
     mint: z.optional(WSOL),
     // authority: z.optional(svmAddressSchema),
     // program_id: z.optional(svmAddressSchema),

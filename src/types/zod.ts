@@ -72,7 +72,7 @@ export const filterByAmm = svmAddressSchema.openapi({ description: 'Filter by am
 export const filterByAmmPool = svmAddressSchema.openapi({ description: 'Filter by amm pool address' });
 export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program' });
 export const filterByUser = svmAddressSchema.openapi({ description: 'Filter by user address' });
-export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint adddress' });
+export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint address' });
 export const filterByTokenAccount = svmAddressSchema.openapi({ description: 'Filter by token account address' });
 export const filterByOwner = svmAddressSchema.openapi({ description: 'Filter by owner address' });
 
