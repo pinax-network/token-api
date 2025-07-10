@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, svmProtocolSchema, tokenSchema, svmTransactionSchema, paginationQuery, USDC_WSOL, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema, RaydiumV4, filterByAmm, filterByUser, SolanaProgramIds, filterByAmmPool, filterByMint } from '../../../types/zod.js';
+import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, svmProtocolSchema, tokenSchema, svmTransactionSchema, paginationQuery, USDC_WSOL, timestampSchema, orderBySchemaTimestamp, orderDirectionSchema, RaydiumV4, filterByAmm, filterByUser, filterByAmmPool, filterByMint, PumpFunAmmProgramId } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -14,7 +14,7 @@ const querySchema = z.object({
     network_id: z.optional(SVM_networkIdSchema),
 
     // -- `swaps` filter --
-    program_id: SolanaProgramIds,
+    program_id: PumpFunAmmProgramId,
     amm: z.optional(filterByAmm),
     amm_pool: z.optional(filterByAmmPool),
     user: z.optional(filterByUser),

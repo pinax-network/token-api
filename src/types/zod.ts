@@ -70,7 +70,7 @@ export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token
 // Solana examples
 export const filterByAmm = svmAddressSchema.openapi({ description: 'Filter by amm address' });
 export const filterByAmmPool = svmAddressSchema.openapi({ description: 'Filter by amm pool address' });
-export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program' });
+export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program ID' });
 export const filterByUser = svmAddressSchema.openapi({ description: 'Filter by user address' });
 export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint address' });
 export const filterByTokenAccount = svmAddressSchema.openapi({ description: 'Filter by token account address' });
@@ -82,7 +82,9 @@ export const RaydiumWSOLMarketOwner = filterByOwner.openapi({ example: '3ucNos4N
 export const RaydiumV4 = filterByProgramId.openapi({ example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8' });
 export const USDC_WSOL = filterByAmmPool.openapi({ example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
 export const WSOL = filterByMint.openapi({ example: 'So11111111111111111111111111111111111111112' });
-export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program', example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA' });
+export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program ID' });
+export const SolanaSPLTokenProgramIds = z.enum(["TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]).openapi({ description: 'Filter by program ID' });
+export const PumpFunAmmProgramId = SolanaProgramIds.openapi({ example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA' });
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,
