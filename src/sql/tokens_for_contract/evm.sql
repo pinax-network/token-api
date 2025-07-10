@@ -35,7 +35,7 @@ SELECT
     trim(m.symbol) AS symbol,
     trim(m.name) AS name,
     b.circulating_supply as circulating_supply,
-    s.total_supply as total_supply,
+    s.total_supply / pow(10, d.decimals) as total_supply,
     b.holders as holders,
     {network_id: String} as network_id
 FROM b
