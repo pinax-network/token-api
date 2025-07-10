@@ -18,10 +18,11 @@ const querySchema = z.object({
     // -- `token` filter --
     // from: z.optional(svmAddressSchema),
     // to: z.optional(JupyterLabs),
-    source: z.optional(filterByTokenAccount),
-    destination: z.optional(JupyterLabsTokenAccount),
-    mint: z.optional(svmAddressSchema),
-    program_id: z.optional(svmAddressSchema),
+    // source: z.optional(filterByTokenAccount),
+    // destination: z.optional(JupyterLabsTokenAccount),
+    // mint: z.optional(svmAddressSchema),
+    // authority: z.optional(svmAddressSchema),
+    // program_id: z.optional(svmAddressSchema),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -30,7 +31,7 @@ const querySchema = z.object({
     orderDirection: z.optional(orderDirectionSchema),
 
     // -- `transaction` filter --
-    signature: z.optional(svmTransactionSchema),
+    // signature: z.optional(svmTransactionSchema),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -42,14 +43,15 @@ const responseSchema = z.object({
         // -- transaction --
         signature: z.string(),
 
-        // -- transfer --
+        // -- instruction --
         program_id: svmAddressSchema,
-        contract: svmAddressSchema,
-        from: svmAddressSchema,
-        to: svmAddressSchema,
+        mint: svmAddressSchema,
+        authority: svmAddressSchema,
+
+        // -- transfer --
+        source: svmAddressSchema,
+        destination: svmAddressSchema,
         amount: z.string(),
-        decimals: z.optional(z.number()),
-        value: z.number(),
 
         // -- chain --
         network_id: SVM_networkIdSchema
@@ -70,16 +72,16 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 348911604,
-                                "datetime": "2025-06-24 14:47:56",
-                                "transaction_id": "26UfUmbCB4jdEh8b6xZJYa3wfFSQ73KLiNfx5gw7D72BZSa747emfCiBgWVsCx1uLBv9JCX1dsPfEbQAVybe2wyC",
-                                "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-                                "contract": "EiADDho35vjYwZWfjFveF3BQC6kQcyCwz7tdeJuLx3ks",
-                                "from": "AVNfV6msTPyVvTLedqsfSPE7yMZSyVrAG8u5STKWE7R8",
-                                "to": "G6jwgA3pTTRYv86fWkkuHRtyHfxJjzWLbcqcVXqBQDVr",
-                                "amount": 2123240101,
-                                "decimals": 6,
-                                "value": 2123.240101,
+                                "block_num": 352286727,
+                                "datetime": "2025-07-10 03:08:23",
+                                "timestamp": 1752116903,
+                                "signature": "57KsAeb1iQLMw852QupVvR82rVYqrZ6SPjSB4cohobSRKecaDWRMd9kK2RGAX6ZxPBU2WHP7kdqc2pKBAnJbcuMu",
+                                "program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                                "authority": "2ywr5eDTQDDcywz6oHHBwM3xXyvvUvkc2aZnb13mmw8o",
+                                "mint": "D5zjVrNyFpiX5N9trJmQFY4wrjcfkw8M2VivTwAkvTjn",
+                                "source": "qFhJwiKy9sAQHDUc7dHpnUf12F6GMuYdxpMBUiAaFjW",
+                                "destination": "AdJuiFunPEPh84jwyjVLrtxVDcC6qhgYeTJzH5F2MVUk",
+                                "amount": 4185053569,
                                 "network_id": "solana"
                             }
                         ]
@@ -149,6 +151,15 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         mint = parsed.data;
     }
 
+    let authority = c.req.query("authority") ?? '';
+    if (authority) {
+        const parsed = svmAddressSchema.safeParse(authority);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid authority SVM address: ${parsed.error.message}` }, 400);
+        }
+        authority = parsed.data;
+    }
+
     let signature = c.req.query("signature") ?? '';
     if (signature) {
         const parsed = svmTransactionSchema.safeParse(signature);
@@ -159,14 +170,14 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     }
 
     // -- `time` filter --
-    const endTime = c.req.query('endTime') ?? now();
+    const endTime = c.req.query('endTime') || now();
     if (endTime) {
         const parsed = timestampSchema.safeParse(endTime);
         if (!parsed.success) {
             return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
         }
     }
-    const startTime = c.req.query('startTime') ?? '0';
+    const startTime = c.req.query('startTime') || '0';
     if (startTime) {
         const parsed = timestampSchema.safeParse(startTime);
         if (!parsed.success) {
@@ -192,7 +203,7 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         }
     }
 
-    const response = await makeUsageQueryJson(c, [query], { from, to, source, destination, program_id, signature, network_id, mint, startTime, endTime }, { database });
+    const response = await makeUsageQueryJson(c, [query], { from, to, source, authority, destination, program_id, signature, network_id, mint, startTime, endTime }, { database });
     // injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);

@@ -171,14 +171,14 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
     const { database, type } = config.uniswapDatabases[network_id]!;
 
     // -- `time` filter --
-    const endTime = c.req.query('endTime') ?? now();
+    const endTime = c.req.query('endTime') || now();
     if (endTime) {
         const parsed = timestampSchema.safeParse(endTime);
         if (!parsed.success) {
             return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
         }
     }
-    const startTime = c.req.query('startTime') ?? '0';
+    const startTime = c.req.query('startTime') || '0';
     if (startTime) {
         const parsed = timestampSchema.safeParse(startTime);
         if (!parsed.success) {
