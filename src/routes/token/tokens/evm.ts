@@ -27,7 +27,7 @@ const responseSchema = z.object({
         datetime: z.string(),
 
         // -- contract --
-        address: evmAddressSchema,
+        contract: evmAddressSchema,
 
         // -- token --
         circulating_supply: z.string(),
@@ -69,7 +69,7 @@ const openapi = describeRoute({
                             {
                                 "block_num": 22589353,
                                 "datetime": "2025-05-29 15:40:11",
-                                "address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+                                "contract": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "name": "Graph Token",

@@ -1,17 +1,25 @@
 SELECT
     max(block_num) as block_num,
     max(timestamp) as datetime,
-    contract as address,
+    contract,
     decimals,
     trim(symbol) as symbol,
     name,
-    toString(sum(balance)) as circulating_supply,
-    count() as holders,
+    sum(latest_balance) as circulating_supply,
+    countIf(latest_balance > 0) as holders,
     {network_id: String} as network_id
-FROM balances_by_contract
-FINAL
-JOIN erc20_metadata_initialize
-    ON balances_by_contract.contract = erc20_metadata_initialize.address
-WHERE
-    contract = {contract: String} AND balance > 0
-GROUP BY contract, symbol, name, decimals
+FROM (
+    SELECT 
+        contract,
+        address,
+        argMax(balance, b.block_num) as latest_balance,
+        argMax(decimals, b.block_num) as decimals,
+        argMax(symbol, b.block_num) as symbol,
+        argMax(name, b.block_num) as name,
+        max(block_num) as block_num,
+        max(timestamp) as timestamp
+    FROM balances_by_contract AS b
+    WHERE contract = {contract: String}
+    GROUP BY contract, address
+) latest_balances
+GROUP BY contract, decimals, symbol, name;
