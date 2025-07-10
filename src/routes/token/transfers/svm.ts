@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { svmAddressSchema, statisticsSchema, paginationQuery, SVM_networkIdSchema, timestampSchema, svmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, WSOL, filterByTokenAccount } from '../../../types/zod.js';
+import { svmAddressSchema, statisticsSchema, paginationQuery, SVM_networkIdSchema, timestampSchema, svmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, WSOL, filterByTokenAccount, SolanaSPLTokenProgramIds, filterByAuthority } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -14,13 +14,11 @@ const querySchema = z.object({
     network_id: z.optional(SVM_networkIdSchema),
 
     // -- `token` filter --
-    // from: z.optional(svmAddressSchema),
-    // to: z.optional(JupyterLabs),
+    mint: z.optional(WSOL),
     source: z.optional(filterByTokenAccount),
     destination: z.optional(filterByTokenAccount),
-    mint: z.optional(WSOL),
-    // authority: z.optional(svmAddressSchema),
-    // program_id: z.optional(svmAddressSchema),
+    authority: z.optional(filterByAuthority),
+    program_id: z.optional(SolanaSPLTokenProgramIds),
 
     // -- `time` filter --
     startTime: z.optional(timestampSchema),
@@ -51,6 +49,8 @@ const responseSchema = z.object({
         source: svmAddressSchema,
         destination: svmAddressSchema,
         amount: z.string(),
+        value: z.number(),
+        decimals: z.nullable(z.number().int()),
 
         // -- chain --
         network_id: SVM_networkIdSchema
@@ -71,16 +71,18 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 352286727,
-                                "datetime": "2025-07-10 03:08:23",
-                                "timestamp": 1752116903,
-                                "signature": "57KsAeb1iQLMw852QupVvR82rVYqrZ6SPjSB4cohobSRKecaDWRMd9kK2RGAX6ZxPBU2WHP7kdqc2pKBAnJbcuMu",
+                                "block_num": 352372432,
+                                "datetime": "2025-07-10 12:32:03",
+                                "timestamp": 1752150723,
+                                "signature": "4t7ZD3Fd8i9md6CTF6SEoZ9aPkr1fhRpXXSK2DhrUe5Wcm9VFdJ9Sn4WvbhdQaetLkiq8Xm3r5YgU1ffSJaA6c2e",
                                 "program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-                                "authority": "2ywr5eDTQDDcywz6oHHBwM3xXyvvUvkc2aZnb13mmw8o",
-                                "mint": "D5zjVrNyFpiX5N9trJmQFY4wrjcfkw8M2VivTwAkvTjn",
-                                "source": "qFhJwiKy9sAQHDUc7dHpnUf12F6GMuYdxpMBUiAaFjW",
-                                "destination": "AdJuiFunPEPh84jwyjVLrtxVDcC6qhgYeTJzH5F2MVUk",
-                                "amount": 4185053569,
+                                "authority": "J5kWrUKVPrtjwMVQLNgUEC9RY9Ujh8pYTN3nqWUkg1zp",
+                                "mint": "So11111111111111111111111111111111111111112",
+                                "source": "G4sbSww72omqHsC6tYe4syFtzHyBieS6MjbRWmSn1mt5",
+                                "destination": "7ds7shXvLdNzihJXrjuoYYTr8bD5c2zwRxmZrrSZXgmM",
+                                "amount": 333993128,
+                                "decimals": 9,
+                                "value": 0.333993128,
                                 "network_id": "solana"
                             }
                         ]

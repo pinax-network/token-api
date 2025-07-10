@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchema, filterByMint, RaydiumWSOLMarketTokenAccount } from '../../../types/zod.js';
+import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchema, filterByMint, RaydiumWSOLMarketTokenAccount, SolanaSPLTokenProgramIds, WSOL, filterByTokenAccount } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
@@ -11,10 +11,10 @@ import { injectSymbol } from '../../../inject/symbol.js';
 const route = new Hono();
 
 let querySchema = z.object({
-    token_account: RaydiumWSOLMarketTokenAccount,
-    mint: z.optional(filterByMint),
+    token_account: z.optional(filterByTokenAccount),
+    mint: z.optional(WSOL),
+    program_id: z.optional(SolanaSPLTokenProgramIds),
     network_id: z.optional(SVM_networkIdSchema),
-    contract: z.optional(z.string()),
 }).merge(paginationQuery);
 
 let responseSchema = z.object({
@@ -47,8 +47,8 @@ let responseSchema = z.object({
 });
 
 let openapi = describeRoute({
-    summary: 'Balances by Address',
-    description: 'Provides Solana tokens balances by token account address.',
+    summary: 'Balances by Token Accounts',
+    description: 'Provides Solana SPL tokens balances by token account address.',
     tags: ['SVM'],
     security: [{ bearerAuth: [] }],
     responses: {
@@ -98,13 +98,22 @@ route.get('/', openapi, validator('query', querySchema), async (c) => {
         mint = parsed.data;
     }
 
+    let program_id = c.req.query("program_id") ?? '';
+    if (program_id) {
+        const parsed = svmAddressSchema.safeParse(program_id);
+        if (!parsed.success) {
+            return c.json({ error: `Invalid [program_id] SVM address: ${parsed.error.message}` }, 400);
+        }
+        program_id = parsed.data;
+    }
+
     const network_id = SVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultSvmNetwork;
     const { database, type } = config.tokenDatabases[network_id]!;
 
     const query = sqlQueries['balances_for_account']?.[config.tokenDatabases[network_id]!.type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { token_account, mint, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], { token_account, mint, network_id, program_id }, { database });
     injectSymbol(response, network_id);
     // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
