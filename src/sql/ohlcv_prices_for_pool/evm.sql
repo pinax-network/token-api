@@ -1,54 +1,36 @@
-WITH
-metadata AS (
-    SELECT
-        p.pool,
-        t0.symbol AS t0_symbol,
-        t0.decimals AS t0_decimals,
-        t1.symbol AS t1_symbol,
-        t1.decimals AS t1_decimals
-    FROM pools AS p
-    LEFT JOIN contracts AS t0 ON p.token0 = t0.address
-    LEFT JOIN contracts AS t1 ON p.token1 = t1.address
-    WHERE p.pool = {pool: String}
-),
-ohlc AS (
+WITH ohlc AS (
     SELECT
         if(
             toTime(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
             toDate(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)),
             toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)
         ) AS datetime,
-        CONCAT((SELECT t1_symbol FROM metadata), (SELECT t0_symbol FROM metadata)) AS ticker,
-        1/argMinMerge(open0) AS open_raw,
-        1/quantileDeterministicMerge({low_quantile: Float32})(high0) AS high_raw,
-        1/quantileDeterministicMerge({high_quantile: Float32})(low0) AS low_raw,
-        1/argMaxMerge(close0) AS close_raw,
+        CONCAT(symbol0, symbol1) AS ticker,
+        argMinMerge(open0) AS open_raw,
+        quantileDeterministicMerge({high_quantile: Float32})(quantile0) AS high_raw,
+        quantileDeterministicMerge({low_quantile: Float32})(quantile0) AS low_raw,
+        argMaxMerge(close0) AS close_raw,
         sum(gross_volume0) AS volume,
-        sum(transactions) AS transactions
+        uniqMerge(uaw) AS uaw,
+        sum(transactions) AS transactions,
+        toString(token0) IN {stablecoin_contracts: Array(String)} AS is_stablecoin
     FROM ohlc_prices
     WHERE pool = {pool: String}
-    GROUP BY datetime
+    GROUP BY datetime, symbol0, symbol1, token0
     HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String})
        AND datetime <= parseDateTimeBestEffort({max_datetime: String})
     ORDER BY datetime DESC
+    LIMIT   {limit:int}
+    OFFSET  {offset:int}
 )
 SELECT
     datetime,
     ticker,
-    open_raw * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS open,
-    multiIf(
-        high_raw < open_raw, open_raw,
-        high_raw < close_raw, close_raw,
-        high_raw
-    ) * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS high,
-    multiIf(
-        low_raw > open_raw, open_raw,
-        low_raw > close_raw, close_raw,
-        low_raw
-    ) * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS low,
-    close_raw * pow(10, (SELECT t1_decimals FROM metadata) - (SELECT t0_decimals FROM metadata)) AS close,
-    toFloat64(ohlc.volume) * pow(10, -(SELECT t0_decimals FROM metadata)) AS volume,
+    if(is_stablecoin, 1/open_raw, open_raw) AS open,
+    if(is_stablecoin, 1/high_raw, high_raw) AS high,
+    if(is_stablecoin, 1/low_raw, low_raw) AS low,
+    if(is_stablecoin, 1/close_raw, close_raw) AS close,
+    volume,
+    uaw,
     transactions
 FROM ohlc
-LIMIT   {limit:int}
-OFFSET  {offset:int}

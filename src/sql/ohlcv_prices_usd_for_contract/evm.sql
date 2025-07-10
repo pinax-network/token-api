@@ -5,16 +5,13 @@ metadata AS (
         name,
         symbol,
         decimals
-    FROM contracts
-    WHERE address IN {stablecoin_contracts: Array(String)}
+    FROM erc20_metadata_initialize
+    WHERE toString(address) IN {stablecoin_contracts: Array(String)}
 ),
 filtered_pools AS (
     SELECT
         pool,
-        pow(
-            10,
-            abs((SELECT decimals FROM contracts FINAL WHERE address = {contract: String}) - decimals)
-        ) AS decimals_factor,
+        1 AS decimals_factor,
         decimals
     FROM pools AS p
     JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
@@ -45,7 +42,7 @@ normalized_prices AS (
 )
 SELECT
     datetime,
-    CONCAT((SELECT symbol FROM contracts FINAL WHERE address = {contract: String}), 'USD') AS ticker,
+    CONCAT((SELECT symbol FROM erc20_metadata_initialize FINAL WHERE address = {contract: String}), 'USD') AS ticker,
     quantileExactWeighted(open, n.transactions + n.uaw) AS open,
     quantileExactWeighted(high, n.transactions + n.uaw) AS high,
     quantileExactWeighted(low, n.transactions + n.uaw) AS low,
