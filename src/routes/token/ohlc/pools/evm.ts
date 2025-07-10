@@ -6,6 +6,7 @@ import { evmAddressSchema, statisticsSchema, paginationQuery, intervalSchema, ti
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
+import { stables } from '../../../../inject/prices.tokens.js';
 
 const route = new Hono();
 
@@ -71,9 +72,9 @@ route.get('/:pool', openapi, validator('param', paramSchema), validator('query',
 
     const pool = parsePool.data;
     const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const database = `${network_id}:evm-tokens@v1.11.0:db_out`; // Hotfix
+    const { database, type } = config.uniswapDatabases[network_id]!;
 
-    const query = sqlQueries['ohlcv_prices_for_pool']?.['evm']; // TODO: Load different chain_type queries based on network_id
+    const query = sqlQueries['ohlcv_prices_for_pool']?.[type]; // TODO: Load different chain_type queries based on network_id
     if (!query) return c.json({ error: 'Query for OHLCV pool prices could not be loaded' }, 500);
 
     const parseIntervalMinute = intervalSchema.transform((interval) => {
@@ -110,6 +111,7 @@ route.get('/:pool', openapi, validator('param', paramSchema), validator('query',
         pool,
         min_datetime,
         max_datetime,
+        stablecoin_contracts: [...stables]
     }, { database });
 
     return handleUsageQueryError(c, response);
