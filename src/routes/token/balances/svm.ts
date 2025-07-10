@@ -47,7 +47,7 @@ let responseSchema = z.object({
 });
 
 let openapi = describeRoute({
-    summary: 'Balances by Token Account',
+    summary: 'Balances by Token Accounts',
     description: 'Provides Solana SPL tokens balances by token account address.',
     tags: ['SVM'],
     security: [{ bearerAuth: [] }],
