@@ -1,14 +1,3 @@
-WITH b AS (
-    SELECT
-        *,
-        row_number() OVER (
-            PARTITION BY owner, mint
-            ORDER BY block_num DESC
-        ) AS rn
-    FROM balances
-    WHERE owner = {token_account:String}
-      AND ({mint:String} = '' OR mint = {mint:String})
-)
 SELECT
     block_num,
     b.timestamp                         AS datetime,
@@ -20,8 +9,10 @@ SELECT
     b.amount / pow(10, decimals)        AS value,
     decimals,
     {network_id:String}     AS network_id
-FROM b
-WHERE rn = 1
-ORDER BY block_num DESC
+FROM balances AS b FINAL
+WHERE ({token_account:String}     = '' OR owner = {token_account:String})
+    AND ({mint:String}            = '' OR mint = {mint:String})
+    AND ({program_id:String}      = '' OR program_id = {program_id:String})
+    AND b.amount > 0
 LIMIT  {limit:Int}
 OFFSET {offset:Int};
