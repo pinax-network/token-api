@@ -1,0 +1,46 @@
+name: Mayhem for API
+on:
+    push:
+    pull_request:
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # fetch entire history to compute diffs between jobs
+        fetch-depth: 0
+
+    - name: Install bun
+      uses: oven-sh/setup-bun@v2
+
+    - name: Install Dependencies
+      run: bun install
+
+    - name: Start your API
+      run: bun run start &
+
+    - name: Run Mayhem for API to check for vulnerabilities
+      uses: ForAllSecure/mapi-action@v2
+      continue-on-error: true
+      with:
+        mayhem-token: ${{ secrets.MAYHEM_TOKEN }}
+        api-url: http://localhost:8000
+        api-spec: http://localhost:8000/openapi.json
+        html-report: mapi.html
+        run-args: |
+          --ignore-endpoint
+          /health
+          --ignore-endpoint
+          /networks
+          --ignore-endpoint
+          /version
+          # Treat all warnings as errors
+          --warnaserror
+
+    # Archive HTML report
+    - name: Archive Mayhem for API report
+      uses: actions/upload-artifact@v4
+      with:
+        name: mapi-report
+        path: mapi.html
