@@ -12,7 +12,7 @@ WITH filtered_orders AS (
     FROM seaport_orders
     FINAL
     WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
-        AND consideration_token IN {nativeContracts: Array(String)}
+        AND toString(consideration_token) IN {nativeContracts: Array(String)}
         AND offer_token = {contract:String}
         AND ({token_id:String}             = '' OR offer_token_id = {token_id:String})
         AND ({offererAddress:String}    = '' OR offerer        = {offererAddress:String})
