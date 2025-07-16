@@ -14,6 +14,9 @@ filtered_transfers AS (
         AND ({from:String} = ''  OR `from` = {from:String})
         AND ({to:String} = ''  OR `to` = {to:String})
         AND ({contract:String} = '' OR contract = {contract:String})
+    ORDER BY timestamp DESC
+    LIMIT   {limit:int}
+    OFFSET  {offset:int}
 )
 SELECT
     t.block_num as block_num,
@@ -28,7 +31,3 @@ SELECT
     value
 FROM filtered_transfers AS t
 LEFT JOIN erc20_metadata_initialize AS c ON c.address = t.contract
-    AND ({contract:String} = '' OR c.address = {contract:String})
-ORDER BY timestamp DESC
-LIMIT   {limit:int}
-OFFSET  {offset:int}
