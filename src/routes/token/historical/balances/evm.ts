@@ -26,7 +26,7 @@ const responseSchema = z.object({
         contract: z.string(),
         name: z.string(),
         symbol: z.string(),
-        decimals: z.string(),
+        decimals: z.number(),
         open: z.number(),
         high: z.number(),
         low: z.number(),
