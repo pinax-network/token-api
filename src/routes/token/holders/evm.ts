@@ -6,7 +6,7 @@ import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchemaValue
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: GRT
@@ -45,7 +45,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Token Holders',
     description: 'Provides ERC-20 token holder balances by contract address.',
     tags: ['EVM'],
@@ -74,7 +74,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

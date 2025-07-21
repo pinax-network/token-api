@@ -1,9 +1,9 @@
-import { Hono } from 'hono'
-import { describeRoute } from 'hono-openapi'
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
 import { resolver } from 'hono-openapi/zod';
-import client from '../clickhouse/client.js'
-import { APIErrorResponse } from '../utils.js'
-import { z } from 'zod'
+import client from '../clickhouse/client.js';
+import { APIErrorResponse, withErrorResponses } from '../utils.js';
+import { z } from 'zod';
 
 const route = new Hono();
 
@@ -13,7 +13,7 @@ const errorSchema = z.object({
     message: z.string(),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     description: 'Get health status of the API',
     tags: ['Monitoring'],
     responses: {
@@ -22,21 +22,9 @@ const openapi = describeRoute({
             content: {
                 'text/plain': { schema: resolver(z.string()), example: 'OK' },
             },
-        },
-        403: {
-            description: 'Authentication Failed',
-            content: { 'application/json': { schema: resolver(errorSchema), example: {status: 403, code: 'authentication_failed' } } }
-        },
-        502: {
-            description: 'Connection Refused',
-            content: { 'application/json': { schema: resolver(errorSchema), example: {status: 502, code: 'connection_refused'} } }
-        },
-        500: {
-            description: 'Database Error',
-            content: { 'application/json': { schema: resolver(errorSchema), example: {status: 500, code: 'bad_database_response'} } }
-        },
+        }
     },
-})
+}));
 
 route.get('/health', openapi, async (c) => {
     const response = await client().ping();

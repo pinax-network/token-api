@@ -6,7 +6,7 @@ import { paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema, interv
 import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
-import { validatorHook } from '../../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const paramSchema = z.object({
     address: Vitalik,
@@ -35,7 +35,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Historical Balances',
     description: 'Provides historical ERC-20 & Native balances by wallet address.',
     tags: ['EVM'],
@@ -66,7 +66,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

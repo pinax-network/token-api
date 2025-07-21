@@ -6,7 +6,7 @@ import { statisticsSchema, EVM_networkIdSchema, evmAddress, paginationQuery, Vit
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     address: Vitalik,
@@ -38,7 +38,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'NFT Ownerships',
     description: 'Provides NFT Ownerships for Account.',
     tags: ['EVM'],
@@ -65,7 +65,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

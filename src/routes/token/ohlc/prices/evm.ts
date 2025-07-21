@@ -7,7 +7,7 @@ import { sqlQueries } from '../../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { stables } from '../../../../inject/prices.tokens.js';
-import { validatorHook } from '../../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const paramSchema = z.object({
     contract: WETH
@@ -35,7 +35,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'OHLCV by Contract',
     description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
     tags: ['EVM'],
@@ -64,7 +64,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

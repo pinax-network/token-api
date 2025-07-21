@@ -174,12 +174,6 @@ export type PaginationSchema = z.infer<typeof paginationSchema>;
 // ----------------------
 // API Responses
 // ----------------------
-export const apiErrorResponse = z.object({
-    "status": z.union([z.literal(500), z.literal(502), z.literal(504), z.literal(400), z.literal(401), z.literal(403), z.literal(404), z.literal(405)]),
-    "code": z.enum(["bad_database_response", "connection_refused", "authentication_failed", "bad_header", "missing_required_header", "bad_query_input", "database_timeout", "forbidden", "internal_server_error", "method_not_allowed", "route_not_found", "unauthorized", "not_found_data"]),
-    "message": z.coerce.string()
-});
-export type ApiErrorResponse = z.infer<typeof apiErrorResponse>;
 
 export const apiUsageResponse = z.object({
     data: z.array(z.any()),
@@ -191,3 +185,36 @@ export const apiUsageResponse = z.object({
     duration_ms: z.number()
 });
 export type ApiUsageResponse = z.infer<typeof apiUsageResponse>;
+
+const baseMessage = z.coerce.string();
+
+// Define error code mappings by status code category
+const clientErrorCodes = [
+    "authentication_failed", "bad_header", "missing_required_header", 
+    "bad_query_input", "forbidden", "method_not_allowed", 
+    "route_not_found", "unauthorized", "not_found_data"
+] as const;
+
+const serverErrorCodes = [
+    "bad_database_response", "connection_refused", "database_timeout", 
+    "internal_server_error"
+] as const;
+
+// Create filtered schemas with status-code-specific error codes
+export const clientErrorResponse = z.object({
+    status: z.union([z.literal(400), z.literal(401), z.literal(403), z.literal(404), z.literal(405)]),
+    code: z.enum(clientErrorCodes),
+    message: baseMessage
+});
+export type ClientErrorResponse = z.infer<typeof clientErrorResponse>;
+
+export const serverErrorResponse = z.object({
+    status: z.union([z.literal(500), z.literal(502), z.literal(504)]),
+    code: z.enum(serverErrorCodes),
+    message: baseMessage
+});
+export type ServerErrorResponse = z.infer<typeof serverErrorResponse>;
+
+// Redefine apiErrorResponse as a union of client and server errors
+export const apiErrorResponse = z.union([clientErrorResponse, serverErrorResponse]);
+export type ApiErrorResponse = z.infer<typeof apiErrorResponse>;

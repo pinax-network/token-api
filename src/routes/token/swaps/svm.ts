@@ -6,7 +6,7 @@ import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, tokenSchema, s
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z.object({
     network_id: SVM_networkIdSchema,
@@ -62,7 +62,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Swap Events',
     description: 'Provides AMM Swap events.',
     tags: ['SVM'],
@@ -97,7 +97,7 @@ const openapi = describeRoute({
             }
         },
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

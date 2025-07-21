@@ -6,6 +6,7 @@ import { z } from 'zod';
 import client from '../clickhouse/client.js';
 import { logger } from '../logger.js';
 import { config } from '../config.js';
+import { withErrorResponses } from '../utils.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
@@ -29,7 +30,7 @@ const responseSchema = z.object({
     networks: z.array(networksSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     description: 'Get supported networks of the API',
     tags: ['Monitoring'],
     responses: {
@@ -46,7 +47,7 @@ const openapi = describeRoute({
             },
         },
     },
-});
+}));
 
 export function getNetwork(id: string) {
     const network = registry.getNetworkById(id);
