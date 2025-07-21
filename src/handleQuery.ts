@@ -5,6 +5,7 @@ import { DEFAULT_LIMIT, DEFAULT_PAGE } from "./config.js";
 import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./types/zod.js";
 import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 import { MAX_EXECUTION_TIME } from "./clickhouse/client.js";
+import { ZodError } from "zod";
 
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result) {
@@ -73,9 +74,15 @@ export async function makeUsageQueryJson<T = unknown>(
         };
     } catch (err) {
         let message: string;
-        const filter_error_messages = ['Unknown', 'does not exist']
+        const filter_error_messages = ['Unknown', 'does not exist'];
 
-        if (err instanceof Error)
+        if (err instanceof ZodError)
+            return {
+                status: 400 as ApiErrorResponse["status"],
+                code: "bad_query_input" as ApiErrorResponse["code"],
+                message: err.issues[0]!.message
+            };
+        else if (err instanceof Error)
             message = err.message;
         else if (typeof err === 'string')
             message = err;
