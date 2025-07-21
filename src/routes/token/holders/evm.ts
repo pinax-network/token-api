@@ -22,7 +22,7 @@ const responseSchema = z.object({
     data: z.array(z.object({
         // -- block --
         block_num: z.number(),
-        datetime: z.string(),
+        last_balance_update: z.string(),
 
         // -- contract --
         address: evmAddressSchema,
@@ -33,6 +33,7 @@ const responseSchema = z.object({
         network_id: EVM_networkIdSchema,
 
         // -- contract --
+        name: z.optional(z.string()),
         symbol: z.optional(z.string()),
         decimals: z.optional(z.number()),
 

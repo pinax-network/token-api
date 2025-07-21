@@ -21,7 +21,7 @@ let responseSchema: any = z.object({
     data: z.array(z.object({
         // -- block --
         block_num: z.number(),
-        datetime: z.string(),
+        last_balance_update: z.string(),
 
         // -- balance --
         contract: evmAddressSchema,
@@ -32,6 +32,7 @@ let responseSchema: any = z.object({
         network_id: EVM_networkIdSchema,
 
         // -- contract --
+        name: z.optional(z.string()),
         symbol: z.optional(z.string()),
         decimals: z.optional(z.number()),
 
@@ -56,13 +57,14 @@ let openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22586773,
-                                "datetime": "2025-05-29 06:58:47",
-                                "contract": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-                                "amount": "237637742936991878321",
-                                "value": 237.63774293699188,
+                                "block_num": 22968741,
+                                "last_balance_update": "2025-07-21 16:24:47",
+                                "contract": "0x6993301413c1867aafe2caaa692ec53a0118f06e",
+                                "amount": "7917650000000000000000",
+                                "value": 7917.65,
+                                "name": "BOLD",
+                                "symbol": "BOLD",
                                 "decimals": 18,
-                                "symbol": "ETH",
                                 "network_id": "mainnet"
                             }
                         ]

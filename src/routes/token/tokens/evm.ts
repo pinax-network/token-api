@@ -23,12 +23,14 @@ const responseSchema = z.object({
         // -- block --
         block_num: z.number(),
         datetime: z.string(),
+        timestamp: z.number(),
 
         // -- contract --
         contract: evmAddressSchema,
 
         // -- token --
-        circulating_supply: z.string(),
+        circulating_supply: z.number(),
+        total_supply: z.number(),
         holders: z.number(),
 
         // -- chain --
