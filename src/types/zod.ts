@@ -128,7 +128,8 @@ export const paginationSchema = z.object({
 }).refine(({ previous_page, current_page, next_page, total_pages }) =>
     previous_page <= current_page
     && current_page <= next_page
-    && next_page <= total_pages
+    && next_page <= total_pages,
+    "Requested page doesn't exist"
 );
 export type PaginationSchema = z.infer<typeof paginationSchema>;
 
