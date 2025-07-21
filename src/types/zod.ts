@@ -91,7 +91,7 @@ export const timestampSchema = z.string()
     .transform((t) => t * 1000)
     .openapi({ description: 'UNIX timestamp in seconds.' });
 export const startTimeSchema = timestampSchema.default('0');
-export const endTimeSchema = timestampSchema.default(`${Number.MAX_SAFE_INTEGER}`);
+export const endTimeSchema = timestampSchema.default(`9999999999`);
 
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()
