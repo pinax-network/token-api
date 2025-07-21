@@ -6,15 +6,14 @@ import { statisticsSchema, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins 
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: PudgyPenguins,
 });
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: EVM_networkIdSchema,
 });
 
 const responseSchema = z.object({
@@ -57,23 +56,17 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
-    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    // REQUIRED URL param
-    const contract = parseContract.data;
+route.get('/:contract', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    // OPTIONAL URL query
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.nftDatabases[network_id]!;
-
+    const { database, type } = config.nftDatabases[params.network_id]!;
     const query = sqlQueries['nft_holders']?.[type];
-    if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+    if (!query) return c.json({ error: 'Query for NFT holders could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
-
 
 export default route;

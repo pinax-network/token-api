@@ -5,15 +5,27 @@ import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE } from "../config.j
 // ----------------------
 // Common schemas
 // ----------------------
-export const evmAddress = z.coerce.string().regex(new RegExp("^(0[xX])?[0-9a-fA-F]{40}$"));
+export const evmAddress = z.coerce.string().refine(
+    (val) => val === '' || /^(0[xX])?[0-9a-fA-F]{40}$/.test(val), 
+    'Invalid EVM address'
+);
 export type EvmAddress = z.infer<typeof evmAddress>;
-export const evmTransaction = z.coerce.string().regex(new RegExp("^(0[xX])?[0-9a-fA-F]{64}$"));
+export const evmTransaction = z.coerce.string().refine(
+    (val) => val === '' || /^(0[xX])?[0-9a-fA-F]{64}$/.test(val), 
+    'Invalid EVM transaction'
+);
 export type EvmTransaction = z.infer<typeof evmTransaction>;
 
-export const svmAddress = z.coerce.string().regex(new RegExp("^[1-9A-HJ-NP-Za-km-z]{32,44}$"));
-export type SvmAddress = z.infer<typeof evmAddress>;
-export const svmTransaction = z.coerce.string().regex(new RegExp("^[1-9A-HJ-NP-Za-km-z]{87,88}$"));
-export type SvmTransaction = z.infer<typeof evmTransaction>;
+export const svmAddress = z.coerce.string().refine(
+    (val) => val === '' || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val),
+    'Invalid SVM address'
+);
+export type SvmAddress = z.infer<typeof svmAddress>;
+export const svmTransaction = z.coerce.string().refine(
+    (val) => val === '' || /^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(val),
+    'Invalid SVM transaction'
+);
+export type SvmTransaction = z.infer<typeof svmTransaction>;
 
 export const blockNumHash = z.object({
     "block_num": z.coerce.number().int(),
@@ -27,13 +39,23 @@ export type Version = z.infer<typeof version>;
 export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
-export const protocolSchema = z.enum(["uniswap_v2", "uniswap_v3"]).openapi({ description: "Protocol name", example: "uniswap_v3" });
-export const svmProtocolSchema = z.enum(["raydium_amm_v4"]).openapi({ description: "Protocol name", example: "raydium_amm_v4" });
+export const protocolSchema = z.enum(["", "uniswap_v2", "uniswap_v3"]).default('uniswap_v3').openapi({ description: "Protocol name", example: "uniswap_v3" });
+export const svmProtocolSchema = z.enum(["", "raydium_amm_v4"]).default('raydium_amm_v4').openapi({ description: "Protocol name", example: "raydium_amm_v4" });
 
-export const evmAddressSchema = evmAddress.toLowerCase().transform((addr) => addr.length == 40 ? `0x${addr}` : addr).pipe(z.string()).openapi({
-    description: 'Filter by address'
-});
-export const evmTransactionSchema = evmTransaction.toLowerCase().transform((addr) => addr.length == 64 ? `0x${addr}` : addr).pipe(z.string()).openapi({ description: 'Filter by transaction' });
+export const evmAddressSchema = evmAddress
+    .transform((addr) => addr.toLowerCase())
+    .transform((addr) => addr.length == 40 ? `0x${addr}` : addr)
+    .pipe(z.string())
+    .openapi({
+        description: 'Filter by address'
+    });
+export const evmTransactionSchema = evmTransaction
+    .transform((addr) => addr.toLowerCase())
+    .transform((addr) => addr.length == 64 ? `0x${addr}` : addr)
+    .pipe(z.string())
+    .openapi({ 
+        description: 'Filter by transaction' 
+    });
 
 export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
     description: 'Filter by address'
@@ -41,8 +63,8 @@ export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
 export const svmTransactionSchema = svmTransaction.pipe(z.string()).openapi({ description: 'Filter by transaction signature' });
 
 // z.enum argument type definition requires at least one element to be defined
-export const EVM_networkIdSchema = z.enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for EVM networks https://thegraph.com/networks", example: config.defaultEvmNetwork });
-export const SVM_networkIdSchema = z.enum([config.svmNetworks.at(0) ?? config.defaultSvmNetwork, ...config.svmNetworks.slice(1)]).openapi({ description: "The Graph Network ID for SVM networks https://thegraph.com/networks", example: config.defaultSvmNetwork });
+export const EVM_networkIdSchema = z.enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)]).default(config.defaultEvmNetwork).openapi({ description: "The Graph Network ID for EVM networks https://thegraph.com/networks", example: config.defaultEvmNetwork });
+export const SVM_networkIdSchema = z.enum([config.svmNetworks.at(0) ?? config.defaultSvmNetwork, ...config.svmNetworks.slice(1)]).default(config.defaultSvmNetwork).openapi({ description: "The Graph Network ID for SVM networks https://thegraph.com/networks", example: config.defaultSvmNetwork });
 
 export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
 export const limitSchema = z.coerce.number().int().min(1).max(1000).default(DEFAULT_LIMIT).openapi({ description: 'The maximum number of items returned in a single request.' });
@@ -50,19 +72,35 @@ export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ de
 export const orderDirectionSchema = z.enum(["asc", "desc"]).default('desc').openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
 export const orderBySchemaTimestamp = z.enum(["timestamp"]).default("timestamp").openapi({ description: 'The field by which to order the results.' });
 export const orderBySchemaValue = z.enum(["value"]).default("value").openapi({ description: 'The field by which to order the results.' });
-export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
+export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').transform((interval: string) => {
+    switch (interval) {
+        case '1h':
+            return 60;
+        case '4h':
+            return 240;
+        case '1d':
+            return 1440;
+        case '1w':
+            return 10080;
+    }
+}).openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
 export const timestampSchema = z.string()
     .regex(/^\d+$/, 'Timestamp must be an integer without decimal points')
     .transform(Number)
     .refine((n) => n >= 0, 'Timestamp must be non-negative')
     .transform((t) => t * 1000)
     .openapi({ description: 'UNIX timestamp in seconds.' });
+export const startTimeSchema = timestampSchema.default('0');
+export const endTimeSchema = timestampSchema.default(`${Number.MAX_SAFE_INTEGER}`);
 
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()
-    .regex(/^(\d+|)$/, { message: "Must be a valid number or empty string" })
+    .refine(
+        (val) => val === '' || /^(\d+|)$/.test(val), 
+        'Must be a valid number or empty string'
+    )
     .openapi({ description: 'NFT token ID' });
-export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']);
+export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']).default('');
 
 // Used for examples
 export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
@@ -88,8 +126,8 @@ export const RaydiumWSOLMarketOwner = filterByOwner.openapi({ example: '3ucNos4N
 export const RaydiumV4 = filterByProgramId.openapi({ example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8' });
 export const USDC_WSOL = filterByAmmPool.openapi({ example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
 export const WSOL = filterByMint.openapi({ example: 'So11111111111111111111111111111111111111112' });
-export const SolanaProgramIds = z.enum(["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program ID' });
-export const SolanaSPLTokenProgramIds = z.enum(["TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]).openapi({ description: 'Filter by program ID' });
+export const SolanaProgramIds = z.enum(['', "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8", "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA", "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB", "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"]).openapi({ description: 'Filter by program ID' });
+export const SolanaSPLTokenProgramIds = z.enum(['', "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb", "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]).openapi({ description: 'Filter by program ID' });
 export const SPL2022 = SolanaSPLTokenProgramIds.openapi({ example: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' });
 export const PumpFunAmmProgramId = SolanaProgramIds.openapi({ example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA' });
 
@@ -109,8 +147,8 @@ export const mintSchema = z.object({
 // API Query Params
 // ----------------------
 export const paginationQuery = z.object({
-    "limit": limitSchema.optional(),
-    "page": pageSchema.optional(),
+    "limit": limitSchema,
+    "page": pageSchema,
 });
 export type PaginationQuery = z.infer<typeof paginationQuery>;
 

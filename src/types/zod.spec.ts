@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { evmAddressSchema, paginationSchema, timestampSchema, EVM_networkIdSchema } from "./zod.js";
+import { evmAddressSchema, paginationSchema, timestampSchema, EVM_networkIdSchema, evmTransactionSchema } from "./zod.js";
 import { ZodError } from "zod";
 import { config } from "../config.js";
 
@@ -31,8 +31,49 @@ describe("EVM Address Schema", () => {
     expect(() => evmAddressSchema.parse("0xabc")).toThrowError(ZodError);
   });
 
-  it("should throw a ZodError when parsing an empty string", () => {
-    expect(() => evmAddressSchema.parse("")).toThrowError(ZodError);
+  it("should parse an empty string and return empty string", () => {
+    expect(evmAddressSchema.parse("")).toBe("");
+  });
+
+  it("should throw a ZodError when parsing undefined", () => {
+    expect(() => evmAddressSchema.parse(undefined)).toThrowError(ZodError);
+  });
+});
+
+describe("EVM Transaction Schema", () => {
+  it("should correctly parse a valid lowercase transaction", () => {
+    const tx = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    expect(evmTransactionSchema.parse(tx)).toBe(tx);
+  });
+
+  it("should convert a valid mixed-case transaction to lowercase", () => {
+    const expected = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    expect(
+      evmTransactionSchema.parse("0x1234567890ABCDEF1234567890abcdef1234567890ABCDEF1234567890abcdef")
+    ).toBe(expected);
+  });
+
+  it("should correctly parse a transaction missing the 0x prefix", () => {
+    const expected = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    expect(
+      evmTransactionSchema.parse("1234567890ABCDEF1234567890abcdef1234567890ABCDEF1234567890abcdef")
+    ).toBe(expected);
+  });
+
+  it("should throw a ZodError when parsing an invalid transaction string 'abc'", () => {
+    expect(() => evmTransactionSchema.parse("abc")).toThrowError(ZodError);
+  });
+
+  it("should throw a ZodError when parsing a too-short transaction '0xabc'", () => {
+    expect(() => evmTransactionSchema.parse("0xabc")).toThrowError(ZodError);
+  });
+
+  it("should parse an empty string and return empty string", () => {
+    expect(evmTransactionSchema.parse("")).toBe("");
+  });
+
+  it("should throw a ZodError when parsing undefined", () => {
+    expect(() => evmTransactionSchema.parse(undefined)).toThrowError(ZodError);
   });
 });
 

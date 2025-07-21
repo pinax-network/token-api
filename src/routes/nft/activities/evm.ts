@@ -2,31 +2,26 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, timestampSchema, orderDirectionSchema, orderBySchemaTimestamp, Vitalik, PudgyPenguins } from '../../../types/zod.js';
+import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, orderDirectionSchema, orderBySchemaTimestamp, PudgyPenguins, startTimeSchema, endTimeSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { now } from '../../../utils.js';
-
-const route = new Hono();
-
-const paramSchema = z.object({
-});
+import { validatorHook } from '../../../utils.js';
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: EVM_networkIdSchema,
     contract: PudgyPenguins,
 
     // -- `token` filter --
-    any: z.optional(Vitalik),
-    from: z.optional(evmAddressSchema),
-    to: z.optional(evmAddressSchema),
+    anyAddress: evmAddressSchema.default(''),
+    fromAddress: evmAddressSchema.default(''),
+    toAddress: evmAddressSchema.default(''),
 
     // -- `time` filter --
-    startTime: z.optional(timestampSchema),
-    endTime: z.optional(timestampSchema),
-    orderBy: z.optional(orderBySchemaTimestamp),
-    orderDirection: z.optional(orderDirectionSchema),
+    startTime: startTimeSchema,
+    endTime: endTimeSchema,
+    orderBy: orderBySchemaTimestamp,
+    orderDirection: orderDirectionSchema,
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -87,86 +82,17 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    let fromAddress = c.req.query("from") ?? '';
-    if (fromAddress) {
-        const parsed = evmAddressSchema.safeParse(fromAddress);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid [from] EVM address: ${parsed.error.message}` }, 400);
-        }
-        fromAddress = parsed.data;
-    }
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    let toAddress = c.req.query("to") ?? '';
-    if (toAddress) {
-        const parsed = evmAddressSchema.safeParse(toAddress);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid [to] EVM address: ${parsed.error.message}` }, 400);
-        }
-        toAddress = parsed.data;
-    }
+route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    let anyAddress = c.req.query("any") ?? '';
-    if (anyAddress) {
-        const parsed = evmAddressSchema.safeParse(anyAddress);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid [any] EVM address: ${parsed.error.message}` }, 400);
-        }
-        anyAddress = parsed.data;
-    }
+    const { database, type } = config.nftDatabases[params.network_id]!;
+    const query = sqlQueries['nft_activities']?.[type];
+    if (!query) return c.json({ error: 'Query for NFT activities could not be loaded' }, 500);
 
-    let contract = c.req.query("contract") ?? '';
-    if (contract) {
-        const parsed = evmAddressSchema.safeParse(contract);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
-        }
-        contract = parsed.data;
-    }
-
-    // -- `time` filter --
-    const endTime = c.req.query('endTime') ?? now();
-    if (endTime) {
-        const parsed = timestampSchema.safeParse(endTime);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
-        }
-    }
-    const startTime = c.req.query('startTime') ?? '0';
-    if (startTime) {
-        const parsed = timestampSchema.safeParse(startTime);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid startTime: ${parsed.error.message}` }, 400);
-        }
-    }
-
-    if (anyAddress && (fromAddress || toAddress))
-        return c.json({ error: 'Cannot specify `any` with `from` or `to`' }, 400);
-
-    // OPTIONAL URL query
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.nftDatabases[network_id]!;
-
-    let query = sqlQueries['nft_activities']?.[type];
-    if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
-
-    const orderDirection = c.req.query('orderDirection') ?? 'desc';
-    if (orderDirection) {
-        const parsed = orderDirectionSchema.safeParse(orderDirection);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
-        }
-        if (parsed.data === 'asc') {
-            query = query.replaceAll(' DESC', ' ASC');
-        }
-        if (parsed.data === 'desc') {
-            query = query.replaceAll(' ASC', ' DESC');
-        }
-    }
-
-    const response = await makeUsageQueryJson(c, [query], { anyAddress, fromAddress, toAddress, contract, startTime, endTime, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
-
 
 export default route;

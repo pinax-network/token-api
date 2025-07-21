@@ -2,18 +2,17 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, GRT, USDC_WSOL, protocolSchema, tokenSchema, paginationQuery } from '../../../types/zod.js';
+import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, USDC_WSOL, tokenSchema, paginationQuery } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const querySchema = z.object({
-    network_id: z.optional(SVM_networkIdSchema),
-    pool: z.optional(USDC_WSOL),
-    creator: z.optional(svmAddressSchema),
-    token: z.optional(svmAddressSchema)
+    pool: USDC_WSOL,
+    creator: svmAddressSchema.default(''),
+    token: svmAddressSchema.default(''),
+    network_id: SVM_networkIdSchema,
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -80,41 +79,16 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/', openapi, validator('query', querySchema), async (c) => {
-    let pool = c.req.query("pool") ?? '';
-    if (pool) {
-        const parsed = svmAddressSchema.safeParse(pool);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid pool SVM address: ${parsed.error.message}` }, 400);
-        }
-        pool = parsed.data;
-    }
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    let token = c.req.query("token") ?? '';
-    if (token) {
-        const parsed = svmAddressSchema.safeParse(token);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid token SVM address: ${parsed.error.message}` }, 400);
-        }
-        token = parsed.data;
-    }
+route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    let creator = c.req.query("creator") ?? '';
-    if (creator) {
-        const parsed = svmAddressSchema.safeParse(creator);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid creator SVM address: ${parsed.error.message}` }, 400);
-        }
-        creator = parsed.data;
-    }
-
-    const network_id = SVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultSvmNetwork;
-    const { database, type } = config.uniswapDatabases[network_id]!;
-
+    const { database, type } = config.uniswapDatabases[params.network_id]!;
     const query = sqlQueries['pools']?.[type];
-    if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
+    if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { pool, token, creator, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
 

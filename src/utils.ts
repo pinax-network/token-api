@@ -1,4 +1,4 @@
-import { ZodError } from "zod";
+import { SafeParseError, SafeParseSuccess, ZodError } from "zod";
 
 import type { Context } from "hono";
 import { paginationSchema, type ApiErrorResponse, type PaginationSchema } from "./types/zod.js";
@@ -58,4 +58,11 @@ export function computePagination(current_page: number, rows_per_page: number, t
 
 export function now() {
     return Math.floor(Date.now() / 1000);
+}
+
+export function validatorHook(parseResult: { success: true, data: any } | { success: false, error: any }, ctx: Context) {
+    if (!parseResult.success)
+        return APIErrorResponse(ctx, 400, "bad_query_input", parseResult.error);
+    else
+        ctx.set('validatedData', { ...ctx.get('validatedData'), ...parseResult.data });
 }

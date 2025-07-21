@@ -6,18 +6,16 @@ import { GRT, evmAddressSchema, statisticsSchema, EVM_networkIdSchema } from '..
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { injectIcons } from '../../../inject/icon.js';
+import { validatorHook } from '../../../utils.js';
 import { injectSymbol } from '../../../inject/symbol.js';
-import { injectPrices } from '../../../inject/prices.js';
-
-const route = new Hono();
+import { injectIcons } from '../../../inject/icon.js';
 
 const paramSchema = z.object({
     contract: GRT,
 });
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: EVM_networkIdSchema,
 });
 
 const responseSchema = z.object({
@@ -90,23 +88,19 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
-    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    const contract = parseContract.data;
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.tokenDatabases[network_id]!;
+route.get('/:contract', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
+    const { database, type } = config.tokenDatabases[params.network_id]!;
     const query = sqlQueries['tokens_for_contract']?.[type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
-    injectSymbol(response, network_id, true);
+    const response = await makeUsageQueryJson(c, [query], params, { database });
+    injectSymbol(response, params.network_id, true);
     injectIcons(response);
-    // await injectPrices(response, network_id);
     return handleUsageQueryError(c, response);
 });
-
 
 export default route;

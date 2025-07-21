@@ -2,32 +2,28 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, EVM_networkIdSchema, timestampSchema, evmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema } from '../../../types/zod.js';
+import { evmAddressSchema, statisticsSchema, paginationQuery, Vitalik, EVM_networkIdSchema, evmTransactionSchema, orderBySchemaTimestamp, orderDirectionSchema, startTimeSchema, endTimeSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { injectSymbol } from '../../../inject/symbol.js';
-import { injectPrices } from '../../../inject/prices.js';
-import { now } from '../../../utils.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: EVM_networkIdSchema,
 
     // -- `token` filter --
-    from: z.optional(evmAddressSchema),
-    to: z.optional(Vitalik),
-    contract: z.optional(evmAddressSchema),
+    from: evmAddressSchema.default(''),
+    to: Vitalik.default(''),
+    contract: evmAddressSchema.default(''),
 
     // -- `time` filter --
-    startTime: z.optional(timestampSchema),
-    endTime: z.optional(timestampSchema),
-    orderBy: z.optional(orderBySchemaTimestamp),
-    orderDirection: z.optional(orderDirectionSchema),
+    startTime: startTimeSchema,
+    endTime: endTimeSchema,
+    orderBy: orderBySchemaTimestamp,
+    orderDirection: orderDirectionSchema,
 
     // -- `transaction` filter --
-    transaction_id: z.optional(evmTransactionSchema),
+    transaction_id: evmTransactionSchema.default(''),
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -94,85 +90,16 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/', openapi, validator('query', querySchema), async (c) => {
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    let from = c.req.query("from") ?? '';
-    if (from) {
-        const parsed = evmAddressSchema.safeParse(from);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid [from] EVM address: ${parsed.error.message}` }, 400);
-        }
-        from = parsed.data;
-    }
+route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    let to = c.req.query("to") ?? '';
-    if (to) {
-        const parsed = evmAddressSchema.safeParse(to);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid [to] EVM address: ${parsed.error.message}` }, 400);
-        }
-        to = parsed.data;
-    }
+    const { database, type } = config.tokenDatabases[params.network_id]!;
+    const query = sqlQueries['transfers']?.[type];
+    if (!query) return c.json({ error: 'Query for transfers could not be loaded' }, 500);
 
-
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.tokenDatabases[network_id]!;
-
-    let contract = c.req.query("contract") ?? '';
-    if (contract) {
-        const parsed = evmAddressSchema.safeParse(contract);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid contract EVM address: ${parsed.error.message}` }, 400);
-        }
-        contract = parsed.data;
-    }
-
-    let transaction_id = c.req.query("transaction_id") ?? '';
-    if (transaction_id) {
-        const parsed = evmTransactionSchema.safeParse(transaction_id);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid EVM transaction ID: ${parsed.error.message}` }, 400);
-        }
-        transaction_id = parsed.data;
-    }
-
-    // -- `time` filter --
-    const endTime = c.req.query('endTime') ?? now();
-    if (endTime) {
-        const parsed = timestampSchema.safeParse(endTime);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid endTime: ${parsed.error.message}` }, 400);
-        }
-    }
-    const startTime = c.req.query('startTime') ?? '0';
-    if (startTime) {
-        const parsed = timestampSchema.safeParse(startTime);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid startTime: ${parsed.error.message}` }, 400);
-        }
-    }
-
-    let query = sqlQueries['transfers']?.[type];
-    if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
-
-    // reverse ORDER BY if defined
-    const orderDirection = c.req.query('orderDirection') ?? 'desc';
-    if (orderDirection) {
-        const parsed = orderDirectionSchema.safeParse(orderDirection);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
-        }
-        if (parsed.data === 'asc') {
-            query = query.replaceAll(' DESC', ' ASC');
-        }
-        if (parsed.data === 'desc') {
-            query = query.replaceAll(' ASC', ' DESC');
-        }
-    }
-
-    const response = await makeUsageQueryJson(c, [query], { from, to, transaction_id, network_id, contract, startTime, endTime }, { database });
-    injectSymbol(response, network_id);
-    // await injectPrices(response, network_id);
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
 

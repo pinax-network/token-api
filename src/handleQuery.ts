@@ -56,7 +56,7 @@ export async function makeUsageQueryJson<T = unknown>(
         // Handle query execution timeout
         if (result.statistics && result.statistics.elapsed >= MAX_EXECUTION_TIME) {
             return {
-                status: 500 as ApiErrorResponse["status"],
+                status: 504 as ApiErrorResponse["status"],
                 code: "database_timeout" as ApiErrorResponse["code"],
                 message: 'Query took too long. Consider applying more filter parameters if possible.'
             };
