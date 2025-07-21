@@ -6,7 +6,7 @@ import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, protocolSchema
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z.object({
     network_id: EVM_networkIdSchema,
@@ -61,7 +61,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Swap Events',
     description: 'Provides Uniswap V2 & V3 swap events.',
     tags: ['EVM'],
@@ -108,7 +108,7 @@ const openapi = describeRoute({
             }
         },
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

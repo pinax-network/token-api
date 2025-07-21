@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { APIErrorResponse, computePagination } from "./utils.js";
 import { makeQuery } from "./clickhouse/makeQuery.js";
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from "./config.js";
-import { ApiErrorResponse, ApiUsageResponse, limitSchema, pageSchema } from "./types/zod.js";
+import { ApiErrorResponse, ApiUsageResponse, ClientErrorResponse, limitSchema, pageSchema, ServerErrorResponse } from "./types/zod.js";
 import { WebClickHouseClientConfigOptions } from "@clickhouse/client-web/dist/config.js";
 import { MAX_EXECUTION_TIME } from "./clickhouse/client.js";
 import { ZodError } from "zod";
@@ -56,8 +56,8 @@ export async function makeUsageQueryJson<T = unknown>(
         // Handle query execution timeout
         if (result.statistics && result.statistics.elapsed >= MAX_EXECUTION_TIME) {
             return {
-                status: 504 as ApiErrorResponse["status"],
-                code: "database_timeout" as ApiErrorResponse["code"],
+                status: 504 as ServerErrorResponse["status"],
+                code: "database_timeout" as ServerErrorResponse["code"],
                 message: 'Query took too long. Consider applying more filter parameters if possible.'
             };
         }
@@ -78,8 +78,8 @@ export async function makeUsageQueryJson<T = unknown>(
 
         if (err instanceof ZodError)
             return {
-                status: 400 as ApiErrorResponse["status"],
-                code: "bad_query_input" as ApiErrorResponse["code"],
+                status: 400 as ClientErrorResponse["status"],
+                code: "bad_query_input" as ClientErrorResponse["code"],
                 message: err.issues[0]!.message
             };
         else if (err instanceof Error)
@@ -93,8 +93,8 @@ export async function makeUsageQueryJson<T = unknown>(
         //     message = 'Endpoint is currently not supported for this network';
 
         return {
-            status: 500 as ApiErrorResponse["status"],
-            code: "bad_database_response" as ApiErrorResponse["code"],
+            status: 500 as ServerErrorResponse["status"],
+            code: "bad_database_response" as ServerErrorResponse["code"],
             message
         };
     }

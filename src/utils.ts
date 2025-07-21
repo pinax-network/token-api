@@ -1,8 +1,9 @@
-import { SafeParseError, SafeParseSuccess, ZodError } from "zod";
+import { ZodError } from "zod";
 
 import type { Context } from "hono";
-import { paginationSchema, type ApiErrorResponse, type PaginationSchema } from "./types/zod.js";
+import { ClientErrorResponse, clientErrorResponse, paginationSchema, ServerErrorResponse, serverErrorResponse, type ApiErrorResponse, type PaginationSchema } from "./types/zod.js";
 import { logger } from "./logger.js";
+import { resolver } from "hono-openapi/zod";
 
 export function APIErrorResponse(c: Context, status: ApiErrorResponse["status"], code: ApiErrorResponse["code"], err: unknown) {
     let message = "An unexpected error occured";
@@ -23,7 +24,10 @@ export function APIErrorResponse(c: Context, status: ApiErrorResponse["status"],
 
     logger.error(api_error);
 
-    return c.json<ApiErrorResponse, typeof status>(api_error, status);
+    if (status >= 500)
+        return c.json<ServerErrorResponse, typeof status>(api_error as ServerErrorResponse, status);
+    else
+        return c.json<ClientErrorResponse, typeof status>(api_error as ClientErrorResponse, status);
 }
 
 /**
@@ -60,9 +64,84 @@ export function now() {
     return Math.floor(Date.now() / 1000);
 }
 
-export function validatorHook(parseResult: { success: true, data: any } | { success: false, error: any }, ctx: Context) {
+export function validatorHook(parseResult: { success: true, data: any; } | { success: false, error: any; }, ctx: Context) {
     if (!parseResult.success)
         return APIErrorResponse(ctx, 400, "bad_query_input", parseResult.error);
     else
         ctx.set('validatedData', { ...ctx.get('validatedData'), ...parseResult.data });
+}
+
+// Wrapper function to add error responses to existing route descriptions
+export function withErrorResponses(routeDescription: any) {
+    return {
+        ...routeDescription,
+        responses: {
+            ...routeDescription.responses,
+            400: {
+                description: 'Client side error',
+                content: {
+                    'application/json': {
+                        schema: resolver(clientErrorResponse),
+                        example: {
+                            status: 400,
+                            code: "bad_query_input",
+                            message: "Invalid query parameter provided"
+                        }
+                    }
+                }
+            },
+            401: {
+                description: 'Authentication failed',
+                content: {
+                    'application/json': {
+                        schema: resolver(clientErrorResponse),
+                        example: {
+                            status: 401,
+                            code: "unauthorized",
+                            message: "Authentication required"
+                        }
+                    }
+                }
+            },
+            403: {
+                description: 'Forbidden',
+                content: {
+                    'application/json': {
+                        schema: resolver(clientErrorResponse),
+                        example: {
+                            status: 403,
+                            code: "forbidden",
+                            message: "Access denied"
+                        }
+                    }
+                }
+            },
+            404: {
+                description: 'Not found',
+                content: {
+                    'application/json': {
+                        schema: resolver(clientErrorResponse),
+                        example: {
+                            status: 404,
+                            code: "not_found_data",
+                            message: "Resource not found"
+                        }
+                    }
+                }
+            },
+            500: {
+                description: 'Server side error',
+                content: {
+                    'application/json': {
+                        schema: resolver(serverErrorResponse),
+                        example: {
+                            status: 500,
+                            code: "internal_server_error",
+                            message: "An unexpected error occurred"
+                        }
+                    }
+                }
+            }
+        }
+    };
 }

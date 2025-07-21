@@ -6,7 +6,7 @@ import { svmAddressSchema, statisticsSchema, paginationQuery, orderBySchemaValue
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: WSOL
@@ -44,7 +44,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Token Holders',
     description: 'Provides SVM token holder balances by contract address.',
     tags: ['SVM'],
@@ -72,7 +72,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

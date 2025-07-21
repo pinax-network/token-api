@@ -6,7 +6,7 @@ import { svmAddressSchema, SVM_networkIdSchema, statisticsSchema, USDC_WSOL, tok
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z.object({
     pool: USDC_WSOL,
@@ -39,7 +39,7 @@ const responseSchema = z.object({
 });
 
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Liquidity Pools',
     description: 'Provides Raydium liquidity pool metadata.',
     tags: ['SVM'],
@@ -77,7 +77,7 @@ const openapi = describeRoute({
             }
         },
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

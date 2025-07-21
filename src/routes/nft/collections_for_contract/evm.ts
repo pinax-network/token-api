@@ -6,7 +6,7 @@ import { statisticsSchema, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins 
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: PudgyPenguins,
@@ -32,7 +32,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'NFT Collection',
     description: 'Provides single NFT collection metadata, total supply, owners & total transfers.',
     tags: ['EVM'],
@@ -63,7 +63,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

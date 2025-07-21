@@ -6,7 +6,7 @@ import { svmAddressSchema, paginationQuery, statisticsSchema, SVM_networkIdSchem
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 let querySchema = z.object({
     token_account: filterByTokenAccount.default(''),
@@ -44,7 +44,7 @@ let responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-let openapi = describeRoute({
+let openapi = describeRoute(withErrorResponses({
     summary: 'Balances',
     description: 'Provides Solana SPL tokens balances by token account address.',
     tags: ['SVM'],
@@ -74,7 +74,7 @@ let openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

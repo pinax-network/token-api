@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { config } from '../../../config.js';
 import { injectIcons } from '../../../inject/icon.js';
 import { injectSymbol } from '../../../inject/symbol.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: WSOL,
@@ -52,7 +52,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'Token Metadata',
     description: 'Provides SVM token contract metadata.',
     tags: ['SVM'],
@@ -81,7 +81,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 

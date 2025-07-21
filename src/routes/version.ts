@@ -1,8 +1,9 @@
-import { Hono } from 'hono'
-import { describeRoute } from 'hono-openapi'
-import { resolver } from 'hono-openapi/zod'
-import { GIT_APP } from '../config.js'
-import { z } from 'zod'
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
+import { resolver } from 'hono-openapi/zod';
+import { GIT_APP } from '../config.js';
+import { z } from 'zod';
+import { withErrorResponses } from '../utils.js';
 
 const route = new Hono();
 
@@ -12,7 +13,7 @@ const responseSchema = z.object({
     commit: z.string(),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     description: 'Get the version of the API',
     tags: ['Monitoring'],
     responses: {
@@ -23,10 +24,10 @@ const openapi = describeRoute({
             },
         },
     },
-})
+}));
 
 route.get('/version', openapi, (c) => {
-    return c.json(GIT_APP)
+    return c.json(GIT_APP);
 });
 
 export default route;

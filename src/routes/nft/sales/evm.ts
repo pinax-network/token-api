@@ -6,7 +6,7 @@ import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, pa
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { validatorHook } from '../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../utils.js';
 import { natives as nativeSymbols } from '../../../inject/symbol.tokens.js';
 import { natives as nativeContracts } from '../../../inject/prices.tokens.js';
 
@@ -47,7 +47,7 @@ const responseSchema = z.object({
     statistics: z.optional(statisticsSchema),
 });
 
-const openapi = describeRoute({
+const openapi = describeRoute(withErrorResponses({
     summary: 'NFT Sales',
     description: 'Provides latest NFT marketplace sales.',
     tags: ['EVM'],
@@ -78,7 +78,7 @@ const openapi = describeRoute({
             },
         }
     },
-});
+}));
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
