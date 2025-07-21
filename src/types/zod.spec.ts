@@ -242,6 +242,33 @@ describe("Timestamp Schema", () => {
     expect(timestampSchema.parse("128")).toBe(128000);
     expect(timestampSchema.parse("2147483647")).toBe(2147483647000);
   });
+
+  it("should throw a ZodError for timestamps exceeding the maximum value", () => {
+    expect(() => timestampSchema.parse("10000000000")).toThrowError(ZodError);
+    expect(() => timestampSchema.parse("99999999999")).toThrowError(ZodError);
+    expect(() => timestampSchema.parse("999999999999")).toThrowError(ZodError);
+  });
+
+  it("should accept the maximum allowed timestamp value", () => {
+    const maxTimestamp = "9999999999"; // Maximum allowed value
+    expect(timestampSchema.parse(maxTimestamp)).toBe(9999999999000);
+  });
+
+  it("should handle edge cases around the maximum value with safeParse", () => {
+    // Valid: exactly at the limit
+    const validResult = timestampSchema.safeParse("9999999999");
+    expect(validResult.success).toBe(true);
+    if (validResult.success) {
+      expect(validResult.data).toBe(9999999999000);
+    }
+
+    // Invalid: one unit over the limit
+    const invalidResult = timestampSchema.safeParse("10000000000");
+    expect(invalidResult.success).toBe(false);
+    if (!invalidResult.success && invalidResult.error.issues[0]) {
+      expect(invalidResult.error.issues[0].message).toContain('must not exceed 9999999999');
+    }
+  });
 });
 
 describe.skip("EVM Network ID Schema", () => {

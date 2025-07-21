@@ -88,6 +88,7 @@ export const timestampSchema = z.string()
     .regex(/^\d+$/, 'Timestamp must be an integer without decimal points')
     .transform(Number)
     .refine((n) => n >= 0, 'Timestamp must be non-negative')
+    .refine((n) => n <= 9999999999, 'Timestamp must not exceed 9999999999')
     .transform((t) => t * 1000)
     .openapi({ description: 'UNIX timestamp in seconds.' });
 export const startTimeSchema = timestampSchema.default('0');
