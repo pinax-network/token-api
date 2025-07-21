@@ -2,20 +2,19 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, GRT, USDC_WETH, protocolSchema, tokenSchema, paginationQuery } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, USDC_WETH, protocolSchema, tokenSchema, paginationQuery } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
-    pool: z.optional(USDC_WETH),
-    factory: z.optional(evmAddressSchema),
-    token: z.optional(evmAddressSchema),
-    symbol: z.optional(z.string()),
-    protocol: z.optional(protocolSchema),
+    network_id: EVM_networkIdSchema,
+    pool: USDC_WETH.default(''),
+    factory: evmAddressSchema.default(''),
+    token: evmAddressSchema.default(''),
+    symbol: z.string().default(''),
+    protocol: protocolSchema,
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -41,7 +40,6 @@ const responseSchema = z.object({
     })),
     statistics: z.optional(statisticsSchema),
 });
-
 
 const openapi = describeRoute({
     summary: 'Liquidity Pools',
@@ -79,54 +77,20 @@ const openapi = describeRoute({
                     }
                 },
             }
-        },
+        }
     },
 });
 
-route.get('/', openapi, validator('query', querySchema), async (c) => {
-    let pool = c.req.query("pool") ?? '';
-    if (pool) {
-        const parsed = evmAddressSchema.safeParse(pool);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid pool EVM address: ${parsed.error.message}` }, 400);
-        }
-        pool = parsed.data;
-    }
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    let token = c.req.query("token") ?? '';
-    if (token) {
-        const parsed = evmAddressSchema.safeParse(token);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid token EVM address: ${parsed.error.message}` }, 400);
-        }
-        token = parsed.data;
-    }
+route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    const symbol = c.req.query("symbol") ?? '';
-    const protocol = c.req.query("protocol") ?? '';
-    if (protocol) {
-        const parsed = protocolSchema.safeParse(protocol);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid protocol: ${parsed.error.message}` }, 400);
-        }
-    }
-
-    let factory = c.req.query("factory") ?? '';
-    if (factory) {
-        const parsed = evmAddressSchema.safeParse(factory);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid factory EVM address: ${parsed.error.message}` }, 400);
-        }
-        factory = parsed.data;
-    }
-
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.uniswapDatabases[network_id]!;
-
+    const { database, type } = config.uniswapDatabases[params.network_id]!;
     const query = sqlQueries['pools']?.[type];
-    if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
+    if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { protocol, pool, token, factory, symbol, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
 

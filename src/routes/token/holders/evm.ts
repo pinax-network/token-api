@@ -6,19 +6,16 @@ import { evmAddressSchema, statisticsSchema, paginationQuery, orderBySchemaValue
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-import { injectSymbol } from '../../../inject/symbol.js';
-import { injectPrices } from '../../../inject/prices.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const paramSchema = z.object({
     contract: GRT
 });
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
-    orderBy: z.optional(orderBySchemaValue),
-    orderDirection: z.optional(orderDirectionSchema),
+    network_id: EVM_networkIdSchema,
+    orderBy: orderBySchemaValue,
+    orderDirection: orderDirectionSchema,
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -78,35 +75,16 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:contract', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
-    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    const contract = parseContract.data;
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.tokenDatabases[network_id]!;
+route.get('/:contract', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    let query = sqlQueries['holders_for_contract']?.[type]; // TODO: Load different chain_type queries based on network_id
-    if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
+    const { database, type } = config.tokenDatabases[params.network_id]!;
+    const query = sqlQueries['holders_for_contract']?.[type];
+    if (!query) return c.json({ error: 'Query for holders could not be loaded' }, 500);
 
-    // reverse ORDER BY if defined
-    const orderDirection = c.req.query('orderDirection') ?? 'desc';
-    if (orderDirection) {
-        const parsed = orderDirectionSchema.safeParse(orderDirection);
-        if (!parsed.success) {
-            return c.json({ error: `Invalid orderBy: ${parsed.error.message}` }, 400);
-        }
-        if (parsed.data === 'asc') {
-            query = query.replaceAll(' DESC', ' ASC');
-        }
-        if (parsed.data === 'desc') {
-            query = query.replaceAll(' ASC', ' DESC');
-        }
-    }
-
-    const response = await makeUsageQueryJson(c, [query], { contract, network_id }, { database });
-    injectSymbol(response, network_id);
-    // await injectPrices(response, network_id, contract);
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
 

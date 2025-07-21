@@ -2,20 +2,19 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, paginationQuery, Vitalik, tokenStandardSchema } from '../../../types/zod.js';
+import { statisticsSchema, EVM_networkIdSchema, evmAddress, paginationQuery, Vitalik, tokenStandardSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const paramSchema = z.object({
     address: Vitalik,
 });
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
-    token_standard: z.optional(tokenStandardSchema)
+    network_id: EVM_networkIdSchema,
+    token_standard: tokenStandardSchema
 }).merge(paginationQuery);
 
 const responseSchema = z.object({
@@ -68,24 +67,17 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
-    if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    const parseTokenStandard = tokenStandardSchema.safeParse(c.req.query("token_standard") ?? '');
-    if (!parseTokenStandard.success) return c.json({ error: `Invalid Token standard: ${parseTokenStandard.error.message}` }, 400);
+route.get('/:address', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    const address = parseAddress.data;
-    const token_standard = parseTokenStandard.data;
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.nftDatabases[network_id]!;
-
+    const { database, type } = config.nftDatabases[params.network_id]!;
     const query = sqlQueries['nft_ownerships_for_account']?.[type];
-    if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+    if (!query) return c.json({ error: 'Query for NFT ownerships could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { address, token_standard, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
-
 
 export default route;

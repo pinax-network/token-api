@@ -2,12 +2,11 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { statisticsSchema, EVM_networkIdSchema, evmAddress, evmAddressSchema, tokenIdSchema, PudgyPenguins, PudgyPenguinsItem, tokenStandardSchema } from '../../../types/zod.js';
+import { statisticsSchema, EVM_networkIdSchema, evmAddress, PudgyPenguins, PudgyPenguinsItem, tokenStandardSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
-
-const route = new Hono();
+import { validatorHook } from '../../../utils.js';
 
 const paramSchema = z.object({
     token_id: PudgyPenguinsItem,
@@ -15,7 +14,7 @@ const paramSchema = z.object({
 });
 
 const querySchema = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
+    network_id: EVM_networkIdSchema,
 });
 
 const responseSchema = z.object({
@@ -95,27 +94,17 @@ const openapi = describeRoute({
     },
 });
 
-route.get('/contract/:contract/token_id/:token_id', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseContract = evmAddressSchema.safeParse(c.req.param("contract"));
-    if (!parseContract.success) return c.json({ error: `Invalid EVM contract: ${parseContract.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    const parseTokenId = tokenIdSchema.safeParse(c.req.param("token_id"));
-    if (!parseTokenId.success) return c.json({ error: `Invalid Token ID: ${parseTokenId.error.message}` }, 400);
+route.get('/contract/:contract/token_id/:token_id', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    // REQUIRED URL param
-    const contract = parseContract.data;
-    const token_id = parseTokenId.data;
-
-    // OPTIONAL URL query
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.nftDatabases[network_id]!;
-
+    const { database, type } = config.nftDatabases[params.network_id]!;
     const query = sqlQueries['nft_metadata_for_token']?.[type];
-    if (!query) return c.json({ error: 'Query could not be loaded' }, 500);
+    if (!query) return c.json({ error: 'Query for NFT items could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { contract, token_id, network_id }, { database });
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
-
 
 export default route;

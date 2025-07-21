@@ -2,22 +2,19 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema, ageSchema, intervalSchema, timestampSchema } from '../../../types/zod.js';
+import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema } from '../../../types/zod.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
-import { config, DEFAULT_AGE } from '../../../config.js';
-import { injectSymbol } from '../../../inject/symbol.js';
-import { injectPrices } from '../../../inject/prices.js';
-
-const route = new Hono();
+import { config } from '../../../config.js';
+import { validatorHook } from '../../../utils.js';
 
 const paramSchema = z.object({
     address: Vitalik,
 });
 
 let querySchema: any = z.object({
-    network_id: z.optional(EVM_networkIdSchema),
-    contract: z.optional(z.string()),
+    network_id: EVM_networkIdSchema,
+    contract: evmAddressSchema.default(''),
 }).merge(paginationQuery);
 
 let responseSchema: any = z.object({
@@ -76,22 +73,16 @@ let openapi = describeRoute({
     },
 });
 
-route.get('/:address', openapi, validator('param', paramSchema), validator('query', querySchema), async (c) => {
-    const parseAddress = evmAddressSchema.safeParse(c.req.param("address"));
-    if (!parseAddress.success) return c.json({ error: `Invalid EVM address: ${parseAddress.error.message}` }, 400);
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
 
-    const address = parseAddress.data;
-    const network_id = EVM_networkIdSchema.safeParse(c.req.query("network_id")).data ?? config.defaultEvmNetwork;
-    const { database, type } = config.tokenDatabases[network_id]!;
+route.get('/:address', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
 
-    const contract = c.req.query("contract") ?? '';
-
-    const query = sqlQueries['balances_for_account']?.[type]; // TODO: Load different chain_type queries based on network_id
+    const { database, type } = config.tokenDatabases[params.network_id]!;
+    const query = sqlQueries['balances_for_account']?.[type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], { address, network_id, contract }, { database });
-    injectSymbol(response, network_id);
-    // await injectPrices(response, network_id);
+    const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);
 });
 
