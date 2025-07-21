@@ -1,9 +1,9 @@
 WITH ohlc AS (
     SELECT
         if(
-            toTime(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
-            toDate(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)),
-            toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)
+            toTime(toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
+            toDate(toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)),
+            toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)
         ) AS datetime,
         CONCAT(symbol0, symbol1) AS ticker,
         argMinMerge(open0) AS open_raw,
@@ -17,8 +17,8 @@ WITH ohlc AS (
     FROM ohlc_prices
     WHERE pool = {pool: String}
     GROUP BY datetime, symbol0, symbol1, token0
-    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String})
-       AND datetime <= parseDateTimeBestEffort({max_datetime: String})
+    HAVING datetime >= parseDateTimeBestEffortOrZero({startTime: String})
+       AND datetime <= parseDateTimeBestEffort({endTime: String})
     ORDER BY datetime DESC
     LIMIT   {limit:int}
     OFFSET  {offset:int}

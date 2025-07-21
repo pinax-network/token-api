@@ -6,9 +6,9 @@ ohlc AS (
         symbol,
         decimals,
         if(
-            toTime(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
-            toDate(toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)),
-            toStartOfInterval(timestamp, INTERVAL {interval_minute: UInt64} MINUTE)
+            toTime(toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
+            toDate(toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)),
+            toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)
         ) AS datetime,
         toFloat64(argMinMerge(open)) AS open_raw,
         toFloat64(max(high)) AS high_raw,
@@ -17,8 +17,8 @@ ohlc AS (
     FROM historical_balances
     WHERE address = {address: String} AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
     GROUP BY datetime, contract, name, symbol, decimals
-    HAVING datetime >= parseDateTimeBestEffortOrZero({min_datetime: String})
-       AND datetime <= parseDateTimeBestEffort({max_datetime: String})
+    HAVING datetime >= parseDateTimeBestEffortOrZero({startTime: String})
+       AND datetime <= parseDateTimeBestEffort({endTime: String})
 )
 SELECT
     datetime,

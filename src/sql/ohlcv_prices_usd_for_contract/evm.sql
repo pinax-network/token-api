@@ -22,9 +22,9 @@ filtered_pools AS (
 normalized_prices AS (
     SELECT
         if(
-            toTime(toStartOfInterval(o.timestamp, INTERVAL {interval_minute: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
-            toDate(toStartOfInterval(o.timestamp, INTERVAL {interval_minute: UInt64} MINUTE)),
-            toStartOfInterval(o.timestamp, INTERVAL {interval_minute: UInt64} MINUTE)
+            toTime(toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
+            toDate(toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)),
+            toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)
         ) AS datetime,
         decimals_factor * argMin(open, o.timestamp) AS open,
         decimals_factor * max(high) AS high,
@@ -36,8 +36,8 @@ normalized_prices AS (
     FROM ohlc_prices_by_contract AS o
     JOIN filtered_pools AS p ON p.pool = o.pool
     WHERE token = {contract: String}
-        AND o.timestamp >= parseDateTimeBestEffortOrZero({min_datetime: String})
-        AND o.timestamp <= parseDateTimeBestEffort({max_datetime: String})
+        AND o.timestamp >= parseDateTimeBestEffortOrZero({startTime: String})
+        AND o.timestamp <= parseDateTimeBestEffort({endTime: String})
     GROUP BY datetime, pool, decimals_factor, decimals
 )
 SELECT
