@@ -51,7 +51,12 @@ export const orderDirectionSchema = z.enum(["asc", "desc"]).default('desc').open
 export const orderBySchemaTimestamp = z.enum(["timestamp"]).default("timestamp").openapi({ description: 'The field by which to order the results.' });
 export const orderBySchemaValue = z.enum(["value"]).default("value").openapi({ description: 'The field by which to order the results.' });
 export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
-export const timestampSchema = z.coerce.number().min(0, 'Timestamp must be in seconds').transform((t) => t * 1000).openapi({ description: 'UNIX timestamp in seconds.' });
+export const timestampSchema = z.string()
+    .regex(/^\d+$/, 'Timestamp must be an integer without decimal points')
+    .transform(Number)
+    .refine((n) => n >= 0, 'Timestamp must be non-negative')
+    .transform((t) => t * 1000)
+    .openapi({ description: 'UNIX timestamp in seconds.' });
 
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()

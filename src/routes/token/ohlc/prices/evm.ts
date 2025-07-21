@@ -92,10 +92,10 @@ route.get('/:contract', openapi, validator('param', paramSchema), validator('que
     }).safeParse(c.req.query('interval'));
     if (!parseIntervalMinute.success) return c.json({ error: `Invalid Interval: ${parseIntervalMinute.error.message}` }, 400);
 
-    const parseStart = timestampSchema.default(0).safeParse(c.req.query('startTime'));
+    const parseStart = timestampSchema.default("0").safeParse(c.req.query('startTime'));
     if (!parseStart.success) return c.json({ error: `Invalid StartTime: ${parseStart.error.message}` }, 400);
 
-    const parseEnd = timestampSchema.default(9999999999).safeParse(c.req.query('endTime'));
+    const parseEnd = timestampSchema.default("9999999999").safeParse(c.req.query('endTime'));
     if (!parseEnd.success) return c.json({ error: `Invalid EndTime: ${parseEnd.error.message}` }, 400);
 
     const min_datetime = (new Date(parseStart.data)).toISOString();
