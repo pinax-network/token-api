@@ -60,11 +60,12 @@ const openapi = describeRoute({
                     schema: resolver(responseSchema), example: {
                         data: [
                             {
-                                "block_num": 22578579,
-                                "last_balance_update": "2025-05-28 03:25:47",
+                                "block_num": 22966764,
+                                "last_balance_update": "2025-07-21 09:47:11",
                                 "address": "0x36aff7001294dae4c2ed4fdefc478a00de77f090",
-                                "amount": "2868440291872963359806035918",
-                                "value": 2868440291.8729634,
+                                "amount": "2904244446383157108596275005",
+                                "value": 2904244446.3831573,
+                                "name": "Graph Token",
                                 "decimals": 18,
                                 "symbol": "GRT",
                                 "network_id": "mainnet"
