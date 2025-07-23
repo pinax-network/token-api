@@ -34,7 +34,7 @@ SELECT
     output_amount,
     {network_id: String} AS network_id
 FROM s
-WHERE s.timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+WHERE s.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
     AND ({signature:String}     = '' OR signature      = {signature:String})
     AND ({user:String}          = '' OR user           = {user:String})
     AND ({amm:String}           = '' OR amm            = {amm:String})

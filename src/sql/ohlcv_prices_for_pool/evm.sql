@@ -15,10 +15,8 @@ WITH ohlc AS (
         sum(transactions) AS transactions,
         toString(token0) IN {stablecoin_contracts: Array(String)} AS is_stablecoin
     FROM ohlc_prices
-    WHERE pool = {pool: String}
+    WHERE pool = {pool: String} AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
     GROUP BY datetime, symbol0, symbol1, token0
-    HAVING datetime >= parseDateTimeBestEffortOrZero({startTime: String})
-       AND datetime <= parseDateTimeBestEffort({endTime: String})
     ORDER BY datetime DESC
     LIMIT   {limit:int}
     OFFSET  {offset:int}

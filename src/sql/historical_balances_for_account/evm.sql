@@ -15,10 +15,10 @@ ohlc AS (
         toFloat64(min(low)) AS low_raw,
         toFloat64(argMaxMerge(close)) AS close_raw
     FROM historical_balances
-    WHERE address = {address: String} AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
+    WHERE address = {address: String}
+        AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+        AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
     GROUP BY datetime, contract, name, symbol, decimals
-    HAVING datetime >= parseDateTimeBestEffortOrZero({startTime: String})
-       AND datetime <= parseDateTimeBestEffort({endTime: String})
 )
 SELECT
     datetime,

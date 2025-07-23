@@ -39,7 +39,7 @@ export type Version = z.infer<typeof version>;
 export const commit = z.coerce.string().regex(new RegExp("^[0-9a-f]{7}$"));
 export type Commit = z.infer<typeof commit>;
 
-export const protocolSchema = z.enum(["", "uniswap_v2", "uniswap_v3"]).default('uniswap_v3').openapi({ description: "Protocol name", example: "uniswap_v3" });
+export const protocolSchema = z.enum(["", "uniswap_v2", "uniswap_v3", "uniswap_v4"]).default('uniswap_v4').openapi({ description: "Protocol name", example: "uniswap_v3" });
 export const svmProtocolSchema = z.enum(["", "raydium_amm_v4"]).default('raydium_amm_v4').openapi({ description: "Protocol name", example: "raydium_amm_v4" });
 
 export const evmAddressSchema = evmAddress
@@ -84,15 +84,27 @@ export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1d').tra
             return 10080;
     }
 }).openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
-export const timestampSchema = z.string()
-    .regex(/^\d+$/, 'Timestamp must be an integer without decimal points')
-    .transform(Number)
-    .refine((n) => n >= 0, 'Timestamp must be non-negative')
-    .refine((n) => n <= 9999999999, 'Timestamp must not exceed 9999999999')
-    .transform((t) => t * 1000)
-    .openapi({ description: 'UNIX timestamp in seconds.' });
-export const startTimeSchema = timestampSchema.default('0');
-export const endTimeSchema = timestampSchema.default(`9999999999`);
+export const timestampSchema = z.number()
+  .int()
+  .refine((timestamp) => {
+    return timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER;
+  }, {
+    message: "Timestamp must be a valid UNIX timestamp in seconds"
+  })
+  .transform((timestamp) => {
+    // Convert seconds to milliseconds for JavaScript Date validation
+    const date = new Date(timestamp * 1000);
+    
+    // Validate it's a valid date that JavaScript can handle
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid timestamp');
+    }
+    
+    return timestamp; // Return original timestamp for ClickHouse
+  })
+  .openapi({ description: 'UNIX timestamp in seconds.' });
+export const startTimeSchema = timestampSchema.default(0);
+export const endTimeSchema = timestampSchema.default(9999999999);
 
 // NFT schemas
 export const tokenIdSchema = z.coerce.string()

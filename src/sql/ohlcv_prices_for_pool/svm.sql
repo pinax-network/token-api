@@ -26,10 +26,8 @@ SELECT
     {network_id: String} AS network_id
 FROM ohlc_prices AS o
 JOIN decimals USING pool
-WHERE pool = {pool: String}
+WHERE pool = {pool: String} AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
 GROUP BY token0, token1, decimals_factor, pool, datetime
-HAVING datetime >= parseDateTimeBestEffortOrZero({startTime: String})
-   AND datetime <= parseDateTimeBestEffort({endTime: String})
 ORDER BY datetime DESC
 LIMIT   {limit:int}
 OFFSET  {offset:int}

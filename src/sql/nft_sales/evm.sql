@@ -11,7 +11,7 @@ WITH filtered_orders AS (
         {sale_currency:String} AS sale_currency
     FROM seaport_orders
     FINAL
-    WHERE   timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE   timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND toString(consideration_token) IN {nativeContracts: Array(String)}
         AND offer_token = {contract:String}
         AND ({token_id:String}             = '' OR offer_token_id = {token_id:String})
