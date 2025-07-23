@@ -72,7 +72,7 @@ export const pageSchema = z.coerce.number().int().min(1).default(1).openapi({ de
 export const orderDirectionSchema = z.enum(["asc", "desc"]).default('desc').openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
 export const orderBySchemaTimestamp = z.enum(["timestamp"]).default("timestamp").openapi({ description: 'The field by which to order the results.' });
 export const orderBySchemaValue = z.enum(["value"]).default("value").openapi({ description: 'The field by which to order the results.' });
-export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1h').transform((interval: string) => {
+export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1d').transform((interval: string) => {
     switch (interval) {
         case '1h':
             return 60;
