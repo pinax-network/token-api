@@ -9,7 +9,7 @@ filtered_transfers AS (
         `to`,
         value
     FROM transfers
-    WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
         AND ({from:String} = ''  OR `from` = {from:String})
         AND ({to:String} = ''  OR `to` = {to:String})

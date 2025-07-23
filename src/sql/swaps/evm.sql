@@ -12,7 +12,7 @@ WITH s AS (
         price,
         protocol
     FROM swaps
-    WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
         AND ({caller:String}     = '' OR caller         = {caller:String})
         AND ({sender:String}     = '' OR sender         = {sender:String})

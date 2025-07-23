@@ -4,7 +4,7 @@ WITH t AS (
         decimals,
         *
     FROM transfers
-    WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
     ORDER BY timestamp DESC
 )
 SELECT

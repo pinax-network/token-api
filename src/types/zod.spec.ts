@@ -179,94 +179,90 @@ describe("Pagination Schema", () => {
 });
 
 describe("Timestamp Schema", () => {
-  it("should convert a valid timestamp string to milliseconds", () => {
-    const timestamp = "1647456789"; // seconds as string
-    expect(timestampSchema.parse(timestamp)).toBe(1647456789000); // milliseconds
+  it("should accept a valid timestamp number", () => {
+    const timestamp = 1647456789; // seconds as number
+    expect(timestampSchema.parse(timestamp)).toBe(1647456789); // returns original value
   });
 
   it("should handle zero as a valid timestamp", () => {
-    expect(timestampSchema.parse("0")).toBe(0);
+    expect(timestampSchema.parse(0)).toBe(0);
   });
 
   it("should throw a ZodError for negative timestamps", () => {
-    expect(() => timestampSchema.parse("-1")).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(-1)).toThrowError(ZodError);
   });
 
-  it("should throw a ZodError for non-numeric strings", () => {
+  it("should throw a ZodError for string inputs (only numbers allowed)", () => {
+    expect(() => timestampSchema.parse("1647456789")).toThrowError(ZodError);
+    expect(() => timestampSchema.parse("0")).toThrowError(ZodError);
     expect(() => timestampSchema.parse("abc")).toThrowError(ZodError);
   });
 
   it("should throw a ZodError for decimal/floating point timestamps", () => {
-    expect(() => timestampSchema.parse("1647456789.5")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("128.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("6.0")).toThrowError(ZodError);
-  });
-
-  it("should throw a ZodError for number inputs (only strings allowed)", () => {
-    // Since we only accept strings now, number inputs should fail
-    expect(() => timestampSchema.parse(128)).toThrowError(ZodError);
-    expect(() => timestampSchema.parse(128.0)).toThrowError(ZodError);
     expect(() => timestampSchema.parse(1647456789.5)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(128.5)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(6.1)).toThrowError(ZodError);
   });
 
-  it("should reject problematic timestamp values from security testing", () => {
-    // These are actual values from the Mayhem report that caused issues
-    expect(() => timestampSchema.parse("128.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("6.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("4.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("-4.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("-8.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("32768.0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("2147483649.0")).toThrowError(ZodError);
+  it("should accept valid integer numbers", () => {
+    expect(timestampSchema.parse(1)).toBe(1);
+    expect(timestampSchema.parse(128)).toBe(128);
+    expect(timestampSchema.parse(2147483647)).toBe(2147483647);
   });
 
   it("should handle the safeParse method correctly", () => {
-    const validResult = timestampSchema.safeParse("1647456789");
+    const validResult = timestampSchema.safeParse(1647456789);
     expect(validResult.success).toBe(true);
     if (validResult.success) {
-      expect(validResult.data).toBe(1647456789000);
+      expect(validResult.data).toBe(1647456789);
     }
 
-    const invalidResult = timestampSchema.safeParse("-1");
+    const invalidResult = timestampSchema.safeParse(-1);
     expect(invalidResult.success).toBe(false);
 
-    const invalidFloatResult = timestampSchema.safeParse("1647456789.5");
+    const invalidFloatResult = timestampSchema.safeParse(1647456789.5);
     expect(invalidFloatResult.success).toBe(false);
     if (!invalidFloatResult.success && invalidFloatResult.error.issues[0]) {
-      expect(invalidFloatResult.error.issues[0].message).toContain('Timestamp must be an integer');
+      expect(invalidFloatResult.error.issues[0].message).toContain('Expected integer');
+    }
+
+    const invalidStringResult = timestampSchema.safeParse("1647456789");
+    expect(invalidStringResult.success).toBe(false);
+    if (!invalidStringResult.success && invalidStringResult.error.issues[0]) {
+      expect(invalidStringResult.error.issues[0].message).toContain('Expected number');
     }
   });
 
-  it("should accept valid integer strings", () => {
-    expect(timestampSchema.parse("1")).toBe(1000);
-    expect(timestampSchema.parse("128")).toBe(128000);
-    expect(timestampSchema.parse("2147483647")).toBe(2147483647000);
+  it("should accept large valid timestamps within safe integer range", () => {
+    const largeTimestamp = 9999999999; // Year 2286 - this works fine
+    expect(timestampSchema.parse(largeTimestamp)).toBe(largeTimestamp);
+  
+    // Use a large but reasonable timestamp instead of MAX_SAFE_INTEGER
+    // This represents a date in the year 33658 CE, which is still valid for JS Date
+    const veryLargeButValidTimestamp = 999999999999; // Still creates valid Date
+    expect(timestampSchema.parse(veryLargeButValidTimestamp)).toBe(veryLargeButValidTimestamp);
   });
 
-  it("should throw a ZodError for timestamps exceeding the maximum value", () => {
-    expect(() => timestampSchema.parse("10000000000")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("99999999999")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("999999999999")).toThrowError(ZodError);
+  it("should reject problematic values that are not integers", () => {
+    expect(() => timestampSchema.parse(6.1)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(4.7)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(-4.5)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(-8.3)).toThrowError(ZodError);
   });
 
-  it("should accept the maximum allowed timestamp value", () => {
-    const maxTimestamp = "9999999999"; // Maximum allowed value
-    expect(timestampSchema.parse(maxTimestamp)).toBe(9999999999000);
-  });
-
-  it("should handle edge cases around the maximum value with safeParse", () => {
-    // Valid: exactly at the limit
-    const validResult = timestampSchema.safeParse("9999999999");
+  it("should handle edge cases with safeParse", () => {
+    // Valid: large but safe integer
+    const validResult = timestampSchema.safeParse(9999999999);
     expect(validResult.success).toBe(true);
     if (validResult.success) {
-      expect(validResult.data).toBe(9999999999000);
+      expect(validResult.data).toBe(9999999999);
     }
 
-    // Invalid: one unit over the limit
-    const invalidResult = timestampSchema.safeParse("10000000000");
+    // Invalid: negative number
+    const invalidResult = timestampSchema.safeParse(-1);
     expect(invalidResult.success).toBe(false);
     if (!invalidResult.success && invalidResult.error.issues[0]) {
-      expect(invalidResult.error.issues[0].message).toContain('must not exceed 9999999999');
+      expect(invalidResult.error.issues[0].message).toContain('Timestamp must be a valid UNIX timestamp in seconds');
     }
   });
 });

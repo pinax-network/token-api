@@ -23,7 +23,7 @@ WITH erc721 AS (
         transfer_type,
         token_standard
     FROM erc721_transfers AS t
-    WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND contract = {contract:String}
         AND ({fromAddress:String}       = '' OR from           = {fromAddress:String})
         AND ({toAddress:String}         = '' OR to             = {toAddress:String})
@@ -54,7 +54,7 @@ erc1155 AS (
         transfer_type,
         token_standard
     FROM erc1155_transfers AS t
-    WHERE timestamp BETWEEN {startTime:UInt32} AND {endTime:UInt32}
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND contract = {contract:String}
         AND ({fromAddress:String}       = '' OR from           = {fromAddress:String})
         AND ({toAddress:String}         = '' OR to             = {toAddress:String})
