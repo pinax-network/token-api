@@ -3,10 +3,10 @@ WITH s AS (
         block_num,
         timestamp,
         tx_hash,
-        caller,
+        toString(caller) as caller,
         pool,
-        sender,
-        recipient,
+        toString(sender) as sender,
+        toString(recipient) AS recipient,
         amount0,
         amount1,
         price,
@@ -30,8 +30,7 @@ filtered_pools AS (
         token0,
         token1
     FROM pools
-    WHERE ({pool:String} = '' OR pool = {pool:String})
-    AND ({protocol:String} = '' OR protocol = {protocol:String})
+    WHERE pool IN (SELECT DISTINCT pool FROM s)
 ),
 p AS (
     SELECT
