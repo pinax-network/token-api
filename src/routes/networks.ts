@@ -50,7 +50,7 @@ const openapi = describeRoute(withErrorResponses({
 }));
 
 export function getNetwork(id: string) {
-    const network = registry.getNetworkById(id);
+    const network = registry.getNetworkByAlias(id);
     if (!network) {
         logger.warn(`Network ${id} not found`);
         return {};
@@ -95,7 +95,13 @@ logger.trace(`Default EVM network: ${config.defaultEvmNetwork}`);
 logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
 
 route.get('/networks', openapi, async (c) => {
-    return c.json({ networks: config.networks.map(id => getNetwork(id)) });
+    return c.json({
+        networks: config.networks.map(
+            id => getNetwork(id)
+        ).sort((a, b) => {
+            return a.id && b.id ? a.id.localeCompare(b.id) : -1;
+        })
+    });
 });
 
 export default route;
