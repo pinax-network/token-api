@@ -14,7 +14,7 @@ WITH erc721 AS (
             contract,
             owner,
         FROM erc721_owners
-        WHERE owner = {address: String}
+        WHERE owner = {address: String} AND ({contract: String} = '' OR contract = {contract: String})
     ) AS o
     LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
 ),
@@ -34,7 +34,7 @@ erc1155 AS (
             contract,
             owner,
         FROM erc1155_balances
-        WHERE owner = {address: String} AND balance > 0
+        WHERE owner = {address: String} AND ({contract: String} = '' OR contract = {contract: String}) AND balance > 0
     ) AS o
     LEFT JOIN erc1155_metadata_by_contract AS m USING (contract)
 ),
