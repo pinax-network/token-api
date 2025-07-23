@@ -27,7 +27,7 @@ last_collection_sale AS (
 SELECT
     t.contract AS contract,
     c.timestamp AS contract_creation,
-    c.creator AS contract_creator,
+    c.from AS contract_creator,
     m.symbol,
     m.name,
     toString(token_id) AS token_id,
@@ -47,7 +47,7 @@ SELECT
 FROM erc721_metadata_by_token AS t
 FINAL
 LEFT JOIN erc721_metadata_by_contract AS m ON m.contract = t.contract
-LEFT JOIN `mainnet:evm-contracts@v0.3.1`.contracts AS c ON c.address = t.contract
+LEFT JOIN `{contracts_db}`.contracts AS c ON c.address = t.contract
 LEFT JOIN last_token_sale AS token ON token.offer_token = t.contract AND token.offer_token_id = t.token_id
 LEFT JOIN last_collection_sale AS collection ON collection.offer_token = t.contract
 WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256}
