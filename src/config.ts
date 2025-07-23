@@ -29,9 +29,10 @@ export const DEFAULT_DEFAULT_SVM_NETWORK = "solana";
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 
-export const DEFAULT_DBS_TOKEN = "mainnet:evm-tokens@v1.14.0";
-export const DEFAULT_DBS_NFT = "mainnet:evm-nft-tokens@v0.4.3";
+export const DEFAULT_DBS_TOKEN = "mainnet:evm-tokens@v1.16.0";
+export const DEFAULT_DBS_NFT = "mainnet:evm-nft-tokens@v0.5.1";
 export const DEFAULT_DBS_UNISWAP = "mainnet:evm-uniswaps@v0.1.5";
+export const DEFAULT_DBS_CONTRACT = "mainnet:evm-contracts@v0.3.0";
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? await $`git rev-parse HEAD`.text()).replace(/\n/, "").slice(0, 7);
@@ -65,6 +66,7 @@ const opts = program
     .addOption(new Option("--token-databases <string>", "Token Clickhouse databases").env("DBS_TOKEN").default(DEFAULT_DBS_TOKEN))
     .addOption(new Option("--nft-databases <string>", "NFT Clickhouse databases").env("DBS_NFT").default(DEFAULT_DBS_NFT))
     .addOption(new Option("--uniswap-databases <string>", "Uniswap Clickhouse databases").env("DBS_UNISWAP").default(DEFAULT_DBS_UNISWAP))
+    .addOption(new Option("--contract-databases <string>", "Contract Clickhouse databases").env("DBS_CONTRACT").default(DEFAULT_DBS_CONTRACT))
     .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .addOption(new Option("--max-rows-trigger <number>", "Queries returning rows above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_ROWS_TRIGGER").default(DEFAULT_LARGE_QUERIES_ROWS_TRIGGER))
     .addOption(new Option("--max-bytes-trigger <number>", "Queries processing bytes above this treshold will be considered large queries for metrics").env("LARGE_QUERIES_BYTES_TRIGGER").default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER))
@@ -107,6 +109,7 @@ let config = z.object({
     tokenDatabases: z.string().transform(parseDatabases),
     nftDatabases: z.string().transform(parseDatabases),
     uniswapDatabases: z.string().transform(parseDatabases),
+    contractDatabases: z.string().transform(parseDatabases),
     maxLimit: z.coerce.number(),
     maxRowsTrigger: z.coerce.number(),
     maxBytesTrigger: z.coerce.number(),
@@ -121,14 +124,16 @@ let config = z.object({
         {
             ...data.tokenDatabases,
             ...data.nftDatabases,
-            ...data.uniswapDatabases
+            ...data.uniswapDatabases,
+            ...data.contractDatabases
         }
     ).filter(
         networkId => {
             return {
                 ...data.tokenDatabases,
                 ...data.nftDatabases,
-                ...data.uniswapDatabases
+                ...data.uniswapDatabases,
+                ...data.contractDatabases
             }[networkId]?.type === 'evm'
         }
     ).sort(),
@@ -136,14 +141,16 @@ let config = z.object({
         {
             ...data.tokenDatabases,
             ...data.nftDatabases,
-            ...data.uniswapDatabases
+            ...data.uniswapDatabases,
+            ...data.contractDatabases
         }
     ).filter(
         networkId => {
             return {
                 ...data.tokenDatabases,
                 ...data.nftDatabases,
-                ...data.uniswapDatabases
+                ...data.uniswapDatabases,
+                ...data.contractDatabases
             }[networkId]?.type === 'svm'
         }
     ).sort()

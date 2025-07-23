@@ -71,8 +71,10 @@ route.get('/:contract', openapi, validator('param', paramSchema, validatorHook),
     const params = c.get('validatedData');
 
     const { database, type } = config.nftDatabases[params.network_id]!;
-    const query = sqlQueries['nft_metadata_for_collection']?.[type];
+    let query = sqlQueries['nft_metadata_for_collection']?.[type];
     if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
+
+    query = query.replace('{contracts_db}', config.contractDatabases[params.network_id]!.database);
 
     const response = await makeUsageQueryJson(c, [query], params, { database });
     return handleUsageQueryError(c, response);

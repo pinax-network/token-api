@@ -71,8 +71,8 @@ contract_creation AS (
     SELECT
         address AS contract,
         timestamp,
-        creator
-    FROM `mainnet:evm-contracts@v0.3.1`.contracts
+        `from` AS creator
+    FROM `{contracts_db}`.contracts
     WHERE address = {contract: String}
 )
 SELECT
