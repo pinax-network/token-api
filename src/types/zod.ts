@@ -57,6 +57,14 @@ export const evmTransactionSchema = evmTransaction
         description: 'Filter by transaction' 
     });
 
+export const uniswapPoolSchema = z.union([evmAddress, evmTransaction])
+    .transform((addr) => addr.toLowerCase())
+    .transform((addr) => addr.length == 40 || addr.length == 64 ? `0x${addr}` : addr)
+    .pipe(z.string())
+    .openapi({
+        description: 'Filter by pool'
+    });
+
 export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
     description: 'Filter by address'
 });
@@ -85,24 +93,24 @@ export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1d').tra
     }
 }).openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
 export const timestampSchema = z.number()
-  .int()
-  .refine((timestamp) => {
-    return timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER;
-  }, {
-    message: "Timestamp must be a valid UNIX timestamp in seconds"
-  })
-  .transform((timestamp) => {
-    // Convert seconds to milliseconds for JavaScript Date validation
-    const date = new Date(timestamp * 1000);
+    .int()
+    .refine((timestamp) => {
+        return timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER;
+    }, {
+        message: "Timestamp must be a valid UNIX timestamp in seconds"
+    })
+    .transform((timestamp) => {
+        // Convert seconds to milliseconds for JavaScript Date validation
+        const date = new Date(timestamp * 1000);
     
-    // Validate it's a valid date that JavaScript can handle
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid timestamp');
-    }
+        // Validate it's a valid date that JavaScript can handle
+        if (isNaN(date.getTime())) {
+            throw new Error('Invalid timestamp');
+        }
     
-    return timestamp; // Return original timestamp for ClickHouse
-  })
-  .openapi({ description: 'UNIX timestamp in seconds.' });
+        return timestamp; // Return original timestamp for ClickHouse
+    })
+    .openapi({ description: 'UNIX timestamp in seconds.' });
 export const startTimeSchema = timestampSchema.default(0);
 export const endTimeSchema = timestampSchema.default(9999999999);
 
@@ -119,7 +127,7 @@ export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']).default('')
 export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
 export const WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' }); // WETH (Wrapped Ethereum)
 export const GRT = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7' }); // GRT
-export const USDC_WETH = evmAddressSchema.openapi({ description: 'Filter by contract address', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
+export const USDC_WETH = uniswapPoolSchema.openapi({ description: 'Filter by pool address', example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640' }); // UDSC/WETH (Uniswap V3)
 export const PudgyPenguins = evmAddressSchema.openapi({ description: 'Filter by NFT contract address', example: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8' }); // Pudgy Penguins
 export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '5712' });
 
