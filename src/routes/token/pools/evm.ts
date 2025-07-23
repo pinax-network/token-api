@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, USDC_WETH, protocolSchema, tokenSchema, paginationQuery } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, USDC_WETH, protocolSchema, tokenSchema, paginationQuery, uniswapPoolSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -32,7 +32,7 @@ const responseSchema = z.object({
         // -- pool --
         // creator: evmAddressSchema, // TO-DO: https://github.com/pinax-network/substreams-evm-tokens/issues/37
         factory: evmAddressSchema,
-        pool: evmAddressSchema,
+        pool: uniswapPoolSchema,
         token0: tokenSchema,
         token1: tokenSchema,
         fee: z.number(),

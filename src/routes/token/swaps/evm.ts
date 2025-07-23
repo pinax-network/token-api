@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, orderBySchemaTimestamp, orderDirectionSchema, startTimeSchema, endTimeSchema } from '../../../types/zod.js';
+import { evmAddressSchema, EVM_networkIdSchema, statisticsSchema, protocolSchema, tokenSchema, evmTransactionSchema, paginationQuery, USDC_WETH, orderBySchemaTimestamp, orderDirectionSchema, startTimeSchema, endTimeSchema, uniswapPoolSchema } from '../../../types/zod.js';
 import { config } from '../../../config.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
@@ -46,7 +46,7 @@ const responseSchema = z.object({
         sender: evmAddressSchema,
         recipient: evmAddressSchema,
         factory: evmAddressSchema,
-        pool: evmAddressSchema,
+        pool: uniswapPoolSchema,
         token0: tokenSchema,
         token1: tokenSchema,
         amount0: z.string(),
