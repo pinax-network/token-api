@@ -31,3 +31,4 @@ SELECT
     value
 FROM filtered_transfers AS t
 LEFT JOIN erc20_metadata_initialize AS c ON c.address = t.contract
+ORDER BY timestamp DESC
