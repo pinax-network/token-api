@@ -92,23 +92,21 @@ export const intervalSchema = z.enum(['1h', '4h', '1d', '1w']).default('1d').tra
             return 10080;
     }
 }).openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
-export const timestampSchema = z.number()
+export const timestampSchema = z.coerce.number()
     .int()
     .refine((timestamp) => {
         return timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER;
     }, {
         message: "Timestamp must be a valid UNIX timestamp in seconds"
     })
-    .transform((timestamp) => {
+    .refine((timestamp) => {
         // Convert seconds to milliseconds for JavaScript Date validation
         const date = new Date(timestamp * 1000);
-    
+        
         // Validate it's a valid date that JavaScript can handle
-        if (isNaN(date.getTime())) {
-            throw new Error('Invalid timestamp');
-        }
-    
-        return timestamp; // Return original timestamp for ClickHouse
+        return !isNaN(date.getTime());
+    }, {
+        message: "Invalid timestamp"
     })
     .openapi({ description: 'UNIX timestamp in seconds.' });
 export const startTimeSchema = timestampSchema.default(0);

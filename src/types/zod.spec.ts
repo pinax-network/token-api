@@ -192,15 +192,28 @@ describe("Timestamp Schema", () => {
     expect(() => timestampSchema.parse(-1)).toThrowError(ZodError);
   });
 
-  it("should throw a ZodError for string inputs (only numbers allowed)", () => {
-    expect(() => timestampSchema.parse("1647456789")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("0")).toThrowError(ZodError);
-    expect(() => timestampSchema.parse("abc")).toThrowError(ZodError);
+  it("should accept string inputs and coerce them to numbers", () => {
+    expect(timestampSchema.parse("1647456789")).toBe(1647456789);
+    expect(timestampSchema.parse("0")).toBe(0);
   });
 
-  it("should throw a ZodError for decimal/floating point timestamps", () => {
+  it("should throw a ZodError for non-numeric strings", () => {
+    expect(() => timestampSchema.parse("abc")).toThrowError(ZodError);
+    // Empty string coerces to 0, so it doesn't throw
+    expect(timestampSchema.parse("")).toBe(0);
+    expect(() => timestampSchema.parse("123abc")).toThrowError(ZodError);
+  });
+
+  it("should throw ZodError for decimal strings (integer validation)", () => {
+    // .int() validation fails for decimals even after coercion
+    expect(() => timestampSchema.parse("1647456789.5")).toThrowError(ZodError);
+    expect(() => timestampSchema.parse("128.9")).toThrowError(ZodError);
+  });
+
+  it("should throw ZodError for decimal numbers (integer validation)", () => {
+    // .int() validation fails for decimals
     expect(() => timestampSchema.parse(1647456789.5)).toThrowError(ZodError);
-    expect(() => timestampSchema.parse(128.5)).toThrowError(ZodError);
+    expect(() => timestampSchema.parse(128.9)).toThrowError(ZodError);
     expect(() => timestampSchema.parse(6.1)).toThrowError(ZodError);
   });
 
@@ -217,6 +230,12 @@ describe("Timestamp Schema", () => {
       expect(validResult.data).toBe(1647456789);
     }
 
+    const validStringResult = timestampSchema.safeParse("1647456789");
+    expect(validStringResult.success).toBe(true);
+    if (validStringResult.success) {
+      expect(validStringResult.data).toBe(1647456789);
+    }
+
     const invalidResult = timestampSchema.safeParse(-1);
     expect(invalidResult.success).toBe(false);
 
@@ -226,7 +245,7 @@ describe("Timestamp Schema", () => {
       expect(invalidFloatResult.error.issues[0].message).toContain('Expected integer');
     }
 
-    const invalidStringResult = timestampSchema.safeParse("1647456789");
+    const invalidStringResult = timestampSchema.safeParse("abc");
     expect(invalidStringResult.success).toBe(false);
     if (!invalidStringResult.success && invalidStringResult.error.issues[0]) {
       expect(invalidStringResult.error.issues[0].message).toContain('Expected number');
@@ -243,11 +262,10 @@ describe("Timestamp Schema", () => {
     expect(timestampSchema.parse(veryLargeButValidTimestamp)).toBe(veryLargeButValidTimestamp);
   });
 
-  it("should reject problematic values that are not integers", () => {
-    expect(() => timestampSchema.parse(6.1)).toThrowError(ZodError);
-    expect(() => timestampSchema.parse(4.7)).toThrowError(ZodError);
-    expect(() => timestampSchema.parse(-4.5)).toThrowError(ZodError);
-    expect(() => timestampSchema.parse(-8.3)).toThrowError(ZodError);
+  it("should throw for timestamps that would create invalid dates", () => {
+    // Test with a timestamp that's too large for JavaScript Date
+    // MAX_SAFE_INTEGER * 1000 creates an invalid date
+    expect(() => timestampSchema.parse(Number.MAX_SAFE_INTEGER)).toThrow('Invalid timestamp');
   });
 
   it("should handle edge cases with safeParse", () => {
@@ -264,6 +282,21 @@ describe("Timestamp Schema", () => {
     if (!invalidResult.success && invalidResult.error.issues[0]) {
       expect(invalidResult.error.issues[0].message).toContain('Timestamp must be a valid UNIX timestamp in seconds');
     }
+
+    // Invalid: timestamp that creates invalid date - use safeParse to avoid throwing
+    const invalidDateResult = timestampSchema.safeParse(Number.MAX_SAFE_INTEGER);
+    expect(invalidDateResult.success).toBe(false);
+  });
+
+  it("should handle boolean and special value coercion", () => {
+    // z.coerce.number() converts these
+    expect(timestampSchema.parse(true)).toBe(1);
+    expect(timestampSchema.parse(false)).toBe(0);
+    
+    // null coerces to 0, doesn't throw
+    expect(timestampSchema.parse(null)).toBe(0);
+    // undefined does throw
+    expect(() => timestampSchema.parse(undefined)).toThrowError(ZodError);
   });
 });
 
