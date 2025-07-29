@@ -104,8 +104,11 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
     const params = c.get('validatedData');
 
-    const { database, type } = config.nftDatabases[params.network_id]!;
-    const query = sqlQueries.nft_sales?.[type];
+    const dbConfig = config.nftDatabases[params.network_id];
+    if (!dbConfig) {
+        return c.json({ error: `Network not found: ${params.network_id}` }, 400);
+    }
+    const query = sqlQueries.nft_sales?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for NFT sales could not be loaded' }, 500);
 
     const sale_currency = nativeSymbols.get(params.network_id)?.symbol ?? 'Native';
@@ -114,7 +117,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
         c,
         [query],
         { ...params, sale_currency, nativeContracts: Array.from(nativeContracts) },
-        { database }
+        { database: dbConfig.database }
     );
     return handleUsageQueryError(c, response);
 });

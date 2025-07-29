@@ -63,12 +63,12 @@ export function APIErrorResponse(
  * @throws {ZodError} if the computed pagination values do not satisfy the defined schema.
  */
 export function computePagination(current_page: number, rows_per_page: number, total_rows?: number): PaginationSchema {
-    total_rows ??= 0;
+    const rows = total_rows ?? 0;
     return paginationSchema.parse({
-        next_page: current_page * rows_per_page >= total_rows ? current_page : current_page + 1,
+        next_page: current_page * rows_per_page >= rows ? current_page : current_page + 1,
         current_page,
         previous_page: current_page <= 1 ? current_page : current_page - 1,
-        total_pages: Math.max(Math.ceil(total_rows / rows_per_page), 1),
+        total_pages: Math.max(Math.ceil(rows / rows_per_page), 1),
     });
 }
 
@@ -77,20 +77,28 @@ export function now() {
 }
 
 export function validatorHook(
-    parseResult: { success: true; data: any } | { success: false; error: any },
+    parseResult: { success: true; data: unknown } | { success: false; error: unknown },
     ctx: Context
 ) {
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
 
-    ctx.set('validatedData', { ...ctx.get('validatedData'), ...parseResult.data });
+    ctx.set('validatedData', {
+        ...(ctx.get('validatedData') || {}),
+        ...(parseResult.data as Record<string, unknown>),
+    });
+}
+
+export interface RouteDescription {
+    responses?: Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 // Wrapper function to add error responses to existing route descriptions
-export function withErrorResponses(routeDescription: any) {
+export function withErrorResponses(routeDescription: RouteDescription) {
     return {
         ...routeDescription,
         responses: {
-            ...routeDescription.responses,
+            ...(routeDescription.responses || {}),
             400: {
                 description: 'Client side error',
                 content: {

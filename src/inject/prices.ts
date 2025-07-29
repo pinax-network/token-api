@@ -47,7 +47,7 @@ export async function injectPrices(
     const native_price = computeNativePrice(prices, network_id);
 
     if ('data' in response) {
-        response.data.forEach((row: Data) => {
+        for (const row of response.data as Data[]) {
             const address = contract ?? row.contract ?? row.address;
             if (!address || !row.symbol) return;
 
@@ -80,7 +80,7 @@ export async function injectPrices(
             if (row.circulating_supply) {
                 row.market_cap = (Number(row.circulating_supply) / 10 ** row.decimals) * price_usd;
             }
-        });
+        }
     }
 }
 

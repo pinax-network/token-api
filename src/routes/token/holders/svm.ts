@@ -99,11 +99,14 @@ route.get(
     async (c) => {
         const params = c.get('validatedData');
 
-        const { database, type } = config.tokenDatabases[params.network_id]!;
-        const query = sqlQueries.holders_for_contract?.[type];
+        const dbConfig = config.tokenDatabases[params.network_id];
+        if (!dbConfig) {
+            return c.json({ error: `Network not found: ${params.network_id}` }, 400);
+        }
+        const query = sqlQueries.holders_for_contract?.[dbConfig.type];
         if (!query) return c.json({ error: 'Query for holders could not be loaded' }, 500);
 
-        const response = await makeUsageQueryJson(c, [query], params, { database });
+        const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
         return handleUsageQueryError(c, response);
     }
 );

@@ -36,7 +36,7 @@ export async function makeQuery<T = unknown>(
             try {
                 const decodedRow = row.json() as
                     | ProgressRow
-                    | { row?: T; rows_before_limit_at_least?: number; meta?: any[] };
+                    | { row?: T; rows_before_limit_at_least?: number; meta?: Array<Record<string, unknown>> };
                 if (isProgressRow(decodedRow)) {
                     statistics = {
                         bytes_read: Number(decodedRow.progress.read_bytes),

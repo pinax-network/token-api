@@ -80,13 +80,17 @@ route.get(
     async (c) => {
         const params = c.get('validatedData');
 
-        const { database, type } = config.nftDatabases[params.network_id]!;
-        let query = sqlQueries.nft_metadata_for_collection?.[type];
+        const dbConfig = config.nftDatabases[params.network_id];
+        if (!dbConfig) {
+            return c.json({ error: `Network not found: ${params.network_id}` }, 400);
+        }
+        let query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
         if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
-        query = query.replace('{contracts_db}', config.contractDatabases[params.network_id]?.database);
+        const contractsDb = config.contractDatabases[params.network_id]?.database || '';
+        query = query.replace('{contracts_db}', contractsDb);
 
-        const response = await makeUsageQueryJson(c, [query], params, { database });
+        const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
         return handleUsageQueryError(c, response);
     }
 );

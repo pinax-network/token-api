@@ -91,15 +91,18 @@ route.get(
     async (c) => {
         const params = c.get('validatedData');
 
-        const { database, type } = config.uniswapDatabases[params.network_id]!;
-        const query = sqlQueries.ohlcv_prices_usd_for_contract?.[type];
+        const dbConfig = config.uniswapDatabases[params.network_id];
+        if (!dbConfig) {
+            return c.json({ error: `Network not found: ${params.network_id}` }, 400);
+        }
+        const query = sqlQueries.ohlcv_prices_usd_for_contract?.[dbConfig.type];
         if (!query) return c.json({ error: 'Query for OHLC price data could not be loaded' }, 500);
 
         const response = await makeUsageQueryJson(
             c,
             [query],
             { ...params, stablecoin_contracts: [...stables] },
-            { database }
+            { database: dbConfig.database }
         );
         return handleUsageQueryError(c, response);
     }

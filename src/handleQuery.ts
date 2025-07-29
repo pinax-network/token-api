@@ -39,21 +39,22 @@ export async function makeUsageQueryJson<T = unknown>(
     query_params: Record<string, string | number | string[]> = {},
     overwrite_config?: WebClickHouseClientConfigOptions
 ): Promise<ApiUsageResponse | ApiErrorResponse> {
-    const limit = limitSchema.safeParse(ctx.req.query('limit')).data ?? DEFAULT_LIMIT;
-    query_params.limit = limit;
-
-    const page = pageSchema.safeParse(ctx.req.query('page')).data ?? DEFAULT_PAGE;
-    // Since `page` starts at 1, `offset` should be positive for page > 1
-    query_params.offset = query_params.limit * (page - 1);
-
-    // start of request
     const request_time = new Date();
+    const limit = limitSchema.safeParse(ctx.req.query('limit')).data ?? DEFAULT_LIMIT;
+    const page = pageSchema.safeParse(ctx.req.query('page')).data ?? DEFAULT_PAGE;
 
     // inject request query params
-    query_params = { ...ctx.req.param(), ...ctx.req.query(), ...query_params };
+    const params = {
+        ...ctx.req.param(),
+        ...ctx.req.query(),
+        ...query_params,
+        // Since `page` starts at 1, `offset` should be positive for page > 1
+        offset: limit * (page - 1),
+        limit,
+    };
 
     try {
-        const result = await makeQuery<T>(query.join(' '), query_params, overwrite_config);
+        const result = await makeQuery<T>(query.join(' '), params, overwrite_config);
 
         // Handle query execution timeout
         if (result.statistics && result.statistics.elapsed >= MAX_EXECUTION_TIME) {
@@ -82,7 +83,7 @@ export async function makeUsageQueryJson<T = unknown>(
             return {
                 status: 400 as ClientErrorResponse['status'],
                 code: 'bad_query_input' as ClientErrorResponse['code'],
-                message: err.issues[0]?.message,
+                message: err.issues[0]?.message ?? 'An unknown error occurred',
             };
         if (err instanceof Error) message = err.message;
         else if (typeof err === 'string') message = err;
