@@ -21,12 +21,6 @@ jobs:
             - name: "Run test"
               run: bun test
               env:
-                  PORT: ${{ vars.PORT }}
-                  HOSTNAME: ${{ vars.HOSTNAME }}
-                  HOST: ${{ vars.HOST }}
-                  USERNAME: ${{ secrets.USERNAME }}
-                  PASSWORD: ${{ secrets.PASSWORD }}
-                  TABLE: ${{ secrets.TABLE }}
                   GIT_DATE: "2025-01-01"
                   GIT_COMMIT: "eaffd97310123b667a9fd69d9870c2f728f91462"
                   GIT_REPOSITORY: "graphprotocol/token-api"
