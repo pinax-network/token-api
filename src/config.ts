@@ -104,7 +104,7 @@ const config = z.object({
     apiUrl: z.string().url({ message: "Invalid API URL" }),
     database: z.string().min(1, "Database name cannot be empty"),
     username: z.string().min(1, "Username cannot be empty"),
-    password: z.string().min(1, "Password cannot be empty"),
+    password: z.string(),
     defaultEvmNetwork: z.string().min(1, "Default EVM network cannot be empty"),
     defaultSvmNetwork: z.string().min(1, "Default SVM network cannot be empty"),
     tokenDatabases: z.string()
