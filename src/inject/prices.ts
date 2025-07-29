@@ -1,7 +1,7 @@
-import client from "../clickhouse/client.js";
-import { config, DEFAULT_LOW_LIQUIDITY_CHECK } from "../config.js";
-import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
-import { stables, natives } from "./prices.tokens.js";
+import client from '../clickhouse/client.js';
+import { DEFAULT_LOW_LIQUIDITY_CHECK, config } from '../config.js';
+import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
+import { natives, stables } from './prices.tokens.js';
 
 interface Data {
     address?: string;
@@ -38,8 +38,7 @@ export async function injectPrices(
     network_id: string,
     contract?: string
 ) {
-    if (!config.tokenDatabases[network_id])
-        throw new Error(`Could not find database for network_id: ${network_id}`);
+    if (!config.tokenDatabases[network_id]) throw new Error(`Could not find database for network_id: ${network_id}`);
 
     const database = config.tokenDatabases[network_id].database;
     const prices = await getPrices(database);
@@ -79,7 +78,7 @@ export async function injectPrices(
 
             // Market Cap
             if (row.circulating_supply) {
-                row.market_cap = Number(row.circulating_supply) / 10 ** row.decimals * price_usd;
+                row.market_cap = (Number(row.circulating_supply) / 10 ** row.decimals) * price_usd;
             }
         });
     }
@@ -87,7 +86,7 @@ export async function injectPrices(
 
 async function getPrices(database: string): Promise<Price[]> {
     const query = await Bun.file('./src/inject/prices.sql').text();
-    const response = await client({ database }).query({ query, format: "JSONEachRow" });
+    const response = await client({ database }).query({ query, format: 'JSONEachRow' });
     return response.json();
 }
 
@@ -128,22 +127,22 @@ function computeTokenPrice(prices: Price[], token: string, native_price: Compute
 
     for (const price of prices) {
         // USD -> token
-        if (stables.has(price.token0) && price.token1 == token) {
+        if (stables.has(price.token0) && price.token1 === token) {
             symbol = price.symbol1;
             reserve_usd += price.reserve0;
             reserve_token += price.reserve1;
             // token -> USD
-        } else if (stables.has(price.token1) && price.token0 == token) {
+        } else if (stables.has(price.token1) && price.token0 === token) {
             symbol = price.symbol0;
             reserve_usd += price.reserve1;
             reserve_token += price.reserve0;
             // native -> token -> USD
-        } else if (natives.has(price.token0) && price.token1 == token) {
+        } else if (natives.has(price.token0) && price.token1 === token) {
             symbol = price.symbol1;
             reserve_usd += price.reserve0 * native_price.price_usd;
             reserve_token += price.reserve1;
             // token -> native -> USD
-        } else if (natives.has(price.token1) && price.token0 == token) {
+        } else if (natives.has(price.token1) && price.token0 === token) {
             symbol = price.symbol0;
             reserve_usd += price.reserve1 * native_price.price_usd;
             reserve_token += price.reserve0;
@@ -152,7 +151,7 @@ function computeTokenPrice(prices: Price[], token: string, native_price: Compute
     let price_usd = reserve_usd / reserve_token;
 
     // override prices for stables
-    if (stables.has(token)) price_usd = 1.00;
+    if (stables.has(token)) price_usd = 1.0;
     if (!price_usd) return null;
 
     const liquidity_usd = reserve_usd * 2;

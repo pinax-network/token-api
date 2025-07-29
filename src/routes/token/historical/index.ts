@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import balances from "./balances/index.js";
+import balances from './balances/index.js';
 
 const router = new Hono();
 

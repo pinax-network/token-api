@@ -1,91 +1,110 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { evmAddressSchema, paginationQuery, statisticsSchema, Vitalik, EVM_networkIdSchema } from '../../../types/zod.js';
-import { sqlQueries } from '../../../sql/index.js';
 import { z } from 'zod';
 import { config } from '../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
+import { sqlQueries } from '../../../sql/index.js';
+import {
+    EVM_networkIdSchema,
+    Vitalik,
+    evmAddressSchema,
+    paginationQuery,
+    statisticsSchema,
+} from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
     address: Vitalik,
 });
 
-let querySchema: any = z.object({
-    network_id: EVM_networkIdSchema,
-    contract: evmAddressSchema.default(''),
-}).merge(paginationQuery);
-
-let responseSchema: any = z.object({
-    data: z.array(z.object({
-        // -- block --
-        block_num: z.number(),
-        last_balance_update: z.string(),
-
-        // -- balance --
-        contract: evmAddressSchema,
-        amount: z.string(),
-        value: z.number(),
-
-        // -- network --
+const querySchema: any = z
+    .object({
         network_id: EVM_networkIdSchema,
+        contract: evmAddressSchema.default(''),
+    })
+    .merge(paginationQuery);
 
-        // -- contract --
-        name: z.optional(z.string()),
-        symbol: z.optional(z.string()),
-        decimals: z.optional(z.number()),
+const responseSchema: any = z.object({
+    data: z.array(
+        z.object({
+            // -- block --
+            block_num: z.number(),
+            last_balance_update: z.string(),
 
-        // -- price --
-        price_usd: z.optional(z.number()),
-        value_usd: z.optional(z.number()),
-        low_liquidity: z.optional(z.boolean()),
-    })),
+            // -- balance --
+            contract: evmAddressSchema,
+            amount: z.string(),
+            value: z.number(),
+
+            // -- network --
+            network_id: EVM_networkIdSchema,
+
+            // -- contract --
+            name: z.optional(z.string()),
+            symbol: z.optional(z.string()),
+            decimals: z.optional(z.number()),
+
+            // -- price --
+            price_usd: z.optional(z.number()),
+            value_usd: z.optional(z.number()),
+            low_liquidity: z.optional(z.boolean()),
+        })
+    ),
     statistics: z.optional(statisticsSchema),
 });
 
-let openapi = describeRoute(withErrorResponses({
-    summary: 'Balances by Address',
-    description: 'Provides latest ERC-20 & Native balances by wallet address.',
-    tags: ['EVM'],
-    security: [{ bearerAuth: [] }],
-    responses: {
-        200: {
-            description: 'Successful Response',
-            content: {
-                'application/json': {
-                    schema: resolver(responseSchema), example: {
-                        data: [
-                            {
-                                "block_num": 22968741,
-                                "last_balance_update": "2025-07-21 16:24:47",
-                                "contract": "0x6993301413c1867aafe2caaa692ec53a0118f06e",
-                                "amount": "7917650000000000000000",
-                                "value": 7917.65,
-                                "name": "BOLD",
-                                "symbol": "BOLD",
-                                "decimals": 18,
-                                "network_id": "mainnet"
-                            }
-                        ]
-                    }
+const openapi = describeRoute(
+    withErrorResponses({
+        summary: 'Balances by Address',
+        description: 'Provides latest ERC-20 & Native balances by wallet address.',
+        tags: ['EVM'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+            200: {
+                description: 'Successful Response',
+                content: {
+                    'application/json': {
+                        schema: resolver(responseSchema),
+                        example: {
+                            data: [
+                                {
+                                    block_num: 22968741,
+                                    last_balance_update: '2025-07-21 16:24:47',
+                                    contract: '0x6993301413c1867aafe2caaa692ec53a0118f06e',
+                                    amount: '7917650000000000000000',
+                                    value: 7917.65,
+                                    name: 'BOLD',
+                                    symbol: 'BOLD',
+                                    decimals: 18,
+                                    network_id: 'mainnet',
+                                },
+                            ],
+                        },
+                    },
                 },
             },
-        }
-    },
-}));
+        },
+    })
+);
 
-const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>; }; }>();
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/:address', openapi, validator('param', paramSchema, validatorHook), validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+route.get(
+    '/:address',
+    openapi,
+    validator('param', paramSchema, validatorHook),
+    validator('query', querySchema, validatorHook),
+    async (c) => {
+        const params = c.get('validatedData');
 
-    const { database, type } = config.tokenDatabases[params.network_id]!;
-    const query = sqlQueries['balances_for_account']?.[type];
-    if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
+        const { database, type } = config.tokenDatabases[params.network_id]!;
+        const query = sqlQueries.balances_for_account?.[type];
+        if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database });
-    return handleUsageQueryError(c, response);
-});
+        const response = await makeUsageQueryJson(c, [query], params, { database });
+        return handleUsageQueryError(c, response);
+    }
+);
 
 export default route;

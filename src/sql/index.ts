@@ -43,12 +43,12 @@ export async function loadSqlFiles(folderPath: string): Promise<Record<string, s
 
 const sqlQueries: Record<string, Record<string, string>> = {};
 try {
-    const subdirs = await readdir("./src/sql", { withFileTypes: true });
+    const subdirs = await readdir('./src/sql', { withFileTypes: true });
 
     for (const dirent of subdirs) {
         if (dirent.isDirectory()) {
             const subfolderName = dirent.name;
-            const subfolderPath = join("./src/sql", subfolderName);
+            const subfolderPath = join('./src/sql', subfolderName);
 
             const subfolderQueries = await loadSqlFiles(subfolderPath);
             sqlQueries[subfolderName] = subfolderQueries;
@@ -59,7 +59,7 @@ try {
     throw error;
 }
 
-logger.trace(`Loaded SQL queries:\n`, Object.keys(sqlQueries));
+logger.trace('Loaded SQL queries:\n', Object.keys(sqlQueries));
 export { sqlQueries };
 
 export async function readSQL(path: string) {
