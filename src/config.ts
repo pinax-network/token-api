@@ -9,7 +9,7 @@ import pkg from "../package.json" with { type: "json" };
 export const DEFAULT_PORT = "8000";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_URL = "http://localhost:8123";
-export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}}`;
+export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}`;
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
@@ -96,24 +96,33 @@ function parseDatabases(dbs: string): Record<string, { database: string; type: '
     }).filter(Boolean));
 }
 
-let config = z.object({
-    port: z.string(),
-    hostname: z.string(),
-    url: z.string(),
-    apiUrl: z.string(),
-    database: z.string(),
-    username: z.string(),
+const config = z.object({
+    port: z.string().regex(/^\d+$/, "Port must be numeric").transform(Number)
+        .refine(val => val > 0 && val < 65536, "Port must be between 1-65535"),
+    hostname: z.string().min(1, "Hostname cannot be empty"),
+    url: z.string().url({ message: "Invalid Database URL" }),
+    apiUrl: z.string().url({ message: "Invalid API URL" }),
+    database: z.string().min(1, "Database name cannot be empty"),
+    username: z.string().min(1, "Username cannot be empty"),
     password: z.string(),
-    defaultEvmNetwork: z.string(),
-    defaultSvmNetwork: z.string(),
-    tokenDatabases: z.string().transform(parseDatabases),
-    nftDatabases: z.string().transform(parseDatabases),
-    uniswapDatabases: z.string().transform(parseDatabases),
-    contractDatabases: z.string().transform(parseDatabases),
-    maxLimit: z.coerce.number(),
-    maxRowsTrigger: z.coerce.number(),
-    maxBytesTrigger: z.coerce.number(),
-    idleTimeout: z.coerce.number(),
+    defaultEvmNetwork: z.string().min(1, "Default EVM network cannot be empty"),
+    defaultSvmNetwork: z.string().min(1, "Default SVM network cannot be empty"),
+    tokenDatabases: z.string()
+        .min(1, "Token databases configuration cannot be empty")
+        .transform(parseDatabases),
+    nftDatabases: z.string()
+        .min(1, "NFT databases configuration cannot be empty")
+        .transform(parseDatabases),
+    uniswapDatabases: z.string()
+        .min(1, "Uniswap databases configuration cannot be empty")
+        .transform(parseDatabases),
+    contractDatabases: z.string()
+        .min(1, "Contract databases configuration cannot be empty")
+        .transform(parseDatabases),
+    maxLimit: z.coerce.number().positive("Max limit must be positive"),
+    maxRowsTrigger: z.coerce.number().positive("Max rows trigger must be positive"),
+    maxBytesTrigger: z.coerce.number().positive("Max bytes trigger must be positive"),
+    idleTimeout: z.coerce.number().nonnegative("Idle timeout must be non-negative"),
     // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
     prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
     disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === "true"),
