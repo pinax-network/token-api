@@ -9,7 +9,7 @@ import pkg from "../package.json" with { type: "json" };
 export const DEFAULT_PORT = "8000";
 export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_URL = "http://localhost:8123";
-export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}}`;
+export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}`;
 export const DEFAULT_DATABASE = "default";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
