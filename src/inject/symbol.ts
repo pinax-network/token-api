@@ -1,19 +1,19 @@
-import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
-import { natives, Symbol, tokens } from "./symbol.tokens.js";
+import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
+import { type Symbol as TokenSymbol, natives, tokens } from './symbol.tokens.js';
 
-export interface Data extends Symbol{
+export interface Data extends TokenSymbol {
     address?: string;
     contract?: string;
 }
 
-export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse, network_id: string, include_name = false) {
-    if ('data' in response) {
-        response.data.forEach((row: Data) => {
+export function injectSymbol(response: ApiUsageResponse | ApiErrorResponse, network_id: string, include_name = false) {
+    if ('data' in response && Array.isArray(response.data)) {
+        for (const row of response.data as Data[]) {
             const address = row.address || row.contract;
-            if ( !address ) return;
+            if (!address) continue;
 
             // inject native symbol
-            if (address == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+            if (address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
                 const symbol = natives.get(network_id);
                 if (symbol) {
                     row.symbol = symbol.symbol;
@@ -23,12 +23,12 @@ export function injectSymbol(response: ApiUsageResponse|ApiErrorResponse, networ
                 return;
             }
             // inject token symbol
-            const symbol = tokens.get(address);
-            if (symbol) {
-                row.symbol = symbol.symbol;
-                row.decimals = symbol.decimals;
-                if (include_name) row.name = symbol.name;
+            const tokenInfo = tokens.get(address);
+            if (tokenInfo) {
+                row.symbol = tokenInfo.symbol;
+                row.decimals = tokenInfo.decimals;
+                if (include_name) row.name = tokenInfo.name;
             }
-        });
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "bun",
+            "internalConsoleOptions": "neverOpen",
+            "request": "launch",
+            "name": "Debug with .env",
+            "program": "${workspaceFolder}/index.ts",
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "watchMode": false,
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "runtimeArgs": ["--env-file", "${workspaceFolder}/.env", "--smol"]
+        }
+    ]
+}

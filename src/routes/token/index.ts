@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
-import balances from "./balances/index.js";
-import historical from "./historical/index.js";
-import transfers from "./transfers/index.js";
-import holders from "./holders/index.js";
-import tokens from "./tokens/index.js";
-import ohlc from "./ohlc/index.js";
-import pools from "./pools/index.js";
-import swaps from "./swaps/index.js";
+import balances from './balances/index.js';
+import historical from './historical/index.js';
+import holders from './holders/index.js';
+import ohlc from './ohlc/index.js';
+import pools from './pools/index.js';
+import swaps from './swaps/index.js';
+import tokens from './tokens/index.js';
+import transfers from './transfers/index.js';
 
 const router = new Hono();
 

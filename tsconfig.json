@@ -1,19 +1,19 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist/",
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "alwaysStrict": true,
-    "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true,
-    "types": ["bun-types"]
-  }
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "./dist/",
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "skipLibCheck": true,
+        "noUncheckedIndexedAccess": true,
+        "types": ["bun-types"]
+    }
 }

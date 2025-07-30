@@ -18,9 +18,12 @@ jobs:
             - name: "Run lint"
               run: bun lint
 
+            - name: "Set Git date"
+              run: echo "GIT_DATE=$(git log -1 --format=%cd --date=short)" >> $GITHUB_ENV
+
             - name: "Run test"
               run: bun test
               env:
-                  GIT_DATE: "2025-01-01"
-                  GIT_COMMIT: "eaffd97310123b667a9fd69d9870c2f728f91462"
-                  GIT_REPOSITORY: "graphprotocol/token-api"
+                  GIT_DATE: ${{ env.GIT_DATE }}
+                  GIT_COMMIT: ${{ github.sha }}
+                  GIT_REPOSITORY: ${{ github.repository }}

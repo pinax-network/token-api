@@ -1,0 +1,4 @@
+{
+    // will be used by vs code to show biome lint errors
+    "recommendations": ["biomejs.biome"]
+}

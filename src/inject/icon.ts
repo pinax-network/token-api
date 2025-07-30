@@ -1,20 +1,23 @@
-import * as web3icons from "@web3icons/core";
-import { ApiErrorResponse, ApiUsageResponse } from "../types/zod.js";
+import * as web3icons from '@web3icons/core';
+import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
 
-type Data = { symbol: string, icon: { web3icon: string; }; };
+interface Data {
+    symbol: string;
+    icon: { web3icon: string };
+}
 
-export function injectIcons(response: ApiUsageResponse|ApiErrorResponse) {
-    if ('data' in response) {
-        response.data.forEach((row: Data) => {
-            if (!row.symbol) return;
+export function injectIcons(response: ApiUsageResponse | ApiErrorResponse) {
+    if ('data' in response && Array.isArray(response.data)) {
+        for (const row of response.data as Data[]) {
+            if (typeof row !== 'object' || !('symbol' in row) || typeof row.symbol !== 'string') continue;
             // Handle wrapped tokens as well (WETH => ETH, WBNB => BNB, etc)
-            const web3icon = findIcon(row.symbol) ?? findIcon(row.symbol.replace(/^W/, ""));
+            const web3icon = findIcon(row.symbol) ?? findIcon(row.symbol.replace(/^W/, ''));
             if (web3icon) {
                 row.icon = {
-                    web3icon
+                    web3icon,
                 };
             }
-        });
+        }
     }
 }
 

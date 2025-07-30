@@ -34,7 +34,9 @@
         "build": "bun build --compile index.ts --outfile token-api",
         "test": "bun test --coverage",
         "clean": "bun i --force",
-        "lint": "bun run tsc --noEmit --skipLibCheck --pretty"
+        "typecheck": "tsc --noEmit",
+        "fix": "biome check --write --unsafe",
+        "lint": "bun run typecheck && biome check ."
     },
     "dependencies": {
         "@clickhouse/client": "^1.11.0",
@@ -53,6 +55,7 @@
         "zod-openapi": "^4.2.3"
     },
     "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
         "typescript": "^5.8.2",
         "@types/bun": "^1.2.5"
     }
