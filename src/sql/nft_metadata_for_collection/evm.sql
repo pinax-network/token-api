@@ -1,32 +1,53 @@
-WITH erc721 AS (
+WITH
+erc721_stats AS (
+    SELECT
+        contract,
+        uniq(token_id) AS total_supply,
+        uniq(owner) AS owners
+    FROM erc721_owners
+    WHERE contract = {contract: String}
+    GROUP BY contract
+),
+erc721_transfer_stats AS (
+    SELECT
+        contract,
+        uniq(global_sequence) AS total_transfers
+    FROM erc721_transfers
+    WHERE contract = {contract: String}
+    GROUP BY contract
+),
+erc721 AS (
     SELECT
         m.contract AS contract,
         'ERC721' AS token_standard,
         m.name,
         m.symbol,
-        (
-            SELECT
-                uniq(token_id)
-            FROM erc721_owners
-            WHERE contract = {contract: String}
-        ) AS total_supply,
-        total_supply AS total_unique_supply,
-        (
-            SELECT
-                uniq(owner)
-            FROM erc721_owners
-            WHERE contract = {contract: String}
-        ) AS owners,
-        (
-            SELECT
-                uniq(global_sequence)
-            FROM erc721_transfers
-            WHERE contract = {contract: String}
-        ) AS total_transfers,
+        s.total_supply,
+        s.total_supply AS total_unique_supply,
+        s.owners,
+        t.total_transfers,
         {network_id:String} as network_id
-    FROM erc721_metadata_by_contract AS m
-    FINAL
+    FROM erc721_metadata_by_contract AS m FINAL
+    LEFT JOIN erc721_stats s ON m.contract = s.contract
+    LEFT JOIN erc721_transfer_stats t ON m.contract = t.contract
     WHERE m.contract = {contract: String}
+),
+erc1155_stats AS (
+    SELECT
+        contract,
+        uniq(token_id) AS total_supply,
+        uniq(owner) AS owners
+    FROM erc1155_balances
+    WHERE contract = {contract: String} AND balance > 0
+    GROUP BY contract
+),
+erc1155_transfer_stats AS (
+    SELECT
+        contract,
+        uniq(global_sequence) AS total_transfers
+    FROM erc1155_transfers
+    WHERE contract = {contract: String}
+    GROUP BY contract
 ),
 erc1155 AS (
     SELECT
@@ -34,32 +55,14 @@ erc1155 AS (
         'ERC1155' AS token_standard,
         m.name,
         m.symbol,
-        (
-            SELECT
-                uniq(token_id)
-            FROM erc1155_balances
-            WHERE contract = {contract: String} AND balance > 0
-        ) AS total_supply,
-        (
-            SELECT
-                uniq(token_id)
-            FROM erc1155_balances
-            WHERE contract = {contract: String} AND balance > 0
-        ) AS total_unique_supply,
-        (
-            SELECT
-                uniq(owner)
-            FROM erc1155_balances
-            WHERE contract = {contract: String} AND balance > 0
-        ) AS owners,
-        (
-            SELECT
-                uniq(global_sequence)
-            FROM erc1155_transfers
-            WHERE contract = {contract: String}
-        ) AS total_transfers,
+        s.total_supply,
+        s.total_supply AS total_unique_supply,
+        s.owners,
+        t.total_transfers,
         {network_id:String} as network_id
-    FROM erc1155_metadata_by_contract AS m
+    FROM erc1155_metadata_by_contract AS m FINAL
+    LEFT JOIN erc1155_stats s ON m.contract = s.contract
+    LEFT JOIN erc1155_transfer_stats t ON m.contract = t.contract
     WHERE m.contract = {contract: String}
 ),
 combined AS (
