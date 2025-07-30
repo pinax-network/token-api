@@ -7,7 +7,7 @@ export interface Data extends TokenSymbol {
 }
 
 export function injectSymbol(response: ApiUsageResponse | ApiErrorResponse, network_id: string, include_name = false) {
-    if ('data' in response) {
+    if ('data' in response && Array.isArray(response.data)) {
         for (const row of response.data as Data[]) {
             const address = row.address || row.contract;
             if (!address) continue;

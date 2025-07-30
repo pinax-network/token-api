@@ -46,7 +46,7 @@ export async function injectPrices(
     // Native price
     const native_price = computeNativePrice(prices, network_id);
 
-    if ('data' in response) {
+    if ('data' in response && Array.isArray(response.data)) {
         for (const row of response.data as Data[]) {
             const address = contract ?? row.contract ?? row.address;
             if (!address || !row.symbol) return;
