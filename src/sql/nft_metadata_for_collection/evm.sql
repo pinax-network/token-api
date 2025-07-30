@@ -4,7 +4,7 @@ erc721_stats AS (
         contract,
         uniq(token_id) AS total_supply,
         uniq(owner) AS owners
-    FROM erc721_owners
+    FROM erc721_owners FINAL
     WHERE contract = {contract: String}
     GROUP BY contract
 ),
@@ -12,7 +12,7 @@ erc721_transfer_stats AS (
     SELECT
         contract,
         uniq(global_sequence) AS total_transfers
-    FROM erc721_transfers
+    FROM erc721_transfers FINAL
     WHERE contract = {contract: String}
     GROUP BY contract
 ),
@@ -35,9 +35,10 @@ erc721 AS (
 erc1155_stats AS (
     SELECT
         contract,
-        uniq(token_id) AS total_supply,
+        uniq(token_id) AS unique_total_supply,
+        sum(balance) AS total_supply,
         uniq(owner) AS owners
-    FROM erc1155_balances
+    FROM erc1155_balances FINAL
     WHERE contract = {contract: String} AND balance > 0
     GROUP BY contract
 ),
@@ -45,7 +46,7 @@ erc1155_transfer_stats AS (
     SELECT
         contract,
         uniq(global_sequence) AS total_transfers
-    FROM erc1155_transfers
+    FROM erc1155_transfers FINAL
     WHERE contract = {contract: String}
     GROUP BY contract
 ),
@@ -56,7 +57,7 @@ erc1155 AS (
         m.name,
         m.symbol,
         s.total_supply,
-        s.total_supply AS total_unique_supply,
+        s.unique_total_supply,
         s.owners,
         t.total_transfers,
         {network_id:String} as network_id
