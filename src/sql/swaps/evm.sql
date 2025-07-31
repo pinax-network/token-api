@@ -51,7 +51,7 @@ SELECT
     s.tx_hash    AS transaction_id,
     s.caller            AS caller,
     s.pool              AS pool,
-    p.factory           AS factory,
+    toString(p.factory)           AS factory,
     token0,
     token1,
     s.sender,
@@ -65,5 +65,5 @@ SELECT
     s.protocol as protocol,
     {network_id:String} as network_id
 FROM s
-JOIN p USING (pool)
+LEFT JOIN p USING (pool)
 ORDER BY timestamp DESC
