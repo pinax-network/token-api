@@ -13,7 +13,7 @@ export const DEFAULT_API_URL = `http://${DEFAULT_HOSTNAME}:${DEFAULT_PORT}`;
 export const DEFAULT_DATABASE = 'default';
 export const DEFAULT_USERNAME = 'default';
 export const DEFAULT_PASSWORD = '';
-export const DEFAULT_MAX_LIMIT = 10000;
+export const DEFAULT_MAX_LIMIT = 1000;
 export const DEFAULT_LARGE_QUERIES_ROWS_TRIGGER = 10_000_000; // 10M rows
 export const DEFAULT_LARGE_QUERIES_BYTES_TRIGGER = 1_000_000_000; // 1Gb
 export const DEFAULT_IDLE_TIMEOUT = 60;
@@ -108,7 +108,7 @@ const opts = program
     .addOption(
         new Option(
             '--max-rows-trigger <number>',
-            'Queries returning rows above this treshold will be considered large queries for metrics'
+            'Queries returning rows above this threshold will be considered large queries for metrics'
         )
             .env('LARGE_QUERIES_ROWS_TRIGGER')
             .default(DEFAULT_LARGE_QUERIES_ROWS_TRIGGER)
@@ -116,7 +116,7 @@ const opts = program
     .addOption(
         new Option(
             '--max-bytes-trigger <number>',
-            'Queries processing bytes above this treshold will be considered large queries for metrics'
+            'Queries processing bytes above this threshold will be considered large queries for metrics'
         )
             .env('LARGE_QUERIES_BYTES_TRIGGER')
             .default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER)
