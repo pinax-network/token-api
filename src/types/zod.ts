@@ -1,6 +1,6 @@
 import 'zod-openapi/extend';
 import { z } from 'zod';
-import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, config } from '../config.js';
+import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_MAX_LIMIT, config } from '../config.js';
 
 // ----------------------
 // Common schemas
@@ -102,7 +102,7 @@ export const limitSchema = z.coerce
     .number()
     .int()
     .min(1)
-    .max(1000)
+    .max(DEFAULT_MAX_LIMIT)
     .default(DEFAULT_LIMIT)
     .openapi({ description: 'The maximum number of items returned in a single request.' });
 export const pageSchema = z.coerce
