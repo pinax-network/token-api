@@ -13,7 +13,8 @@ WITH filtered_pools AS (
     WHERE
         if ({pool:String} == '', true, pool  = {pool:String}) AND
         if ({factory:String} == '', true, factory = {factory:String}) AND
-        if ({token:String} == '', true, token0 = {token:String} OR token1 = {token:String}) AND
+        if ({token0:String} == '', true, token0 = {token0:String}) AND
+        if ({token1:String} == '', true, token1 = {token1:String}) AND
         if ({protocol:String} == '', true, protocol = {protocol:String})
 )
 SELECT

@@ -22,7 +22,8 @@ const querySchema = z
         network_id: EVM_networkIdSchema,
         pool: USDC_WETH.default(''),
         factory: evmAddressSchema.default(''),
-        token: evmAddressSchema.default(''),
+        token0: evmAddressSchema.default(''),
+        token1: evmAddressSchema.default(''),
         symbol: z.string().default(''),
         protocol: protocolSchema,
     })
