@@ -63,18 +63,22 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    token_id: '12',
-                                    token_standard: 'ERC721',
-                                    contract: '0x000386e3f7559d9b6a2f5c46b4ad1a9587d59dc3',
-                                    owner: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                    symbol: 'BANC',
-                                    name: 'Bored Ape Nike Club',
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            token_id: '12',
+                                            token_standard: 'ERC721',
+                                            contract: '0x000386e3f7559d9b6a2f5c46b4ad1a9587d59dc3',
+                                            owner: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                                            symbol: 'BANC',
+                                            name: 'Bored Ape Nike Club',
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

@@ -46,22 +46,26 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    token_standard: 'ERC721',
-                                    contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
-                                    contract_creation: '2021-07-22 12:26:01',
-                                    contract_creator: '0xe9da256a28630efdc637bfd4c65f0887be1aeda8',
-                                    name: 'PudgyPenguins',
-                                    symbol: 'PPG',
-                                    owners: 12258,
-                                    total_supply: 8888,
-                                    total_unique_supply: 8888,
-                                    total_transfers: 185128,
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            token_standard: 'ERC721',
+                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            contract_creation: '2021-07-22 12:26:01',
+                                            contract_creator: '0xe9da256a28630efdc637bfd4c65f0887be1aeda8',
+                                            name: 'PudgyPenguins',
+                                            symbol: 'PPG',
+                                            owners: 12258,
+                                            total_supply: 8888,
+                                            total_unique_supply: 8888,
+                                            total_transfers: 185128,
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

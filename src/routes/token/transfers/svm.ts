@@ -85,25 +85,29 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 352372432,
-                                    datetime: '2025-07-10 12:32:03',
-                                    timestamp: 1752150723,
-                                    signature:
-                                        '4t7ZD3Fd8i9md6CTF6SEoZ9aPkr1fhRpXXSK2DhrUe5Wcm9VFdJ9Sn4WvbhdQaetLkiq8Xm3r5YgU1ffSJaA6c2e',
-                                    program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                    authority: 'J5kWrUKVPrtjwMVQLNgUEC9RY9Ujh8pYTN3nqWUkg1zp',
-                                    mint: 'So11111111111111111111111111111111111111112',
-                                    source: 'G4sbSww72omqHsC6tYe4syFtzHyBieS6MjbRWmSn1mt5',
-                                    destination: '7ds7shXvLdNzihJXrjuoYYTr8bD5c2zwRxmZrrSZXgmM',
-                                    amount: 333993128,
-                                    decimals: 9,
-                                    value: 0.333993128,
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 352372432,
+                                            datetime: '2025-07-10 12:32:03',
+                                            timestamp: 1752150723,
+                                            signature:
+                                                '4t7ZD3Fd8i9md6CTF6SEoZ9aPkr1fhRpXXSK2DhrUe5Wcm9VFdJ9Sn4WvbhdQaetLkiq8Xm3r5YgU1ffSJaA6c2e',
+                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                            authority: 'J5kWrUKVPrtjwMVQLNgUEC9RY9Ujh8pYTN3nqWUkg1zp',
+                                            mint: 'So11111111111111111111111111111111111111112',
+                                            source: 'G4sbSww72omqHsC6tYe4syFtzHyBieS6MjbRWmSn1mt5',
+                                            destination: '7ds7shXvLdNzihJXrjuoYYTr8bD5c2zwRxmZrrSZXgmM',
+                                            amount: 333993128,
+                                            decimals: 9,
+                                            value: 0.333993128,
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

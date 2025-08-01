@@ -68,21 +68,25 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 352305913,
-                                    datetime: '2025-07-10 05:14:43',
-                                    timestamp: 1752124483,
-                                    program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                    token_account: '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A',
-                                    mint: 'So11111111111111111111111111111111111111112',
-                                    amount: '30697740781078',
-                                    value: 30697.740781078,
-                                    decimals: 9,
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 352305913,
+                                            datetime: '2025-07-10 05:14:43',
+                                            timestamp: 1752124483,
+                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                            token_account: '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A',
+                                            mint: 'So11111111111111111111111111111111111111112',
+                                            amount: '30697740781078',
+                                            value: 30697.740781078,
+                                            decimals: 9,
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

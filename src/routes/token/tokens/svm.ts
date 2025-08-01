@@ -66,20 +66,24 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 279194558,
-                                    datetime: '2024-07-23 10:54:15',
-                                    contract: '11112zAgXhc6hGfdfr5anSY91mq7Cs4HHpSVEQc4ASG\u0000',
-                                    decimals: 9,
-                                    symbol: 'TO IMPLEMENT',
-                                    name: 'TO IMPLEMENT',
-                                    circulating_supply: '1000048190.3747444',
-                                    holders: 74,
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 279194558,
+                                            datetime: '2024-07-23 10:54:15',
+                                            contract: '11112zAgXhc6hGfdfr5anSY91mq7Cs4HHpSVEQc4ASG\u0000',
+                                            decimals: 9,
+                                            symbol: 'TO IMPLEMENT',
+                                            name: 'TO IMPLEMENT',
+                                            circulating_supply: '1000048190.3747444',
+                                            holders: 74,
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

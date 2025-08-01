@@ -91,39 +91,43 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 22589391,
-                                    datetime: '2025-05-29 15:47:47',
-                                    timestamp: 1748533667,
-                                    transaction_id:
-                                        '0x1ce019b0ad129b8bd21b6c83b75de5e5fd7cd07f2ee739ca3198adcbeb61f5a9',
-                                    caller: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
-                                    pool: '0xb98437c7ba28c6590dd4e1cc46aa89eed181f97108e5b6221730d41347bc817f',
-                                    factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
-                                    token0: {
-                                        address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-                                        symbol: 'WBTC',
-                                        decimals: 8,
-                                    },
-                                    token1: {
-                                        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                                        symbol: 'USDC',
-                                        decimals: 6,
-                                    },
-                                    sender: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
-                                    recipient: null,
-                                    amount0: '-894320',
-                                    amount1: '957798098',
-                                    value0: -0.0089432,
-                                    value1: 957.798098,
-                                    price0: 107417.48517180652,
-                                    price1: 0.00000930947134352077,
-                                    protocol: 'uniswap_v4',
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 22589391,
+                                            datetime: '2025-05-29 15:47:47',
+                                            timestamp: 1748533667,
+                                            transaction_id:
+                                                '0x1ce019b0ad129b8bd21b6c83b75de5e5fd7cd07f2ee739ca3198adcbeb61f5a9',
+                                            caller: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
+                                            pool: '0xb98437c7ba28c6590dd4e1cc46aa89eed181f97108e5b6221730d41347bc817f',
+                                            factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
+                                            token0: {
+                                                address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+                                                symbol: 'WBTC',
+                                                decimals: 8,
+                                            },
+                                            token1: {
+                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                                                symbol: 'USDC',
+                                                decimals: 6,
+                                            },
+                                            sender: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
+                                            recipient: null,
+                                            amount0: '-894320',
+                                            amount1: '957798098',
+                                            value0: -0.0089432,
+                                            value1: 957.798098,
+                                            price0: 107417.48517180652,
+                                            price1: 0.00000930947134352077,
+                                            protocol: 'uniswap_v4',
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

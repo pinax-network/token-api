@@ -85,22 +85,26 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 22349873,
-                                    datetime: '2025-04-26 01:18:47',
-                                    timestamp: 1745630327,
-                                    transaction_id:
-                                        '0xd80ed9764b0bc25b982668f66ec1cf46dbe27bcd01dffcd487f43c92f72b2a84',
-                                    contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                    from: '0x7d2fbc0eefdb8721b27d216469e79ef288910a83',
-                                    to: '0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804',
-                                    decimals: 18,
-                                    symbol: 'GRT',
-                                    value: 11068.393958659999,
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 22349873,
+                                            datetime: '2025-04-26 01:18:47',
+                                            timestamp: 1745630327,
+                                            transaction_id:
+                                                '0xd80ed9764b0bc25b982668f66ec1cf46dbe27bcd01dffcd487f43c92f72b2a84',
+                                            contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
+                                            from: '0x7d2fbc0eefdb8721b27d216469e79ef288910a83',
+                                            to: '0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804',
+                                            decimals: 18,
+                                            symbol: 'GRT',
+                                            value: 11068.393958659999,
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },
