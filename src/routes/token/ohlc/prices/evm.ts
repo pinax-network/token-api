@@ -59,20 +59,24 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    datetime: '2025-05-29 15:00:00',
-                                    ticker: 'WETHUSD',
-                                    open: 2669.130852861705,
-                                    high: 2669.130852861705,
-                                    low: 2669.130852861705,
-                                    close: 2669.130852861705,
-                                    volume: 184897.1695477702,
-                                    uaw: 31,
-                                    transactions: 35,
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            datetime: '2025-05-29 15:00:00',
+                                            ticker: 'WETHUSD',
+                                            open: 2669.130852861705,
+                                            high: 2669.130852861705,
+                                            low: 2669.130852861705,
+                                            close: 2669.130852861705,
+                                            volume: 184897.1695477702,
+                                            uaw: 31,
+                                            transactions: 35,
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

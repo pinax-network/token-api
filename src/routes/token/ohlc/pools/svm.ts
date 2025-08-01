@@ -59,23 +59,27 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    datetime: '2025-06-20 00:00:00',
-                                    pool: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
-                                    token0: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                    token1: 'So11111111111111111111111111111111111111112',
-                                    open: 146.64474747474748,
-                                    high: 147.71993287074972,
-                                    low: 145.0099569301824,
-                                    close: 147.36215787385962,
-                                    volume: 551499356.7426533,
-                                    uaw: 337,
-                                    transactions: 1021110,
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            datetime: '2025-06-20 00:00:00',
+                                            pool: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
+                                            token0: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                            token1: 'So11111111111111111111111111111111111111112',
+                                            open: 146.64474747474748,
+                                            high: 147.71993287074972,
+                                            low: 145.0099569301824,
+                                            close: 147.36215787385962,
+                                            volume: 551499356.7426533,
+                                            uaw: 337,
+                                            transactions: 1021110,
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

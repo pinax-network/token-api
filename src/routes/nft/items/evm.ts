@@ -65,43 +65,47 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    token_standard: 'ERC721',
-                                    contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
-                                    token_id: '5712',
-                                    owner: '0x9379557bdf32f5ee296ca7b360ccb8dcb9543d8e',
-                                    uri: 'ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/5712',
-                                    name: 'Pudgy Penguin #5712',
-                                    description:
-                                        'A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.',
-                                    image: 'ipfs://QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/5712.png',
-                                    attributes: [
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
                                         {
-                                            trait_type: 'Background',
-                                            value: 'Blue',
-                                        },
-                                        {
-                                            trait_type: 'Skin',
-                                            value: 'Olive Green',
-                                        },
-                                        {
-                                            trait_type: 'Body',
-                                            value: 'Turtleneck Green',
-                                        },
-                                        {
-                                            trait_type: 'Face',
-                                            value: 'Scar',
-                                        },
-                                        {
-                                            trait_type: 'Head',
-                                            value: 'Party Hat',
+                                            token_standard: 'ERC721',
+                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            token_id: '5712',
+                                            owner: '0x9379557bdf32f5ee296ca7b360ccb8dcb9543d8e',
+                                            uri: 'ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/5712',
+                                            name: 'Pudgy Penguin #5712',
+                                            description:
+                                                'A collection 8888 Cute Chubby Pudgy Penquins sliding around on the freezing ETH blockchain.',
+                                            image: 'ipfs://QmNf1UsmdGaMbpatQ6toXSkzDpizaGmC9zfunCyoz1enD5/penguin/5712.png',
+                                            attributes: [
+                                                {
+                                                    trait_type: 'Background',
+                                                    value: 'Blue',
+                                                },
+                                                {
+                                                    trait_type: 'Skin',
+                                                    value: 'Olive Green',
+                                                },
+                                                {
+                                                    trait_type: 'Body',
+                                                    value: 'Turtleneck Green',
+                                                },
+                                                {
+                                                    trait_type: 'Face',
+                                                    value: 'Scar',
+                                                },
+                                                {
+                                                    trait_type: 'Head',
+                                                    value: 'Party Hat',
+                                                },
+                                            ],
+                                            network_id: 'mainnet',
                                         },
                                     ],
-                                    network_id: 'mainnet',
                                 },
-                            ],
+                            },
                         },
                     },
                 },

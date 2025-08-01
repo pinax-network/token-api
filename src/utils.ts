@@ -104,10 +104,14 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 content: {
                     'application/json': {
                         schema: resolver(clientErrorResponse),
-                        example: {
-                            status: 400,
-                            code: 'bad_query_input',
-                            message: 'Invalid query parameter provided',
+                        examples: {
+                            example: {
+                                value: {
+                                    status: 400,
+                                    code: 'bad_query_input',
+                                    message: 'Invalid query parameter provided',
+                                },
+                            },
                         },
                     },
                 },
@@ -117,10 +121,14 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 content: {
                     'application/json': {
                         schema: resolver(clientErrorResponse),
-                        example: {
-                            status: 401,
-                            code: 'unauthorized',
-                            message: 'Authentication required',
+                        examples: {
+                            example: {
+                                value: {
+                                    status: 401,
+                                    code: 'unauthorized',
+                                    message: 'Authentication required',
+                                },
+                            },
                         },
                     },
                 },
@@ -130,10 +138,14 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 content: {
                     'application/json': {
                         schema: resolver(clientErrorResponse),
-                        example: {
-                            status: 403,
-                            code: 'forbidden',
-                            message: 'Access denied',
+                        examples: {
+                            example: {
+                                value: {
+                                    status: 403,
+                                    code: 'forbidden',
+                                    message: 'Access denied',
+                                },
+                            },
                         },
                     },
                 },
@@ -143,10 +155,14 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 content: {
                     'application/json': {
                         schema: resolver(clientErrorResponse),
-                        example: {
-                            status: 404,
-                            code: 'not_found_data',
-                            message: 'Resource not found',
+                        examples: {
+                            example: {
+                                value: {
+                                    status: 404,
+                                    code: 'not_found_data',
+                                    message: 'Resource not found',
+                                },
+                            },
                         },
                     },
                 },
@@ -156,10 +172,14 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 content: {
                     'application/json': {
                         schema: resolver(serverErrorResponse),
-                        example: {
-                            status: 500,
-                            code: 'internal_server_error',
-                            message: 'An unexpected error occurred',
+                        examples: {
+                            example: {
+                                value: {
+                                    status: 500,
+                                    code: 'internal_server_error',
+                                    message: 'An unexpected error occurred',
+                                },
+                            },
                         },
                     },
                 },

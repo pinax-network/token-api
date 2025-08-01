@@ -68,19 +68,23 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 269656050,
-                                    last_balance_update: '2024-06-03 15:10:14',
-                                    owner: 'HuX8huX8VfNw9WpMNpgzD8TC1fXiBqhpBeBvGhJXSuaL',
-                                    amount: 7915210148973539,
-                                    value: '7915210.148973539',
-                                    decimals: 9,
-                                    symbol: 'TO IMPLEMENT',
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 269656050,
+                                            last_balance_update: '2024-06-03 15:10:14',
+                                            owner: 'HuX8huX8VfNw9WpMNpgzD8TC1fXiBqhpBeBvGhJXSuaL',
+                                            amount: 7915210148973539,
+                                            value: '7915210.148973539',
+                                            decimals: 9,
+                                            symbol: 'TO IMPLEMENT',
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

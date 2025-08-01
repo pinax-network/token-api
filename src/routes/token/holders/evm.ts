@@ -69,20 +69,24 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 22966764,
-                                    last_balance_update: '2025-07-21 09:47:11',
-                                    address: '0x36aff7001294dae4c2ed4fdefc478a00de77f090',
-                                    amount: '2904244446383157108596275005',
-                                    value: 2904244446.3831573,
-                                    name: 'Graph Token',
-                                    decimals: 18,
-                                    symbol: 'GRT',
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 22966764,
+                                            last_balance_update: '2025-07-21 09:47:11',
+                                            address: '0x36aff7001294dae4c2ed4fdefc478a00de77f090',
+                                            amount: '2904244446383157108596275005',
+                                            value: 2904244446.3831573,
+                                            name: 'Graph Token',
+                                            decimals: 18,
+                                            symbol: 'GRT',
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

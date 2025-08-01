@@ -94,27 +94,31 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 352243599,
-                                    datetime: '2025-07-09 22:24:36',
-                                    timestamp: 1752099876,
-                                    signature:
-                                        'oWHA7wPQwpZhr9RJSbTNxsnPkBo1wnd68Zt2fJZPyK3cf1vYVzQiC9Et2mRNvh1t9Zt5dtmoEeSErSCqmMQ58Ls\u0000',
-                                    program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                    program_name: 'Pump.fun AMM',
-                                    amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                    amm_name: 'Pump.fun AMM',
-                                    amm_pool: 'AmmpSnW5xVeKHTAU9fMjyKEMPgrzmUj3ah5vgvHhAB5J',
-                                    user: 'AEWxmZPEdHkCjJXVT9MreY7fCvzbpEK3wCVouCoEnmvE',
-                                    input_mint: '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',
-                                    input_amount: 3653743,
-                                    output_mint: 'So11111111111111111111111111111111111111112',
-                                    output_amount: 25548025,
-                                    network_id: 'solana',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 352243599,
+                                            datetime: '2025-07-09 22:24:36',
+                                            timestamp: 1752099876,
+                                            signature:
+                                                'oWHA7wPQwpZhr9RJSbTNxsnPkBo1wnd68Zt2fJZPyK3cf1vYVzQiC9Et2mRNvh1t9Zt5dtmoEeSErSCqmMQ58Ls\u0000',
+                                            program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
+                                            program_name: 'Pump.fun AMM',
+                                            amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
+                                            amm_name: 'Pump.fun AMM',
+                                            amm_pool: 'AmmpSnW5xVeKHTAU9fMjyKEMPgrzmUj3ah5vgvHhAB5J',
+                                            user: 'AEWxmZPEdHkCjJXVT9MreY7fCvzbpEK3wCVouCoEnmvE',
+                                            input_mint: '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',
+                                            input_amount: 3653743,
+                                            output_mint: 'So11111111111111111111111111111111111111112',
+                                            output_amount: 25548025,
+                                            network_id: 'solana',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

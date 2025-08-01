@@ -61,21 +61,25 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    datetime: '2025-05-29 00:00:00',
-                                    contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                    name: 'Native',
-                                    symbol: 'ETH',
-                                    decimals: 18,
-                                    open: 237.63774262699187,
-                                    high: 237.6377453469919,
-                                    low: 0.10533323067535896,
-                                    close: 0.15438623067535898,
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            datetime: '2025-05-29 00:00:00',
+                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                            name: 'Native',
+                                            symbol: 'ETH',
+                                            decimals: 18,
+                                            open: 237.63774262699187,
+                                            high: 237.6377453469919,
+                                            low: 0.10533323067535896,
+                                            close: 0.15438623067535898,
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

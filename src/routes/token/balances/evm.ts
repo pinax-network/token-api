@@ -66,20 +66,24 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 22968741,
-                                    last_balance_update: '2025-07-21 16:24:47',
-                                    contract: '0x6993301413c1867aafe2caaa692ec53a0118f06e',
-                                    amount: '7917650000000000000000',
-                                    value: 7917.65,
-                                    name: 'BOLD',
-                                    symbol: 'BOLD',
-                                    decimals: 18,
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 22968741,
+                                            last_balance_update: '2025-07-21 16:24:47',
+                                            contract: '0x6993301413c1867aafe2caaa692ec53a0118f06e',
+                                            amount: '7917650000000000000000',
+                                            value: 7917.65,
+                                            name: 'BOLD',
+                                            symbol: 'BOLD',
+                                            decimals: 18,
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

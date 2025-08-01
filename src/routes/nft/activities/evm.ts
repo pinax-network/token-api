@@ -72,25 +72,31 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    '@type': 'TRANSFER',
-                                    block_num: 22588725,
-                                    block_hash: '0xe8d2f48bb5d7619fd0c180d6d54e7ca94c5f4eddfcfa7a82d4da55b310dd462a',
-                                    timestamp: '2025-05-29 13:32:23',
-                                    tx_hash: '0xa7b3302a5fe4a60e4ece22dfb2d98604daef5dc610fa328d8d0a7a92f3efc7b9',
-                                    token_standard: 'ERC721',
-                                    contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
-                                    name: 'PudgyPenguins',
-                                    symbol: 'PPG',
-                                    from: '0x2afec1c9af7a5494503f8acfd5c1fdd7d2c57480',
-                                    to: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
-                                    token_id: '500',
-                                    amount: 1,
-                                    transfer_type: 'Single',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            '@type': 'TRANSFER',
+                                            block_num: 22588725,
+                                            block_hash:
+                                                '0xe8d2f48bb5d7619fd0c180d6d54e7ca94c5f4eddfcfa7a82d4da55b310dd462a',
+                                            timestamp: '2025-05-29 13:32:23',
+                                            tx_hash:
+                                                '0xa7b3302a5fe4a60e4ece22dfb2d98604daef5dc610fa328d8d0a7a92f3efc7b9',
+                                            token_standard: 'ERC721',
+                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            name: 'PudgyPenguins',
+                                            symbol: 'PPG',
+                                            from: '0x2afec1c9af7a5494503f8acfd5c1fdd7d2c57480',
+                                            to: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
+                                            token_id: '500',
+                                            amount: 1,
+                                            transfer_type: 'Single',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

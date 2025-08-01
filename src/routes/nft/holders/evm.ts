@@ -42,17 +42,21 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    token_standard: 'ERC721',
-                                    address: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
-                                    quantity: 534,
-                                    unique_tokens: 534,
-                                    percentage: 0.06008100810081008,
-                                    network_id: 'mainnet',
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            token_standard: 'ERC721',
+                                            address: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
+                                            quantity: 534,
+                                            unique_tokens: 534,
+                                            percentage: 0.06008100810081008,
+                                            network_id: 'mainnet',
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },

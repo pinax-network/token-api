@@ -68,25 +68,29 @@ const openapi = describeRoute(
                 content: {
                     'application/json': {
                         schema: resolver(responseSchema),
-                        example: {
-                            data: [
-                                {
-                                    block_num: 22966816,
-                                    datetime: '2025-07-21 09:57:35',
-                                    timestamp: 1753091855,
-                                    contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                    decimals: 18,
-                                    symbol: 'GRT',
-                                    name: 'Graph Token',
-                                    circulating_supply: 27051707794.58071,
-                                    total_supply: 10800262823.318213,
-                                    holders: 175151,
-                                    network_id: 'mainnet',
-                                    icon: {
-                                        web3icon: 'GRT',
-                                    },
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 22966816,
+                                            datetime: '2025-07-21 09:57:35',
+                                            timestamp: 1753091855,
+                                            contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
+                                            decimals: 18,
+                                            symbol: 'GRT',
+                                            name: 'Graph Token',
+                                            circulating_supply: 27051707794.58071,
+                                            total_supply: 10800262823.318213,
+                                            holders: 175151,
+                                            network_id: 'mainnet',
+                                            icon: {
+                                                web3icon: 'GRT',
+                                            },
+                                        },
+                                    ],
                                 },
-                            ],
+                            },
                         },
                     },
                 },
