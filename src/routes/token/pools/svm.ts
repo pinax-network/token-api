@@ -6,8 +6,11 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    PumpFunAmmProgramId,
     SVM_networkIdSchema,
-    USDC_WSOL,
+    filterByAmm,
+    filterByAmmPool,
+    filterByMint,
     paginationQuery,
     statisticsSchema,
     svmAddressSchema,
@@ -17,33 +20,40 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
-        pool: USDC_WSOL,
-        creator: svmAddressSchema.default(''),
-        token: svmAddressSchema.default(''),
         network_id: SVM_networkIdSchema,
+
+        // -- `swaps` filter --
+        program_id: PumpFunAmmProgramId,
+        amm: filterByAmm.default(''),
+        amm_pool: filterByAmmPool.default(''),
+        input_mint: filterByMint.default(''),
+        output_mint: filterByMint.default(''),
     })
     .merge(paginationQuery);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
-            // -- block --
-            block_num: z.number(),
-            datetime: z.string(),
+            program_id: svmAddressSchema,
+            program_name: z.string(),
+
+            // -- swap --
+            amm: svmAddressSchema,
+            amm_name: z.string(),
+            amm_pool: z.optional(svmAddressSchema),
+
+            input_mint: z.object({
+                address: tokenSchema,
+                symbol: z.string(),
+            }),
+            output_mint: z.object({
+                address: tokenSchema,
+                symbol: z.string(),
+            }),
+            transactions: z.number().positive(),
 
             // -- chain --
             network_id: SVM_networkIdSchema,
-
-            // -- transaction --
-            transaction_id: z.string(),
-
-            // -- pool --
-            factory: svmAddressSchema,
-            pool: svmAddressSchema,
-            token0: tokenSchema,
-            token1: tokenSchema,
-            fee: z.number(),
-            protocol: z.string(),
         })
     ),
     statistics: z.optional(statisticsSchema),
@@ -66,25 +76,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22589384,
-                                            datetime: '2025-05-29 15:46:23',
-                                            transaction_id:
-                                                '0x43cee95f1449b6b4d394fab31234fd6decdcd049153cc1338fe627e5483a3d36',
-                                            factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
-                                            pool: '0x12b900f4e5c4b1d2aab6870220345c668b068fc6e588dd59dfe6f223d60608f1',
-                                            token0: {
-                                                address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-                                                symbol: 'USDT',
-                                                decimals: 6,
+                                            program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
+                                            program_name: 'Pump.fun AMM',
+                                            amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
+                                            amm_name: 'Pump.fun AMM',
+                                            amm_pool: '7FYhmwuWk8TBLaSBKTsNMrrWNUTWZp5vUSqwjigDii9f',
+                                            input_mint: {
+                                                address: 'So11111111111111111111111111111111111111112',
+                                                symbol: 'Wrapped SOL',
                                             },
-                                            token1: {
-                                                address: '0xf2c88757f8d03634671208935974b60a2a28bdb3',
-                                                symbol: 'SHELL',
-                                                decimals: 18,
+                                            output_mint: {
+                                                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                                symbol: 'Circle: USDC Token',
                                             },
-                                            fee: 699000,
-                                            protocol: 'uniswap_v4',
-                                            network_id: 'mainnet',
+                                            transactions: 3,
+                                            network_id: 'solana',
                                         },
                                     ],
                                 },
