@@ -52,7 +52,7 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Provides Raydium liquidity pool metadata.',
+        description: 'Provides liquidity pool metadata.',
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

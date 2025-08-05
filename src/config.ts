@@ -28,6 +28,7 @@ export const DEFAULT_DEFAULT_EVM_NETWORK = 'mainnet';
 export const DEFAULT_DEFAULT_SVM_NETWORK = 'solana';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
+export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
 
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.16.0';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
@@ -133,6 +134,15 @@ const opts = program
             .default(DEFAULT_DISABLE_OPENAPI_SERVERS)
     )
     .addOption(
+        new Option(
+            '--skip-networks-validation <boolean>',
+            'Skip networks databases validation (used for local testing)'
+        )
+            .choices(['true', 'false'])
+            .env('SKIP_NETWORKS_VALIDATION')
+            .default(DEFAULT_SKIP_NETWORKS_VALIDATION)
+    )
+    .addOption(
         new Option('--pretty-logging <boolean>', 'Enable pretty logging (default JSON)')
             .choices(['true', 'false'])
             .env('PRETTY_LOGGING')
@@ -204,6 +214,7 @@ const config = z
         // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
         prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
+        skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
     })
     .transform((data) => ({

@@ -70,6 +70,8 @@ export function getNetwork(id: string) {
 }
 
 async function validateNetworks() {
+    if (config.skipNetworksValidation) return;
+
     if (!config.networks.includes(config.defaultEvmNetwork) && !config.networks.includes(config.defaultSvmNetwork)) {
         throw new Error('Default network for EVM or SVM not found');
     }
