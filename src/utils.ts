@@ -195,11 +195,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
  * @param errorMsg Optional custom error message for timeout
  * @returns Promise that resolves with the original promise result or rejects on timeout
  */
-export function withTimeout<T>(
-    promise: Promise<T>,
-    timeoutMs: number,
-    errorMsg = 'Operation timed out'
-): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg = 'Operation timed out'): Promise<T> {
     return Promise.race([
         promise,
         new Promise<T>((_, reject) => {
