@@ -1,6 +1,7 @@
 /**
  * Service for retrieving spam scores for contracts
  */
+import { withTimeout } from '../utils.js';
 
 /**
  * Interface for spam score response from the external API
@@ -12,6 +13,8 @@ interface SpamScoreResponse {
 }
 
 const SUPPORTED_CHAINS = ['mainnet'];
+const TIMEOUT_MS = 10000;
+const SPAM_SCORING_API_URL = 'https://token-api-server-874564579341.us-central1.run.app/contracts/status';
 
 /**
  * Queries the contract status API to check if a contract is spam
@@ -26,14 +29,18 @@ export async function querySpamScore(contractAddress: string, networkId: string)
                 message: `Network ${networkId} is not supported`,
             };
         }
-        const response = await fetch('https://token-api-server-874564579341.us-central1.run.app/contracts/status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                accept: 'application/json',
-            },
-            body: JSON.stringify({ address: contractAddress.toLowerCase() }),
-        });
+        const response = await withTimeout(
+            fetch(SPAM_SCORING_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    accept: 'application/json',
+                },
+                body: JSON.stringify({ address: contractAddress.toLowerCase() }),
+            }),
+            TIMEOUT_MS,
+            `Timed out after ${TIMEOUT_MS}ms`
+        );
 
         if (!response.ok) {
             throw new Error(`HTTP error ${response.status}`);

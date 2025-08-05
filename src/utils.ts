@@ -186,3 +186,24 @@ export function withErrorResponses(routeDescription: RouteDescription) {
         },
     };
 }
+
+/**
+ * Executes a promise with a timeout. If the promise does not resolve within the specified timeout,
+ * it will reject with a timeout error.
+ * @param promise The promise to execute with timeout
+ * @param timeoutMs Timeout in milliseconds
+ * @param errorMsg Optional custom error message for timeout
+ * @returns Promise that resolves with the original promise result or rejects on timeout
+ */
+export function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    errorMsg = 'Operation timed out'
+): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+            setTimeout(() => reject(new Error(errorMsg)), timeoutMs);
+        }),
+    ]);
+}
