@@ -104,8 +104,8 @@ route.get(
             querySpamScore(params.contract, params.network_id),
         ]);
 
-        // inject isSpam field to the response data
-        if (spamScore.result === 'success' && Array.isArray(response.data)) {
+        // inject spam score into result
+        if (!('status' in response) && spamScore.result === 'success' && Array.isArray(response.data)) {
             response.data = response.data.map((item) => ({
                 ...item,
                 is_spam: spamScore.isSpam,
