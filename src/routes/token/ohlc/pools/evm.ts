@@ -106,8 +106,8 @@ route.get(
             [query],
             {
                 ...params,
-                high_quantile: 0.95,
-                low_quantile: 0.05,
+                high_quantile: 1 - config.ohlcQuantile,
+                low_quantile: config.ohlcQuantile,
                 stablecoin_contracts: [...stables],
             },
             { database: dbConfig.database }
