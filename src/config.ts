@@ -22,6 +22,7 @@ export const DEFAULT_VERBOSE = false;
 export const DEFAULT_SORT_BY = 'DESC';
 export const DEFAULT_AGE = 30;
 export const DEFAULT_MAX_AGE = 180;
+export const DEFAULT_OHLC_QUANTILE = 0.02;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 export const DEFAULT_DEFAULT_EVM_NETWORK = 'mainnet';
@@ -104,6 +105,11 @@ const opts = program
         new Option('--contract-databases <string>', 'Contract Clickhouse databases')
             .env('DBS_CONTRACT')
             .default(DEFAULT_DBS_CONTRACT)
+    )
+    .addOption(
+        new Option('--ohlc-quantile <number>', 'High and low quantiles for OHLC aggregations')
+            .env('OHLC_QUANTILE')
+            .default(DEFAULT_OHLC_QUANTILE)
     )
     .addOption(new Option('--max-limit <number>', 'Maximum LIMIT queries').env('MAX_LIMIT').default(DEFAULT_MAX_LIMIT))
     .addOption(
@@ -207,6 +213,7 @@ const config = z
             .string()
             .min(1, 'Contract databases configuration cannot be empty')
             .transform(parseDatabases),
+        ohlcQuantile: z.coerce.number().positive('OHLC quantile must be positive'),
         maxLimit: z.coerce.number().positive('Max limit must be positive'),
         maxRowsTrigger: z.coerce.number().positive('Max rows trigger must be positive'),
         maxBytesTrigger: z.coerce.number().positive('Max bytes trigger must be positive'),
