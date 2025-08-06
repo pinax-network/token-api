@@ -10,9 +10,7 @@ metadata AS (
 ),
 filtered_pools AS (
     SELECT
-        pool,
-        1 AS decimals_factor,
-        decimals
+        pool
     FROM pools AS p
     JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
     WHERE
@@ -26,18 +24,18 @@ normalized_prices AS (
             toDate(toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)),
             toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)
         ) AS datetime,
-        decimals_factor * argMin(open, o.timestamp) AS open,
-        decimals_factor * max(high) AS high,
-        decimals_factor * min(low) AS low,
-        decimals_factor * argMax(close, o.timestamp) AS close,
-        pow(10, -decimals) * toFloat64(sum(o.volume)) AS volume,
+        argMin(open, o.timestamp) AS open,
+        max(high) AS high,
+        min(low) AS low,
+        argMax(close, o.timestamp) AS close,
+        sum(o.volume) AS volume,
         sum(uaw) AS uaw,
         sum(transactions) AS transactions
     FROM ohlc_prices_by_contract AS o
     JOIN filtered_pools AS p ON p.pool = o.pool
     WHERE token = {contract: String}
         AND o.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-    GROUP BY datetime, pool, decimals_factor, decimals
+    GROUP BY datetime, pool
 )
 SELECT
     datetime,
