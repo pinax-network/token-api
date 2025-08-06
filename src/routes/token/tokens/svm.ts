@@ -7,7 +7,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { injectIcons } from '../../../inject/icon.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { SVM_networkIdSchema, WSOL, statisticsSchema, svmAddressSchema } from '../../../types/zod.js';
+import { SVM_networkIdSchema, statisticsSchema, svmAddressSchema, WSOL } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
@@ -23,7 +23,7 @@ const responseSchema = z.object({
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
 
             // -- contract --
             address: svmAddressSchema,

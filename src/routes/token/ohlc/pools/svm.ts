@@ -7,13 +7,13 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { stables } from '../../../../inject/prices.tokens.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
-    SVM_networkIdSchema,
-    USDC_WSOL,
     endTimeSchema,
     intervalSchema,
     paginationQuery,
+    SVM_networkIdSchema,
     startTimeSchema,
     statisticsSchema,
+    USDC_WSOL,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
@@ -28,12 +28,12 @@ const querySchema = z
         startTime: startTimeSchema,
         endTime: endTimeSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
-            datetime: z.string().datetime(),
+            datetime: z.iso.datetime(),
             ticker: z.string(),
             open: z.number(),
             high: z.number(),

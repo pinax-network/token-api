@@ -244,13 +244,13 @@ describe('Timestamp Schema', () => {
         const invalidFloatResult = timestampSchema.safeParse(1647456789.5);
         expect(invalidFloatResult.success).toBe(false);
         if (!invalidFloatResult.success && invalidFloatResult.error.issues[0]) {
-            expect(invalidFloatResult.error.issues[0].message).toContain('Expected integer');
+            expect(invalidFloatResult.error.issues[0].message).toContain('expected int');
         }
 
         const invalidStringResult = timestampSchema.safeParse('abc');
         expect(invalidStringResult.success).toBe(false);
         if (!invalidStringResult.success && invalidStringResult.error.issues[0]) {
-            expect(invalidStringResult.error.issues[0].message).toContain('Expected number');
+            expect(invalidStringResult.error.issues[0].message).toContain('expected number');
         }
     });
 

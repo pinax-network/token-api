@@ -1,5 +1,5 @@
 import client from '../clickhouse/client.js';
-import { DEFAULT_LOW_LIQUIDITY_CHECK, config } from '../config.js';
+import { config, DEFAULT_LOW_LIQUIDITY_CHECK } from '../config.js';
 import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
 import { natives, stables } from './prices.tokens.js';
 
@@ -90,7 +90,7 @@ async function getPrices(database: string): Promise<Price[]> {
     return response.json();
 }
 
-function computeNativePrice(prices: Price[], network_id: string): ComputedPrice {
+function computeNativePrice(prices: Price[], _network_id: string): ComputedPrice {
     let symbol = '';
     let token = '';
     let reserve_usd = 0;

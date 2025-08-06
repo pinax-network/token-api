@@ -7,7 +7,6 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    USDC_WETH,
     endTimeSchema,
     evmAddressSchema,
     evmTransactionSchema,
@@ -18,6 +17,7 @@ import {
     startTimeSchema,
     statisticsSchema,
     tokenSchema,
+    USDC_WETH,
     uniswapPoolSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
@@ -42,14 +42,14 @@ const querySchema = z
         // -- `transaction` filter --
         transaction_id: evmTransactionSchema.default(''),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- chain --

@@ -9,13 +9,13 @@ import { natives as nativeSymbols } from '../../../inject/symbol.tokens.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    PudgyPenguins,
-    PudgyPenguinsItem,
     endTimeSchema,
     evmAddress,
     evmAddressSchema,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PudgyPenguins,
+    PudgyPenguinsItem,
     paginationQuery,
     startTimeSchema,
     statisticsSchema,
@@ -39,7 +39,7 @@ const querySchema = z
         orderBy: orderBySchemaTimestamp,
         orderDirection: orderDirectionSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

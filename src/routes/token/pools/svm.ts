@@ -6,12 +6,12 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    PumpFunAmmProgramId,
-    SVM_networkIdSchema,
     filterByAmm,
     filterByAmmPool,
     filterByMint,
+    PumpFunAmmProgramId,
     paginationQuery,
+    SVM_networkIdSchema,
     statisticsSchema,
     svmAddressSchema,
     tokenSchema,
@@ -29,7 +29,7 @@ const querySchema = z
         input_mint: filterByMint.default(''),
         output_mint: filterByMint.default(''),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

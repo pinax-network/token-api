@@ -7,8 +7,8 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    GRT,
     evmAddressSchema,
+    GRT,
     orderBySchemaValue,
     orderDirectionSchema,
     paginationQuery,
@@ -26,7 +26,7 @@ const querySchema = z
         orderBy: orderBySchemaValue,
         orderDirection: orderDirectionSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

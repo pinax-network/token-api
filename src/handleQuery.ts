@@ -8,9 +8,9 @@ import {
     type ApiErrorResponse,
     type ApiUsageResponse,
     type ClientErrorResponse,
-    type ServerErrorResponse,
     limitSchema,
     pageSchema,
+    type ServerErrorResponse,
 } from './types/zod.js';
 import { APIErrorResponse, computePagination } from './utils.js';
 
@@ -73,11 +73,11 @@ export async function makeUsageQueryJson<T = unknown>(
             results: result.rows ?? 0,
             total_results,
             request_time,
-            duration_ms: Number(new Date()) - Number(request_time),
+            duration_ms: Date.now() - Number(request_time),
         };
     } catch (err) {
         let message: string;
-        const filter_error_messages = ['Unknown', 'does not exist'];
+        const _filter_error_messages = ['Unknown', 'does not exist'];
 
         if (err instanceof ZodError)
             return {
