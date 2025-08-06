@@ -7,12 +7,12 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    Vitalik,
     evmAddress,
     evmAddressSchema,
     paginationQuery,
     statisticsSchema,
     tokenStandardSchema,
+    Vitalik,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -26,7 +26,7 @@ const querySchema = z
         token_standard: tokenStandardSchema,
         contract: evmAddressSchema.default(''),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

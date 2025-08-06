@@ -6,8 +6,6 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    PumpFunAmmProgramId,
-    SVM_networkIdSchema,
     endTimeSchema,
     filterByAmm,
     filterByAmmPool,
@@ -15,7 +13,9 @@ import {
     filterByUser,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PumpFunAmmProgramId,
     paginationQuery,
+    SVM_networkIdSchema,
     startTimeSchema,
     statisticsSchema,
     svmAddressSchema,
@@ -45,14 +45,14 @@ const querySchema = z
         // -- `transaction` filter --
         signature: svmTransactionSchema.default(''),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- ordering --

@@ -6,13 +6,13 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    SVM_networkIdSchema,
-    SolanaSPLTokenProgramIds,
-    WSOL,
     filterByTokenAccount,
     paginationQuery,
+    SolanaSPLTokenProgramIds,
+    SVM_networkIdSchema,
     statisticsSchema,
     svmAddressSchema,
+    WSOL,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -23,7 +23,7 @@ const querySchema = z
         program_id: SolanaSPLTokenProgramIds.default(''),
         network_id: SVM_networkIdSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

@@ -7,9 +7,9 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
+    evmAddress,
     PudgyPenguins,
     PudgyPenguinsItem,
-    evmAddress,
     statisticsSchema,
     tokenStandardSchema,
 } from '../../../types/zod.js';

@@ -1,5 +1,5 @@
 import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
-import { type Symbol as TokenSymbol, natives, tokens } from './symbol.tokens.js';
+import { natives, type Symbol as TokenSymbol, tokens } from './symbol.tokens.js';
 
 export interface Data extends TokenSymbol {
     address?: string;

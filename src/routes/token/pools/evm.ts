@@ -7,14 +7,14 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    USDC_WETH,
-    WETH,
     evmAddressSchema,
     paginationQuery,
     protocolSchema,
     statisticsSchema,
     tokenSchema,
+    USDC_WETH,
     uniswapPoolSchema,
+    WETH,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -26,14 +26,14 @@ const querySchema = z
         token: WETH.default(''),
         protocol: protocolSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
 
             // -- transaction --
             transaction_id: z.string(),

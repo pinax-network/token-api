@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { EVM_networkIdSchema, PudgyPenguins, evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
+import { EVM_networkIdSchema, evmAddressSchema, PudgyPenguins, statisticsSchema } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({

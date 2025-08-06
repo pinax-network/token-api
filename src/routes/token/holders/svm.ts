@@ -6,13 +6,13 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    SVM_networkIdSchema,
-    WSOL,
     orderBySchemaValue,
     orderDirectionSchema,
     paginationQuery,
+    SVM_networkIdSchema,
     statisticsSchema,
     svmAddressSchema,
+    WSOL,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -26,7 +26,7 @@ const querySchema = z
         orderBy: orderBySchemaValue,
         orderDirection: orderDirectionSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(

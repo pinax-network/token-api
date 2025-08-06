@@ -7,7 +7,7 @@ import { APIErrorResponse, withErrorResponses } from '../utils.js';
 
 const route = new Hono();
 
-const errorSchema = z.object({
+const _errorSchema = z.object({
     status: z.number(),
     code: z.string(),
     message: z.string(),

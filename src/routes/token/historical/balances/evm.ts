@@ -7,13 +7,13 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { sqlQueries } from '../../../../sql/index.js';
 import {
     EVM_networkIdSchema,
-    Vitalik,
     endTimeSchema,
     evmAddressSchema,
     intervalSchema,
     paginationQuery,
     startTimeSchema,
     statisticsSchema,
+    Vitalik,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
@@ -29,12 +29,12 @@ const querySchema = z
         startTime: startTimeSchema,
         endTime: endTimeSchema,
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
 const responseSchema = z.object({
     data: z.array(
         z.object({
-            datetime: z.string().datetime(),
+            datetime: z.iso.datetime(),
             contract: z.string(),
             name: z.string(),
             symbol: z.string(),

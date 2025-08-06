@@ -1,6 +1,5 @@
-import 'zod-openapi/extend';
 import { z } from 'zod';
-import { DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_MAX_LIMIT, config } from '../config.js';
+import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_MAX_LIMIT } from '../config.js';
 
 // ----------------------
 // Common schemas
@@ -38,24 +37,24 @@ export type Commit = z.infer<typeof commit>;
 export const protocolSchema = z
     .enum(['', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4'])
     .default('uniswap_v4')
-    .openapi({ description: 'Protocol name', example: 'uniswap_v3' });
+    .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 export const svmProtocolSchema = z
     .enum(['', 'raydium_amm_v4'])
     .default('raydium_amm_v4')
-    .openapi({ description: 'Protocol name', example: 'raydium_amm_v4' });
+    .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const evmAddressSchema = evmAddress
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 ? `0x${addr}` : addr))
     .pipe(z.string())
-    .openapi({
+    .meta({
         description: 'Filter by address',
     });
 export const evmTransactionSchema = evmTransaction
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 64 ? `0x${addr}` : addr))
     .pipe(z.string())
-    .openapi({
+    .meta({
         description: 'Filter by transaction',
     });
 
@@ -64,65 +63,56 @@ export const uniswapPoolSchema = z
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 || addr.length === 64 ? `0x${addr}` : addr))
     .pipe(z.string())
-    .openapi({
+    .meta({
         description: 'Filter by pool',
     });
 
-export const svmAddressSchema = svmAddress.pipe(z.string()).openapi({
+export const svmAddressSchema = svmAddress.pipe(z.string()).meta({
     description: 'Filter by address',
 });
 export const svmTransactionSchema = svmTransaction
     .pipe(z.string())
-    .openapi({ description: 'Filter by transaction signature' });
+    .meta({ description: 'Filter by transaction signature' });
 
 // z.enum argument type definition requires at least one element to be defined
 export const EVM_networkIdSchema = z
     .enum([config.evmNetworks.at(0) ?? config.defaultEvmNetwork, ...config.evmNetworks.slice(1)])
     .default(config.defaultEvmNetwork)
-    .openapi({
+    .meta({
         description: 'The Graph Network ID for EVM networks https://thegraph.com/networks',
         example: config.defaultEvmNetwork,
     });
 export const SVM_networkIdSchema = z
     .enum([config.svmNetworks.at(0) ?? config.defaultSvmNetwork, ...config.svmNetworks.slice(1)])
     .default(config.defaultSvmNetwork)
-    .openapi({
+    .meta({
         description: 'The Graph Network ID for SVM networks https://thegraph.com/networks',
         example: config.defaultSvmNetwork,
     });
 
-export const ageSchema = z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(DEFAULT_MAX_AGE)
-    .default(DEFAULT_AGE)
-    .openapi({ description: "Indicates how many days have passed since the data's creation or insertion." });
-export const limitSchema = z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(DEFAULT_MAX_LIMIT)
-    .default(DEFAULT_LIMIT)
-    .openapi({ description: 'The maximum number of items returned in a single request.' });
+export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).meta({
+    description: "Indicates how many days have passed since the data's creation or insertion.",
+});
+export const limitSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_LIMIT).default(DEFAULT_LIMIT).meta({
+    description: 'The maximum number of items returned in a single request.',
+});
 export const pageSchema = z.coerce
     .number()
     .int()
     .min(1)
     .default(1)
-    .openapi({ description: 'The page number of the results to return.' });
-export const orderDirectionSchema = z
-    .enum(['asc', 'desc'])
-    .default('desc')
-    .openapi({ description: 'The order in which to return the results: Ascending (asc) or Descending (desc).' });
+    .meta({ description: 'The page number of the results to return.' });
+export const orderDirectionSchema = z.enum(['asc', 'desc']).default('desc').meta({
+    description: 'The order in which to return the results: Ascending (asc) or Descending (desc).',
+});
 export const orderBySchemaTimestamp = z
     .enum(['timestamp'])
     .default('timestamp')
-    .openapi({ description: 'The field by which to order the results.' });
+    .meta({ description: 'The field by which to order the results.' });
 export const orderBySchemaValue = z
     .enum(['value'])
     .default('value')
-    .openapi({ description: 'The field by which to order the results.' });
+    .meta({ description: 'The field by which to order the results.' });
 export const intervalSchema = z
     .enum(['1h', '4h', '1d', '1w'])
     .default('1d')
@@ -136,9 +126,13 @@ export const intervalSchema = z
                 return 1440;
             case '1w':
                 return 10080;
+            default:
+                return 60;
         }
     })
-    .openapi({ description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).' });
+    .meta({
+        description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).',
+    });
 export const timestampSchema = z.coerce
     .number()
     .int()
@@ -162,7 +156,7 @@ export const timestampSchema = z.coerce
             message: 'Invalid timestamp',
         }
     )
-    .openapi({ description: 'UNIX timestamp in seconds.' });
+    .meta({ description: 'UNIX timestamp in seconds.' });
 export const startTimeSchema = timestampSchema.default(0);
 export const endTimeSchema = timestampSchema.default(9999999999);
 
@@ -170,49 +164,76 @@ export const endTimeSchema = timestampSchema.default(9999999999);
 export const tokenIdSchema = z.coerce
     .string()
     .refine((val) => val === '' || /^(\d+|)$/.test(val), 'Must be a valid number or empty string')
-    .openapi({ description: 'NFT token ID' });
+    .meta({ description: 'NFT token ID' });
 export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']).default('');
 
 // Used for examples
-export const Vitalik = evmAddressSchema.openapi({ example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' }); // Vitalik Buterin wallet address
-export const WETH = evmAddressSchema.openapi({
+export const Vitalik = evmAddressSchema.meta({
+    example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+}); // Vitalik Buterin wallet address
+export const WETH = evmAddressSchema.meta({
     description: 'Filter by contract address',
     example: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 }); // WETH (Wrapped Ethereum)
-export const GRT = evmAddressSchema.openapi({
+export const GRT = evmAddressSchema.meta({
     description: 'Filter by contract address',
     example: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
 }); // GRT
-export const USDC_WETH = uniswapPoolSchema.openapi({
+export const USDC_WETH = uniswapPoolSchema.meta({
     description: 'Filter by pool address',
     example: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
 }); // UDSC/WETH (Uniswap V3)
-export const PudgyPenguins = evmAddressSchema.openapi({
+export const PudgyPenguins = evmAddressSchema.meta({
     description: 'Filter by NFT contract address',
     example: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
 }); // Pudgy Penguins
-export const PudgyPenguinsItem = tokenIdSchema.openapi({ description: 'NFT token ID', example: '5712' });
+export const PudgyPenguinsItem = tokenIdSchema.meta({
+    description: 'NFT token ID',
+    example: '5712',
+});
 
 // Solana examples
-export const filterByAmm = svmAddressSchema.openapi({ description: 'Filter by amm address' });
-export const filterByAmmPool = svmAddressSchema.openapi({ description: 'Filter by amm pool address' });
-export const filterByProgramId = svmAddressSchema.openapi({ description: 'Filter by program ID' });
-export const filterByUser = svmAddressSchema.openapi({ description: 'Filter by user address' });
-export const filterByMint = svmAddressSchema.openapi({ description: 'Filter by mint address' });
-export const filterByTokenAccount = svmAddressSchema.openapi({ description: 'Filter by token account address' });
-export const filterByOwner = svmAddressSchema.openapi({ description: 'Filter by owner address' });
-export const filterByAuthority = svmAddressSchema.openapi({ description: 'Filter by authority token account address' });
+export const filterByAmm = svmAddressSchema.meta({
+    description: 'Filter by amm address',
+});
+export const filterByAmmPool = svmAddressSchema.meta({
+    description: 'Filter by amm pool address',
+});
+export const filterByProgramId = svmAddressSchema.meta({
+    description: 'Filter by program ID',
+});
+export const filterByUser = svmAddressSchema.meta({
+    description: 'Filter by user address',
+});
+export const filterByMint = svmAddressSchema.meta({
+    description: 'Filter by mint address',
+});
+export const filterByTokenAccount = svmAddressSchema.meta({
+    description: 'Filter by token account address',
+});
+export const filterByOwner = svmAddressSchema.meta({
+    description: 'Filter by owner address',
+});
+export const filterByAuthority = svmAddressSchema.meta({
+    description: 'Filter by authority token account address',
+});
 
-export const RaydiumWSOLMarketTokenAccount = filterByTokenAccount.openapi({
+export const RaydiumWSOLMarketTokenAccount = filterByTokenAccount.meta({
     example: '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A',
 });
-export const RaydiumWSOLMarketOwner = filterByOwner.openapi({
+export const RaydiumWSOLMarketOwner = filterByOwner.meta({
     example: '3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv',
 });
 
-export const RaydiumV4 = filterByProgramId.openapi({ example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8' });
-export const USDC_WSOL = filterByAmmPool.openapi({ example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2' });
-export const WSOL = filterByMint.openapi({ example: 'So11111111111111111111111111111111111111112' });
+export const RaydiumV4 = filterByProgramId.meta({
+    example: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+});
+export const USDC_WSOL = filterByAmmPool.meta({
+    example: '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
+});
+export const WSOL = filterByMint.meta({
+    example: 'So11111111111111111111111111111111111111112',
+});
 export const SolanaProgramIds = z
     .enum([
         '',
@@ -222,12 +243,16 @@ export const SolanaProgramIds = z
         'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
         'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
     ])
-    .openapi({ description: 'Filter by program ID' });
+    .meta({ description: 'Filter by program ID' });
 export const SolanaSPLTokenProgramIds = z
     .enum(['', 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'])
-    .openapi({ description: 'Filter by program ID' });
-export const SPL2022 = SolanaSPLTokenProgramIds.openapi({ example: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' });
-export const PumpFunAmmProgramId = SolanaProgramIds.openapi({ example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA' });
+    .meta({ description: 'Filter by program ID' });
+export const SPL2022 = SolanaSPLTokenProgramIds.meta({
+    example: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+});
+export const PumpFunAmmProgramId = SolanaProgramIds.meta({
+    example: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
+});
 
 export const tokenSchema = z.object({
     address: evmAddressSchema,
