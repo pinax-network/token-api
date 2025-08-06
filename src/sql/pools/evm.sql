@@ -13,8 +13,7 @@ WITH filtered_pools AS (
     WHERE
         if ({pool:String} == '', true, pool  = {pool:String}) AND
         if ({factory:String} == '', true, factory = {factory:String}) AND
-        if ({token0:String} == '', true, token0 = {token0:String}) AND
-        if ({token1:String} == '', true, token1 = {token1:String}) AND
+        if ({token:String} == '', true, token0 = {token:String} OR token1 = {token:String}) AND
         if ({protocol:String} == '', true, protocol = {protocol:String})
 )
 SELECT
@@ -35,11 +34,8 @@ SELECT
     protocol,
     {network_id: String} as network_id
 FROM filtered_pools AS pools
-JOIN erc20_metadata_initialize AS c0 ON c0.address = pools.token0
-JOIN erc20_metadata_initialize AS c1 ON c1.address = pools.token1
-WHERE
-    isNotNull(c0.symbol) AND isNotNull(c1.symbol) AND
-    if ({symbol:String} == '', true, c0.symbol = {symbol:String} OR  c1.symbol = {symbol:String})
+LEFT JOIN erc20_metadata_initialize AS c0 ON c0.address = pools.token0
+LEFT JOIN erc20_metadata_initialize AS c1 ON c1.address = pools.token1
 ORDER BY datetime DESC
 LIMIT   {limit:int}
 OFFSET  {offset:int}
