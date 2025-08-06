@@ -57,6 +57,8 @@ const responseSchema = z.object({
             // -- instruction --
             program_id: svmAddressSchema,
             mint: svmAddressSchema,
+            name: z.string(),
+            symbol: z.string(),
             authority: svmAddressSchema,
 
             // -- transfer --
@@ -98,6 +100,8 @@ const openapi = describeRoute(
                                             program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
                                             authority: 'J5kWrUKVPrtjwMVQLNgUEC9RY9Ujh8pYTN3nqWUkg1zp',
                                             mint: 'So11111111111111111111111111111111111111112',
+                                            name: 'Wrapped SOL',
+                                            symbol: 'WSOL',
                                             source: 'G4sbSww72omqHsC6tYe4syFtzHyBieS6MjbRWmSn1mt5',
                                             destination: '7ds7shXvLdNzihJXrjuoYYTr8bD5c2zwRxmZrrSZXgmM',
                                             amount: 333993128,

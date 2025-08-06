@@ -44,13 +44,12 @@ const responseSchema = z.object({
             mint: svmAddressSchema,
             amount: z.string(),
             value: z.number(),
+            name: z.string(),
+            symbol: z.string(),
             decimals: z.number(),
 
             // -- network --
             network_id: SVM_networkIdSchema,
-
-            // // -- contract --
-            // decimals: z.optional(z.number())
         })
     ),
     statistics: z.optional(statisticsSchema),
@@ -73,14 +72,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 352305913,
-                                            datetime: '2025-07-10 05:14:43',
-                                            timestamp: 1752124483,
+                                            block_num: 358007412,
+                                            datetime: '2025-08-05 09:44:48',
+                                            timestamp: 1754387088,
                                             program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            token_account: '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A',
+                                            token_account: '126rQjXRnSgsxnq1EJbXh6pBzhFZtXfvYXG7XdcHdtjv',
                                             mint: 'So11111111111111111111111111111111111111112',
-                                            amount: '30697740781078',
-                                            value: 30697.740781078,
+                                            amount: '1486642',
+                                            value: 0.001486642,
+                                            name: 'Wrapped SOL',
+                                            symbol: 'WSOL',
                                             decimals: 9,
                                             network_id: 'solana',
                                         },
