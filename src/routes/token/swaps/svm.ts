@@ -29,7 +29,7 @@ const querySchema = z
         network_id: SVM_networkIdSchema,
 
         // -- `swaps` filter --
-        program_id: PumpFunAmmProgramId,
+        program_id: PumpFunAmmProgramId.optional(),
         amm: filterByAmm.optional(),
         amm_pool: filterByAmmPool.optional(),
         user: filterByUser.optional(),
