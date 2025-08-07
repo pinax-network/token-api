@@ -100,6 +100,8 @@ export const pageSchema = z.coerce
     .number()
     .int()
     .min(1)
+    // Trial-error, otherwise OFFSET value overflows into negative value when sent to ClickHouse
+    .max(Math.floor(767465558638592 / DEFAULT_MAX_LIMIT))
     .default(1)
     .meta({ description: 'The page number of the results to return.' });
 export const orderDirectionSchema = z.enum(['asc', 'desc']).default('desc').meta({
