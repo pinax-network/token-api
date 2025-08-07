@@ -27,20 +27,20 @@ const querySchema = z
         network_id: EVM_networkIdSchema,
 
         // -- `swaps` filter --
-        pool: USDC_WETH.default(''),
-        caller: evmAddressSchema.default(''),
-        sender: evmAddressSchema.default(''),
-        recipient: evmAddressSchema.default(''),
-        protocol: protocolSchema.default(''),
+        pool: USDC_WETH.optional(),
+        caller: evmAddressSchema.optional(),
+        sender: evmAddressSchema.optional(),
+        recipient: evmAddressSchema.optional(),
+        protocol: protocolSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
-        transaction_id: evmTransactionSchema.default(''),
+        transaction_id: evmTransactionSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

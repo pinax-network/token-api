@@ -21,10 +21,10 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        pool: USDC_WETH.default(''),
-        factory: evmAddressSchema.default(''),
-        token: WETH.default(''),
-        protocol: protocolSchema,
+        pool: USDC_WETH.optional(),
+        factory: evmAddressSchema.optional(),
+        token: WETH.optional(),
+        protocol: protocolSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

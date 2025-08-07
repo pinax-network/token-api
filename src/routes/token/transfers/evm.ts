@@ -24,18 +24,18 @@ const querySchema = z
         network_id: EVM_networkIdSchema,
 
         // -- `token` filter --
-        from: evmAddressSchema.default(''),
-        to: Vitalik.default(''),
-        contract: evmAddressSchema.default(''),
+        from: evmAddressSchema.optional(),
+        to: Vitalik.optional(),
+        contract: evmAddressSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
-        transaction_id: evmTransactionSchema.default(''),
+        transaction_id: evmTransactionSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

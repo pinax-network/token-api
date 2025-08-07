@@ -67,11 +67,12 @@ export const uniswapPoolSchema = z
         description: 'Filter by pool',
     });
 
-export const svmAddressSchema = svmAddress.pipe(z.string()).meta({
+export const svmAddressSchema = svmAddress.pipe(z.string()).default('').meta({
     description: 'Filter by address',
 });
 export const svmTransactionSchema = svmTransaction
     .pipe(z.string())
+    .default('')
     .meta({ description: 'Filter by transaction signature' });
 
 // z.enum argument type definition requires at least one element to be defined
@@ -272,8 +273,8 @@ export const mintSchema = z.object({
 // API Query Params
 // ----------------------
 export const paginationQuery = z.object({
-    limit: limitSchema,
-    page: pageSchema,
+    limit: limitSchema.optional(),
+    page: pageSchema.optional(),
 });
 export type PaginationQuery = z.infer<typeof paginationQuery>;
 

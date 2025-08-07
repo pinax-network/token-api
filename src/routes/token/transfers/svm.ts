@@ -26,17 +26,17 @@ const querySchema = z
         network_id: SVM_networkIdSchema,
 
         // -- `token` filter --
-        mint: WSOL.default(''),
-        source: filterByTokenAccount.default(''),
-        destination: filterByTokenAccount.default(''),
-        authority: filterByAuthority.default(''),
-        program_id: SolanaSPLTokenProgramIds.default(''),
+        mint: WSOL.optional(),
+        source: filterByTokenAccount.optional(),
+        destination: filterByTokenAccount.optional(),
+        authority: filterByAuthority.optional(),
+        program_id: SolanaSPLTokenProgramIds.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
         // signature: z.optional(svmTransactionSchema),

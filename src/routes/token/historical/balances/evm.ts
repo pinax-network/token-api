@@ -23,11 +23,11 @@ const paramSchema = z.object({
 
 const querySchema = z
     .object({
-        interval: intervalSchema,
         network_id: EVM_networkIdSchema,
-        contracts: evmAddressSchema.array().default([]),
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
+        interval: intervalSchema.optional(),
+        contracts: evmAddressSchema.array().default([]).optional(),
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
     })
     .extend(paginationQuery.shape);
 
