@@ -33,7 +33,9 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Holders',
-        description: 'Provides NFT holders per contract.',
+        description:
+            'Returns wallet addresses holding NFT collection tokens with quantity and percentage distribution.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

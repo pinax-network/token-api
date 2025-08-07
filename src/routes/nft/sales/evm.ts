@@ -66,7 +66,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Sales',
-        description: 'Provides latest NFT marketplace sales.',
+        description: 'Returns NFT marketplace sales with price, buyer, seller, and transaction data.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

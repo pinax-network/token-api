@@ -63,7 +63,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Activities',
-        description: 'Provides NFT Activities (ex: transfers, mints & burns).',
+        description: 'Returns NFT transfer events including mints, burns, and ownership changes.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

@@ -56,8 +56,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Balances by Address',
-        description: 'Provides latest ERC-20 & Native balances by wallet address.',
+        summary: 'Token Balances',
+        description: 'Returns ERC-20 and native token balances for a wallet address with USD values.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

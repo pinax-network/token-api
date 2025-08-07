@@ -84,8 +84,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Swap Events',
-        description: 'Provides AMM Swap events.',
+        summary: 'Solana Swaps',
+        description: 'Returns AMM swap events from Solana DEXs with input/output tokens and amounts.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

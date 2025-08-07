@@ -59,7 +59,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Provides SVM token holder balances by contract address.',
+        description: 'Returns token holders ranked by balance with holdings and supply percentage.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

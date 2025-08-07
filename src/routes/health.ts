@@ -7,21 +7,16 @@ import { APIErrorResponse, withErrorResponses } from '../utils.js';
 
 const route = new Hono();
 
-const _errorSchema = z.object({
-    status: z.number(),
-    code: z.string(),
-    message: z.string(),
-});
-
 const openapi = describeRoute(
     withErrorResponses({
-        description: 'Get health status of the API',
+        summary: 'Health Check',
+        description: 'Returns API operational status.',
         tags: ['Monitoring'],
         responses: {
             200: {
                 description: 'Successful Response',
                 content: {
-                    'text/plain': { schema: resolver(z.string()), example: 'OK' },
+                    'text/plain': { schema: resolver(z.string()), examples: { example: { value: 'OK' } } },
                 },
             },
         },

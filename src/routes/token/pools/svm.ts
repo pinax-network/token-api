@@ -61,8 +61,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Liquidity Pools',
-        description: 'Provides liquidity pool metadata.',
+        summary: 'Solana Pools',
+        description: 'Returns AMM pool information from Solana DEX protocols with transaction counts.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {
