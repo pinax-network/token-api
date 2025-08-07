@@ -37,8 +37,8 @@ describe('EVM Address Schema', () => {
         expect(evmAddressSchema.parse('')).toBe('');
     });
 
-    it('should throw a ZodError when parsing undefined', () => {
-        expect(() => evmAddressSchema.parse(undefined)).toThrowError(ZodError);
+    it('should parse undefined and return empty string', () => {
+        expect(evmAddressSchema.parse(undefined)).toBe('');
     });
 });
 
@@ -74,8 +74,8 @@ describe('EVM Transaction Schema', () => {
         expect(evmTransactionSchema.parse('')).toBe('');
     });
 
-    it('should throw a ZodError when parsing undefined', () => {
-        expect(() => evmTransactionSchema.parse(undefined)).toThrowError(ZodError);
+    it('should parse undefined and return empty string', () => {
+        expect(evmTransactionSchema.parse(undefined)).toBe('');
     });
 });
 

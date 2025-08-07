@@ -36,17 +36,18 @@ export type Commit = z.infer<typeof commit>;
 
 export const protocolSchema = z
     .enum(['', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4'])
-    .default('uniswap_v4')
+    .default('')
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 export const svmProtocolSchema = z
     .enum(['', 'raydium_amm_v4'])
-    .default('raydium_amm_v4')
+    .default('')
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const evmAddressSchema = evmAddress
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 ? `0x${addr}` : addr))
     .pipe(z.string())
+    .default('')
     .meta({
         description: 'Filter by address',
     });
@@ -54,6 +55,7 @@ export const evmTransactionSchema = evmTransaction
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 64 ? `0x${addr}` : addr))
     .pipe(z.string())
+    .default('')
     .meta({
         description: 'Filter by transaction',
     });
@@ -63,6 +65,7 @@ export const uniswapPoolSchema = z
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 || addr.length === 64 ? `0x${addr}` : addr))
     .pipe(z.string())
+    .default('')
     .meta({
         description: 'Filter by pool',
     });
@@ -166,6 +169,7 @@ export const endTimeSchema = timestampSchema.default(9999999999);
 // NFT schemas
 export const tokenIdSchema = z.coerce
     .string()
+    .default('')
     .refine((val) => val === '' || /^(\d+|)$/.test(val), 'Must be a valid number or empty string')
     .meta({ description: 'NFT token ID' });
 export const tokenStandardSchema = z.enum(['', 'ERC721', 'ERC1155']).default('');
