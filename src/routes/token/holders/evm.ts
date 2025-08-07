@@ -23,8 +23,8 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        orderBy: orderBySchemaValue,
-        orderDirection: orderDirectionSchema,
+        orderBy: orderBySchemaValue.optional(),
+        orderDirection: orderDirectionSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

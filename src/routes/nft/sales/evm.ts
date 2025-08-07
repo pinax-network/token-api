@@ -28,16 +28,16 @@ const querySchema = z
         contract: PudgyPenguins,
 
         // -- `token` filter --
-        token_id: PudgyPenguinsItem.default(''),
-        anyAddress: evmAddressSchema.default(''),
-        offererAddress: evmAddressSchema.default(''),
-        recipientAddress: evmAddressSchema.default(''),
+        token_id: PudgyPenguinsItem.optional(),
+        anyAddress: evmAddressSchema.optional(),
+        offererAddress: evmAddressSchema.optional(),
+        recipientAddress: evmAddressSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

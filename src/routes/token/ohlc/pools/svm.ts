@@ -24,9 +24,9 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-        interval: intervalSchema,
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
+        interval: intervalSchema.optional(),
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

@@ -24,10 +24,10 @@ const querySchema = z
 
         // -- `swaps` filter --
         program_id: PumpFunAmmProgramId,
-        amm: filterByAmm.default(''),
-        amm_pool: filterByAmmPool.default(''),
-        input_mint: filterByMint.default(''),
-        output_mint: filterByMint.default(''),
+        amm: filterByAmm.optional(),
+        amm_pool: filterByAmmPool.optional(),
+        input_mint: filterByMint.optional(),
+        output_mint: filterByMint.optional(),
     })
     .extend(paginationQuery.shape);
 

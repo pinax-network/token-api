@@ -18,10 +18,10 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
-        token_account: filterByTokenAccount.default(''),
-        mint: WSOL.default(''),
-        program_id: SolanaSPLTokenProgramIds.default(''),
         network_id: SVM_networkIdSchema,
+        token_account: filterByTokenAccount.optional(),
+        mint: WSOL.optional(),
+        program_id: SolanaSPLTokenProgramIds.optional(),
     })
     .extend(paginationQuery.shape);
 

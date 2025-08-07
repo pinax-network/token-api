@@ -23,8 +23,8 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        token_standard: tokenStandardSchema,
-        contract: evmAddressSchema.default(''),
+        token_standard: tokenStandardSchema.optional(),
+        contract: evmAddressSchema.optional(),
     })
     .extend(paginationQuery.shape);
 

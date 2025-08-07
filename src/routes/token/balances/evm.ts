@@ -21,7 +21,7 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        contract: evmAddressSchema.default(''),
+        contract: evmAddressSchema.optional(),
     })
     .extend(paginationQuery.shape);
 
