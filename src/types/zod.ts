@@ -250,9 +250,11 @@ export const SolanaProgramIds = z
         'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
         'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
     ])
+    .default('')
     .meta({ description: 'Filter by program ID' });
 export const SolanaSPLTokenProgramIds = z
     .enum(['', 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'])
+    .default('')
     .meta({ description: 'Filter by program ID' });
 export const SPL2022 = SolanaSPLTokenProgramIds.meta({
     example: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
