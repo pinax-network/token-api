@@ -303,10 +303,10 @@ export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 export const apiUsageResponse = z.object({
     data: z.array(z.any()),
-    statistics: z.optional(statisticsSchema),
+    statistics: statisticsSchema,
     pagination: paginationSchema,
-    results: z.optional(z.number()),
-    total_results: z.optional(z.number()),
+    results: z.number(),
+    total_results: z.number(),
     request_time: z.date(),
     duration_ms: z.number(),
 });

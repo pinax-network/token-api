@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { EVM_networkIdSchema, evmAddressSchema, PudgyPenguins, statisticsSchema } from '../../../types/zod.js';
+import { apiUsageResponse, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
@@ -16,7 +16,7 @@ const querySchema = z.object({
     network_id: EVM_networkIdSchema,
 });
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             contract: evmAddressSchema,
@@ -31,7 +31,6 @@ const responseSchema = z.object({
             network_id: EVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(

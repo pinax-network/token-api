@@ -6,11 +6,11 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
     evmAddress,
     evmAddressSchema,
     paginationQuery,
-    statisticsSchema,
     tokenStandardSchema,
     Vitalik,
 } from '../../../types/zod.js';
@@ -28,7 +28,7 @@ const querySchema = z
     })
     .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // NFT token metadata
@@ -48,7 +48,6 @@ const responseSchema = z.object({
             network_id: EVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(

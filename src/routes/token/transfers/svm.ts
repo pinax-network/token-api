@@ -6,6 +6,7 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     endTimeSchema,
     filterByAuthority,
     filterByTokenAccount,
@@ -15,7 +16,6 @@ import {
     SolanaSPLTokenProgramIds,
     SVM_networkIdSchema,
     startTimeSchema,
-    statisticsSchema,
     svmAddressSchema,
     WSOL,
 } from '../../../types/zod.js';
@@ -43,7 +43,7 @@ const querySchema = z
     })
     .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
@@ -70,7 +70,6 @@ const responseSchema = z.object({
             network_id: SVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(

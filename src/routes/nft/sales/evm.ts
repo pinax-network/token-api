@@ -8,6 +8,7 @@ import { natives as nativeContracts } from '../../../inject/prices.tokens.js';
 import { natives as nativeSymbols } from '../../../inject/symbol.tokens.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
     endTimeSchema,
     evmAddress,
@@ -18,7 +19,6 @@ import {
     PudgyPenguinsItem,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -41,7 +41,7 @@ const querySchema = z
     })
     .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // Block
@@ -60,7 +60,6 @@ const responseSchema = z.object({
             sale_currency: z.string(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(

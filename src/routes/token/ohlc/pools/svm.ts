@@ -7,12 +7,12 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { stables } from '../../../../inject/prices.tokens.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    apiUsageResponse,
     endTimeSchema,
     intervalSchema,
     paginationQuery,
     SVM_networkIdSchema,
     startTimeSchema,
-    statisticsSchema,
     USDC_WSOL,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
@@ -30,7 +30,7 @@ const querySchema = z
     })
     .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             datetime: z.iso.datetime(),
@@ -44,7 +44,6 @@ const responseSchema = z.object({
             transactions: z.number(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
