@@ -15,6 +15,22 @@ WITH filtered_pools AS (
         if ({factory:String} == '', true, factory = {factory:String}) AND
         if ({token:String} == '', true, token0 = {token:String} OR token1 = {token:String}) AND
         if ({protocol:String} == '', true, protocol = {protocol:String})
+    ORDER BY datetime DESC
+    LIMIT   {limit:int}
+    OFFSET  {offset:int}
+),
+unique_tokens AS (
+    SELECT DISTINCT token0 AS address FROM filtered_pools
+    UNION DISTINCT
+    SELECT DISTINCT token1 AS address FROM filtered_pools
+),
+filtered_tokens AS (
+    SELECT
+        t.address,
+        if(isNull(t.symbol), '', t.symbol) AS symbol,
+        coalesce(t.decimals, 0) AS decimals
+    FROM erc20_metadata_initialize t
+    WHERE t.address IN (SELECT address FROM unique_tokens)
 )
 SELECT
     pools.block_num AS block_num,
@@ -35,10 +51,10 @@ SELECT
                     token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
                     token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
                     token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
-                    c0.symbol
+                    t0.symbol
                 ), '')),
             coalesce(
-                if(token0 = '0x0000000000000000000000000000000000000000', 18, c0.decimals), 0
+                if(token0 = '0x0000000000000000000000000000000000000000', 18, t0.decimals), 0
             )
         )
         AS Tuple(address String, symbol String, decimals UInt8)
@@ -56,10 +72,10 @@ SELECT
                     token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
                     token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
                     token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
-                    c1.symbol
+                    t1.symbol
                 ), '')),
             coalesce(
-                if(token1 = '0x0000000000000000000000000000000000000000', 18, c1.decimals), 0
+                if(token1 = '0x0000000000000000000000000000000000000000', 18, t1.decimals), 0
             )
         )
         AS Tuple(address String, symbol String, decimals UInt8)
@@ -68,8 +84,5 @@ SELECT
     protocol,
     {network_id: String} as network_id
 FROM filtered_pools AS pools
-LEFT JOIN erc20_metadata_initialize AS c0 ON c0.address = pools.token0
-LEFT JOIN erc20_metadata_initialize AS c1 ON c1.address = pools.token1
-ORDER BY datetime DESC
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LEFT JOIN filtered_tokens t0 ON pools.token0 = t0.address
+LEFT JOIN filtered_tokens t1 ON pools.token1 = t1.address
