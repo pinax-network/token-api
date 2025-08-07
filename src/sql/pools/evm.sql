@@ -23,12 +23,46 @@ SELECT
     factory,
     pool,
     CAST(
-        ( toString(token0), trim(c0.symbol), c0.decimals )
-        AS Tuple(address String, symbol  String, decimals UInt8)
+        (
+            toString(token0),
+            trim(coalesce(
+                multiIf(
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
+                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                    c0.symbol
+                ), '')),
+            coalesce(
+                if(token0 = '0x0000000000000000000000000000000000000000', 18, c0.decimals), 0
+            )
+        )
+        AS Tuple(address String, symbol String, decimals UInt8)
     ) AS token0,
     CAST(
-        ( toString(token1), trim(c1.symbol), c1.decimals )
-        AS Tuple(address String, symbol  String, decimals UInt8)
+        (
+            toString(token1),
+            trim(coalesce(
+                multiIf(
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
+                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                    c1.symbol
+                ), '')),
+            coalesce(
+                if(token1 = '0x0000000000000000000000000000000000000000', 18, c1.decimals), 0
+            )
+        )
+        AS Tuple(address String, symbol String, decimals UInt8)
     ) AS token1,
     fee,
     protocol,
