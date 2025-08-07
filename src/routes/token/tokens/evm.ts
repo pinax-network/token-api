@@ -7,7 +7,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { injectIcons } from '../../../inject/icon.js';
 import { injectSymbol } from '../../../inject/symbol.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { EVM_networkIdSchema, evmAddressSchema, GRT, statisticsSchema } from '../../../types/zod.js';
+import { apiUsageResponse, EVM_networkIdSchema, evmAddressSchema, GRT } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
@@ -18,7 +18,7 @@ const querySchema = z.object({
     network_id: EVM_networkIdSchema,
 });
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
@@ -53,7 +53,6 @@ const responseSchema = z.object({
             low_liquidity: z.optional(z.boolean()),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(

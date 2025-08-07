@@ -6,6 +6,7 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
     endTimeSchema,
     evmAddressSchema,
@@ -15,7 +16,6 @@ import {
     paginationQuery,
     protocolSchema,
     startTimeSchema,
-    statisticsSchema,
     tokenSchema,
     USDC_WETH,
     uniswapPoolSchema,
@@ -44,7 +44,7 @@ const querySchema = z
     })
     .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
@@ -76,7 +76,6 @@ const responseSchema = z.object({
             protocol: z.string(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
