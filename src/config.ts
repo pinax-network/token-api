@@ -16,6 +16,7 @@ export const DEFAULT_PASSWORD = '';
 export const DEFAULT_MAX_LIMIT = 1000;
 export const DEFAULT_LARGE_QUERIES_ROWS_TRIGGER = 10_000_000; // 10M rows
 export const DEFAULT_LARGE_QUERIES_BYTES_TRIGGER = 1_000_000_000; // 1Gb
+export const DEFAULT_DB_RESPONSE_TIME_TRIGGER_MS = 1000;
 export const DEFAULT_IDLE_TIMEOUT = 60;
 export const DEFAULT_PRETTY_LOGGING = false;
 export const DEFAULT_VERBOSE = false;
@@ -52,6 +53,7 @@ export const GIT_APP = {
 export const APP_NAME = pkg.name;
 export const APP_DESCRIPTION = pkg.description;
 export const APP_VERSION = `${GIT_APP.version}+${GIT_APP.commit} (${GIT_APP.date})`;
+export const MAX_EXECUTION_TIME = 10;
 
 // parse command line options
 const opts = program
@@ -127,6 +129,14 @@ const opts = program
         )
             .env('LARGE_QUERIES_BYTES_TRIGGER')
             .default(DEFAULT_LARGE_QUERIES_BYTES_TRIGGER)
+    )
+    .addOption(
+        new Option(
+            '--degraded-db-response-time <number>',
+            'Maximum database response time for health check to be considered degraded'
+        )
+            .env('DB_RESPONSE_TIME_TRIGGER_MS')
+            .default(DEFAULT_DB_RESPONSE_TIME_TRIGGER_MS)
     )
     .addOption(
         new Option('--idle-timeout <number>', 'HTTP server request idle timeout (seconds)')
@@ -217,6 +227,7 @@ const config = z
         maxLimit: z.coerce.number().positive('Max limit must be positive'),
         maxRowsTrigger: z.coerce.number().positive('Max rows trigger must be positive'),
         maxBytesTrigger: z.coerce.number().positive('Max bytes trigger must be positive'),
+        degradedDbResponseTime: z.coerce.number().positive('Max response time must be positive'),
         idleTimeout: z.coerce.number().nonnegative('Idle timeout must be non-negative'),
         // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
         prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),

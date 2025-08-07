@@ -1,9 +1,8 @@
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
 import type { Context } from 'hono';
 import { ZodError } from 'zod';
-import { MAX_EXECUTION_TIME } from './clickhouse/client.js';
 import { makeQuery } from './clickhouse/makeQuery.js';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_EXECUTION_TIME } from './config.js';
 import {
     type ApiErrorResponse,
     type ApiUsageResponse,
