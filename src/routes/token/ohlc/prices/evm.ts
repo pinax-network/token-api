@@ -49,8 +49,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'OHLCV by Contract',
-        description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
+        summary: 'Token OHLCV Data',
+        description: 'Returns candlestick price data for tokens aggregated across the top 20 trading pairs.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

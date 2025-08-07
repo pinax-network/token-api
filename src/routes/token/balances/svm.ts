@@ -58,8 +58,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Balances',
-        description: 'Provides Solana SPL tokens balances by token account address.',
+        summary: 'Solana Balances',
+        description: 'Returns SPL token balances for Solana token accounts with mint and program data.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

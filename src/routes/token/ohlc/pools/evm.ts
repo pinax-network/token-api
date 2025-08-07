@@ -49,8 +49,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'OHLCV by Pool',
-        description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
+        summary: 'Pool OHLCV Data',
+        description: 'Returns candlestick price data for liquidity pools across time intervals.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

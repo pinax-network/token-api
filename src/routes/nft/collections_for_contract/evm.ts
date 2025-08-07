@@ -37,7 +37,7 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Collection',
-        description: 'Provides single NFT collection metadata, total supply, owners & total transfers.',
+        description: 'Returns NFT collection metadata, supply statistics, owner count, and transfer history.',
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

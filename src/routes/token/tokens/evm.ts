@@ -59,7 +59,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Metadata',
-        description: 'Provides ERC-20 token contract metadata.',
+        description: 'Returns ERC-20 token metadata including supply, holder count, and price data.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

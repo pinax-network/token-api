@@ -56,7 +56,7 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Items',
-        description: 'Provides single NFT token metadata, ownership & traits.',
+        description: 'Returns NFT token metadata, attributes, current owner, and media URIs.',
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

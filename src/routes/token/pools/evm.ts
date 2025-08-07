@@ -56,7 +56,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Provides Uniswap V2, V3, V4 liquidity pool metadata.',
+        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

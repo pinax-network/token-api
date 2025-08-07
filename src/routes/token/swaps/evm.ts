@@ -82,7 +82,8 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description: 'Provides Uniswap V2 & V3 swap events.',
+        description: 'Returns DEX swap transactions from Uniswap protocols with token amounts and prices.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

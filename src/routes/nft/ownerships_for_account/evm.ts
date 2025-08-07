@@ -53,8 +53,8 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'NFT Ownerships',
-        description: 'Provides NFT Ownerships for Account.',
+        summary: 'NFT Ownerships by Address',
+        description: 'Returns NFT tokens owned by a wallet address with metadata and ownership information.',
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

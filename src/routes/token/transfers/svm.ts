@@ -75,8 +75,9 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Transfers Events',
-        description: 'Provides SPL transfer events.',
+        summary: 'Solana Transfers',
+        description: 'Returns SPL token transfers with program, authority, and account information.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

@@ -51,7 +51,7 @@ const responseSchema = z.object({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Historical Balances',
-        description: 'Provides historical ERC-20 & Native balances by wallet address.',
+        description: 'Returns wallet token balance changes over time in OHLC format.',
         tags: ['EVM'],
         'x-tagGroups': ['Historical'],
         security: [{ bearerAuth: [] }],
