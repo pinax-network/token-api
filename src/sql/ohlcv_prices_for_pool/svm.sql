@@ -29,5 +29,5 @@ JOIN decimals USING pool
 WHERE pool = {pool: String} AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
 GROUP BY token0, token1, decimals_factor, pool, datetime
 ORDER BY datetime DESC
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

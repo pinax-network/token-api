@@ -69,8 +69,8 @@ limit_combined AS (
     SELECT *
     FROM combined
     ORDER BY timestamp DESC
-    LIMIT {limit:int}
-    OFFSET {offset:int}
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
 ),
 erc721_metadata_by_contract AS (
     SELECT DISTINCT

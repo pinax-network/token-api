@@ -15,5 +15,5 @@ WHERE ({token_account:String}     = '' OR owner = {token_account:String})
     AND ({program_id:String}      = '' OR program_id = {program_id:String})
     AND b.amount > 0
 ORDER BY owner, mint
-LIMIT  {limit:Int}
-OFFSET {offset:Int};
+LIMIT  {limit:UInt64}
+OFFSET {offset:UInt64};

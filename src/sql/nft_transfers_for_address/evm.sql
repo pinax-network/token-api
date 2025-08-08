@@ -26,5 +26,5 @@ FROM (
 ) AS t
 LEFT JOIN erc721_metadata_by_contract AS m ON m.contract = t.contract
 ORDER BY timestamp DESC
-LIMIT {limit:int}
-OFFSET {offset:int}
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

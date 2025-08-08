@@ -41,5 +41,5 @@ WHERE s.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
     AND ({amm_pool:String}      = '' OR amm_pool       = {amm_pool:String})
     AND ({input_mint:String}    = '' OR input_mint     = {input_mint:String})
     AND ({output_mint:String}   = '' OR output_mint    = {output_mint:String})
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

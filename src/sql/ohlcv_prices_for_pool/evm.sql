@@ -18,8 +18,8 @@ WITH ohlc AS (
     WHERE pool = {pool: String} AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
     GROUP BY datetime, symbol0, symbol1, token0
     ORDER BY datetime DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 )
 SELECT
     datetime,
