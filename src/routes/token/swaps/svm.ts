@@ -6,8 +6,7 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    PumpFunAmmProgramId,
-    SVM_networkIdSchema,
+    apiUsageResponse,
     endTimeSchema,
     filterByAmm,
     filterByAmmPool,
@@ -15,9 +14,10 @@ import {
     filterByUser,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PumpFunAmmProgramId,
     paginationQuery,
+    SVM_networkIdSchema,
     startTimeSchema,
-    statisticsSchema,
     svmAddressSchema,
     svmTransactionSchema,
     tokenSchema,
@@ -29,30 +29,30 @@ const querySchema = z
         network_id: SVM_networkIdSchema,
 
         // -- `swaps` filter --
-        program_id: PumpFunAmmProgramId,
-        amm: filterByAmm.default(''),
-        amm_pool: filterByAmmPool.default(''),
-        user: filterByUser.default(''),
-        input_mint: filterByMint.default(''),
-        output_mint: filterByMint.default(''),
+        program_id: PumpFunAmmProgramId.optional(),
+        amm: filterByAmm.optional(),
+        amm_pool: filterByAmmPool.optional(),
+        user: filterByUser.optional(),
+        input_mint: filterByMint.optional(),
+        output_mint: filterByMint.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
-        signature: svmTransactionSchema.default(''),
+        signature: svmTransactionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- ordering --
@@ -79,13 +79,13 @@ const responseSchema = z.object({
             network_id: SVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Swap Events',
-        description: 'Provides AMM Swap events.',
+        summary: 'Solana Swaps',
+        description: 'Returns AMM swap events from Solana DEXs with input/output tokens and amounts.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

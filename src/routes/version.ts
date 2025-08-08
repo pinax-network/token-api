@@ -15,13 +15,14 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        description: 'Get the version of the API',
+        summary: 'Version',
+        description: 'Returns API version, build date, and commit information.',
         tags: ['Monitoring'],
         responses: {
             200: {
                 description: 'Successful Response',
                 content: {
-                    'application/json': { schema: resolver(responseSchema), example: GIT_APP },
+                    'application/json': { schema: resolver(responseSchema), examples: { example: { value: GIT_APP } } },
                 },
             },
         },

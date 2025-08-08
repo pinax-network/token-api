@@ -50,5 +50,5 @@ SELECT
 FROM normalized_prices AS n
 GROUP BY datetime, ticker
 ORDER BY datetime DESC
-LIMIT {limit:int}
-OFFSET {offset:int};
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64};

@@ -1,16 +1,15 @@
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
 import type { Context } from 'hono';
 import { ZodError } from 'zod';
-import { MAX_EXECUTION_TIME } from './clickhouse/client.js';
 import { makeQuery } from './clickhouse/makeQuery.js';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_EXECUTION_TIME } from './config.js';
 import {
     type ApiErrorResponse,
     type ApiUsageResponse,
     type ClientErrorResponse,
-    type ServerErrorResponse,
     limitSchema,
     pageSchema,
+    type ServerErrorResponse,
 } from './types/zod.js';
 import { APIErrorResponse, computePagination } from './utils.js';
 
@@ -73,11 +72,11 @@ export async function makeUsageQueryJson<T = unknown>(
             results: result.rows ?? 0,
             total_results,
             request_time,
-            duration_ms: Number(new Date()) - Number(request_time),
+            duration_ms: Date.now() - Number(request_time),
         };
     } catch (err) {
         let message: string;
-        const filter_error_messages = ['Unknown', 'does not exist'];
+        const _filter_error_messages = ['Unknown', 'does not exist'];
 
         if (err instanceof ZodError)
             return {

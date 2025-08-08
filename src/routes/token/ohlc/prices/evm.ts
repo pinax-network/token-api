@@ -7,13 +7,13 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { stables } from '../../../../inject/prices.tokens.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    WETH,
     endTimeSchema,
     intervalSchema,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
+    WETH,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
@@ -24,16 +24,16 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        interval: intervalSchema,
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
+        interval: intervalSchema.optional(),
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
-            datetime: z.string().datetime(),
+            datetime: z.iso.datetime(),
             ticker: z.string(),
             open: z.number(),
             high: z.number(),
@@ -44,13 +44,13 @@ const responseSchema = z.object({
             transactions: z.number(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'OHLCV by Contract',
-        description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format.',
+        summary: 'Token OHLCV Data',
+        description: 'Returns candlestick price data for tokens aggregated across the top 20 trading pairs.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

@@ -6,16 +6,16 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    PudgyPenguins,
     endTimeSchema,
     evmAddress,
     evmAddressSchema,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PudgyPenguins,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -25,19 +25,19 @@ const querySchema = z
         contract: PudgyPenguins,
 
         // -- `token` filter --
-        anyAddress: evmAddressSchema.default(''),
-        fromAddress: evmAddressSchema.default(''),
-        toAddress: evmAddressSchema.default(''),
+        anyAddress: evmAddressSchema.optional(),
+        fromAddress: evmAddressSchema.optional(),
+        toAddress: evmAddressSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // NFT token metadata
@@ -57,13 +57,13 @@ const responseSchema = z.object({
             token_standard: z.optional(z.string()),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Activities',
-        description: 'Provides NFT Activities (ex: transfers, mints & burns).',
+        description: 'Returns NFT transfer events including mints, burns, and ownership changes.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

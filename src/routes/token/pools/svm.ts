@@ -6,13 +6,13 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    PumpFunAmmProgramId,
-    SVM_networkIdSchema,
+    apiUsageResponse,
     filterByAmm,
     filterByAmmPool,
     filterByMint,
+    PumpFunAmmProgramId,
     paginationQuery,
-    statisticsSchema,
+    SVM_networkIdSchema,
     svmAddressSchema,
     tokenSchema,
 } from '../../../types/zod.js';
@@ -23,15 +23,15 @@ const querySchema = z
         network_id: SVM_networkIdSchema,
 
         // -- `swaps` filter --
-        program_id: PumpFunAmmProgramId,
-        amm: filterByAmm.default(''),
-        amm_pool: filterByAmmPool.default(''),
-        input_mint: filterByMint.default(''),
-        output_mint: filterByMint.default(''),
+        program_id: PumpFunAmmProgramId.optional(),
+        amm: filterByAmm.optional(),
+        amm_pool: filterByAmmPool.optional(),
+        input_mint: filterByMint.optional(),
+        output_mint: filterByMint.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             program_id: svmAddressSchema,
@@ -56,13 +56,13 @@ const responseSchema = z.object({
             network_id: SVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Liquidity Pools',
-        description: 'Provides liquidity pool metadata.',
+        summary: 'Solana Pools',
+        description: 'Returns AMM pool information from Solana DEX protocols with transaction counts.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

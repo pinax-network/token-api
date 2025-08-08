@@ -15,8 +15,8 @@ WITH filtered_balances AS (
         AND ({contract: String} = '' OR contract = {contract: String})
     GROUP BY address, contract, name, symbol, decimals
     ORDER BY timestamp DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 )
 SELECT
     block_num,

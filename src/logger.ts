@@ -16,7 +16,16 @@ class TsLogger extends Logger<ILogObj> {
 
     public disable() {
         this.settings.type = 'hidden';
+        this.settings.minLevel = 5;
         this.info('Disabled logger');
+    }
+
+    public getLevel() {
+        return this.settings.minLevel;
+    }
+
+    public setLevel(level: number) {
+        this.settings.minLevel = level;
     }
 }
 

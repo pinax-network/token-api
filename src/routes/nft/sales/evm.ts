@@ -8,17 +8,17 @@ import { natives as nativeContracts } from '../../../inject/prices.tokens.js';
 import { natives as nativeSymbols } from '../../../inject/symbol.tokens.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    PudgyPenguins,
-    PudgyPenguinsItem,
     endTimeSchema,
     evmAddress,
     evmAddressSchema,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PudgyPenguins,
+    PudgyPenguinsItem,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -28,20 +28,20 @@ const querySchema = z
         contract: PudgyPenguins,
 
         // -- `token` filter --
-        token_id: PudgyPenguinsItem.default(''),
-        anyAddress: evmAddressSchema.default(''),
-        offererAddress: evmAddressSchema.default(''),
-        recipientAddress: evmAddressSchema.default(''),
+        token_id: PudgyPenguinsItem.optional(),
+        anyAddress: evmAddressSchema.optional(),
+        offererAddress: evmAddressSchema.optional(),
+        recipientAddress: evmAddressSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // Block
@@ -60,13 +60,13 @@ const responseSchema = z.object({
             sale_currency: z.string(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Sales',
-        description: 'Provides latest NFT marketplace sales.',
+        description: 'Returns NFT marketplace sales with price, buyer, seller, and transaction data.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

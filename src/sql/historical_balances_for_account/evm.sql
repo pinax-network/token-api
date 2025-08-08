@@ -42,5 +42,5 @@ SELECT
 FROM ohlc AS o
 LEFT JOIN erc20_metadata_initialize AS c ON o.contract = c.address
 ORDER BY datetime DESC
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

@@ -6,26 +6,26 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    SVM_networkIdSchema,
-    SolanaSPLTokenProgramIds,
-    WSOL,
+    apiUsageResponse,
     filterByTokenAccount,
     paginationQuery,
-    statisticsSchema,
+    SolanaSPLTokenProgramIds,
+    SVM_networkIdSchema,
     svmAddressSchema,
+    WSOL,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
-        token_account: filterByTokenAccount.default(''),
-        mint: WSOL.default(''),
-        program_id: SolanaSPLTokenProgramIds.default(''),
         network_id: SVM_networkIdSchema,
+        token_account: filterByTokenAccount.optional(),
+        mint: WSOL.optional(),
+        program_id: SolanaSPLTokenProgramIds.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
@@ -52,13 +52,13 @@ const responseSchema = z.object({
             network_id: SVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Balances',
-        description: 'Provides Solana SPL tokens balances by token account address.',
+        summary: 'Solana Balances',
+        description: 'Returns SPL token balances for Solana token accounts with mint and program data.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

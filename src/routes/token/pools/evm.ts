@@ -6,59 +6,57 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    USDC_WETH,
     evmAddressSchema,
     paginationQuery,
     protocolSchema,
-    statisticsSchema,
     tokenSchema,
+    USDC_WETH,
     uniswapPoolSchema,
+    WETH,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        pool: USDC_WETH.default(''),
-        factory: evmAddressSchema.default(''),
-        token0: evmAddressSchema.default(''),
-        token1: evmAddressSchema.default(''),
-        symbol: z.string().default(''),
-        protocol: protocolSchema,
+        pool: USDC_WETH.optional(),
+        factory: evmAddressSchema.optional(),
+        token: WETH.optional(),
+        protocol: protocolSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
-
-            // -- chain --
-            network_id: EVM_networkIdSchema,
+            datetime: z.iso.datetime(),
 
             // -- transaction --
             transaction_id: z.string(),
 
             // -- pool --
-            // creator: evmAddressSchema, // TO-DO: https://github.com/pinax-network/substreams-evm-tokens/issues/37
             factory: evmAddressSchema,
             pool: uniswapPoolSchema,
             token0: tokenSchema,
             token1: tokenSchema,
             fee: z.number(),
             protocol: z.string(),
+
+            // -- chain --
+            network_id: EVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Provides Uniswap V2 & V3 liquidity pool metadata.',
+        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -72,23 +70,23 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22589384,
-                                            datetime: '2025-05-29 15:46:23',
+                                            block_num: 23039540,
+                                            datetime: '2025-07-31 14:00:11',
                                             transaction_id:
-                                                '0x43cee95f1449b6b4d394fab31234fd6decdcd049153cc1338fe627e5483a3d36',
+                                                '0xd9a2023a8cb1e49639bdab160dc5e706200b10b3bde91709fa41ab7ef44af58f',
                                             factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
-                                            pool: '0x12b900f4e5c4b1d2aab6870220345c668b068fc6e588dd59dfe6f223d60608f1',
+                                            pool: '0x3bdd63a1dcf34df8f6a568092646c6d49e482ecf3b824c06b352b7e37f96c3b8',
                                             token0: {
-                                                address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-                                                symbol: 'USDT',
-                                                decimals: 6,
-                                            },
-                                            token1: {
-                                                address: '0xf2c88757f8d03634671208935974b60a2a28bdb3',
-                                                symbol: 'SHELL',
+                                                address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+                                                symbol: 'wstETH',
                                                 decimals: 18,
                                             },
-                                            fee: 699000,
+                                            token1: {
+                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                                symbol: 'WETH',
+                                                decimals: 18,
+                                            },
+                                            fee: 50,
                                             protocol: 'uniswap_v4',
                                             network_id: 'mainnet',
                                         },

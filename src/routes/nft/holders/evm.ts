@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { EVM_networkIdSchema, PudgyPenguins, evmAddressSchema, statisticsSchema } from '../../../types/zod.js';
+import { apiUsageResponse, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
@@ -16,24 +16,25 @@ const querySchema = z.object({
     network_id: EVM_networkIdSchema,
 });
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             token_standard: z.string(),
             address: evmAddressSchema,
-            quantity: z.number().openapi({ description: 'Number of tokens held by this address' }),
-            unique_tokens: z.number().openapi({ description: 'Number of unique token IDs held by this address' }),
-            percentage: z.number().openapi({ description: 'Percentage of total supply held by this address' }),
+            quantity: z.number().meta({ description: 'Number of tokens held by this address' }),
+            unique_tokens: z.number().meta({ description: 'Number of unique token IDs held by this address' }),
+            percentage: z.number().meta({ description: 'Percentage of total supply held by this address' }),
             network_id: EVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Holders',
-        description: 'Provides NFT holders per contract.',
+        description:
+            'Returns wallet addresses holding NFT collection tokens with quantity and percentage distribution.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

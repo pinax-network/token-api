@@ -2,7 +2,7 @@
     "private": true,
     "name": "token-api",
     "description": "Token API",
-    "version": "2.3.4",
+    "version": "2.4.4",
     "homepage": "https://github.com/pinax-network/token-api",
     "license": "Apache-2.0",
     "type": "module",
@@ -39,24 +39,24 @@
         "lint": "bun run typecheck && biome check ."
     },
     "dependencies": {
-        "@clickhouse/client": "^1.11.0",
-        "@clickhouse/client-web": "^1.11.0",
-        "@hono/zod-openapi": "^0.19.0",
-        "@hono/zod-validator": "^0.4.3",
-        "@modelcontextprotocol/sdk": "^1.6.1",
-        "@pinax/graph-networks-registry": "^0.6.7",
-        "@web3icons/core": "^4.0.10",
-        "commander": "^13.1.0",
-        "dotenv": "^16.4.7",
-        "hono": "^4.7.5",
-        "hono-openapi": "^0.4.6",
+        "@clickhouse/client": "^1.12.0",
+        "@clickhouse/client-web": "^1.12.0",
+        "@hono/zod-openapi": "^1.1.0",
+        "@hono/zod-validator": "^0.7.2",
+        "@modelcontextprotocol/sdk": "^1.17.1",
+        "@pinax/graph-networks-registry": "^0.7.1",
+        "@web3icons/core": "^4.0.18",
+        "commander": "^14.0.0",
+        "dotenv": "^17.2.1",
+        "hono": "^4.8.12",
+        "hono-openapi": "^0.4.8",
         "tslog": "^4.9.3",
-        "zod": "^3.24.2",
-        "zod-openapi": "^4.2.3"
+        "zod": "^4.0.15",
+        "zod-openapi": "^5.3.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "typescript": "^5.8.2",
-        "@types/bun": "^1.2.5"
+        "@biomejs/biome": "^2.1.4",
+        "typescript": "^5.9.2",
+        "@types/bun": "^1.2.19"
     }
 }

@@ -12,5 +12,5 @@ FINAL
 WHERE
     mint = {contract: String} AND amount > 0
 ORDER BY value DESC
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

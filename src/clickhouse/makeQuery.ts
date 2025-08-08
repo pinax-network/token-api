@@ -1,11 +1,9 @@
 import * as crypto from 'node:crypto';
-import client from './client.js';
-
-import { logger } from '../logger.js';
-
-import { type ProgressRow, isProgressRow } from '@clickhouse/client';
+import { isProgressRow, type ProgressRow } from '@clickhouse/client';
 import type { ResponseJSON } from '@clickhouse/client-web';
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
+import { logger } from '../logger.js';
+import client from './client.js';
 
 export async function makeQuery<T = unknown>(
     query: string,

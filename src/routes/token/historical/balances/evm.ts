@@ -6,14 +6,14 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    Vitalik,
     endTimeSchema,
     evmAddressSchema,
     intervalSchema,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
+    Vitalik,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
@@ -23,18 +23,18 @@ const paramSchema = z.object({
 
 const querySchema = z
     .object({
-        interval: intervalSchema,
         network_id: EVM_networkIdSchema,
-        contracts: evmAddressSchema.array().default([]),
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
+        interval: intervalSchema.optional(),
+        contracts: evmAddressSchema.array().default([]).optional(),
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
-            datetime: z.string().datetime(),
+            datetime: z.iso.datetime(),
             contract: z.string(),
             name: z.string(),
             symbol: z.string(),
@@ -45,13 +45,12 @@ const responseSchema = z.object({
             close: z.number(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Historical Balances',
-        description: 'Provides historical ERC-20 & Native balances by wallet address.',
+        description: 'Returns wallet token balance changes over time in OHLC format.',
         tags: ['EVM'],
         'x-tagGroups': ['Historical'],
         security: [{ bearerAuth: [] }],

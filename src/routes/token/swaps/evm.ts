@@ -6,8 +6,8 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    USDC_WETH,
     endTimeSchema,
     evmAddressSchema,
     evmTransactionSchema,
@@ -16,8 +16,8 @@ import {
     paginationQuery,
     protocolSchema,
     startTimeSchema,
-    statisticsSchema,
     tokenSchema,
+    USDC_WETH,
     uniswapPoolSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
@@ -27,29 +27,29 @@ const querySchema = z
         network_id: EVM_networkIdSchema,
 
         // -- `swaps` filter --
-        pool: USDC_WETH.default(''),
-        caller: evmAddressSchema.default(''),
-        sender: evmAddressSchema.default(''),
-        recipient: evmAddressSchema.default(''),
-        protocol: protocolSchema.default(''),
+        pool: USDC_WETH.optional(),
+        caller: evmAddressSchema.optional(),
+        sender: evmAddressSchema.optional(),
+        recipient: evmAddressSchema.optional(),
+        protocol: protocolSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
-        transaction_id: evmTransactionSchema.default(''),
+        transaction_id: evmTransactionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- chain --
@@ -76,13 +76,13 @@ const responseSchema = z.object({
             protocol: z.string(),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description: 'Provides Uniswap V2 & V3 swap events.',
+        description: 'Returns DEX swap transactions from Uniswap protocols with token amounts and prices.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

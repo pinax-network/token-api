@@ -1,8 +1,6 @@
 import { createClient } from '@clickhouse/client-web';
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
-import { APP_NAME, config } from '../config.js';
-
-export const MAX_EXECUTION_TIME = 10;
+import { APP_NAME, config, MAX_EXECUTION_TIME } from '../config.js';
 
 // TODO: Check how to abort previous queries if haven't returned yet
 const client = (custom_config?: WebClickHouseClientConfigOptions) => {

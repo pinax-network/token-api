@@ -6,13 +6,13 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    Vitalik,
     evmAddress,
     evmAddressSchema,
     paginationQuery,
-    statisticsSchema,
     tokenStandardSchema,
+    Vitalik,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -23,12 +23,12 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        token_standard: tokenStandardSchema,
-        contract: evmAddressSchema.default(''),
+        token_standard: tokenStandardSchema.optional(),
+        contract: evmAddressSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // NFT token metadata
@@ -48,13 +48,12 @@ const responseSchema = z.object({
             network_id: EVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'NFT Ownerships',
-        description: 'Provides NFT Ownerships for Account.',
+        summary: 'NFT Ownerships by Address',
+        description: 'Returns NFT tokens owned by a wallet address with metadata and ownership information.',
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

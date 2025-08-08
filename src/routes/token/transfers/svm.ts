@@ -6,18 +6,18 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
-    SVM_networkIdSchema,
-    SolanaSPLTokenProgramIds,
-    WSOL,
+    apiUsageResponse,
     endTimeSchema,
     filterByAuthority,
     filterByTokenAccount,
     orderBySchemaTimestamp,
     orderDirectionSchema,
     paginationQuery,
+    SolanaSPLTokenProgramIds,
+    SVM_networkIdSchema,
     startTimeSchema,
-    statisticsSchema,
     svmAddressSchema,
+    WSOL,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -26,29 +26,29 @@ const querySchema = z
         network_id: SVM_networkIdSchema,
 
         // -- `token` filter --
-        mint: WSOL.default(''),
-        source: filterByTokenAccount.default(''),
-        destination: filterByTokenAccount.default(''),
-        authority: filterByAuthority.default(''),
-        program_id: SolanaSPLTokenProgramIds.default(''),
+        mint: WSOL.optional(),
+        source: filterByTokenAccount.optional(),
+        destination: filterByTokenAccount.optional(),
+        authority: filterByAuthority.optional(),
+        program_id: SolanaSPLTokenProgramIds.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
         // signature: z.optional(svmTransactionSchema),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- transaction --
@@ -72,13 +72,13 @@ const responseSchema = z.object({
             network_id: SVM_networkIdSchema,
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Transfers Events',
-        description: 'Provides SPL transfer events.',
+        summary: 'Solana Transfers',
+        description: 'Returns SPL token transfers with program, authority, and account information.',
+
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
         responses: {

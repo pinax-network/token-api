@@ -11,8 +11,8 @@ WITH filtered_balances AS (
         contract = {contract: String} AND balance_raw > 0
     GROUP BY contract, address
     ORDER BY value DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 )
 SELECT
     block_num,

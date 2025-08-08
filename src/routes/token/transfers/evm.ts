@@ -6,8 +6,8 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    Vitalik,
     endTimeSchema,
     evmAddressSchema,
     evmTransactionSchema,
@@ -15,7 +15,7 @@ import {
     orderDirectionSchema,
     paginationQuery,
     startTimeSchema,
-    statisticsSchema,
+    Vitalik,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -24,27 +24,27 @@ const querySchema = z
         network_id: EVM_networkIdSchema,
 
         // -- `token` filter --
-        from: evmAddressSchema.default(''),
-        to: Vitalik.default(''),
-        contract: evmAddressSchema.default(''),
+        from: evmAddressSchema.optional(),
+        to: Vitalik.optional(),
+        contract: evmAddressSchema.optional(),
 
         // -- `time` filter --
-        startTime: startTimeSchema,
-        endTime: endTimeSchema,
-        orderBy: orderBySchemaTimestamp,
-        orderDirection: orderDirectionSchema,
+        startTime: startTimeSchema.optional(),
+        endTime: endTimeSchema.optional(),
+        orderBy: orderBySchemaTimestamp.optional(),
+        orderDirection: orderDirectionSchema.optional(),
 
         // -- `transaction` filter --
-        transaction_id: evmTransactionSchema.default(''),
+        transaction_id: evmTransactionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string(),
+            datetime: z.iso.datetime(),
             timestamp: z.number(),
 
             // -- transaction --
@@ -70,13 +70,13 @@ const responseSchema = z.object({
             // low_liquidity: z.optional(z.boolean()),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Transfers Events',
-        description: 'Provides ERC-20 & Native transfer events.',
+        summary: 'Token Transfers',
+        description: 'Returns ERC-20 and native token transfers with transaction and block data.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

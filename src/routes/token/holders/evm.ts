@@ -6,13 +6,13 @@ import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
+    apiUsageResponse,
     EVM_networkIdSchema,
-    GRT,
     evmAddressSchema,
+    GRT,
     orderBySchemaValue,
     orderDirectionSchema,
     paginationQuery,
-    statisticsSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
@@ -23,12 +23,12 @@ const paramSchema = z.object({
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        orderBy: orderBySchemaValue,
-        orderDirection: orderDirectionSchema,
+        orderBy: orderBySchemaValue.optional(),
+        orderDirection: orderDirectionSchema.optional(),
     })
-    .merge(paginationQuery);
+    .extend(paginationQuery.shape);
 
-const responseSchema = z.object({
+const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
@@ -54,13 +54,13 @@ const responseSchema = z.object({
             low_liquidity: z.optional(z.boolean()),
         })
     ),
-    statistics: z.optional(statisticsSchema),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Provides ERC-20 token holder balances by contract address.',
+        description: 'Returns token holders ranked by balance with holdings and supply percentage.',
+
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {
