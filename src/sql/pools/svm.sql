@@ -37,5 +37,5 @@ SELECT
 FROM filtered_pools AS pools
 GROUP BY program_id, program_name, amm, amm_name, amm_pool, input_mint, output_mint
 ORDER BY amm, transactions DESC, amm_pool
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

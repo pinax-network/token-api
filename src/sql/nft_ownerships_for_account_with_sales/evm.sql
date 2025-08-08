@@ -34,5 +34,5 @@ FROM owned_erc721 AS o
 INNER JOIN erc721_metadata_by_contract AS m ON m.contract = o.contract
 INNER JOIN last_token_sales AS s ON s.offer_token = o.contract AND s.offer_token_id = o.token_id
 ORDER BY last_sale DESC
-LIMIT {limit:int}
-OFFSET {offset:int}
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

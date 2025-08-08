@@ -15,8 +15,8 @@ filtered_transfers AS (
         AND ({to:String} = ''  OR `to` = {to:String})
         AND ({contract:String} = '' OR contract = {contract:String})
     ORDER BY timestamp DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 )
 SELECT
     t.block_num as block_num,

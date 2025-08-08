@@ -27,5 +27,5 @@ WHERE   ({source:String}            = '' OR source = {source:String})
     AND ({mint:String}              = '' OR mint = {mint:String})
     AND ({authority:String}         = '' OR authority = {authority:String})
     AND ({program_id:String}         = '' OR program_id = {program_id:String})
-LIMIT   {limit:int}
-OFFSET  {offset:int}
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

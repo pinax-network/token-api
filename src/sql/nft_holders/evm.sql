@@ -41,5 +41,5 @@ combined AS (
 )
 SELECT *
 FROM combined
-LIMIT {limit:int}
-OFFSET {offset:int}
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

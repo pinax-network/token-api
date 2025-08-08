@@ -49,5 +49,5 @@ FROM filtered_orders
 JOIN metadata_by_contract AS m ON m.contract = token
 GROUP BY timestamp, block_num, tx_hash, token, token_id, symbol, name, offerer, recipient, sale_currency
 ORDER BY timestamp DESC
-LIMIT {limit:int}
-OFFSET {offset:int}
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

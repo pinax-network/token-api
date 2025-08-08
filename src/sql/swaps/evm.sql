@@ -20,8 +20,8 @@ WITH s AS (
         AND ({pool:String}       = '' OR pool           = {pool:String})
         AND ({protocol:String}   = '' OR protocol       = {protocol:String})
     ORDER BY timestamp DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 ),
 filtered_pools AS (
     SELECT

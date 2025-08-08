@@ -14,5 +14,5 @@ FROM seaport_orders
 WHERE offer_token = {contract: String}
 GROUP BY timestamp, block_num, tx_hash, offerer, recipient, offer_token_id, consideration_token
 ORDER BY timestamp DESC
-LIMIT {limit:int}
-OFFSET {offset:int}
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

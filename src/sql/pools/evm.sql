@@ -16,8 +16,8 @@ WITH filtered_pools AS (
         if ({token:String} == '', true, token0 = {token:String} OR token1 = {token:String}) AND
         if ({protocol:String} == '', true, protocol = {protocol:String})
     ORDER BY datetime DESC
-    LIMIT   {limit:int}
-    OFFSET  {offset:int}
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
 ),
 unique_tokens AS (
     SELECT DISTINCT token0 AS address FROM filtered_pools
