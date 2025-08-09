@@ -31,6 +31,7 @@ export const DEFAULT_DEFAULT_SVM_NETWORK = 'solana';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
+export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
 
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.16.0';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
@@ -170,6 +171,11 @@ const opts = program
             .env('VERBOSE')
             .default(DEFAULT_VERBOSE)
     )
+    .addOption(
+        new Option('--redis-url <string>', 'Redis connection URL')
+            .env('REDIS_URL')
+            .default(DEFAULT_REDIS_URL)
+    )
     .parse()
     .opts();
 
@@ -234,6 +240,7 @@ const config = z
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
+        redisUrl: z.string().url({ message: 'Invalid Redis URL' }),
     })
     .transform((data) => ({
         ...data,

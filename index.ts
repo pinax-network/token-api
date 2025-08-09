@@ -5,8 +5,12 @@ import { APP_DESCRIPTION, APP_VERSION, config } from './src/config.js';
 import { logger } from './src/logger.js';
 import routes from './src/routes/index.js';
 import { APIErrorResponse } from './src/utils.js';
+import { initRedis } from './src/services/redis.js';
 
 const app = new Hono();
+
+// Initialize Redis with CLI arguments
+initRedis(config.redisUrl);
 
 // -----------
 // --- API ---
