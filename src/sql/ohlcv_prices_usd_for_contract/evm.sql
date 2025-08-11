@@ -12,7 +12,7 @@ filtered_pools AS (
     SELECT
         pool
     FROM pools AS p
-    JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
+    LEFT JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
     WHERE
         p.token0 = {contract: String}
         OR p.token1 = {contract: String}
