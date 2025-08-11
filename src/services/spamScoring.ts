@@ -15,7 +15,7 @@ interface SpamScoreResponse {
 }
 
 const SUPPORTED_CHAINS = ['mainnet'];
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 30000;
 const SPAM_SCORING_API_URL = 'https://token-api-server-874564579341.us-central1.run.app/contracts/status';
 
 /**

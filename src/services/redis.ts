@@ -1,25 +1,28 @@
+/**
+ * Redis service for caching operations
+ */
 import { redis } from 'bun';
+import { withTimeout } from '../utils.js';
 
 const DEFAULT_TTL = 1 * 24 * 60 * 60; // 1 day
+const TIMEOUT_MS = 1000;
 
 /**
  * Initialize Redis with the provided URL
  * @param redisUrl Redis connection URL from CLI arguments
  */
-export function initRedis(redisUrl: string): void {
+export async function initRedis(redisUrl: string): Promise<void> {
     if (redisUrl) {
         process.env.REDIS_URL = redisUrl;
 
         // Test connection
-        redis
-            .get('_connection_test')
-            .then(() => {
-                console.log('✅ Redis connection successful');
-            })
-            .catch((error) => {
-                console.error(`❌ Redis connection failed: ${error.message}`);
-                process.env.REDIS_URL = '';
-            });
+        try {
+            await withTimeout(redis.get('_connection_test'), TIMEOUT_MS, 'Redis connection test timed out');
+            console.log('✅ Redis connection successful');
+        } catch (error) {
+            console.error(`⚠️ Redis connection failed: ${error}. Working without cache.`);
+            process.env.REDIS_URL = '';
+        }
     } else {
         console.log('Redis URL not provided, caching will not be available');
     }
@@ -34,7 +37,8 @@ export async function getFromCache<T>(key: string): Promise<T | null> {
     if (!process.env.REDIS_URL) return null;
 
     try {
-        const value = await redis.get(key);
+        // using withTimeout because bun:redis hangs if redis is down, we want to avoid that
+        const value = await withTimeout(redis.get(key), TIMEOUT_MS, 'Redis get timed out');
         if (!value) return null;
 
         return JSON.parse(value) as T;
@@ -56,8 +60,8 @@ export async function setInCache<T>(key: string, value: T, ttl: number = DEFAULT
 
     try {
         const valueStr = JSON.stringify(value);
-        await redis.set(key, valueStr);
-        await redis.expire(key, ttl);
+        await withTimeout(redis.set(key, valueStr), TIMEOUT_MS, 'Redis set timed out');
+        await withTimeout(redis.expire(key, ttl), TIMEOUT_MS, 'Redis expire timed out');
         return true;
     } catch (error) {
         console.error(`Error setting value in Redis for key ${key}:`, error);
