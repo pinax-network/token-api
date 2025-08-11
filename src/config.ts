@@ -171,11 +171,7 @@ const opts = program
             .env('VERBOSE')
             .default(DEFAULT_VERBOSE)
     )
-    .addOption(
-        new Option('--redis-url <string>', 'Redis connection URL')
-            .env('REDIS_URL')
-            .default(DEFAULT_REDIS_URL)
-    )
+    .addOption(new Option('--redis-url <string>', 'Redis connection URL').env('REDIS_URL').default(DEFAULT_REDIS_URL))
     .parse()
     .opts();
 
