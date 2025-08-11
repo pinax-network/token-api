@@ -105,10 +105,18 @@ route.get(
         ]);
 
         // inject spam score into result
-        if (!('status' in response) && spamScore.result === 'success' && Array.isArray(response.data)) {
+        if (!('status' in response) && Array.isArray(response.data)) {
+            let spamStatus: 'yes' | 'no' | 'pending' | 'error' = 'pending';
+
+            if (spamScore.result === 'success') {
+                spamStatus = spamScore.isSpam ? 'yes' : 'no';
+            } else if (spamScore.result === 'error') {
+                spamStatus = 'error';
+            }
+
             response.data = response.data.map((item) => ({
                 ...item,
-                is_spam: spamScore.isSpam,
+                is_spam: spamStatus,
             }));
         }
 

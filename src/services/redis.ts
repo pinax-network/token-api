@@ -18,6 +18,7 @@ export function initRedis(redisUrl: string): void {
             })
             .catch((error) => {
                 console.error(`❌ Redis connection failed: ${error.message}`);
+                process.env.REDIS_URL = '';
             });
     } else {
         console.log('Redis URL not provided, caching will not be available');
