@@ -163,7 +163,7 @@ export const timestampSchema = z.coerce
         }
     )
     .meta({ description: 'UNIX timestamp in seconds.' });
-export const startTimeSchema = timestampSchema.default(0);
+export const startTimeSchema = timestampSchema.default(Number(new Date('2025-01-01')) / 1000);
 export const endTimeSchema = timestampSchema.default(9999999999);
 
 // NFT schemas
@@ -250,7 +250,7 @@ export const SolanaProgramIds = z
         'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
         'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
     ])
-    .default('pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA')
+    .default('')
     .meta({ description: 'Filter by program ID' });
 export const SolanaSPLTokenProgramIds = z
     .enum(['', 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'])
