@@ -22,9 +22,9 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 const querySchema = z
     .object({
         network_id: EVM_networkIdSchema,
-        contract: PudgyPenguins,
 
         // -- `token` filter --
+        contract: PudgyPenguins.optional(),
         anyAddress: evmAddressSchema.optional(),
         fromAddress: evmAddressSchema.optional(),
         toAddress: evmAddressSchema.optional(),
