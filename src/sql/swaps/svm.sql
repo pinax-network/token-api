@@ -14,8 +14,14 @@ WITH s AS (
         output_mint,
         output_amount
     FROM swaps
-    WHERE program_id = {program_id:FixedString(44)}
-    ORDER BY timestamp DESC
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+        AND ({program_id:String}    = '' OR program_id     = {program_id:String})
+        AND ({signature:String}     = '' OR signature      = {signature:String})
+        AND ({user:String}          = '' OR user           = {user:String})
+        AND ({amm:String}           = '' OR amm            = {amm:String})
+        AND ({amm_pool:String}      = '' OR amm_pool       = {amm_pool:String})
+        AND ({input_mint:String}    = '' OR input_mint     = {input_mint:String})
+        AND ({output_mint:String}   = '' OR output_mint    = {output_mint:String})
 )
 SELECT
     block_num,
@@ -34,12 +40,6 @@ SELECT
     output_amount,
     {network_id: String} AS network_id
 FROM s
-WHERE s.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-    AND ({signature:String}     = '' OR signature      = {signature:String})
-    AND ({user:String}          = '' OR user           = {user:String})
-    AND ({amm:String}           = '' OR amm            = {amm:String})
-    AND ({amm_pool:String}      = '' OR amm_pool       = {amm_pool:String})
-    AND ({input_mint:String}    = '' OR input_mint     = {input_mint:String})
-    AND ({output_mint:String}   = '' OR output_mint    = {output_mint:String})
+ORDER BY timestamp DESC
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}
