@@ -11,11 +11,10 @@ interface SpamScoreResponse {
     result: 'success' | 'error' | 'pending';
     isSpam?: boolean;
     message?: string;
-    cached?: boolean; // Indicator if the response came from cache
 }
 
 const SUPPORTED_CHAINS = ['mainnet'];
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 60000;
 const SPAM_SCORING_API_URL = 'https://token-api-server-874564579341.us-central1.run.app/contracts/status';
 
 /**
@@ -43,7 +42,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
             console.log(`Retrieved spam score from cache for ${contractAddress} on ${networkId}`);
             return {
                 ...cachedData,
-                cached: true,
+                result: 'success',
             };
         }
     } catch (error) {
