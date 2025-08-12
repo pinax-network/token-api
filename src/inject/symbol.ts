@@ -20,7 +20,6 @@ export function injectSymbol(response: ApiUsageResponse | ApiErrorResponse, netw
                     row.decimals = symbol.decimals;
                     if (include_name) row.name = symbol.name;
                 }
-                return;
             }
             // inject token symbol
             const tokenInfo = tokens.get(address);

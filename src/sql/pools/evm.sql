@@ -36,53 +36,54 @@ SELECT
     pools.block_num AS block_num,
     datetime,
     transaction_id,
-    factory,
-    pool,
+    pools.factory AS factory,
+    pools.pool AS pool,
     CAST(
         (
-            toString(token0),
+            toString(pools.token0),
             trim(coalesce(
                 multiIf(
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                    token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'mainnet', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'arbitrum-one', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'avalanche', 'AVAX',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'base', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'bsc', 'BNB',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'matic', 'MATIC',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'optimism', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'unichain', 'ETH',
                     t0.symbol
                 ), '')),
             coalesce(
-                if(token0 = '0x0000000000000000000000000000000000000000', 18, t0.decimals), 0
+                if((pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'), 18, t0.decimals), 0
             )
         )
         AS Tuple(address String, symbol String, decimals UInt8)
     ) AS token0,
     CAST(
         (
-            toString(token1),
+            toString(pools.token1),
             trim(coalesce(
                 multiIf(
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                    token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'mainnet', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'arbitrum-one', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'avalanche', 'AVAX',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'base', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'bsc', 'BNB',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'matic', 'MATIC',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'optimism', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'unichain', 'ETH',
                     t1.symbol
                 ), '')),
             coalesce(
-                if(token1 = '0x0000000000000000000000000000000000000000', 18, t1.decimals), 0
+                if((pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'), 18, t1.decimals), 0
             )
         )
         AS Tuple(address String, symbol String, decimals UInt8)
     ) AS token1,
-    fee,
-    protocol,
+    pools.fee AS fee,
+    pools.protocol AS protocol,
     {network_id: String} as network_id
 FROM filtered_pools AS pools
 LEFT JOIN filtered_tokens t0 ON pools.token0 = t0.address
 LEFT JOIN filtered_tokens t1 ON pools.token1 = t1.address
+ORDER BY datetime DESC, protocol
