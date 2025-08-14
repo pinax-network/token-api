@@ -163,7 +163,7 @@ export const timestampSchema = z.coerce
         }
     )
     .meta({ description: 'UNIX timestamp in seconds.' });
-export const startTimeSchema = timestampSchema.default(0);
+export const startTimeSchema = timestampSchema.default(Number(new Date('2025-01-01')) / 1000);
 export const endTimeSchema = timestampSchema.default(9999999999);
 
 // NFT schemas

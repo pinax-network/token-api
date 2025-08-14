@@ -4,6 +4,7 @@ import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
+import { injectSymbol } from '../../../inject/symbol.js';
 import { sqlQueries } from '../../../sql/index.js';
 import {
     apiUsageResponse,
@@ -110,6 +111,8 @@ route.get(
         if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
         const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+        injectSymbol(response, params.network_id, true);
+
         return handleUsageQueryError(c, response);
     }
 );

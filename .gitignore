@@ -141,3 +141,5 @@ cursor.lock
 token-api
 
 *.db
+
+*-example.sql
