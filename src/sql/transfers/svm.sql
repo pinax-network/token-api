@@ -10,8 +10,8 @@ SELECT
     decimals,
     t.amount /
     CASE
-        WHEN mint = 'So11111111111111111111111111111111111111111' THEN pow(10, 9)
         WHEN decimals IS NOT NULL THEN pow(10, decimals)
+        WHEN mint = 'So11111111111111111111111111111111111111111' THEN pow(10, 9)
         ELSE 1
     END AS value,
     {network_id: String} AS network_id
