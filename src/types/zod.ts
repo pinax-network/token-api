@@ -308,11 +308,11 @@ export const paginationSchema = z
         next_page: z.coerce.number().int().min(1),
         total_pages: z.coerce.number().int().min(1),
     })
-    .refine(
-        ({ previous_page, current_page, next_page, total_pages }) =>
-            previous_page <= current_page && current_page <= next_page && next_page <= total_pages,
-        "Requested page doesn't exist"
-    );
+    // .refine(
+    //     ({ previous_page, current_page, next_page, total_pages }) =>
+    //         previous_page <= current_page && current_page <= next_page && next_page <= total_pages,
+    //     "Requested page doesn't exist"
+    // );
 export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 // ----------------------
