@@ -10,9 +10,16 @@ metadata AS (
 ),
 filtered_pools AS (
     SELECT
-        pool
+        pool,
+        decimals AS stable_decimals,
+        (
+            SELECT decimals
+            FROM erc20_metadata_initialize
+            WHERE address = {contract: String}
+        ) AS token_decimals,
+        pow(10, -abs(token_decimals - stable_decimals)) AS scale_factor
     FROM pools AS p
-    LEFT JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
+    JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
     WHERE
         p.token0 = {contract: String}
         OR p.token1 = {contract: String}
@@ -35,7 +42,7 @@ normalized_prices AS (
     JOIN filtered_pools AS p ON p.pool = o.pool
     WHERE token = {contract: String}
         AND o.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-    GROUP BY datetime, pool
+    GROUP BY datetime, pool, scale_factor
 )
 SELECT
     datetime,
