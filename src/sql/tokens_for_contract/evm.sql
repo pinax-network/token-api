@@ -17,14 +17,24 @@ WITH m AS (
     LIMIT 1
 ), b AS (
     SELECT
-        contract,
         count() as holders,
         sum(balance) as circulating_supply,
-        max(block_num) as block_num,
-        max(timestamp) as timestamp
-    FROM balances_by_contract
-    WHERE contract = {contract: String} AND balance > 0
-    GROUP BY contract
+        max(block_num) AS block_num,
+        max(timestamp) AS timestamp
+    FROM (
+        SELECT
+            address,
+            contract,
+            max(block_num) AS block_num,
+            max(timestamp) AS timestamp,
+            argMax(balance, t.block_num) AS balance
+        FROM balances_by_contract AS t
+        WHERE contract = {contract: String}
+        GROUP BY
+            contract,
+            address
+        HAVING balance > 0
+    )
 )
 SELECT
     b.block_num AS block_num,
@@ -39,6 +49,6 @@ SELECT
     b.holders as holders,
     {network_id: String} as network_id
 FROM b
-JOIN m ON 1 = 1
-JOIN d ON 1 = 1
-JOIN s ON 1 = 1
+LEFT JOIN m ON 1 = 1
+LEFT JOIN d ON 1 = 1
+LEFT JOIN s ON 1 = 1
