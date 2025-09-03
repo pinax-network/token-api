@@ -1,26 +1,31 @@
+WITH t AS (
+    SELECT
+        timestamp_since_genesis,
+        decimals,
+        *
+    FROM transfers
+    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+    ORDER BY timestamp DESC
+)
 SELECT
     block_num,
-    signature,
-    program_id,
-    authority,
-    mint,
-    source,
-    destination,
-    amount,
+    t.timestamp_since_genesis AS datetime,
+    toUnixTimestamp(t.timestamp_since_genesis) AS timestamp,
+    tx_hash AS signature,
+    toString(program_id) AS program_id,
+    toString(authority) AS authority,
+    toString(mint_raw) AS mint,
+    toString(source) AS source,
+    toString(destination) AS destination,
+    toString(amount) as amount,
     decimals,
-    t.amount /
-    CASE
-        WHEN decimals IS NOT NULL THEN pow(10, decimals)
-        WHEN mint = 'So11111111111111111111111111111111111111111' THEN pow(10, 9)
-        ELSE 1
-    END AS value,
+    t.amount / pow(10, ifNull(decimals, 0)) AS value,
     {network_id: String} AS network_id
-FROM transfers t
-WHERE   timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-    AND ({source:String}            = '' OR source = {source:String})
+FROM t
+WHERE   ({source:String}            = '' OR source = {source:String})
     AND ({destination:String}       = '' OR destination = {destination:String})
     AND ({mint:String}              = '' OR mint = {mint:String})
     AND ({authority:String}         = '' OR authority = {authority:String})
-    AND ({program_id:String}        = '' OR program_id = {program_id:String})
+    AND ({program_id:String}         = '' OR program_id = {program_id:String})
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}
