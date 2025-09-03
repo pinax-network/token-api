@@ -48,9 +48,6 @@ const responseSchema = apiUsageResponse.extend({
 
             // -- network --
             network_id: SVM_networkIdSchema,
-
-            // // -- contract --
-            // decimals: z.optional(z.number())
         })
     ),
 });
