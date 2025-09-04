@@ -9,6 +9,21 @@ WITH filtered_balances AS
     ORDER BY program_id
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
+),
+metadata AS
+(
+    SELECT
+        mint,
+        if(empty(name), NULL, name) AS name,
+        if(empty(symbol), NULL, symbol) AS symbol,
+        if(empty(uri), NULL, uri) AS uri
+    FROM metadata
+    WHERE metadata IN (
+        SELECT metadata
+        FROM metadata_mint_state_latest
+        JOIN filtered_balances USING mint
+        GROUP BY metadata
+    )
 )
 SELECT
     block_num,
@@ -20,6 +35,10 @@ SELECT
     toString(b.amount)                  AS amount,
     b.amount / pow(10, decimals)        AS value,
     decimals,
+    name,
+    symbol,
+    uri,
     {network_id:String}     AS network_id
 FROM filtered_balances AS b
+LEFT JOIN metadata USING mint
 ORDER BY timestamp DESC

@@ -275,6 +275,17 @@ export const mintSchema = z.object({
     decimals: z.number(),
 });
 
+export const svmMetadataSchema = z.string().nullable().optional();
+export const PumpFunMetadataName = svmMetadataSchema.meta({
+    example: 'Pump',
+});
+export const PumpFunMetadataSymbol = svmMetadataSchema.meta({
+    example: 'PUMP',
+});
+export const PumpFunMetadataUri = svmMetadataSchema.meta({
+    example: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
+});
+
 // ----------------------
 // API Query Params
 // ----------------------

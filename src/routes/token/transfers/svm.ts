@@ -12,6 +12,9 @@ import {
     filterByTokenAccount,
     orderBySchemaTimestamp,
     orderDirectionSchema,
+    PumpFunMetadataName,
+    PumpFunMetadataSymbol,
+    PumpFunMetadataUri,
     paginationQuery,
     SolanaSPLTokenProgramIds,
     SVM_networkIdSchema,
@@ -66,6 +69,10 @@ const responseSchema = apiUsageResponse.extend({
             value: z.number(),
             decimals: z.nullable(z.number().int()),
 
+            name: PumpFunMetadataName,
+            symbol: PumpFunMetadataSymbol,
+            uri: PumpFunMetadataUri,
+
             // -- chain --
             network_id: SVM_networkIdSchema,
         })
@@ -90,19 +97,22 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 352372432,
-                                            datetime: '2025-07-10 12:32:03',
-                                            timestamp: 1752150723,
+                                            block_num: 357525780,
+                                            datetime: '2025-08-03 04:39:21',
+                                            timestamp: 1754195961,
                                             signature:
-                                                '4t7ZD3Fd8i9md6CTF6SEoZ9aPkr1fhRpXXSK2DhrUe5Wcm9VFdJ9Sn4WvbhdQaetLkiq8Xm3r5YgU1ffSJaA6c2e',
-                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            authority: 'J5kWrUKVPrtjwMVQLNgUEC9RY9Ujh8pYTN3nqWUkg1zp',
-                                            mint: 'So11111111111111111111111111111111111111112',
-                                            source: 'G4sbSww72omqHsC6tYe4syFtzHyBieS6MjbRWmSn1mt5',
-                                            destination: '7ds7shXvLdNzihJXrjuoYYTr8bD5c2zwRxmZrrSZXgmM',
-                                            amount: 333993128,
-                                            decimals: 9,
-                                            value: 0.333993128,
+                                                'BxkksmejT6seHWtRC8aieMUgxpHwoYmdv9GmjeCKuLbL1xxWBSSXqrWQybfRMmKR6ZFc61kuGQzftBCwEKByiVK',
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            authority: '5YPxToTobawvkbn5rkWKYDhZqHf5v6LAtRLNPGiq6U2A',
+                                            source: 'BEyX6Nwqj1wQqSJWEHK5ezKtNxatyrgGu1tbCLnLpNQt',
+                                            destination: '64nnJ2CBUZ3VasttjVhxbQXqzbjAxnj4VT4vBrrveNV',
+                                            amount: 1520033500,
+                                            value: 1520.0335,
+                                            decimals: 6,
+                                            name: 'Pump',
+                                            symbol: 'PUMP',
+                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
                                             network_id: 'solana',
                                         },
                                     ],
