@@ -7,6 +7,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.
 import { sqlQueries } from '../../../sql/index.js';
 import {
     apiUsageResponse,
+    filterByOwner,
     filterByTokenAccount,
     PumpFunMetadataName,
     PumpFunMetadataSymbol,
@@ -22,6 +23,7 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
+        owner: filterByOwner,
         token_account: filterByTokenAccount.optional(),
         mint: WSOL.optional(),
         program_id: SolanaSPLTokenProgramIds.optional(),
@@ -61,8 +63,8 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Balances',
-        description: 'Returns SPL token balances for Solana token accounts with mint and program data.',
+        summary: 'Solana Balances by Owner',
+        description: 'Returns SPL token balances for Solana token owners with mint and program data.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],

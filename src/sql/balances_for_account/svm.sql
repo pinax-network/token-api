@@ -1,11 +1,28 @@
-WITH filtered_balances AS
+WITH accounts AS
 (
-    SELECT *
-    FROM balances
-    WHERE ({token_account:String}     = '' OR account = {token_account:String})
+    SELECT
+        argMax(account, o.block_num) AS account
+    FROM owner_state_latest AS o
+    WHERE owner = {owner:String}
+    GROUP BY owner, o.account
+),
+filtered_balances AS
+(
+    SELECT
+        max(block_num) AS block_num,
+        max(timestamp) AS timestamp,
+        program_id,
+        account,
+        argMax(amount, b.block_num) AS amount,
+        mint,
+        decimals
+    FROM balances AS b
+    WHERE account IN (SELECT account FROM accounts WHERE ({token_account:String} = '' OR account = {token_account:String}))
         AND ({mint:String}            = '' OR mint = {mint:String})
+        AND mint != 'So11111111111111111111111111111111111111111'
         AND ({program_id:String}      = '' OR program_id = {program_id:String})
-        AND amount > 0
+        AND b.amount > 0
+    GROUP BY program_id, mint, account, decimals
     ORDER BY program_id
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
