@@ -1,6 +1,8 @@
 /**
  * Service for retrieving spam scores for contracts
  */
+
+import { config } from '../config.js';
 import { withTimeout } from '../utils.js';
 import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
 
@@ -9,14 +11,12 @@ import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
  */
 interface SpamScoreResponse {
     result: 'success' | 'error' | 'pending';
-    isSpam?: boolean;
+    contract_spam_status?: boolean;
     message?: string;
 }
 
 const TIMEOUT_MS = 60000;
 const SUPPORTED_CHAINS = ['mainnet'];
-const SPAM_SCORING_API_URL = 'https://nft-spam-api.riv-stage1.pinax.io';
-// const SPAM_SCORING_API_URL = 'http://nft-spam-api.token-api.svc.cluster.local';
 
 /**
  * Queries the contract status API to check if a contract is spam
@@ -76,19 +76,23 @@ async function fetchAndCacheSpamScore(contractAddress: string, networkId: string
         console.log(`Background fetch of spam score for ${contractAddress} on ${networkId}`);
 
         const response = await withTimeout<SpamScoreResponse>(
-            fetch(`${SPAM_SCORING_API_URL}/contracts/status`, {
+            fetch(`${config.spamApiUrl}/v1/contract/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     accept: 'application/json',
                 },
-                body: JSON.stringify({ address: contractAddress.toLowerCase() }),
+                body: JSON.stringify({ addresses: [contractAddress.toLowerCase()], chain_id: 1 }),
             }).then(async (res) => {
                 if (!res.ok) {
                     const errorText = await res.text();
                     throw new Error(`Failed to fetch spam score: ${res.status} ${errorText}`);
                 }
-                return res.json();
+                const response = await res.json();
+                if (!response[contractAddress]) {
+                    throw new Error(`Contract ${contractAddress} not found in response`);
+                }
+                return response[contractAddress];
             }),
             TIMEOUT_MS,
             'Spam scoring API request timed out'

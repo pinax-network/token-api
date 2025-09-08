@@ -109,7 +109,7 @@ route.get(
             let spamStatus: 'true' | 'false' | 'pending' | 'error' = 'pending';
 
             if (spamScore.result === 'success') {
-                spamStatus = spamScore.isSpam ? 'true' : 'false';
+                spamStatus = spamScore.contract_spam_status ? 'true' : 'false';
             } else if (spamScore.result === 'error') {
                 spamStatus = 'error';
             }
