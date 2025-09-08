@@ -8,6 +8,9 @@ import { sqlQueries } from '../../../sql/index.js';
 import {
     apiUsageResponse,
     filterByTokenAccount,
+    PumpFunMetadataName,
+    PumpFunMetadataSymbol,
+    PumpFunMetadataUri,
     paginationQuery,
     SolanaSPLTokenProgramIds,
     SVM_networkIdSchema,
@@ -46,6 +49,10 @@ const responseSchema = apiUsageResponse.extend({
             value: z.number(),
             decimals: z.number(),
 
+            name: PumpFunMetadataName,
+            symbol: PumpFunMetadataSymbol,
+            uri: PumpFunMetadataUri,
+
             // -- network --
             network_id: SVM_networkIdSchema,
         })
@@ -70,15 +77,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 352305913,
-                                            datetime: '2025-07-10 05:14:43',
-                                            timestamp: 1752124483,
-                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            token_account: '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A',
-                                            mint: 'So11111111111111111111111111111111111111112',
-                                            amount: '30697740781078',
-                                            value: 30697.740781078,
-                                            decimals: 9,
+                                            block_num: 364598742,
+                                            datetime: '2025-09-04 12:09:26',
+                                            timestamp: 1756987766,
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            token_account: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW',
+                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            amount: '142949333429',
+                                            value: 142949.333429,
+                                            decimals: 6,
+                                            name: 'Pump',
+                                            symbol: 'PUMP',
+                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
                                             network_id: 'solana',
                                         },
                                     ],
