@@ -99,7 +99,7 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
                     'Content-Type': 'application/json',
                     accept: 'application/json',
                 },
-                body: JSON.stringify({ addresses: [contractAddress.toLowerCase()], chain_id: chainId }),
+                body: JSON.stringify({ addresses: [contractAddress], chain_id: chainId }),
             }).then(async (res) => {
                 if (!res.ok) {
                     const errorText = await res.text();

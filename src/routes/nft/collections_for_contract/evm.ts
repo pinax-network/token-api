@@ -30,7 +30,7 @@ const responseSchema = apiUsageResponse.extend({
             total_unique_supply: z.number(),
             total_transfers: z.number(),
             network_id: EVM_networkIdSchema,
-            isSpam: z.boolean().optional(),
+            spam_status: z.enum(['spam', 'not_spam', 'pending', 'error']).optional(),
         })
     ),
 });
@@ -63,7 +63,7 @@ const openapi = describeRoute(
                                             total_unique_supply: 8888,
                                             total_transfers: 185128,
                                             network_id: 'mainnet',
-                                            is_spam: false,
+                                            spam_status: 'not_spam',
                                         },
                                     ],
                                 },
@@ -97,26 +97,27 @@ route.get(
         if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
         const contractsDb = config.contractDatabases[params.network_id]?.database || '';
+        const contractAddress = params.contract.toLowerCase();
         query = query.replace('{contracts_db}', contractsDb);
 
         const [response, spamScore] = await Promise.all([
             makeUsageQueryJson(c, [query], params, { database: dbConfig.database }),
-            querySpamScore(params.contract, params.network_id),
+            querySpamScore(contractAddress, params.network_id),
         ]);
 
         // inject spam score into result
         if (!('status' in response) && Array.isArray(response.data)) {
-            let spamStatus: 'true' | 'false' | 'pending' | 'error' = 'pending';
+            let spamStatus: 'spam' | 'not_spam' | 'pending' | 'error' = 'pending';
 
             if (spamScore.result === 'success') {
-                spamStatus = spamScore.contract_spam_status ? 'true' : 'false';
+                spamStatus = spamScore.contract_spam_status ? 'spam' : 'not_spam';
             } else if (spamScore.result === 'error') {
                 spamStatus = 'error';
             }
 
             response.data = response.data.map((item) => ({
                 ...item,
-                is_spam: spamStatus,
+                spam_status: spamStatus,
             }));
         }
 

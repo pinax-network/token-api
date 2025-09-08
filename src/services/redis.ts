@@ -20,7 +20,7 @@ export async function initRedis(redisUrl: string): Promise<void> {
             await withTimeout(redis.get('_connection_test'), TIMEOUT_MS, 'Redis connection test timed out');
             console.log('✅ Redis connection successful');
         } catch (error) {
-            console.error(`⚠️ Redis connection failed: ${error}. Working without cache.`);
+            console.error(`⚠️ Redis connection failed: ${error}. Proceeding without cache.`);
             process.env.REDIS_URL = '';
         }
     } else {
