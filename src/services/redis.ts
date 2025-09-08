@@ -60,8 +60,7 @@ export async function setInCache<T>(key: string, value: T, ttl: number = DEFAULT
 
     try {
         const valueStr = JSON.stringify(value);
-        await withTimeout(redis.set(key, valueStr), TIMEOUT_MS, 'Redis set timed out');
-        await withTimeout(redis.expire(key, ttl), TIMEOUT_MS, 'Redis expire timed out');
+        await withTimeout(redis.set(key, valueStr, 'EX', ttl), TIMEOUT_MS, 'Redis set with expiry timed out');
         return true;
     } catch (error) {
         console.error(`Error setting value in Redis for key ${key}:`, error);
@@ -76,5 +75,5 @@ export async function setInCache<T>(key: string, value: T, ttl: number = DEFAULT
  * @returns Cache key string
  */
 export function getSpamScoreKey(contractAddress: string, networkId: string): string {
-    return `spam:${networkId}:${contractAddress.toLowerCase()}`;
+    return `spam:${networkId}:${contractAddress}`;
 }

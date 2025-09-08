@@ -109,19 +109,19 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
                 if (!response[contractAddress]) {
                     throw new Error(`Contract ${contractAddress} not found in response`);
                 }
+                // If Spam API model fails it defaults to "false" with "Error" in the message. We don't want to cache that.
+                // This is fragile but that needs to be fixed upstream
+                if (response.message?.startsWith('Error')) {
+                    throw new Error(response.message);
+                }
                 return response[contractAddress];
             }),
             TIMEOUT_MS,
             'Spam scoring API request timed out'
         );
 
-        // Cache the successful response
-        if (response?.message && !response.message.startsWith('Error')) {
-            console.log(`Caching spam score for ${contractAddress} on ${chainId}`);
-            await setInCache(cacheKey, response);
-        } else {
-            console.warn(`Not caching invalid spam score response for ${contractAddress} on ${chainId}:`, response);
-        }
+        console.log(`Caching spam score for ${contractAddress} on ${chainId}`);
+        await setInCache(cacheKey, response);
     } catch (error) {
         console.error(`Error fetching spam score for ${contractAddress} on ${chainId}:`, error);
     }
