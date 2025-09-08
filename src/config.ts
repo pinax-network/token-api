@@ -31,8 +31,8 @@ export const DEFAULT_DEFAULT_SVM_NETWORK = 'solana';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
-export const DEFAULT_REDIS_URL = 'redis://redis.token-api.svc.cluster.local:6379';
-export const DEFAULT_SPAM_API_URL = 'http://nft-spam-api.token-api.svc.cluster.local';
+export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
+export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.16.0';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
