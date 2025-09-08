@@ -4,6 +4,7 @@ import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
+import { querySpamScore } from '../../../services/spamScoring.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { apiUsageResponse, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
@@ -29,6 +30,7 @@ const responseSchema = apiUsageResponse.extend({
             total_unique_supply: z.number(),
             total_transfers: z.number(),
             network_id: EVM_networkIdSchema,
+            spam_status: z.enum(['spam', 'not_spam', 'pending', 'error']).optional(),
         })
     ),
 });
@@ -61,6 +63,7 @@ const openapi = describeRoute(
                                             total_unique_supply: 8888,
                                             total_transfers: 185128,
                                             network_id: 'mainnet',
+                                            spam_status: 'not_spam',
                                         },
                                     ],
                                 },
@@ -73,7 +76,10 @@ const openapi = describeRoute(
     })
 );
 
-const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
+// Define the expected type for validated parameters combining both param and query schemas
+type ValidatedData = z.infer<typeof querySchema> & z.infer<typeof paramSchema>;
+
+const route = new Hono<{ Variables: { validatedData: ValidatedData } }>();
 
 route.get(
     '/:contract',
@@ -91,9 +97,30 @@ route.get(
         if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
         const contractsDb = config.contractDatabases[params.network_id]?.database || '';
+        const contractAddress = params.contract.toLowerCase();
         query = query.replace('{contracts_db}', contractsDb);
 
-        const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+        const [response, spamScore] = await Promise.all([
+            makeUsageQueryJson(c, [query], params, { database: dbConfig.database }),
+            querySpamScore(contractAddress, params.network_id),
+        ]);
+
+        // inject spam score into result
+        if (!('status' in response) && Array.isArray(response.data)) {
+            let spamStatus: 'spam' | 'not_spam' | 'pending' | 'error' = 'pending';
+
+            if (spamScore.result === 'success') {
+                spamStatus = spamScore.contract_spam_status ? 'spam' : 'not_spam';
+            } else if (spamScore.result === 'error') {
+                spamStatus = 'error';
+            }
+
+            response.data = response.data.map((item) => ({
+                ...item,
+                spam_status: spamStatus,
+            }));
+        }
+
         return handleUsageQueryError(c, response);
     }
 );

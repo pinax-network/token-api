@@ -4,9 +4,12 @@ import { openAPISpecs } from 'hono-openapi';
 import { APP_DESCRIPTION, APP_VERSION, config } from './src/config.js';
 import { logger } from './src/logger.js';
 import routes from './src/routes/index.js';
+import { initRedis } from './src/services/redis.js';
 import { APIErrorResponse } from './src/utils.js';
 
 const app = new Hono();
+
+initRedis(config.redisUrl);
 
 // -----------
 // --- API ---
