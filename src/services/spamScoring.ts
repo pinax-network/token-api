@@ -13,9 +13,10 @@ interface SpamScoreResponse {
     message?: string;
 }
 
-const SUPPORTED_CHAINS = ['mainnet'];
 const TIMEOUT_MS = 60000;
-const SPAM_SCORING_API_URL = 'https://token-api-server-874564579341.us-central1.run.app/contracts/status';
+const SUPPORTED_CHAINS = ['mainnet'];
+const SPAM_SCORING_API_URL = 'https://nft-spam-api.riv-stage1.pinax.io';
+// const SPAM_SCORING_API_URL = 'http://nft-spam-api.token-api.svc.cluster.local';
 
 /**
  * Queries the contract status API to check if a contract is spam
@@ -75,7 +76,7 @@ async function fetchAndCacheSpamScore(contractAddress: string, networkId: string
         console.log(`Background fetch of spam score for ${contractAddress} on ${networkId}`);
 
         const response = await withTimeout<SpamScoreResponse>(
-            fetch(SPAM_SCORING_API_URL, {
+            fetch(`${SPAM_SCORING_API_URL}/contracts/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
