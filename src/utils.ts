@@ -28,13 +28,22 @@ export function APIErrorResponse(
         message = err.message;
     }
 
-    const api_error = {
+    let api_error = {
         status,
         code,
         message,
     };
 
     logger.error(api_error);
+
+    // Handle query execution timeout
+    if (message.includes('Timeout')) {
+        api_error = {
+            status: 504 as ServerErrorResponse['status'],
+            code: 'database_timeout' as ServerErrorResponse['code'],
+            message: 'Query took too long. Consider applying more filter parameters if possible.',
+        };
+    }
 
     if (status >= 500) return c.json<ServerErrorResponse, typeof status>(api_error as ServerErrorResponse, status);
 
