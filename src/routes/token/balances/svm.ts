@@ -23,7 +23,7 @@ import { validatorHook, withErrorResponses } from '../../../utils.js';
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-        owner: filterByOwner,
+        owner: filterByOwner.unwrap(),
         token_account: filterByTokenAccount.optional(),
         mint: WSOL.optional(),
         program_id: SolanaSPLTokenProgramIds.optional(),
@@ -34,9 +34,9 @@ const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
-            block_num: z.number(),
-            datetime: z.string(),
-            timestamp: z.number(),
+            last_update: z.string(),
+            last_update_block_num: z.number(),
+            last_update_timestamp: z.number(),
 
             // -- transaction --
             // signature: z.string(),
@@ -45,6 +45,7 @@ const responseSchema = apiUsageResponse.extend({
             program_id: svmAddressSchema,
 
             // -- balance --
+            owner: svmAddressSchema,
             token_account: svmAddressSchema,
             mint: svmAddressSchema,
             amount: z.string(),
