@@ -2,7 +2,7 @@ import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/di
 import type { Context } from 'hono';
 import { ZodError } from 'zod';
 import { makeQuery } from './clickhouse/makeQuery.js';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_EXECUTION_TIME } from './config.js';
 import {
     type ApiErrorResponse,
     type ApiUsageResponse,
@@ -54,6 +54,15 @@ export async function makeUsageQueryJson<T = unknown>(
 
     try {
         const result = await makeQuery<T>(query.join(' '), params, overwrite_config);
+
+        // Sometimes the timings will not make ClickHouse return a timeout error even though the data is empty
+        if (result.data.length === 0 && result.statistics && result.statistics?.elapsed >= MAX_EXECUTION_TIME) {
+            return {
+                status: 504 as ServerErrorResponse['status'],
+                code: 'database_timeout' as ServerErrorResponse['code'],
+                message: 'Query took too long. Consider applying more filter parameters if possible.',
+            };
+        }
 
         const total_results = result.rows_before_limit_at_least ?? 0;
         return {
