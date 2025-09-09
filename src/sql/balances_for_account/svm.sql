@@ -1,10 +1,33 @@
-WITH accounts AS
-(
-    SELECT
-        argMax(account, o.block_num) AS account
-    FROM owner_state_latest AS o
-    WHERE owner = {owner:String}
-    GROUP BY owner, o.account
+WITH accounts AS (
+    SELECT DISTINCT account
+    FROM (
+        SELECT {token_account:String} AS account
+        WHERE {token_account:String} != ''
+        
+        UNION ALL
+        
+        SELECT argMax(account, o.block_num) AS account
+        FROM owner_state_latest AS o
+        WHERE {token_account:String} = ''
+          AND owner = {owner:String}
+        GROUP BY owner, o.account
+    )
+    WHERE account != ''
+),
+mints AS (
+    SELECT DISTINCT mint
+    FROM (
+        SELECT {mint:String} AS mint
+        WHERE {mint:String} != ''
+        
+        UNION ALL
+        
+        SELECT mint
+        FROM mint_state_latest
+        WHERE {mint:String} = '' 
+          AND account IN (SELECT account FROM accounts)
+    )
+    WHERE mint != ''
 ),
 filtered_balances AS
 (
@@ -15,15 +38,15 @@ filtered_balances AS
         account,
         argMax(amount, b.block_num) AS amount,
         mint,
-        decimals
+        any(decimals) AS decimals
     FROM balances AS b
-    WHERE account IN (SELECT account FROM accounts WHERE ({token_account:String} = '' OR account = {token_account:String}))
-        AND ({mint:String}            = '' OR mint = {mint:String})
+    WHERE mint IN (SELECT mint FROM mints)
         AND mint != 'So11111111111111111111111111111111111111111'
+        AND account IN (SELECT account FROM accounts)
         AND ({program_id:String}      = '' OR program_id = {program_id:String})
         AND b.amount > 0
-    GROUP BY program_id, mint, account, decimals
-    ORDER BY program_id
+    GROUP BY program_id, mint, account
+    ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
 ),
@@ -38,16 +61,17 @@ metadata AS
     WHERE metadata IN (
         SELECT metadata
         FROM metadata_mint_state_latest
-        JOIN filtered_balances USING mint
+        WHERE mint IN (SELECT mint FROM filtered_balances)
         GROUP BY metadata
     )
 )
 SELECT
-    block_num,
-    b.timestamp                         AS datetime,
-    toUnixTimestamp(b.timestamp)        AS timestamp,
+    b.timestamp                         AS last_update,
+    block_num                           AS last_update_block_num,
+    toUnixTimestamp(b.timestamp)        AS last_update_timestamp,
     toString(program_id)                AS program_id,
-    toString(account)                     AS token_account,
+    {owner:String}                      AS owner,
+    toString(account)                   AS token_account,
     toString(mint)                      AS mint,
     toString(b.amount)                  AS amount,
     b.amount / pow(10, decimals)        AS value,
