@@ -16,12 +16,9 @@ interface SpamScoreResponse {
 }
 
 // add chains as they are added to the model
-const CHAIN_ID_MAP: Record<string, number> = {
+export const CHAIN_ID_MAP: Record<string, number> = {
     mainnet: 1,
-    matic: 137,
     base: 8453,
-    avalanche: 43114,
-    'arbitrum-one': 42161,
 };
 const TIMEOUT_MS = 60000;
 
