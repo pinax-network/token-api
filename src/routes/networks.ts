@@ -32,7 +32,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Networks',
+        summary: 'Supported Networks',
         description: 'Returns supported blockchain networks with identifiers and metadata.',
         tags: ['Monitoring'],
         responses: {

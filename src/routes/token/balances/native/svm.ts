@@ -57,8 +57,8 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'SOL Native Balances by Address',
-        description: 'Returns SOL balances for addresses.',
+        summary: 'Solana Native Balances',
+        description: 'Returns SOL native balances for wallet addresses.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],

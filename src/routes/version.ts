@@ -15,7 +15,7 @@ const responseSchema = z.object({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Version',
+        summary: 'API Version Info',
         description: 'Returns API version, build date, and commit information.',
         tags: ['Monitoring'],
         responses: {
