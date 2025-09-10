@@ -43,9 +43,8 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Owner by Associated Token Account (ATA)',
-        description:
-            'Returns owner address of an associated token account.\n\n`is_closed` will tell you if the associated account has been closed.',
+        summary: 'Solana Account Owner Lookup',
+        description: 'Returns owner address of an associated token account (ATA) with closure status.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],

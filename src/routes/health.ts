@@ -26,7 +26,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Health Check',
         description:
-            'Returns API operational status and dependency health. Use `skip_endpoints=true` for faster database-only checks.',
+            'Returns API operational status and dependency health with optional endpoint testing.\n\nUse `skip_endpoints` to bypass endpoint responses checks.',
         tags: ['Monitoring'],
         responses: {
             200: {
