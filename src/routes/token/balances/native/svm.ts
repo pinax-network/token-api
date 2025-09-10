@@ -2,31 +2,25 @@ import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
-import { config } from '../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { sqlQueries } from '../../../sql/index.js';
+import { config } from '../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponse,
     filterByOwner,
-    filterByTokenAccount,
     PumpFunMetadataName,
     PumpFunMetadataSymbol,
     PumpFunMetadataUri,
     paginationQuery,
-    SolanaSPLTokenProgramIds,
     SVM_networkIdSchema,
     svmAddressSchema,
-    WSOL,
-} from '../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../utils.js';
+} from '../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-        owner: filterByOwner.unwrap(),
-        token_account: filterByTokenAccount.optional(),
-        mint: WSOL.optional(),
-        program_id: SolanaSPLTokenProgramIds.optional(),
+        address: filterByOwner.unwrap(),
     })
     .extend(paginationQuery.shape);
 
@@ -45,8 +39,7 @@ const responseSchema = apiUsageResponse.extend({
             program_id: svmAddressSchema,
 
             // -- balance --
-            owner: svmAddressSchema,
-            token_account: svmAddressSchema,
+            address: svmAddressSchema,
             mint: svmAddressSchema,
             amount: z.string(),
             value: z.number(),
@@ -64,8 +57,8 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Token Balances by Owner',
-        description: 'Returns SPL token balances for Solana token owners with mint and program data.',
+        summary: 'SOL Native Balances by Address',
+        description: 'Returns SOL balances for addresses.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
@@ -80,19 +73,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-09-05 16:15:35',
-                                            last_update_block_num: 364853324,
-                                            last_update_timestamp: 1757088935,
-                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-                                            owner: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
-                                            token_account: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW',
-                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-                                            amount: '142949333429',
-                                            value: 142949.333429,
-                                            decimals: 6,
-                                            name: 'Pump',
-                                            symbol: 'PUMP',
-                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
+                                            last_update: '2025-09-10 00:12:02',
+                                            last_update_block_num: 365784894,
+                                            last_update_timestamp: 1757463122,
+                                            program_id: '11111111111111111111111111111111',
+                                            address: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
+                                            mint: 'So11111111111111111111111111111111111111111',
+                                            amount: '7769223380',
+                                            value: 7.76922338,
+                                            decimals: 9,
+                                            name: 'SOL',
+                                            symbol: 'SOL',
+                                            uri: null,
                                             network_id: 'solana',
                                         },
                                     ],
@@ -115,7 +107,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network_id}` }, 400);
     }
-    const query = sqlQueries.balances_for_account?.[dbConfig.type];
+    const query = sqlQueries.native_balances_for_account?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });

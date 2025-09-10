@@ -1,12 +1,8 @@
 import { Hono } from 'hono';
-import evm from './evm.js';
-import native from './native/index.js';
 import svm from './svm.js';
 
 const router = new Hono();
 
-router.route('/evm', evm);
 router.route('/svm', svm);
-router.route('/native', native);
 
 export default router;
