@@ -4,7 +4,7 @@ import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { querySpamScore } from '../../../services/spamScoring.js';
+import { CHAIN_ID_MAP, querySpamScore } from '../../../services/spamScoring.js';
 import { sqlQueries } from '../../../sql/index.js';
 import { apiUsageResponse, EVM_networkIdSchema, evmAddressSchema, PudgyPenguins } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
@@ -38,7 +38,11 @@ const responseSchema = apiUsageResponse.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Collection',
-        description: 'Returns NFT collection metadata, supply statistics, owner count, and transfer history.',
+        description:
+            'Returns NFT collection metadata, supply statistics, owner count, and transfer history.\n\nThe `spam_status` flag indicates if the NFT is likely a spam token or not. If the status shows `pending` retry the request a few seconds later for the updated status.\n\nSpam detection is currently supported for the following chains:\n' +
+            Object.keys(CHAIN_ID_MAP)
+                .map((chain) => `* ${chain}`)
+                .join('\n'),
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {
