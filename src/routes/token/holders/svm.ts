@@ -5,26 +5,16 @@ import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
 import { sqlQueries } from '../../../sql/index.js';
-import {
-    apiUsageResponse,
-    orderBySchemaValue,
-    orderDirectionSchema,
-    paginationQuery,
-    SVM_networkIdSchema,
-    svmAddressSchema,
-    WSOL,
-} from '../../../types/zod.js';
+import { apiUsageResponse, paginationQuery, SVM_networkIdSchema, svmAddressSchema, WSOL } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
-    contract: WSOL,
+    mint: WSOL,
 });
 
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-        orderBy: orderBySchemaValue.optional(),
-        orderDirection: orderDirectionSchema.optional(),
     })
     .extend(paginationQuery.shape);
 
@@ -58,7 +48,7 @@ const responseSchema = apiUsageResponse.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Returns token holders ranked by balance with holdings and supply percentage.',
+        description: 'Returns token holders ranked by balance with holdings.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
@@ -96,7 +86,7 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get(
-    '/:contract',
+    '/:mint',
     openapi,
     validator('param', paramSchema, validatorHook),
     validator('query', querySchema, validatorHook),
