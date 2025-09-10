@@ -28,12 +28,13 @@ const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
-            created: z.string(),
-            created_at_block_num: z.number(),
-            created_at_timestamp: z.number(),
+            last_update: z.string(),
+            last_update_block_num: z.number(),
+            last_update_timestamp: z.number(),
 
             // -- contract --
-            account: svmAddressSchema,
+            owner: svmAddressSchema,
+            is_closed: z.boolean(),
 
             // -- chain --
             network_id: SVM_networkIdSchema,
@@ -63,7 +64,7 @@ const openapi = describeRoute(
                                             last_update_block_num: 353288878,
                                             last_update_timestamp: 1752513439,
                                             owner: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
-                                            is_closed: 0,
+                                            is_closed: false,
                                             network_id: 'solana',
                                         },
                                     ],
