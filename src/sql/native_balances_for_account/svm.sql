@@ -11,7 +11,6 @@ WITH filtered_balances AS
     FROM balances AS b
     WHERE mint = 'So11111111111111111111111111111111111111111'
         AND account = {address:String}
-        AND b.amount > 0
     GROUP BY program_id, mint, account
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
