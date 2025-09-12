@@ -67,20 +67,18 @@ export async function querySpamScore(contractAddress: string, networkId: string)
             if (!cachedData.timestamp || Date.now() - cachedData.timestamp > STALE_MS) {
                 Promise.resolve().then(() => {
                     fetchAndCacheSpamScore(contractAddress, chainId, cacheKey).catch((error) =>
-                        console.error('Background fetch error:', error),
+                        console.error('Background fetch error:', error)
                     );
                 });
             }
 
-            const { timestamp, ...data } = cachedData;
-
             return {
-                ...data,
+                ...cachedData,
                 result: 'success',
             };
         }
     } catch (error) {
-        console.error('Error checking cache:', error);
+        console.error('Error checking cache: ', error, ', fetching from API');
     }
 
     // Not in cache - trigger background fetch and return pending status
