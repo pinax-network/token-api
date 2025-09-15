@@ -15,12 +15,20 @@ interface SpamScoreResponse {
     message?: string;
 }
 
+interface CachedSpamScore {
+    contract_spam_status?: boolean;
+    message?: string;
+    timestamp: number;
+}
+
 // add chains as they are added to the model
 export const CHAIN_ID_MAP: Record<string, number> = {
     mainnet: 1,
     base: 8453,
 };
 const TIMEOUT_MS = 60000;
+const STALE_MS = 24 * 60 * 60 * 1000; // 1 day
+const CACHE_TTL = 30 * 24 * 60 * 60; // 30 days
 
 /**
  * Maps network ID to its corresponding chain ID
@@ -51,17 +59,26 @@ export async function querySpamScore(contractAddress: string, networkId: string)
 
     // First check cache
     try {
-        const cachedData = await getFromCache<SpamScoreResponse>(cacheKey);
+        const cachedData = await getFromCache<CachedSpamScore>(cacheKey);
 
         if (cachedData) {
             console.log(`Retrieved spam score from cache for ${contractAddress} on ${networkId}`);
+
+            if (!cachedData.timestamp || Date.now() - cachedData.timestamp > STALE_MS) {
+                Promise.resolve().then(() => {
+                    fetchAndCacheSpamScore(contractAddress, chainId, cacheKey).catch((error) =>
+                        console.error('Background fetch error:', error)
+                    );
+                });
+            }
+
             return {
                 ...cachedData,
                 result: 'success',
             };
         }
     } catch (error) {
-        console.error('Error checking cache:', error);
+        console.error('Error checking cache: ', error, ', fetching from API');
     }
 
     // Not in cache - trigger background fetch and return pending status
@@ -118,7 +135,7 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
         );
 
         console.log(`Caching spam score for ${contractAddress} on ${chainId}`);
-        await setInCache(cacheKey, response);
+        await setInCache(cacheKey, { ...response, timestamp: Date.now() }, CACHE_TTL);
     } catch (error) {
         console.error(`Error fetching spam score for ${contractAddress} on ${chainId}:`, error);
     }
