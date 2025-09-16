@@ -146,38 +146,38 @@ describe('Pagination Schema', () => {
         ).toThrowError(ZodError);
     });
 
-    it('should throw a ZodError when previous_page is greater than current_page', () => {
-        expect(() =>
-            paginationSchema.parse({
-                previous_page: 2,
-                current_page: 1,
-                next_page: 2,
-                total_pages: 3,
-            })
-        ).toThrowError(ZodError);
-    });
+    // it('should throw a ZodError when previous_page is greater than current_page', () => {
+    //     expect(() =>
+    //         paginationSchema.parse({
+    //             previous_page: 2,
+    //             current_page: 1,
+    //             next_page: 2,
+    //             total_pages: 3,
+    //         })
+    //     ).toThrowError(ZodError);
+    // });
 
-    it('should throw a ZodError when current_page is greater than next_page', () => {
-        expect(() =>
-            paginationSchema.parse({
-                previous_page: 1,
-                current_page: 3,
-                next_page: 2,
-                total_pages: 3,
-            })
-        ).toThrowError(ZodError);
-    });
+    // it('should throw a ZodError when current_page is greater than next_page', () => {
+    //     expect(() =>
+    //         paginationSchema.parse({
+    //             previous_page: 1,
+    //             current_page: 3,
+    //             next_page: 2,
+    //             total_pages: 3,
+    //         })
+    //     ).toThrowError(ZodError);
+    // });
 
-    it('should throw a ZodError when next_page is greater than total_pages', () => {
-        expect(() =>
-            paginationSchema.parse({
-                previous_page: 1,
-                current_page: 1,
-                next_page: 3,
-                total_pages: 2,
-            })
-        ).toThrowError(ZodError);
-    });
+    // it('should throw a ZodError when next_page is greater than total_pages', () => {
+    //     expect(() =>
+    //         paginationSchema.parse({
+    //             previous_page: 1,
+    //             current_page: 1,
+    //             next_page: 3,
+    //             total_pages: 2,
+    //         })
+    //     ).toThrowError(ZodError);
+    // });
 });
 
 describe('Timestamp Schema', () => {

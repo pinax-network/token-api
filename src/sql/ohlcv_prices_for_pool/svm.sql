@@ -1,33 +1,49 @@
-WITH decimals AS (
+WITH ohlc AS
+(
     SELECT
-        pool,
-        if(decimals0 = 0, 9, decimals0) AS decimals0,
-        if(decimals1 = 0, 9, decimals1) AS decimals1,
-        pow(10, -abs(decimals0 - decimals1)) AS decimals_factor
-    FROM ohlc_prices
-    WHERE pool = {pool: String}
+        if(
+            toTime(toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
+            toDate(toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)),
+            toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)
+        ) AS datetime,
+        toString(o.amm) AS amm,
+        toString(o.amm_pool) AS pool,
+        toString(o.mint0) AS token0,
+        toString(o.mint1) AS token1,
+        argMinMerge(open0) AS open_raw,
+        quantileDeterministicMerge({high_quantile:Float64})(quantile0) AS high_raw,
+        quantileDeterministicMerge({low_quantile:Float64})(quantile0) AS low_raw,
+        argMaxMerge(close0) AS close_raw,
+        sum(gross_volume1) AS volume,
+        uniqMerge(uaw) AS uaw,
+        sum(transactions) AS transactions,
+        token0 IN {stablecoin_contracts: Array(String)} AS is_stablecoin
+    FROM ohlc_prices AS o
+    WHERE pool = {pool:String}
+    AND timestamp >= today() - toIntervalMinute(({offset:UInt64} + {limit:UInt64} - 1) * {interval:UInt64})
+    AND timestamp <= today() - toIntervalMinute({offset:UInt64} * {interval:UInt64})
+    GROUP BY token0, token1, amm, amm_pool, datetime
 )
 SELECT
-    if(
-        toTime(toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
-        toDate(toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)),
-        toStartOfInterval(o.timestamp, INTERVAL {interval: UInt64} MINUTE)
-    ) AS datetime,
-    toString(pool) AS pool,
-    toString(token0) AS token0,
-    toString(token1) AS token1,
-    decimals_factor * argMinMerge(o.open0) AS open,
-    decimals_factor * quantileDeterministicMerge({high_quantile: Float32})(o.quantile0) AS high,
-    decimals_factor * quantileDeterministicMerge({low_quantile: Float32})(o.quantile0) AS low,
-    decimals_factor * argMaxMerge(o.close0) AS close,
-    sum(o.gross_volume0) AS volume,
-    uniqMerge(o.uaw) AS uaw,
-    sum(o.transactions) AS transactions,
-    {network_id: String} AS network_id
-FROM ohlc_prices AS o
-JOIN decimals USING pool
-WHERE pool = {pool: String} AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-GROUP BY token0, token1, decimals_factor, pool, datetime
-ORDER BY datetime DESC
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+    datetime,
+    amm,
+    pool,
+    token0,
+    coalesce(
+        (SELECT decimals FROM `{svm_metadata_db}`.mints WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
+        9
+    ) AS token0_decimals,
+    token1,
+    coalesce(
+        (SELECT decimals FROM `{svm_metadata_db}`.mints WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
+        9
+    ) AS token1_decimals,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/open_raw, open_raw) AS open,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/low_raw, high_raw) AS high,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/high_raw, low_raw) AS low,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/close_raw, close_raw) AS close,
+    pow(10, -(token1_decimals)) * toFloat64(volume) * if(is_stablecoin, close, 1) AS volume,
+    uaw,
+    transactions
+FROM ohlc AS o
+ORDER BY datetime DESC;
