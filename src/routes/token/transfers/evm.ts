@@ -55,20 +55,17 @@ const responseSchema = apiUsageResponse.extend({
             contract: evmAddressSchema,
             from: evmAddressSchema,
             to: evmAddressSchema,
+
+            // -- contract --
+            name: z.string(),
+            symbol: z.string(),
+            decimals: z.number(),
+
             amount: z.string(),
             value: z.number(),
 
             // -- chain --
             network_id: EVM_networkIdSchema,
-
-            // -- contract --
-            symbol: z.optional(z.string()),
-            decimals: z.optional(z.number()),
-
-            // // -- price --
-            // price_usd: z.optional(z.number()),
-            // value_usd: z.optional(z.number()),
-            // low_liquidity: z.optional(z.boolean()),
         })
     ),
 });
@@ -91,17 +88,20 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22349873,
-                                            datetime: '2025-04-26 01:18:47',
-                                            timestamp: 1745630327,
+                                            block_num: 23383393,
+                                            datetime: '2025-09-17 14:27:23',
+                                            timestamp: 1758119243,
                                             transaction_id:
-                                                '0xd80ed9764b0bc25b982668f66ec1cf46dbe27bcd01dffcd487f43c92f72b2a84',
-                                            contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                            from: '0x7d2fbc0eefdb8721b27d216469e79ef288910a83',
-                                            to: '0xa5eb953d1ce9d6a99893cbf6d83d8abcca9b8804',
+                                                '0xebf58ec6ab1b7fa10fa2d64b21d7d27528c46a36d4c349fc6ddecf9836bc3bba',
+                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                            from: '0x7a250d5630b4cf539739df2c5dacb4c659f2488d',
+                                            to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                            name: 'Native',
+                                            symbol: 'ETH',
                                             decimals: 18,
-                                            symbol: 'GRT',
-                                            value: 11068.393958659999,
+                                            amount: '2420480000000000',
+                                            value: 0.00242048,
+                                            network_id: 'mainnet',
                                         },
                                     ],
                                 },

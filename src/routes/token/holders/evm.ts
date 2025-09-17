@@ -40,18 +40,13 @@ const responseSchema = apiUsageResponse.extend({
             amount: z.string(),
             value: z.number(),
 
-            // -- chain --
-            network_id: EVM_networkIdSchema,
-
             // -- contract --
             name: z.optional(z.string()),
             symbol: z.optional(z.string()),
             decimals: z.optional(z.number()),
 
-            // -- price --
-            price_usd: z.optional(z.number()),
-            value_usd: z.optional(z.number()),
-            low_liquidity: z.optional(z.boolean()),
+            // -- chain --
+            network_id: EVM_networkIdSchema,
         })
     ),
 });
@@ -59,7 +54,7 @@ const responseSchema = apiUsageResponse.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Returns token holders ranked by balance with holdings and supply percentage.',
+        description: 'Returns top token holders ranked by balance.',
 
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
@@ -74,14 +69,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22966764,
-                                            last_balance_update: '2025-07-21 09:47:11',
+                                            block_num: 23381678,
+                                            last_balance_update: '2025-09-17 08:42:59',
                                             address: '0x36aff7001294dae4c2ed4fdefc478a00de77f090',
-                                            amount: '2904244446383157108596275005',
-                                            value: 2904244446.3831573,
+                                            amount: '2896517981175142125080776739',
+                                            value: 2896517981.1751423,
                                             name: 'Graph Token',
-                                            decimals: 18,
                                             symbol: 'GRT',
+                                            decimals: 18,
                                             network_id: 'mainnet',
                                         },
                                     ],

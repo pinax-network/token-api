@@ -22,12 +22,17 @@ const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
             // -- block --
-            block_num: z.number(),
-            datetime: z.iso.datetime(),
-            timestamp: z.number(),
+            last_update: z.iso.datetime(),
+            last_update_block_num: z.number(),
+            last_update_timestamp: z.number(),
 
             // -- contract --
             contract: evmAddressSchema,
+
+            // -- contract --
+            name: z.string(),
+            symbol: z.string(),
+            decimals: z.number(),
 
             // -- token --
             circulating_supply: z.number(),
@@ -41,16 +46,6 @@ const responseSchema = apiUsageResponse.extend({
             icon: z.object({
                 web3icon: z.string(),
             }),
-
-            // -- contract --
-            symbol: z.optional(z.string()),
-            name: z.optional(z.string()),
-            decimals: z.optional(z.number()),
-
-            // -- price --
-            price_usd: z.optional(z.number()),
-            market_cap: z.optional(z.number()),
-            low_liquidity: z.optional(z.boolean()),
         })
     ),
 });
@@ -73,16 +68,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22966816,
-                                            datetime: '2025-07-21 09:57:35',
-                                            timestamp: 1753091855,
+                                            last_update: '2025-09-17 14:26:47',
+                                            last_update_block_num: 23383390,
+                                            last_update_timestamp: 1758119207,
                                             contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                            decimals: 18,
-                                            symbol: 'GRT',
                                             name: 'Graph Token',
-                                            circulating_supply: 27051707794.58071,
-                                            total_supply: 10800262823.318213,
-                                            holders: 175151,
+                                            symbol: 'GRT',
+                                            decimals: 18,
+                                            circulating_supply: 10800334780.716036,
+                                            total_supply: 10800262816.048214,
+                                            holders: 174139,
                                             network_id: 'mainnet',
                                             icon: {
                                                 web3icon: 'GRT',
