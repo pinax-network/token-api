@@ -7,7 +7,7 @@ filtered_transfers AS (
         contract,
         `from`,
         `to`,
-        value
+        value AS amount
     FROM transfers
     WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
@@ -26,9 +26,12 @@ SELECT
     contract,
     `from`,
     `to`,
-    decimals,
+    name,
     symbol,
-    value
+    decimals,
+    toString(amount) AS amount,
+    t.amount / pow(10, decimals) AS value,
+    {network_id:String} AS network_id
 FROM filtered_transfers AS t
-LEFT JOIN erc20_metadata_initialize AS c ON c.address = t.contract
+LEFT JOIN metadata AS c ON c.`acc.contract` = t.contract
 ORDER BY timestamp DESC

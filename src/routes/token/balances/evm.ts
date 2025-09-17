@@ -38,18 +38,13 @@ const responseSchema = apiUsageResponse.extend({
             amount: z.string(),
             value: z.number(),
 
-            // -- network --
-            network_id: EVM_networkIdSchema,
-
             // -- contract --
             name: z.optional(z.string()),
             symbol: z.optional(z.string()),
             decimals: z.optional(z.number()),
 
-            // -- price --
-            price_usd: z.optional(z.number()),
-            value_usd: z.optional(z.number()),
-            low_liquidity: z.optional(z.boolean()),
+            // -- network --
+            network_id: EVM_networkIdSchema,
         })
     ),
 });
@@ -57,7 +52,8 @@ const responseSchema = apiUsageResponse.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Balances',
-        description: 'Returns ERC-20 and native token balances for a wallet address with USD values.',
+        description:
+            'Returns ERC-20 and native token balances for a wallet address.\n\nNative token contract is `0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`.',
 
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
@@ -72,13 +68,13 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22968741,
-                                            last_balance_update: '2025-07-21 16:24:47',
-                                            contract: '0x6993301413c1867aafe2caaa692ec53a0118f06e',
-                                            amount: '7917650000000000000000',
-                                            value: 7917.65,
-                                            name: 'BOLD',
-                                            symbol: 'BOLD',
+                                            block_num: 23383209,
+                                            last_balance_update: '2025-09-17 13:50:23',
+                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                            amount: '1007231054304438990',
+                                            value: 1.007231054304439,
+                                            name: 'Ethereum',
+                                            symbol: 'ETH',
                                             decimals: 18,
                                             network_id: 'mainnet',
                                         },

@@ -44,6 +44,8 @@ const responseSchema = apiUsageResponse.extend({
             high: z.number(),
             low: z.number(),
             close: z.number(),
+            // -- network --
+            network_id: EVM_networkIdSchema,
         })
     ),
 });
@@ -66,15 +68,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2025-05-29 00:00:00',
+                                            datetime: '2025-09-11 00:00:00',
                                             contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                            name: 'Native',
+                                            name: 'Ethereum',
                                             symbol: 'ETH',
                                             decimals: 18,
-                                            open: 237.63774262699187,
-                                            high: 237.6377453469919,
-                                            low: 0.10533323067535896,
-                                            close: 0.15438623067535898,
+                                            open: 2370757.8393482137,
+                                            high: 2430544.3576619215,
+                                            low: 2370757.8393482137,
+                                            close: 2420472.251720042,
                                             network_id: 'mainnet',
                                         },
                                     ],
