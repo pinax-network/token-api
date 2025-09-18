@@ -39,7 +39,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Collection',
         description:
-            'Returns NFT collection metadata, supply statistics, owner count, and transfer history.\n\nThe `spam_status` flag indicates if the NFT is likely a spam token or not. If the status shows `pending` retry the request a few seconds later for the updated status.\n\nSpam detection is currently supported for the following chains:\n' +
+            'Returns NFT collection metadata, supply stats, owner count, and transfer history.\n\nThe `spam_status` flag indicates if the NFT is likely spam. If status shows `pending`, retry in a few seconds.\n\nSpam detection is supported for:\n\n' +
             Object.keys(CHAIN_ID_MAP)
                 .map((chain) => `* ${chain}`)
                 .join('\n'),
