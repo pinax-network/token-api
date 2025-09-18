@@ -12,13 +12,14 @@ import {
     paginationQuery,
     SVM_networkIdSchema,
     svmAddressSchema,
+    filterByProgramId,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-        program_id: PumpFunAmmProgramId.optional(),
+        program_id: filterByProgramId.optional(),
         amm: filterByAmm.optional(),
     })
     .extend(paginationQuery.shape);
