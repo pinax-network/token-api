@@ -34,9 +34,9 @@ export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
 export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
 export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 
-export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.16.0';
+export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.5';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
-export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5';
+export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0';
 export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
 
 // GitHub metadata
