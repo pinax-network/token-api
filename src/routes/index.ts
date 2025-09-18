@@ -8,8 +8,8 @@ import version from './version.js';
 
 const router = new Hono();
 
-router.route('/nft', nft);
 router.route('/', token);
+router.route('/nft', nft);
 router.route('/', health);
 router.route('/', version);
 router.route('/', networks);
