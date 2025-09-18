@@ -60,7 +60,7 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Pools',
+        summary: 'Liquidity Pools',
         description: 'Returns AMM pool information from Solana DEX protocols with transaction counts.',
 
         tags: ['SVM'],
