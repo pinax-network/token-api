@@ -74,7 +74,6 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Transfers',
         description: 'Returns ERC-20 and native token transfers with transaction and block data.',
-
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],
         responses: {

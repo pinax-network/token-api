@@ -35,7 +35,7 @@ const responseSchema = apiUsageResponse.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Supported DEXs',
-        description: 'Returns supported DEXs for swaps, pools and OHLCV data.',
+        description: 'Returns supported EVM DEXs.',
 
         tags: ['EVM'],
         security: [{ bearerAuth: [] }],

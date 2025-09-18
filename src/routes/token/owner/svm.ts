@@ -44,7 +44,7 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Account Owner Lookup',
+        summary: 'Account Owner Lookup',
         description: 'Returns owner address of an associated token account (ATA) with closure status.',
 
         tags: ['SVM'],

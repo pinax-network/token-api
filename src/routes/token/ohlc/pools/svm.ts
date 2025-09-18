@@ -48,7 +48,7 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana OHLCV prices by Pool',
+        summary: 'OHLCV prices (SOL) by Pool',
         description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format for DEX pools.',
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],

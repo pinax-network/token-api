@@ -38,8 +38,8 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Supported DEXs',
-        description: 'Returns supported DEXs for swaps, pools and OHLCV data.',
+        summary: 'Supported DEXs',
+        description: 'Returns supported Solana DEXs.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
