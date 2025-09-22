@@ -5,7 +5,7 @@ WITH filtered_balances AS (
         address,
         contract,
         argMax(balance, b.timestamp) AS amount
-    FROM balances_by_contract AS b
+    FROM balances AS b
     WHERE
         contract = {contract: String} AND balance > 0
     GROUP BY contract, address
@@ -25,4 +25,4 @@ SELECT
     decimals,
     {network_id: String} as network_id
 FROM filtered_balances AS a
-LEFT JOIN metadata AS b ON a.contract = b.`acc.contract`
+LEFT JOIN metadata AS b USING contract

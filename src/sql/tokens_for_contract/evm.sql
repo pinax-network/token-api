@@ -4,7 +4,7 @@ WITH m AS (
         name,
         decimals
     FROM metadata
-    WHERE acc.contract = {contract: String}
+    WHERE contract = {contract: String}
 ), s AS (
     SELECT
         argMax(total_supply, block_num) AS total_supply
@@ -24,7 +24,7 @@ WITH m AS (
             max(block_num) AS block_num,
             max(timestamp) AS timestamp,
             argMax(balance, t.block_num) AS balance
-        FROM balances_by_contract AS t
+        FROM balances AS t
         WHERE contract = {contract: String}
         GROUP BY
             contract,
