@@ -81,7 +81,7 @@ const responseSchema = apiUsageResponse.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Solana Transfers',
+        summary: 'Token Transfers',
         description: 'Returns SPL token transfers with program, authority, and account information.',
 
         tags: ['SVM'],

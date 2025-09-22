@@ -8,26 +8,18 @@ import { sqlQueries } from '../../../sql/index.js';
 import {
     apiUsageResponse,
     filterByAmm,
-    filterByAmmPool,
-    filterByMint,
-    PumpFunAmmProgramId,
+    filterByProgramId,
     paginationQuery,
     SVM_networkIdSchema,
     svmAddressSchema,
-    tokenSchema,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const querySchema = z
     .object({
         network_id: SVM_networkIdSchema,
-
-        // -- `swaps` filter --
-        program_id: PumpFunAmmProgramId.optional(),
+        program_id: filterByProgramId.optional(),
         amm: filterByAmm.optional(),
-        amm_pool: filterByAmmPool.optional(),
-        input_mint: filterByMint.optional(),
-        output_mint: filterByMint.optional(),
     })
     .extend(paginationQuery.shape);
 
@@ -36,32 +28,18 @@ const responseSchema = apiUsageResponse.extend({
         z.object({
             program_id: svmAddressSchema,
             program_name: z.string(),
-
-            // -- swap --
             amm: svmAddressSchema,
             amm_name: z.string(),
-            amm_pool: z.optional(svmAddressSchema),
-
-            input_mint: z.object({
-                address: tokenSchema,
-                symbol: z.string(),
-            }),
-            output_mint: z.object({
-                address: tokenSchema,
-                symbol: z.string(),
-            }),
-            transactions: z.number().positive(),
-
-            // -- chain --
-            network_id: SVM_networkIdSchema,
+            is_aggregator: z.boolean(),
+            total_transactions: z.number(),
         })
     ),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Liquidity Pools',
-        description: 'Returns AMM pool information from Solana DEX protocols with transaction counts.',
+        summary: 'Supported DEXs',
+        description: 'Returns supported Solana DEXs.',
 
         tags: ['SVM'],
         security: [{ bearerAuth: [] }],
@@ -76,21 +54,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                            program_name: 'Pump.fun AMM',
-                                            amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                            amm_name: 'Pump.fun AMM',
-                                            amm_pool: '7FYhmwuWk8TBLaSBKTsNMrrWNUTWZp5vUSqwjigDii9f',
-                                            input_mint: {
-                                                address: 'So11111111111111111111111111111111111111112',
-                                                symbol: 'Wrapped SOL',
-                                            },
-                                            output_mint: {
-                                                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                                symbol: 'Circle: USDC Token',
-                                            },
-                                            transactions: 3,
-                                            network_id: 'solana',
+                                            program_id: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+                                            program_name: 'Raydium Liquidity Pool V4',
+                                            amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+                                            amm_name: 'Raydium Liquidity Pool V4',
+                                            is_aggregator: false,
+                                            total_transactions: 5503648369,
                                         },
                                     ],
                                 },
@@ -112,8 +81,8 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network_id}` }, 400);
     }
-    const query = sqlQueries.pools?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
+    const query = sqlQueries.supported_dexes?.[dbConfig.type];
+    if (!query) return c.json({ error: 'Query for dexes could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
     return handleUsageQueryError(c, response);
