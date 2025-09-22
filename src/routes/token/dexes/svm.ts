@@ -8,11 +8,10 @@ import { sqlQueries } from '../../../sql/index.js';
 import {
     apiUsageResponse,
     filterByAmm,
-    PumpFunAmmProgramId,
+    filterByProgramId,
     paginationQuery,
     SVM_networkIdSchema,
     svmAddressSchema,
-    filterByProgramId,
 } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
