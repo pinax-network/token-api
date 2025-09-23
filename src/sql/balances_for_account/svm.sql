@@ -57,7 +57,7 @@ metadata AS
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
-    FROM metadata
+    FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
         FROM metadata_mint_state_latest
