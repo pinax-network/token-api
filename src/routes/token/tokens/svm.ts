@@ -4,14 +4,12 @@ import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import { config } from '../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../handleQuery.js';
-import { injectIcons } from '../../../inject/icon.js';
-import { injectSymbol } from '../../../inject/symbol.js';
 import { sqlQueries } from '../../../sql/index.js';
-import { apiUsageResponse, SVM_networkIdSchema, svmAddressSchema, WSOL } from '../../../types/zod.js';
+import { apiUsageResponse, SVM_networkIdSchema, WSOL } from '../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../utils.js';
 
 const paramSchema = z.object({
-    contract: WSOL,
+    mint: WSOL,
 });
 
 const querySchema = z.object({
@@ -21,34 +19,23 @@ const querySchema = z.object({
 const responseSchema = apiUsageResponse.extend({
     data: z.array(
         z.object({
-            // -- block --
-            block_num: z.number(),
-            datetime: z.iso.datetime(),
+            last_update: z.string(),
+            last_update_block_num: z.number(),
+            last_update_timestamp: z.number(),
 
-            // -- contract --
-            address: svmAddressSchema,
+            program_id: z.string(),
+            mint: z.string(),
+            decimals: z.number(),
 
-            // -- token --
-            circulating_supply: z.string(),
-            holders: z.number(),
+            name: z.string(),
+            symbol: z.string(),
+            uri: z.string(),
 
-            // -- chain --
-            network_id: SVM_networkIdSchema,
+            // circulating_supply: z.number(),
+            // total_supply: z.number(),
+            // holders: z.number(),
 
-            // -- icon --
-            icon: z.object({
-                web3icon: z.string(),
-            }),
-
-            // -- contract --
-            symbol: z.optional(z.string()),
-            name: z.optional(z.string()),
-            decimals: z.optional(z.number()),
-
-            // -- price --
-            // price_usd: z.optional(z.number()),
-            // market_cap: z.optional(z.number()),
-            // low_liquidity: z.optional(z.boolean()),
+            network_id: z.string(),
         })
     ),
 });
@@ -70,14 +57,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 279194558,
-                                            datetime: '2024-07-23 10:54:15',
-                                            contract: '11112zAgXhc6hGfdfr5anSY91mq7Cs4HHpSVEQc4ASG\u0000',
+                                            last_update: '2025-09-25 13:14:06',
+                                            last_update_block_num: 369174420,
+                                            last_update_timestamp: 1758806046,
+                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                            mint: 'So11111111111111111111111111111111111111112',
                                             decimals: 9,
-                                            symbol: 'TO IMPLEMENT',
-                                            name: 'TO IMPLEMENT',
-                                            circulating_supply: '1000048190.3747444',
-                                            holders: 74,
+                                            name: 'Wrapped SOL',
+                                            symbol: 'SOL',
+                                            uri: null,
                                             network_id: 'solana',
                                         },
                                     ],
@@ -94,7 +82,7 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get(
-    '/:contract',
+    '/:mint',
     openapi,
     validator('param', paramSchema, validatorHook),
     validator('query', querySchema, validatorHook),
@@ -109,8 +97,6 @@ route.get(
         if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
         const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
-        injectSymbol(response, params.network_id, true);
-        injectIcons(response);
         return handleUsageQueryError(c, response);
     }
 );
