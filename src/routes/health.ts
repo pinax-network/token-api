@@ -3,7 +3,7 @@ import { describeRoute } from 'hono-openapi';
 import { resolver, validator } from 'hono-openapi/zod';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
-import { config, MAX_EXECUTION_TIME } from '../config.js';
+import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { validatorHook, withErrorResponses } from '../utils.js';
 
@@ -181,7 +181,7 @@ route.get('/health', openapi, validator('query', querySchema, validatorHook), as
                 testEndpoints.map(async (endpoint) => {
                     const response = await fetch(`${baseUrl}${endpoint}`, {
                         method: 'GET',
-                        signal: AbortSignal.timeout(MAX_EXECUTION_TIME * 1000),
+                        signal: AbortSignal.timeout(config.maxQueryExecutionTime * 1000),
                     });
 
                     const isWorking = response.status === 200;
