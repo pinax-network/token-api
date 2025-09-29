@@ -272,8 +272,9 @@ const config = z
                     });
             })
             .pipe(
-                z.array(z.number().nonnegative('Cache duration must be non-negative'))
-                 .min(2, { message: 'At least two cache durations are required' })
+                z
+                    .array(z.number().nonnegative('Cache duration must be non-negative'))
+                    .min(2, { message: 'At least two cache durations are required' })
             ),
     })
     .transform((data) => ({
