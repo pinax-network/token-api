@@ -26,6 +26,7 @@ export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_OHLC_QUANTILE = 0.02;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
+export const DEFAULT_MAX_QUERY_EXECUTION_TIME = 10; // 10 seconds query timeout to match `fetch` MCP timeout
 export const DEFAULT_DEFAULT_EVM_NETWORK = 'mainnet';
 export const DEFAULT_DEFAULT_SVM_NETWORK = 'solana';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
@@ -33,6 +34,8 @@ export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
 export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
 export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
+// Make cache duration minimum to be same as max SQL execution time
+export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.4';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
@@ -55,7 +58,6 @@ export const GIT_APP = {
 export const APP_NAME = pkg.name;
 export const APP_DESCRIPTION = pkg.description;
 export const APP_VERSION = `${GIT_APP.version}+${GIT_APP.commit} (${GIT_APP.date})`;
-export const MAX_EXECUTION_TIME = 10;
 
 // parse command line options
 const opts = program
@@ -116,6 +118,11 @@ const opts = program
             .default(DEFAULT_OHLC_QUANTILE)
     )
     .addOption(new Option('--max-limit <number>', 'Maximum LIMIT queries').env('MAX_LIMIT').default(DEFAULT_MAX_LIMIT))
+    .addOption(
+        new Option('--max-query-execution-time <number>', 'Maximum SQL query execution time')
+            .env('MAX_QUERY_EXECUTION_TIME')
+            .default(DEFAULT_MAX_QUERY_EXECUTION_TIME)
+    )
     .addOption(
         new Option(
             '--max-rows-trigger <number>',
@@ -178,6 +185,11 @@ const opts = program
             .env('SPAM_API_URL')
             .default(DEFAULT_SPAM_API_URL)
     )
+    .addOption(
+        new Option('--cache-durations <numbers>', 'Default cache durations in seconds (comma-separated)')
+            .env('CACHE_DURATIONS')
+            .default(DEFAULT_CACHE_DURATIONS)
+    )
     .parse()
     .opts();
 
@@ -233,6 +245,7 @@ const config = z
             .transform(parseDatabases),
         ohlcQuantile: z.coerce.number().positive('OHLC quantile must be positive'),
         maxLimit: z.coerce.number().positive('Max limit must be positive'),
+        maxQueryExecutionTime: z.coerce.number().positive('Max query execution time must be positive'),
         maxRowsTrigger: z.coerce.number().positive('Max rows trigger must be positive'),
         maxBytesTrigger: z.coerce.number().positive('Max bytes trigger must be positive'),
         degradedDbResponseTime: z.coerce.number().positive('Max response time must be positive'),
@@ -244,6 +257,25 @@ const config = z
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         redisUrl: z.string().url({ message: 'Invalid Redis URL' }),
         spamApiUrl: z.string().url({ message: 'Invalid Spam API URL' }),
+        cacheDurations: z
+            .string()
+            .transform((val) => {
+                if (!val) return [];
+                return val
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter((s) => s.length > 0)
+                    .map((s) => {
+                        const num = Number(s);
+                        if (Number.isNaN(num)) throw new Error(`Invalid duration: ${s}`);
+                        return num;
+                    });
+            })
+            .pipe(
+                z
+                    .array(z.number().nonnegative('Cache duration must be non-negative'))
+                    .min(2, { message: 'At least two cache durations are required' })
+            ),
     })
     .transform((data) => ({
         ...data,
