@@ -7,11 +7,24 @@ WITH filtered_balances AS (
         argMax(balance, b.timestamp) AS amount
     FROM balances AS b
     WHERE
-        contract = {contract: String} AND balance > 0
+        contract = {contract: String}
     GROUP BY contract, address
     ORDER BY amount DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+metadata AS
+(
+    SELECT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM metadata_view
+    WHERE contract IN (
+        SELECT contract
+        FROM filtered_balances
+    )
 )
 SELECT
     block_num,

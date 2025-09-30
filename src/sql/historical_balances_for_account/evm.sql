@@ -16,6 +16,19 @@ ohlc AS (
         AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
         AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
     GROUP BY datetime, contract
+),
+metadata AS
+(
+    SELECT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM metadata_view
+    WHERE contract IN (
+        SELECT contract
+        FROM ohlc
+    )
 )
 SELECT
     datetime,

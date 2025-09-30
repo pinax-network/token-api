@@ -17,6 +17,19 @@ filtered_transfers AS (
     ORDER BY timestamp DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+metadata AS
+(
+    SELECT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM metadata_view
+    WHERE contract IN (
+        SELECT contract
+        FROM filtered_transfers
+    )
 )
 SELECT
     t.block_num as block_num,
