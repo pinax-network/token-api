@@ -29,7 +29,7 @@ SELECT
     close_raw / pow(10, decimals) AS close,
     {network_id: String} as network_id
 FROM ohlc AS o
-LEFT JOIN metadata AS c USING contract
+LEFT JOIN metadata_view AS c USING contract
 ORDER BY datetime DESC
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}

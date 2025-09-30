@@ -33,5 +33,5 @@ SELECT
     t.amount / pow(10, decimals) AS value,
     {network_id:String} AS network_id
 FROM filtered_transfers AS t
-LEFT JOIN metadata AS c USING contract
+LEFT JOIN metadata_view AS c USING contract
 ORDER BY timestamp DESC

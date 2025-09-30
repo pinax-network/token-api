@@ -25,4 +25,4 @@ SELECT
     decimals,
     {network_id: String} as network_id
 FROM filtered_balances AS a
-LEFT JOIN metadata AS b USING contract
+LEFT JOIN metadata_view AS b USING contract
