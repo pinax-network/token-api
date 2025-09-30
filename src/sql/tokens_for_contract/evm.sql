@@ -3,7 +3,7 @@ WITH m AS (
         symbol,
         name,
         decimals
-    FROM metadata
+    FROM metadata_view
     WHERE contract = {contract: String}
 ), s AS (
     SELECT

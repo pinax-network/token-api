@@ -13,6 +13,19 @@ WITH filtered_balances AS (
     ORDER BY timestamp DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+metadata AS
+(
+    SELECT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM metadata_view
+    WHERE contract IN (
+        SELECT contract
+        FROM filtered_balances
+    )
 )
 SELECT
     block_num,
