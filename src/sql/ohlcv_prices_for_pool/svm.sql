@@ -7,7 +7,7 @@ WITH ohlc AS
             toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)
         ) AS datetime,
         toString(o.amm) AS amm,
-        toString(o.amm_pool) AS pool,
+        toString(o.amm_pool) AS amm_pool,
         toString(o.mint0) AS token0,
         toString(o.mint1) AS token1,
         argMinMerge(open0) AS open_raw,
@@ -17,9 +17,9 @@ WITH ohlc AS
         sum(gross_volume1) AS volume,
         uniqMerge(uaw) AS uaw,
         sum(transactions) AS transactions,
-        token0 IN {stablecoin_contracts: Array(String)} AS is_stablecoin
+        token0 IN {stablecoin_contracts:Array(String)} AS is_stablecoin
     FROM ohlc_prices AS o
-    WHERE pool = {pool:String}
+    WHERE amm_pool = {amm_pool:String}
     AND timestamp >= today() - toIntervalMinute(({offset:UInt64} + {limit:UInt64} - 1) * {interval:UInt64})
     AND timestamp <= today() - toIntervalMinute({offset:UInt64} * {interval:UInt64})
     GROUP BY token0, token1, amm, amm_pool, datetime
@@ -27,7 +27,7 @@ WITH ohlc AS
 SELECT
     datetime,
     amm,
-    pool,
+    amm_pool,
     token0,
     coalesce(
         (SELECT decimals FROM `{svm_metadata_db}`.mints WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),

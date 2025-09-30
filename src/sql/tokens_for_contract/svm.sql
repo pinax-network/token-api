@@ -34,6 +34,6 @@ SELECT
     name,
     symbol,
     uri,
-    {network_id: String} AS network_id
+    {network:String} AS network
 FROM filtered_balances
 LEFT JOIN metadata USING mint

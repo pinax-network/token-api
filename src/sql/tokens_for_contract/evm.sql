@@ -44,7 +44,7 @@ SELECT
     b.raw_circulating_supply / pow(10, decimals) AS circulating_supply,
     s.total_supply / pow(10, decimals) AS total_supply,
     b.holders AS holders,
-    {network_id: String} AS network_id
+    {network: String} AS network
 FROM b
 LEFT JOIN m ON 1 = 1
 LEFT JOIN s ON 1 = 1

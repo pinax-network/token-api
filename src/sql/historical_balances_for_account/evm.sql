@@ -12,19 +12,37 @@ ohlc AS (
         min(low) AS low_raw,
         argMax(close, timestamp) AS close_raw
     FROM historical_balances
-    WHERE address = {address: String}
-        AND timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-        AND ({contracts: Array(String)} = [] OR contract IN {contracts: Array(String)})
+    WHERE
+        address = {address:String}
+        AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
+        AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
     GROUP BY datetime, contract
+    ORDER BY datetime DESC, contract
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
 ),
 metadata AS
 (
     SELECT
         contract,
         name,
-        symbol,
+        if(
+            contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+            multiIf(
+                {network:String} = 'mainnet', 'ETH',
+                {network:String} = 'arbitrum-one', 'ETH',
+                {network:String} = 'avalanche', 'AVAX',
+                {network:String} = 'base', 'ETH',
+                {network:String} = 'bsc', 'BNB',
+                {network:String} = 'polygon', 'POL',
+                {network:String} = 'optimism', 'ETH',
+                {network:String} = 'unichain', 'ETH',
+                ''
+            ),
+            mv.symbol
+        ) AS symbol,
         decimals
-    FROM metadata_view
+    FROM metadata_view AS mv
     WHERE contract IN (
         SELECT contract
         FROM ohlc
@@ -33,16 +51,15 @@ metadata AS
 SELECT
     datetime,
     o.contract AS contract,
-    name,
-    symbol,
-    decimals,
+    {address:String} AS address,
     open_raw / pow(10, decimals) AS open,
     greatest(high_raw, open_raw, close_raw) / pow(10, decimals) AS high,
     least(low_raw, open_raw, close_raw) / pow(10, decimals) AS low,
     close_raw / pow(10, decimals) AS close,
-    {network_id: String} as network_id
+    name,
+    symbol,
+    decimals,
+    {network:String} AS network
 FROM ohlc AS o
 LEFT JOIN metadata AS c USING contract
-ORDER BY datetime DESC
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+ORDER BY datetime DESC, contract

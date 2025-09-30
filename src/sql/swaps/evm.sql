@@ -3,22 +3,23 @@ WITH s AS (
         block_num,
         timestamp,
         tx_hash,
-        toString(caller) as caller,
         pool,
-        toString(sender) as sender,
+        toString(caller) AS caller,
+        toString(sender) AS sender,
         toString(recipient) AS recipient,
-        amount0,
-        amount1,
+        abs(amount0) AS amount0,
+        abs(amount1) AS amount1,
         price,
-        protocol
-    FROM swaps
-    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
-        AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
-        AND ({caller:String}     = '' OR caller         = {caller:String})
-        AND ({sender:String}     = '' OR sender         = {sender:String})
-        AND ({recipient:String}  = '' OR recipient      = {recipient:String})
-        AND ({pool:String}       = '' OR pool           = {pool:String})
-        AND ({protocol:String}   = '' OR protocol       = {protocol:String})
+        protocol,
+        s.amount0 < 0 AS invert_tokens
+    FROM swaps AS s
+    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
+        AND ({pool:Array(String)} = ['']  OR pool IN {pool:Array(String)})
+        AND ({caller:Array(String)} = ['']  OR caller IN {caller:Array(String)})
+        AND ({sender:Array(String)} = ['']  OR sender IN {sender:Array(String)})
+        AND ({recipient:Array(String)} = [''] OR recipient IN {recipient:Array(String)})
     ORDER BY timestamp DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
@@ -55,14 +56,14 @@ p AS (
                 toString(p.token0),
                 trim(coalesce(
                     multiIf(
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'mainnet', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'arbitrum-one', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c0.symbol
                     ), '')),
                 coalesce(
@@ -70,20 +71,20 @@ p AS (
                 )
             )
             AS Tuple(address String, symbol String, decimals UInt8)
-        ) AS token0,
+        ) AS input_token,
         CAST(
             (
                 toString(p.token1),
                 trim(coalesce(
                     multiIf(
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'mainnet', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'arbitrum-one', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c1.symbol
                     ), '')),
                 coalesce(
@@ -91,31 +92,42 @@ p AS (
                 )
             )
             AS Tuple(address String, symbol String, decimals UInt8)
-        ) AS token1
-FROM filtered_pools AS p
-JOIN filtered_tokens c0 ON c0.address = p.token0
-JOIN filtered_tokens c1 ON c1.address = p.token1
+        ) AS output_token
+    FROM filtered_pools AS p
+    JOIN filtered_tokens c0 ON c0.address = p.token0
+    JOIN filtered_tokens c1 ON c1.address = p.token1
 )
 SELECT
-    s.block_num         AS block_num,
-    s.timestamp         AS datetime,
-    toUnixTimestamp(s.timestamp) as timestamp,
-    s.tx_hash    AS transaction_id,
-    s.caller            AS caller,
-    s.pool              AS pool,
-    toString(p.factory)           AS factory,
-    token0,
-    token1,
+    s.block_num AS block_num,
+    s.timestamp AS datetime,
+    toUnixTimestamp(s.timestamp) AS timestamp,
+    s.tx_hash AS transaction_id,
+    toString(p.factory) AS factory,
+    s.pool AS pool,
+    if(invert_tokens, p.output_token, p.input_token) AS input_token,
+    if(invert_tokens, p.input_token, p.output_token) AS output_token,
+    s.caller AS caller,
     s.sender,
     s.recipient,
-    toString(s.amount0) as amount0,
-    toString(s.amount1) as amount1,
-    s.amount0 / pow(10, decimals0) AS value0,
-    s.amount1 / pow(10, decimals1) AS value1,
-    s.price   / pow(10, decimals1 - decimals0) AS price0,
-    1.0 / price0 AS price1,
-    s.protocol as protocol,
-    {network_id:String} as network_id
+    if(invert_tokens, toString(s.amount1), toString(s.amount0)) AS input_amount,
+    if(invert_tokens, s.amount1 / pow(10, decimals1), s.amount0 / pow(10, decimals0)) AS input_value,
+    if(invert_tokens, toString(s.amount0), toString(s.amount1)) AS output_amount,
+    if(invert_tokens, s.amount0 / pow(10, decimals0), s.amount1 / pow(10, decimals1)) AS output_value,
+    s.price AS price,
+    1 / s.price AS price_inv,
+    s.protocol AS protocol,
+    format('Swap {} {} for {} {} on {}',
+        if(input_value > 1000, formatReadableQuantity(input_value), toString(round(input_value, input_token.decimals))),
+        input_token.symbol,
+        if(output_value > 1000, formatReadableQuantity(output_value), toString(round(output_value, output_token.decimals))),
+        output_token.symbol,
+        arrayStringConcat(
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)), 
+                     splitByChar('_', protocol)),
+            ' '
+        )
+    ) AS summary,
+    {network:String} AS network
 FROM s
 LEFT JOIN p USING (pool)
 ORDER BY timestamp DESC

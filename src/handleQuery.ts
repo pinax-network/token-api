@@ -11,7 +11,7 @@ import {
     pageSchema,
     type ServerErrorResponse,
 } from './types/zod.js';
-import { APIErrorResponse, computePagination } from './utils.js';
+import { APIErrorResponse } from './utils.js';
 
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result) {
@@ -62,19 +62,20 @@ export async function makeUsageQueryJson<T = unknown>(
             result.statistics?.elapsed >= config.maxQueryExecutionTime
         ) {
             return {
-                status: 504 as ServerErrorResponse['status'],
-                code: 'database_timeout' as ServerErrorResponse['code'],
+                status: 504,
+                code: 'database_timeout',
                 message: 'Query took too long. Consider applying more filter parameters if possible.',
             };
         }
 
-        const total_results = result.rows_before_limit_at_least ?? 0;
         return {
             data: result.data,
             statistics: result.statistics ?? {},
-            pagination: computePagination(page, limit, total_results),
+            pagination: {
+                previous_page: page <= 1 ? page : page - 1,
+                current_page: page,
+            },
             results: result.rows ?? 0,
-            total_results,
             request_time,
             duration_ms: Date.now() - Number(request_time),
         };

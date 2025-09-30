@@ -5,11 +5,9 @@ import { logger } from './logger.js';
 import {
     type ApiErrorResponse,
     type ClientErrorResponse,
-    clientErrorResponse,
-    type PaginationSchema,
-    paginationSchema,
+    clientErrorResponseSchema,
     type ServerErrorResponse,
-    serverErrorResponse,
+    serverErrorResponseSchema,
 } from './types/zod.js';
 
 export function APIErrorResponse(
@@ -45,39 +43,10 @@ export function APIErrorResponse(
         };
     }
 
-    if (status >= 500) return c.json<ServerErrorResponse, typeof status>(api_error as ServerErrorResponse, status);
+    if (api_error.status >= 500)
+        return c.json<ServerErrorResponse, typeof status>(api_error as ServerErrorResponse, api_error.status);
 
-    return c.json<ClientErrorResponse, typeof status>(api_error as ClientErrorResponse, status);
-}
-
-/**
- * Computes pagination information based on the current page, the number of rows per page, and the total number of rows.
- *
- * This function calculates:
- *  - `total_pages` as the maximum between 1 and the ceiling of `total_rows` divided by `rows_per_page`.
- *  - `previous_page` as one less than `current_page` if `current_page` is greater than 1; otherwise, it remains equal to `current_page`.
- *  - `next_page` as one more than `current_page` if the product (`current_page * rows_per_page`) is less than `total_rows`;
- *    otherwise, it remains equal to `current_page`.
- *
- * If `total_rows` is not provided, it defaults to 0.
- *
- * All the returned numeric values are coerced into integers and validated to be at least 1,
- * ensuring that: `previous_page <= current_page <= next_page <= total_pages`.
- *
- * @param current_page - The current active page (must be >= 1).
- * @param rows_per_page - The number of rows displayed per page.
- * @param total_rows - The total count of rows (defaults to 0 if omitted).
- * @returns An object with the keys: `previous_page`, `current_page`, `next_page`, and `total_pages`.
- * @throws {ZodError} if the computed pagination values do not satisfy the defined schema.
- */
-export function computePagination(current_page: number, rows_per_page: number, total_rows?: number): PaginationSchema {
-    const rows = total_rows ?? 0;
-    return paginationSchema.parse({
-        next_page: current_page * rows_per_page >= rows ? current_page : current_page + 1,
-        current_page,
-        previous_page: current_page <= 1 ? current_page : current_page - 1,
-        total_pages: Math.max(Math.ceil(rows / rows_per_page), 1),
-    });
+    return c.json<ClientErrorResponse, typeof status>(api_error as ClientErrorResponse, api_error.status);
 }
 
 export function now() {
@@ -85,14 +54,18 @@ export function now() {
 }
 
 export function validatorHook(
-    parseResult: { success: true; data: unknown } | { success: false; error: unknown },
+    parseResult: { success: true; data: object } | { success: false; error: unknown },
     ctx: Context
 ) {
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
 
+    // TODO: implement plan limits
+    // const plan = ctx.req.header('X-Plan');
+    // if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', 'Missing `X-Plan` header in request.');
+
     ctx.set('validatedData', {
         ...(ctx.get('validatedData') || {}),
-        ...(parseResult.data as Record<string, unknown>),
+        ...parseResult.data,
     });
 }
 
@@ -111,7 +84,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 description: 'Client side error',
                 content: {
                     'application/json': {
-                        schema: resolver(clientErrorResponse),
+                        schema: resolver(clientErrorResponseSchema),
                         examples: {
                             example: {
                                 value: {
@@ -128,7 +101,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 description: 'Authentication failed',
                 content: {
                     'application/json': {
-                        schema: resolver(clientErrorResponse),
+                        schema: resolver(clientErrorResponseSchema),
                         examples: {
                             example: {
                                 value: {
@@ -145,7 +118,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 description: 'Forbidden',
                 content: {
                     'application/json': {
-                        schema: resolver(clientErrorResponse),
+                        schema: resolver(clientErrorResponseSchema),
                         examples: {
                             example: {
                                 value: {
@@ -162,7 +135,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 description: 'Not found',
                 content: {
                     'application/json': {
-                        schema: resolver(clientErrorResponse),
+                        schema: resolver(clientErrorResponseSchema),
                         examples: {
                             example: {
                                 value: {
@@ -179,7 +152,7 @@ export function withErrorResponses(routeDescription: RouteDescription) {
                 description: 'Server side error',
                 content: {
                     'application/json': {
-                        schema: resolver(serverErrorResponse),
+                        schema: resolver(serverErrorResponseSchema),
                         examples: {
                             example: {
                                 value: {

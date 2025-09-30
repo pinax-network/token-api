@@ -2,37 +2,37 @@ WITH erc721 AS (
     WITH (
         SELECT count()
         FROM erc721_owners FINAL
-        WHERE contract = { contract: String }
+        WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
         'ERC721' AS token_standard,
-        owner as address,
+        {contract:String} AS contract,
+        owner AS address,
         count() AS quantity,
         uniq(token_id) AS unique_tokens,
-        quantity / total_supply AS percentage,
-        { network_id :String } as network_id
-    FROM erc721_owners FINAL
-    WHERE contract = { contract: String }
+        100 * quantity / total_supply AS percentage,
+        {network:String} AS network
+    FROM erc721_owners AS o FINAL
+    WHERE o.contract = {contract:String}
     GROUP BY owner
-    ORDER BY count() DESC
 ),
 erc1155 AS (
     WITH (
-        SELECT sum(balance) as supply
+        SELECT sum(balance) AS supply
         FROM erc1155_balances FINAL
-        WHERE contract = { contract: String }
+        WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
         'ERC1155' AS token_standard,
+        {contract:String} AS contract,
         owner,
         sum(balance) AS quantity,
         uniq(token_id) AS unique_tokens,
-        quantity / total_supply AS percentage,
-        { network_id :String } as network_id
-    FROM erc1155_balances FINAL
-    WHERE contract = { contract: String }
+        100 * quantity / total_supply AS percentage,
+        {network:String} AS network
+    FROM erc1155_balances AS b FINAL
+    WHERE b.contract = {contract:String}
     GROUP BY owner
-    ORDER BY quantity DESC
 ),
 combined AS (
     SELECT * FROM erc721
@@ -41,5 +41,6 @@ combined AS (
 )
 SELECT *
 FROM combined
+ORDER BY percentage DESC
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

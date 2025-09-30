@@ -11,12 +11,11 @@ WITH filtered_pools AS (
         mint1_name,
         transactions
     FROM pool_activity_summary
-    WHERE
-        if ({program_id:String} == '', true, program_id = {program_id:String}) AND
-        if ({amm:String} == '', true, amm = {amm:String}) AND
-        if ({amm_pool:String} == '', true, amm_pool = {amm_pool:String}) AND
-        if ({input_mint:String} == '', true, mint1 = {input_mint:String}) AND
-        if ({output_mint:String} == '', true, mint0 = {output_mint:String})
+    WHERE ({amm:Array(String)} = [''] OR amm IN {amm:Array(String)})
+        AND ({amm_pool:Array(String)} = [''] OR amm_pool IN {amm_pool:Array(String)})
+        AND ({input_mint:Array(String)} = [''] OR mint1 IN {input_mint:Array(String)})
+        AND ({output_mint:Array(String)} = [''] OR mint0 IN {output_mint:Array(String)})
+        AND ({program_id:Array(String)} = [''] OR program_id IN {program_id:Array(String)})
 )
 SELECT
     toString(program_id) AS program_id,
@@ -33,9 +32,9 @@ SELECT
         AS Tuple(address String, symbol  String)
     ) AS output_mint,
     sum(transactions) AS transactions,
-    {network_id: String} as network_id
+    {network:String} AS network
 FROM filtered_pools AS pools
 GROUP BY program_id, program_name, amm, amm_name, amm_pool, input_mint, output_mint
-ORDER BY amm, transactions DESC, amm_pool
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+ORDER BY program_id, amm, transactions DESC, amm_pool
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}
