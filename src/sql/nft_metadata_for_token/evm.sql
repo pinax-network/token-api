@@ -5,15 +5,14 @@ WITH erc721 AS (
         contract,
         o.owner AS owner,
         uri,
-        'TO IMPLEMENT OFFCHAIN' AS name,
-        'TO IMPLEMENT OFFCHAIN' AS description,
-        'TO IMPLEMENT OFFCHAIN' AS image,
-        [] AS attributes,
-        {network_id:String} as network_id
+        '' AS name,
+        '' AS description,
+        '' AS image,
+        [] AS attributes
     FROM erc721_metadata_by_token AS t
     FINAL
     JOIN erc721_owners AS o USING (contract, token_id)
-    WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256}
+    WHERE contract = {contract: String} AND t.token_id IN {token_id:Array(String)}
 ),
 erc1155 AS (
     SELECT
@@ -22,15 +21,14 @@ erc1155 AS (
         contract,
         o.owner AS owner,
         uri,
-        'TO IMPLEMENT OFFCHAIN' AS name,
-        'TO IMPLEMENT OFFCHAIN' AS description,
-        'TO IMPLEMENT OFFCHAIN' AS image,
-        [] AS attributes,
-        {network_id:String} as network_id
+        '' AS name,
+        '' AS description,
+        '' AS image,
+        [] AS attributes
     FROM erc1155_metadata_by_token AS t
     FINAL
     LEFT JOIN erc1155_balances AS o USING (contract, token_id)
-    WHERE contract = {contract: String} AND t.token_id = {token_id: UInt256} AND balance > 0
+    WHERE contract = {contract: String} AND t.token_id IN {token_id:Array(String)} AND balance > 0
 ),
 combined AS (
     SELECT * FROM erc721
@@ -46,7 +44,7 @@ filtered_nft_metadata AS (
         media_uri AS image,
         attributes
     FROM nft_metadata
-    WHERE contract = {contract: String} AND token_id = {token_id: UInt256}
+    WHERE contract = {contract: String} AND token_id IN {token_id:Array(String)}
 )
 SELECT
     token_standard,
@@ -74,7 +72,7 @@ SELECT
         ),
         c.attributes
     ) AS attributes,
-    network_id
+    {network:String} as network
 FROM combined AS c
 LEFT JOIN filtered_nft_metadata AS m USING (contract, token_id)
 ORDER BY token_standard

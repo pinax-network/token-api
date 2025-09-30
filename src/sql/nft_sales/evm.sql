@@ -11,13 +11,15 @@ WITH filtered_orders AS (
         {sale_currency:String} AS sale_currency
     FROM seaport_orders
     FINAL
-    WHERE   timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+    WHERE   timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND toString(consideration_token) IN {nativeContracts: Array(String)}
         AND offer_token = {contract:String}
-        AND ({token_id:String}             = '' OR offer_token_id = {token_id:String})
-        AND ({offererAddress:String}    = '' OR offerer        = {offererAddress:String})
-        AND ({recipientAddress:String}  = '' OR recipient      = {recipientAddress:String})
-        AND ({anyAddress:String}        = '' OR (offerer = {anyAddress:String} OR recipient = {anyAddress:String}))
+        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
+        AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+        AND ({address:Array(String)} = [''] OR (offerer IN {address:Array(String)} OR recipient IN {address:Array(String)}))
+        AND ({from_address:Array(String)} = [''] OR offerer IN {from_address:Array(String)})
+        AND ({to_address:Array(String)} = [''] OR recipient IN {to_address:Array(String)})
 ),
 metadata_by_contract AS (
     SELECT
@@ -36,7 +38,7 @@ metadata_by_contract AS (
 SELECT
     timestamp,
     block_num,
-    tx_hash,
+    tx_hash AS transaction_id,
     token,
     token_id,
     m.symbol AS symbol,
@@ -44,7 +46,8 @@ SELECT
     offerer,
     recipient,
     sum(sale_amount) AS sale_amount,
-    sale_currency
+    sale_currency,
+    {network:String} as network
 FROM filtered_orders
 JOIN metadata_by_contract AS m ON m.contract = token
 GROUP BY timestamp, block_num, tx_hash, token, token_id, symbol, name, offerer, recipient, sale_currency

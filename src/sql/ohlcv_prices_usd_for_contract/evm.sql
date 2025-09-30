@@ -41,7 +41,7 @@ normalized_prices AS (
     FROM ohlc_prices_by_contract AS o
     JOIN filtered_pools AS p ON p.pool = o.pool
     WHERE token = {contract: String}
-        AND o.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+        AND o.timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
     GROUP BY datetime, pool, scale_factor
 )
 SELECT

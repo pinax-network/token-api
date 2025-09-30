@@ -12,7 +12,7 @@ WITH s AS (
         price,
         protocol
     FROM swaps
-    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND ({transaction_id:String} = '' OR tx_hash = {transaction_id:String})
         AND ({caller:String}     = '' OR caller         = {caller:String})
         AND ({sender:String}     = '' OR sender         = {sender:String})
@@ -55,14 +55,14 @@ p AS (
                 toString(p.token0),
                 trim(coalesce(
                     multiIf(
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'mainnet', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'arbitrum-one', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'matic', 'MATIC',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c0.symbol
                     ), '')),
                 coalesce(
@@ -76,14 +76,14 @@ p AS (
                 toString(p.token1),
                 trim(coalesce(
                     multiIf(
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'mainnet', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'arbitrum-one', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'avalanche', 'AVAX',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'base', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'bsc', 'BNB',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'matic', 'MATIC',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'optimism', 'ETH',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network_id:String} = 'unichain', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'mainnet', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'arbitrum-one', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'matic', 'MATIC',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c1.symbol
                     ), '')),
                 coalesce(
@@ -115,7 +115,7 @@ SELECT
     s.price   / pow(10, decimals1 - decimals0) AS price0,
     1.0 / price0 AS price1,
     s.protocol as protocol,
-    {network_id:String} as network_id
+    {network:String} as network_id
 FROM s
 LEFT JOIN p USING (pool)
 ORDER BY timestamp DESC

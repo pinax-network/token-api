@@ -13,7 +13,7 @@ SELECT
     toUnixTimestamp(last_update) AS last_update_timestamp,
     owner,
     if((SELECT count() FROM owners) > 1, true, false) AS is_closed,
-    {network_id:String} AS network_id
+    {network:String} AS network_id
 FROM owners
 WHERE owner != ''
 ORDER BY last_update DESC

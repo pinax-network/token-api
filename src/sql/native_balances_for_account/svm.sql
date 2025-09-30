@@ -29,6 +29,6 @@ SELECT
     'SOL' AS name,
     'SOL' AS symbol,
     null AS uri,
-    {network_id:String}     AS network_id
+    {network:String}     AS network_id
 FROM filtered_balances AS b
 ORDER BY timestamp DESC

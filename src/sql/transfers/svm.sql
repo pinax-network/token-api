@@ -18,7 +18,7 @@ WITH filtered_transfers AS
             ELSE 1
         END AS value
     FROM transfers t
-    WHERE   t.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+    WHERE   t.timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND ({source:String}            = '' OR source = {source:String})
         AND ({destination:String}       = '' OR destination = {destination:String})
         AND ({mint:String}              = '' OR mint = {mint:String})
@@ -58,7 +58,7 @@ SELECT
     name,
     symbol,
     uri,
-    {network_id: String} AS network_id
+    {network: String} AS network_id
 FROM filtered_transfers AS t
 LEFT JOIN metadata USING mint
 ORDER BY timestamp DESC

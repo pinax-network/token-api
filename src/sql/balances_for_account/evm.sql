@@ -23,6 +23,6 @@ SELECT
     name,
     symbol,
     decimals,
-    {network_id: String} AS network_id
+    {network: String} AS network_id
 FROM filtered_balances AS a
 LEFT JOIN metadata AS b USING contract

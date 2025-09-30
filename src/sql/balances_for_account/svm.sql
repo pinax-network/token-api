@@ -79,7 +79,7 @@ SELECT
     name,
     symbol,
     uri,
-    {network_id:String}     AS network_id
+    {network:String}     AS network_id
 FROM filtered_balances AS b
 LEFT JOIN metadata USING mint
 ORDER BY timestamp DESC

@@ -1,13 +1,11 @@
 import type { Context } from 'hono';
 import { resolver } from 'hono-openapi/zod';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import { logger } from './logger.js';
 import {
     type ApiErrorResponse,
     type ClientErrorResponse,
     clientErrorResponse,
-    type PaginationSchema,
-    paginationSchema,
     type ServerErrorResponse,
     serverErrorResponse,
 } from './types/zod.js';
@@ -50,49 +48,24 @@ export function APIErrorResponse(
     return c.json<ClientErrorResponse, typeof status>(api_error as ClientErrorResponse, status);
 }
 
-/**
- * Computes pagination information based on the current page, the number of rows per page, and the total number of rows.
- *
- * This function calculates:
- *  - `total_pages` as the maximum between 1 and the ceiling of `total_rows` divided by `rows_per_page`.
- *  - `previous_page` as one less than `current_page` if `current_page` is greater than 1; otherwise, it remains equal to `current_page`.
- *  - `next_page` as one more than `current_page` if the product (`current_page * rows_per_page`) is less than `total_rows`;
- *    otherwise, it remains equal to `current_page`.
- *
- * If `total_rows` is not provided, it defaults to 0.
- *
- * All the returned numeric values are coerced into integers and validated to be at least 1,
- * ensuring that: `previous_page <= current_page <= next_page <= total_pages`.
- *
- * @param current_page - The current active page (must be >= 1).
- * @param rows_per_page - The number of rows displayed per page.
- * @param total_rows - The total count of rows (defaults to 0 if omitted).
- * @returns An object with the keys: `previous_page`, `current_page`, `next_page`, and `total_pages`.
- * @throws {ZodError} if the computed pagination values do not satisfy the defined schema.
- */
-export function computePagination(current_page: number, rows_per_page: number, total_rows?: number): PaginationSchema {
-    const rows = total_rows ?? 0;
-    return paginationSchema.parse({
-        next_page: current_page * rows_per_page >= rows ? current_page : current_page + 1,
-        current_page,
-        previous_page: current_page <= 1 ? current_page : current_page - 1,
-        total_pages: Math.max(Math.ceil(rows / rows_per_page), 1),
-    });
-}
-
 export function now() {
     return Math.floor(Date.now() / 1000);
 }
 
 export function validatorHook(
-    parseResult: { success: true; data: unknown } | { success: false; error: unknown },
+    parseResult: { success: true; data: object } | { success: false; error: unknown },
     ctx: Context
 ) {
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
 
+    const plan = ctx.req.header('X-Plan');
+    if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', 'Missing `X-Plan` header in request.');
+
+    // TODO: implement plan limits
+
     ctx.set('validatedData', {
         ...(ctx.get('validatedData') || {}),
-        ...(parseResult.data as Record<string, unknown>),
+        ...parseResult.data,
     });
 }
 
@@ -211,4 +184,70 @@ export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg 
             setTimeout(() => reject(new Error(errorMsg)), timeoutMs);
         }),
     ]);
+}
+
+/**
+ * Creates a "batched" version of any Zod schema that accepts single values,
+ * comma-separated strings, or arrays, normalizing all inputs to an array.
+ *
+ * @param baseSchema - The base Zod schema to apply batching to
+ * @param options - Configuration options for batching behavior
+ * @param options.maxItems - Maximum number of items allowed in the batch (default: 10)
+ * @param options.separator - String separator for parsing comma-separated values (default: ',')
+ * @param options.description - Custom description for the schema metadata
+ *
+ * @returns A new Zod schema that accepts single values, comma-separated strings, or arrays
+ *
+ * @example
+ * ```typescript
+ * // Create a batched contract address schema
+ * const batchedContract = createBatchedSchema(evmAddressSchema, {
+ *   maxItems: 5,
+ *   description: 'Contract address(es) to query'
+ * });
+ *
+ * // Usage in query schema
+ * const querySchema = z.object({
+ *   contract: batchedContract.optional(),
+ * });
+ *
+ * // Accepts all of these formats:
+ * // Single: contract=0x123...
+ * // Multiple: contract=0x123...,0x456...,0x789...
+ * // Array: contract=0x123...&contract=0x456...
+ *
+ * // All normalize to: { contract: ['0x123...', '0x456...', '0x789...'] }
+ * ```
+ */
+export function createBatchedSchema<T extends z.ZodTypeAny>(
+    baseSchema: T,
+    options: {
+        separator?: string;
+        description?: string;
+    } = {}
+) {
+    const { separator = ',', description } = options;
+
+    return z
+        .union([
+            baseSchema, // Single value
+            z.string().transform((str) => {
+                // Split by separator and trim whitespace
+                const items = str.split(separator).map((item) => item.trim());
+
+                // Validate each item against the base schema
+                return items.map((item) => baseSchema.parse(item));
+            }),
+            z.array(baseSchema),
+        ])
+        .transform((value) => {
+            // Normalize everything to an array
+            return Array.isArray(value) ? value : [value];
+        })
+        .meta({
+            description:
+                description ||
+                `Single value or array of values (separate multiple values with \`${separator}\`).`,
+            ...baseSchema.meta(),
+        });
 }

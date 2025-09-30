@@ -43,14 +43,14 @@ SELECT
             toString(pools.token0),
             trim(coalesce(
                 multiIf(
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'mainnet', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'arbitrum-one', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'avalanche', 'AVAX',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'base', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'bsc', 'BNB',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'matic', 'MATIC',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'optimism', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'unichain', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'mainnet', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'arbitrum-one', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'matic', 'MATIC',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
                     t0.symbol
                 ), '')),
             coalesce(
@@ -64,14 +64,14 @@ SELECT
             toString(pools.token1),
             trim(coalesce(
                 multiIf(
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'mainnet', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'arbitrum-one', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'avalanche', 'AVAX',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'base', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'bsc', 'BNB',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'matic', 'MATIC',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'optimism', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network_id:String} = 'unichain', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'mainnet', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'arbitrum-one', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'matic', 'MATIC',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
                     t1.symbol
                 ), '')),
             coalesce(
@@ -82,7 +82,7 @@ SELECT
     ) AS token1,
     pools.fee AS fee,
     pools.protocol AS protocol,
-    {network_id: String} as network_id
+    {network: String} as network_id
 FROM filtered_pools AS pools
 LEFT JOIN filtered_tokens t0 ON pools.token0 = t0.address
 LEFT JOIN filtered_tokens t1 ON pools.token1 = t1.address

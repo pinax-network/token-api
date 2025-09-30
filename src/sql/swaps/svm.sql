@@ -13,7 +13,7 @@ WITH s AS (
         output_mint,
         output_amount
     FROM swaps
-    WHERE timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND ({program_id:String}    = '' OR program_id     = {program_id:String})
         AND ({signature:String}     = '' OR signature      = {signature:String})
         AND ({user:String}          = '' OR user           = {user:String})
@@ -36,7 +36,7 @@ SELECT
     input_amount,
     toString(output_mint) AS output_mint,
     output_amount,
-    {network_id: String} AS network_id
+    {network: String} AS network_id
 FROM s
 ORDER BY timestamp DESC
 LIMIT   {limit:UInt64}

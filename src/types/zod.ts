@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { config, DEFAULT_AGE, DEFAULT_LIMIT, DEFAULT_MAX_AGE, DEFAULT_MAX_LIMIT } from '../config.js';
+import { config, DEFAULT_LIMIT } from '../config.js';
 
 // ----------------------
 // Common schemas
@@ -22,12 +22,6 @@ export const svmTransaction = z.coerce
     .refine((val) => val === '' || /^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(val), 'Invalid SVM transaction');
 export type SvmTransaction = z.infer<typeof svmTransaction>;
 
-export const blockNumHash = z.object({
-    block_num: z.coerce.number().int(),
-    block_hash: z.coerce.string(),
-});
-export type BlockNumHash = z.infer<typeof blockNumHash>;
-
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export type Version = z.infer<typeof version>;
 
@@ -49,7 +43,7 @@ export const evmAddressSchema = evmAddress
     .pipe(z.string())
     .default('')
     .meta({
-        description: 'Filter by address',
+        default: '',
     });
 export const evmTransactionSchema = evmTransaction
     .transform((addr) => addr.toLowerCase())
@@ -57,7 +51,7 @@ export const evmTransactionSchema = evmTransaction
     .pipe(z.string())
     .default('')
     .meta({
-        description: 'Filter by transaction',
+        default: '',
     });
 
 export const uniswapPoolSchema = z
@@ -67,7 +61,7 @@ export const uniswapPoolSchema = z
     .pipe(z.string())
     .default('')
     .meta({
-        description: 'Filter by pool',
+        default: '',
     });
 
 export const svmAddressSchema = svmAddress.pipe(z.string()).default('').meta({
@@ -94,10 +88,7 @@ export const SVM_networkIdSchema = z
         example: config.defaultSvmNetwork,
     });
 
-export const ageSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_AGE).default(DEFAULT_AGE).meta({
-    description: "Indicates how many days have passed since the data's creation or insertion.",
-});
-export const limitSchema = z.coerce.number().int().min(1).max(DEFAULT_MAX_LIMIT).default(DEFAULT_LIMIT).meta({
+export const limitSchema = z.coerce.number().int().min(1).max(config.maxLimit).default(DEFAULT_LIMIT).meta({
     description: 'The maximum number of items returned in a single request.',
 });
 export const pageSchema = z.coerce
@@ -105,23 +96,16 @@ export const pageSchema = z.coerce
     .int()
     .min(1)
     // Trial-error, otherwise OFFSET value overflows into negative value when sent to ClickHouse
-    .max(Math.floor(767465558638592 / DEFAULT_MAX_LIMIT))
+    .max(Math.floor(767465558638592 / config.maxLimit))
     .default(1)
     .meta({ description: 'The page number of the results to return.' });
 export const orderDirectionSchema = z.enum(['asc', 'desc']).default('desc').meta({
     description: 'The order in which to return the results: Ascending (asc) or Descending (desc).',
 });
-export const orderBySchemaTimestamp = z
-    .enum(['timestamp'])
-    .default('timestamp')
-    .meta({ description: 'The field by which to order the results.' });
-export const orderBySchemaValue = z
-    .enum(['value'])
-    .default('value')
-    .meta({ description: 'The field by which to order the results.' });
 export const intervalSchema = z
     .enum(['1h', '4h', '1d', '1w'])
     .default('1d')
+    // Inverval schema transforms string argument to minutes as used with `INTERVAL X MINUTES` in the SQL
     .transform((interval: string) => {
         switch (interval) {
             case '1h':
@@ -133,15 +117,39 @@ export const intervalSchema = z
             case '1w':
                 return 10080;
             default:
-                return 60;
+                return 1440;
         }
     })
     .meta({
+        // Add OpenAPI information manually since the Hono validator doesn't pick up type from `transform`
+        type: 'string',
+        enum: ['1h', '4h', '1d', '1w'],
+        default: '1d',
         description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).',
     });
-export const timestampSchema = z.coerce
-    .number()
-    .int()
+export const timestampSchema = z
+    .union([
+        // Handle numeric timestamps
+        z.coerce
+            .number()
+            .positive()
+            .meta({
+                description: 'UNIX timestamp in seconds.',
+            }),
+        // Handle date strings
+        z
+            .string()
+            .transform((dateString) => {
+                const date = new Date(dateString);
+                if (Number.isNaN(date.getTime())) throw new Error('Invalid date string');
+
+                return Math.floor(date.getTime() / 1000); // Convert to seconds
+            })
+            .meta({
+                type: 'string',
+                description: 'Date string (e.g. "2025-01-01T00:00:00Z", "January 1st 2025", ...).',
+            }),
+    ])
     .refine(
         (timestamp) => {
             return timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER;
@@ -154,17 +162,21 @@ export const timestampSchema = z.coerce
         (timestamp) => {
             // Convert seconds to milliseconds for JavaScript Date validation
             const date = new Date(timestamp * 1000);
-
-            // Validate it's a valid date that JavaScript can handle
             return !Number.isNaN(date.getTime());
         },
         {
             message: 'Invalid timestamp',
         }
     )
-    .meta({ description: 'UNIX timestamp in seconds.' });
-export const startTimeSchema = timestampSchema.default(Number(new Date('2025-01-01')) / 1000);
+    .meta({
+        description: 'UNIX timestamp in seconds or date string.',
+    });
+export const startTimeSchema = timestampSchema.default(1735689600); // 2025-01-01
 export const endTimeSchema = timestampSchema.default(9999999999);
+
+export const blockNumberSchema = z.coerce.number().int().min(0).meta({ description: 'Filter by block number' });
+export const startBlockSchema = blockNumberSchema.default(0);
+export const endBlockSchema = blockNumberSchema.default(9999999999);
 
 // NFT schemas
 export const tokenIdSchema = z.coerce
@@ -304,14 +316,7 @@ export const statisticsSchema = z.object({
 export const paginationSchema = z.object({
     previous_page: z.coerce.number().int().min(1),
     current_page: z.coerce.number().int().min(1),
-    next_page: z.coerce.number().int().min(1),
-    total_pages: z.coerce.number().int().min(1),
 });
-// .refine(
-//     ({ previous_page, current_page, next_page, total_pages }) =>
-//         previous_page <= current_page && current_page <= next_page && next_page <= total_pages,
-//     "Requested page doesn't exist"
-// );
 export type PaginationSchema = z.infer<typeof paginationSchema>;
 
 // ----------------------
@@ -323,7 +328,6 @@ export const apiUsageResponse = z.object({
     statistics: statisticsSchema,
     pagination: paginationSchema,
     results: z.number(),
-    total_results: z.number(),
     request_time: z.date(),
     duration_ms: z.number(),
 });

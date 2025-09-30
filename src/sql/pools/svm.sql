@@ -33,7 +33,7 @@ SELECT
         AS Tuple(address String, symbol  String)
     ) AS output_mint,
     sum(transactions) AS transactions,
-    {network_id: String} as network_id
+    {network: String} as network_id
 FROM filtered_pools AS pools
 GROUP BY program_id, program_name, amm, amm_name, amm_pool, input_mint, output_mint
 ORDER BY amm, transactions DESC, amm_pool
