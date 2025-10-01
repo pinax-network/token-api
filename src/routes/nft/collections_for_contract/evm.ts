@@ -30,7 +30,7 @@ const responseSchema = apiUsageResponse.extend({
             total_unique_supply: z.number(),
             total_transfers: z.number(),
             network_id: EVM_networkIdSchema,
-            spam_status: z.enum(['spam', 'not_spam', 'pending', 'error']).optional(),
+            spam_status: z.enum(['spam', 'not_spam', 'pending', 'not_supported', 'error']).optional(),
         })
     ),
 });
@@ -111,12 +111,14 @@ route.get(
 
         // inject spam score into result
         if (!('status' in response) && Array.isArray(response.data)) {
-            let spamStatus: 'spam' | 'not_spam' | 'pending' | 'error' = 'pending';
+            let spamStatus: 'spam' | 'not_spam' | 'pending' | 'not_supported' | 'error' = 'pending';
 
             if (spamScore.result === 'success') {
                 spamStatus = spamScore.contract_spam_status ? 'spam' : 'not_spam';
             } else if (spamScore.result === 'error') {
                 spamStatus = 'error';
+            } else if (spamScore.result === 'not_supported') {
+                spamStatus = 'not_supported';
             }
 
             response.data = response.data.map((item) => ({

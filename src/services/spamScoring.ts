@@ -10,7 +10,7 @@ import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
  * Interface for spam score response from the external API
  */
 interface SpamScoreResponse {
-    result: 'success' | 'error' | 'pending';
+    result: 'success' | 'error' | 'pending' | 'not_supported';
     contract_spam_status?: boolean;
     message?: string;
 }
@@ -50,7 +50,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
     const chainId = getChainId(networkId);
     if (!chainId) {
         return {
-            result: 'error',
+            result: 'not_supported',
             message: `Network ${networkId} is not supported for spam scoring`,
         };
     }
