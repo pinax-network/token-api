@@ -46,7 +46,7 @@ SELECT
     sum(sale_amount) AS sale_amount,
     sale_currency
 FROM filtered_orders
-JOIN metadata_by_contract AS m ON m.contract = token
+LEFT JOIN metadata_by_contract AS m ON m.contract = token
 GROUP BY timestamp, block_num, tx_hash, token, token_id, symbol, name, offerer, recipient, sale_currency
 ORDER BY timestamp DESC
 LIMIT {limit:UInt64}

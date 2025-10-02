@@ -19,7 +19,7 @@ filtered_pools AS (
         ) AS token_decimals,
         pow(10, -abs(token_decimals - stable_decimals)) AS scale_factor
     FROM pools AS p
-    JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
+    LEFT JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
     WHERE
         p.token0 = {contract: String}
         OR p.token1 = {contract: String}
