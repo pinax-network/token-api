@@ -3,15 +3,14 @@ WITH filtered_balances AS
     SELECT
         max(block_num) AS block_num,
         max(timestamp) AS timestamp,
-        program_id,
+        '11111111111111111111111111111111' AS program_id,
         account,
-        argMax(amount, b.block_num) AS amount,
-        mint,
-        any(decimals) AS decimals
-    FROM balances AS b
-    WHERE mint = 'So11111111111111111111111111111111111111111'
-        AND account = {address:String}
-    GROUP BY program_id, mint, account
+        argMax(lamports, b.block_num) AS amount,
+        'So11111111111111111111111111111111111111111' AS mint,
+        9 AS decimals
+    FROM balances_native AS b
+    WHERE account = {address:String}
+    GROUP BY account
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
