@@ -8,9 +8,9 @@ import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    includeNullBalancesSchema,
     evmAddressSchema,
     evmNetworkIdSchema,
+    includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
