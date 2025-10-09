@@ -9,7 +9,7 @@ WITH filtered_balances AS (
     WHERE
         address IN {address:Array(String)}
         AND contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-        AND (balance > 0 OR {include_null_balances:String} = 'true')
+        AND (balance > 0 OR {include_null_balances:Bool})
     GROUP BY address, contract
     ORDER BY timestamp DESC, address, contract
     LIMIT   {limit:UInt64}

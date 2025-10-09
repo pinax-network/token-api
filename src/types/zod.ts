@@ -5,6 +5,20 @@ import { config, DEFAULT_LIMIT } from '../config.js';
 // Base Validation Schemas (composable primitives)
 // ----------------------
 
+export const booleanFromString = z.preprocess((val, ctx) => {
+    if (val === 'true') return true;
+    if (val === 'false') return false;
+    if (typeof val === 'boolean') return val;
+
+    // Invalid value
+    ctx.addIssue({
+        code: 'custom',
+        message: 'Must be `true` or `false`',
+    });
+
+    return z.NEVER;
+}, z.boolean());
+
 export const evmAddress = z.coerce
     .string()
     .refine((val) => /^(0[xX])?[0-9a-fA-F]{40}$/.test(val), 'Invalid EVM address')
@@ -147,7 +161,7 @@ export const timestampSchema = z
     });
 
 export const blockNumberSchema = z.coerce.number().int().min(0).meta({ description: 'Filter by block number' });
-export const includeNullBalancesSchema = z.enum(['true', 'false']).meta({
+export const includeNullBalancesSchema = booleanFromString.meta({
     description: 'Include zero/null balances in results',
 });
 

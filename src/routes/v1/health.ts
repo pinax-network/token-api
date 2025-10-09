@@ -5,10 +5,11 @@ import { z } from 'zod';
 import client from '../../clickhouse/client.js';
 import { config } from '../../config.js';
 import { logger } from '../../logger.js';
+import { booleanFromString } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 const querySchema = z.object({
-    skip_endpoints: z.optional(z.enum(['true', 'false']).default('true')),
+    skip_endpoints: booleanFromString.default(true).optional(),
 });
 
 const healthResponseSchema = z.object({
@@ -106,7 +107,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/health', openapi, validator('query', querySchema, validatorHook), async (c) => {
     const params = c.get('validatedData');
     const startTime = Date.now();
-    const skipEndpoints = params.skip_endpoints === 'true';
+    const skipEndpoints = params.skip_endpoints;
 
     let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
 

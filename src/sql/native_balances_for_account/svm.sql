@@ -10,7 +10,7 @@ WITH filtered_balances AS
         9 AS decimals
     FROM balances_native AS b
     WHERE account IN {address:Array(String)}
-    AND (b.amount > 0 OR {include_null_balances:String} = 'true')
+    AND (b.amount > 0 OR {include_null_balances:Bool})
     GROUP BY account
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}

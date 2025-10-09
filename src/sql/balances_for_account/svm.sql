@@ -37,7 +37,7 @@ filtered_balances AS
         AND mint != 'So11111111111111111111111111111111111111111'
         AND account IN (SELECT account FROM accounts)
         AND ({program_id:String} = '' OR program_id = {program_id:String})
-        AND (b.amount > 0 OR {include_null_balances:String} = 'true')
+        AND (b.amount > 0 OR {include_null_balances:Bool})
     GROUP BY program_id, mint, account
     ORDER BY timestamp DESC, owner, account, mint
     LIMIT  {limit:UInt64}

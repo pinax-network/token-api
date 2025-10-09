@@ -36,7 +36,7 @@ erc1155 AS (
         FROM erc1155_balances
         WHERE owner IN {address:Array(String)}
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
-        AND (balance > 0 OR {include_null_balances:String} = 'true')
+        AND (balance > 0 OR {include_null_balances:Bool})
     ) AS o
     LEFT JOIN erc1155_metadata_by_contract AS m USING (contract)
 ),

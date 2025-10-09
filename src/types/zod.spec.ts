@@ -229,8 +229,13 @@ describe('Common Query Parameter Schemas', () => {
 
     describe('includeNullBalancesSchema', () => {
         it('should accept valid boolean strings', () => {
-            expect(includeNullBalancesSchema.parse('true')).toBe('true');
-            expect(includeNullBalancesSchema.parse('false')).toBe('false');
+            expect(includeNullBalancesSchema.parse('true')).toBe(true);
+            expect(includeNullBalancesSchema.parse('false')).toBe(false);
+        });
+
+        it('should accept valid boolean values', () => {
+            expect(includeNullBalancesSchema.parse(true)).toBe(true);
+            expect(includeNullBalancesSchema.parse(false)).toBe(false);
         });
 
         it('should reject invalid values', () => {
