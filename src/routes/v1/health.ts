@@ -140,42 +140,43 @@ route.get('/health', openapi, validator('query', querySchema, validatorHook), as
             const testEndpoints = [
                 // Monitoring endpoints (no auth required)
                 '/openapi',
-                '/networks',
-                '/version',
+                '/v1/networks',
+                '/v1/version',
 
                 // NFT endpoints
-                '/nft/ownerships/evm/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045?network_id=mainnet',
-                '/nft/collections/evm/0xbd3531da5cf5857e7cfaa92426877b022e612cf8?network_id=mainnet',
-                '/nft/items/evm/contract/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/token_id/5712?network_id=mainnet',
-                '/nft/activities/evm?network_id=mainnet',
-                '/nft/holders/evm/0xbd3531da5cf5857e7cfaa92426877b022e612cf8?network_id=mainnet',
-                '/nft/sales/evm?network_id=mainnet',
+                '/v1/evm/nft/ownerships?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
+                '/v1/evm/nft/collections?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&network=mainnet',
+                '/v1/evm/nft/items?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&token_id=5712&network=mainnet',
+                '/v1/evm/nft/transfers?network=mainnet',
+                '/v1/evm/nft/holders?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&network=mainnet',
+                '/v1/evm/nft/sales?network=mainnet',
 
                 // Balance endpoints
-                '/balances/evm/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045?network_id=mainnet',
-                '/balances/svm?network_id=solana',
+                '/v1/evm/balances?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
+                '/v1/svm/balances?owner=GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9&network=solana',
 
                 // Transfer endpoints
-                '/transfers/evm?network_id=mainnet',
-                '/transfers/svm?network_id=solana',
+                '/v1/evm/transfers?network=mainnet',
+                '/v1/evm/transfers?network=solana',
 
                 // Token endpoints
-                '/tokens/evm/0xc944e90c64b2c07662a292be6244bdf05cda44a7?network_id=mainnet',
-                '/holders/evm/0xc944e90c64b2c07662a292be6244bdf05cda44a7?network_id=mainnet',
-
-                // Swap endpoints
-                '/swaps/evm?network_id=mainnet',
-                '/swaps/svm?network_id=solana',
+                '/v1/evm/tokens?contract=0xc944e90c64b2c07662a292be6244bdf05cda44a7&network=mainnet',
+                '/v1/evm/holders?contract=0xc944e90c64b2c07662a292be6244bdf05cda44a7&network=mainnet',
 
                 // Pool endpoints
-                '/pools/evm?network_id=mainnet',
+                '/v1/evm/pools?network=mainnet',
+                '/v1/svm/pools?network=solana',
+
+                // Swap endpoints
+                '/v1/evm/swaps?network=mainnet',
+                '/v1/svm/swaps?network=solana',
 
                 // OHLC endpoints
-                '/ohlc/pools/evm/0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640?network_id=mainnet',
-                '/ohlc/prices/evm/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2?network_id=mainnet',
+                '/v1/evm/pools/ohlc?pool=0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640&network=mainnet',
+                '/v1/evm/prices/ohlc?contract=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&network=mainnet',
 
                 // Historical endpoints
-                '/historical/balances/evm/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045?network_id=mainnet',
+                '/v1/evm/balances/historical?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
             ];
 
             const endpointResults = await Promise.allSettled(
