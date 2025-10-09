@@ -44,8 +44,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Prices (USD)',
-        description: 'Returns OHLCV price data in USD for tokens.',
-
+        description:
+            'Returns OHLCV price data in USD for tokens.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
         responses: {

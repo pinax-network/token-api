@@ -24,24 +24,28 @@ export const evmAddress = z.coerce
     .refine((val) => /^(0[xX])?[0-9a-fA-F]{40}$/.test(val), 'Invalid EVM address')
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 ? `0x${addr}` : addr))
-    .pipe(z.string());
+    .pipe(z.string())
+    .meta({ type: 'string' });
 
 export const evmTransaction = z.coerce
     .string()
     .refine((val) => /^(0[xX])?[0-9a-fA-F]{64}$/.test(val), 'Invalid EVM transaction')
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 64 ? `0x${addr}` : addr))
-    .pipe(z.string());
+    .pipe(z.string())
+    .meta({ type: 'string' });
 
 export const svmAddress = z.coerce
     .string()
     .refine((val) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val), 'Invalid SVM address')
-    .pipe(z.string());
+    .pipe(z.string())
+    .meta({ type: 'string' });
 
 export const svmTransaction = z.coerce
     .string()
     .refine((val) => /^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(val), 'Invalid SVM transaction')
-    .pipe(z.string());
+    .pipe(z.string())
+    .meta({ type: 'string' });
 
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export const commit = z.coerce.string().regex(/^[0-9a-f]{7}$/);
@@ -89,7 +93,7 @@ export const svmProtocolSchema = z
 // ----------------------
 
 export const limitSchema = z.coerce.number().int().min(1).max(config.maxLimit).default(DEFAULT_LIMIT).meta({
-    description: 'The maximum number of items returned in a single request.',
+    description: '[plan restricted] The maximum number of items returned in a single request.',
 });
 
 export const pageSchema = z.coerce
@@ -172,7 +176,7 @@ export const includeNullBalancesSchema = booleanFromString.meta({
 export const nftTokenIdSchema = z.coerce
     .string()
     .refine((val) => /^(\d+|)$/.test(val), 'Invalid Token ID')
-    .meta({ description: 'Token ID' });
+    .meta({ description: 'Token ID', type: 'string' });
 
 export const nftTokenStandardSchema = z.enum(['ERC721', 'ERC1155']).meta({ description: 'Token standard' });
 
@@ -195,6 +199,7 @@ export const evmPoolSchema = z
     .transform((addr) => (addr.length === 40 || addr.length === 64 ? `0x${addr}` : addr))
     .meta({
         description: 'Filter by pool address',
+        type: 'string',
     });
 
 export const evmFactorySchema = evmAddress.meta({
@@ -527,7 +532,7 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         })
                         .meta({
                             ...schema.meta(),
-                            description: `Single value or array of values (separate multiple values with \`${separator}\`).`,
+                            description: `[plan restricted] Single value or array of values (separate multiple values with \`${separator}\`).`,
                         });
                 }
 

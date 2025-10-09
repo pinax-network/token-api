@@ -48,7 +48,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Historical Balances',
-        description: 'Returns wallet token balance changes over time in OHLC format.',
+        description:
+            'Returns wallet token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['EVM Tokens'],
         'x-tagGroups': ['Historical'],
         security: [{ bearerAuth: [] }],
