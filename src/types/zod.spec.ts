@@ -518,13 +518,13 @@ describe('createQuerySchema', () => {
         it('should allow optional fields with defaults', () => {
             const schema = createQuerySchema(
                 {
-                    include_null_balances: { schema: includeNullBalancesSchema, default: 'false' },
+                    include_null_balances: { schema: includeNullBalancesSchema, default: false },
                 },
                 false
             );
 
             const result = schema.parse({});
-            expect(result.include_null_balances).toBe('false');
+            expect(result.include_null_balances).toBe(false);
         });
     });
 
@@ -613,7 +613,7 @@ describe('createQuerySchema', () => {
                 network: { schema: svmNetworkIdSchema },
                 owner: { schema: svmOwnerSchema, batched: true },
                 token_account: { schema: svmTokenAccountSchema, batched: true, default: '' },
-                include_null_balances: { schema: includeNullBalancesSchema, default: 'false' },
+                include_null_balances: { schema: includeNullBalancesSchema, default: false },
             });
 
             const result = schema.parse({
@@ -624,7 +624,7 @@ describe('createQuerySchema', () => {
             expect(result.network).toBe('solana');
             expect(Array.isArray(result.owner)).toBe(true);
             expect(result.token_account).toEqual(['']);
-            expect(result.include_null_balances).toBe('false');
+            expect(result.include_null_balances).toBe(false);
         });
     });
 

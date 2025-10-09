@@ -24,7 +24,7 @@ const querySchema = createQuerySchema({
     token_account: { schema: svmTokenAccountSchema, batched: true, default: '' },
     mint: { schema: svmMintSchema, batched: true, default: '' },
     program_id: { schema: svmSPLTokenProgramIdSchema, default: '' },
-    include_null_balances: { schema: includeNullBalancesSchema, default: 'false' },
+    include_null_balances: { schema: includeNullBalancesSchema, default: false },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

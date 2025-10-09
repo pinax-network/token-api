@@ -25,7 +25,7 @@ export async function handleUsageQueryError(ctx: Context, result: ApiUsageRespon
 export async function makeUsageQuery(
     ctx: Context,
     query: string[],
-    query_params: Record<string, string | number> = {},
+    query_params: Record<string, string | number | boolean> = {},
     overwrite_config?: WebClickHouseClientConfigOptions
 ) {
     const result = await makeUsageQueryJson(ctx, query, query_params, overwrite_config);
@@ -35,7 +35,7 @@ export async function makeUsageQuery(
 export async function makeUsageQueryJson<T = unknown>(
     ctx: Context,
     query: string[],
-    query_params: Record<string, string | number | string[]> = {},
+    query_params: Record<string, string | number | string[] | boolean> = {},
     overwrite_config?: WebClickHouseClientConfigOptions
 ): Promise<ApiUsageResponse | ApiErrorResponse> {
     const request_time = new Date();
