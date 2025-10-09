@@ -90,6 +90,6 @@ SELECT
     total_supply,
     total_unique_supply,
     total_transfers,
-    network_id
+    network
 FROM combined
 LEFT JOIN contract_creation USING (contract)

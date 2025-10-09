@@ -28,17 +28,19 @@ filtered_balances AS
         max(block_num) AS block_num,
         max(timestamp) AS timestamp,
         program_id,
+        owner,
         account,
         argMax(amount, b.block_num) AS amount,
         mint,
         any(decimals) AS decimals
     FROM balances AS b
+    LEFT JOIN accounts USING account
     WHERE mint IN (SELECT mint FROM mints)
         AND mint != 'So11111111111111111111111111111111111111111'
         AND account IN (SELECT account FROM accounts)
         AND ({program_id:String} = '' OR program_id = {program_id:String})
         AND (b.amount > 0 OR {include_null_balances:Bool})
-    GROUP BY program_id, mint, account
+    GROUP BY program_id, owner, account, mint
     ORDER BY timestamp DESC, owner, account, mint
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
@@ -75,5 +77,4 @@ SELECT
     {network:String} AS network
 FROM filtered_balances AS b
 LEFT JOIN metadata USING mint
-LEFT JOIN accounts USING account
 ORDER BY timestamp DESC, owner, token_account, mint
