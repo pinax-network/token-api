@@ -42,6 +42,12 @@ export async function makeUsageQueryJson<T = unknown>(
     const limit = limitSchema.safeParse(ctx.req.query('limit')).data ?? DEFAULT_LIMIT;
     const page = pageSchema.safeParse(ctx.req.query('page')).data ?? DEFAULT_PAGE;
 
+    if (ctx.req.header('Cache-Control') === 'no-cache')
+        overwrite_config = {
+            ...overwrite_config,
+            clickhouse_settings: { ...overwrite_config?.clickhouse_settings, use_query_cache: 0 },
+        };
+
     // inject request query params
     const params = {
         ...ctx.req.param(),
