@@ -26,7 +26,7 @@ erc721 AS (
         s.total_supply AS total_unique_supply,
         s.owners,
         t.total_transfers,
-        {network_id:String} as network_id
+        {network:String} AS network
     FROM erc721_metadata_by_contract AS m FINAL
     LEFT JOIN erc721_stats s ON m.contract = s.contract
     LEFT JOIN erc721_transfer_stats t ON m.contract = t.contract
@@ -60,7 +60,7 @@ erc1155 AS (
         s.total_unique_supply,
         s.owners,
         t.total_transfers,
-        {network_id:String} as network_id
+        {network:String} AS network
     FROM erc1155_metadata_by_contract AS m FINAL
     LEFT JOIN erc1155_stats s ON m.contract = s.contract
     LEFT JOIN erc1155_transfer_stats t ON m.contract = t.contract
@@ -90,6 +90,6 @@ SELECT
     total_supply,
     total_unique_supply,
     total_transfers,
-    network_id
+    network
 FROM combined
 LEFT JOIN contract_creation USING (contract)

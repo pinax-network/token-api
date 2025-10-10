@@ -41,6 +41,11 @@ app.get(
                         scheme: 'bearer',
                         bearerFormat: 'JWT',
                     },
+                    apiKeyAuth: {
+                        type: 'apiKey',
+                        in: 'header',
+                        name: 'X-Api-Key',
+                    },
                 },
             },
         },

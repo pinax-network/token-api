@@ -6,7 +6,7 @@ SELECT
     toString(b.amount / pow(10, decimals)) as value,
     decimals,
     'TO IMPLEMENT' as symbol,
-    {network_id: String} as network_id
+    {network: String} AS network
 FROM balances_by_mint AS b
 FINAL
 WHERE

@@ -19,7 +19,7 @@ filtered_pools AS (
         ) AS token_decimals,
         pow(10, -abs(token_decimals - stable_decimals)) AS scale_factor
     FROM pools AS p
-    JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
+    LEFT JOIN metadata AS m ON p.token0 = m.address OR p.token1 = m.address 
     WHERE
         p.token0 = {contract: String}
         OR p.token1 = {contract: String}
@@ -41,7 +41,7 @@ normalized_prices AS (
     FROM ohlc_prices_by_contract AS o
     JOIN filtered_pools AS p ON p.pool = o.pool
     WHERE token = {contract: String}
-        AND o.timestamp BETWEEN {startTime: UInt64} AND {endTime: UInt64}
+        AND o.timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
     GROUP BY datetime, pool, scale_factor
 )
 SELECT

@@ -21,7 +21,6 @@ export async function makeQuery<T = unknown>(
     });
     const stream = response.stream<T>();
     const data: T[] = [];
-    let rows_before_limit_at_least = 0;
     let statistics = {
         bytes_read: 0,
         rows_read: 0,
@@ -41,8 +40,6 @@ export async function makeQuery<T = unknown>(
                         rows_read: Number(decodedRow.progress.read_rows),
                         elapsed: Number(decodedRow.progress.elapsed_ns) / 10 ** 9,
                     };
-                } else if (decodedRow.rows_before_limit_at_least) {
-                    rows_before_limit_at_least = decodedRow.rows_before_limit_at_least;
                 } else if (decodedRow.row) {
                     data.push(decodedRow.row);
                 }
@@ -52,7 +49,7 @@ export async function makeQuery<T = unknown>(
         }
     }
 
-    const responseJson: ResponseJSON<T> = { data, statistics, rows: data.length, rows_before_limit_at_least };
+    const responseJson: ResponseJSON<T> = { data, statistics, rows: data.length };
 
     if (response.query_id !== query_id)
         throw new Error(`Wrong query ID for query: sent ${query_id} / received ${response.query_id}`);
@@ -61,7 +58,6 @@ export async function makeQuery<T = unknown>(
         query_id: response.query_id,
         statistics: responseJson.statistics,
         rows: responseJson.rows,
-        rows_before_limit_at_least: responseJson.rows_before_limit_at_least,
     });
     return responseJson;
 }

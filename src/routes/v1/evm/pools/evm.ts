@@ -1,0 +1,119 @@
+import { Hono } from 'hono';
+import { describeRoute } from 'hono-openapi';
+import { resolver, validator } from 'hono-openapi/zod';
+import { z } from 'zod';
+import { config } from '../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { sqlQueries } from '../../../../sql/index.js';
+import {
+    apiUsageResponseSchema,
+    createQuerySchema,
+    evmAddressSchema,
+    evmFactorySchema,
+    evmNetworkIdSchema,
+    evmPoolSchema,
+    evmProtocolSchema,
+    evmTokenResponseSchema,
+} from '../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../utils.js';
+
+const querySchema = createQuerySchema({
+    network: { schema: evmNetworkIdSchema },
+
+    factory: { schema: evmFactorySchema, batched: true, default: '' },
+    pool: { schema: evmPoolSchema, batched: true, default: '' },
+    input_token: { schema: evmAddressSchema, batched: true, default: '' },
+    output_token: { schema: evmAddressSchema, batched: true, default: '' },
+    protocol: { schema: evmProtocolSchema, default: '' },
+});
+
+const responseSchema = apiUsageResponseSchema.extend({
+    data: z.array(
+        z.object({
+            // -- block --
+            block_num: z.number(),
+            datetime: z.iso.datetime(),
+
+            // -- transaction --
+            transaction_id: z.string(),
+
+            // -- pool --
+            factory: evmAddressSchema,
+            pool: evmPoolSchema,
+            input_token: evmTokenResponseSchema,
+            output_token: evmTokenResponseSchema,
+            fee: z.number(),
+            protocol: z.string(),
+
+            // -- chain --
+            network: evmNetworkIdSchema,
+        })
+    ),
+});
+
+const openapi = describeRoute(
+    withErrorResponses({
+        summary: 'Liquidity Pools',
+        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+
+        tags: ['EVM DEXs'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+            200: {
+                description: 'Successful Response',
+                content: {
+                    'application/json': {
+                        schema: resolver(responseSchema),
+                        examples: {
+                            example: {
+                                value: {
+                                    data: [
+                                        {
+                                            block_num: 23039540,
+                                            datetime: '2025-07-31 14:00:11',
+                                            transaction_id:
+                                                '0xd9a2023a8cb1e49639bdab160dc5e706200b10b3bde91709fa41ab7ef44af58f',
+                                            factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
+                                            pool: '0x3bdd63a1dcf34df8f6a568092646c6d49e482ecf3b824c06b352b7e37f96c3b8',
+                                            input_token: {
+                                                address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+                                                symbol: 'wstETH',
+                                                decimals: 18,
+                                            },
+                                            output_token: {
+                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                                symbol: 'WETH',
+                                                decimals: 18,
+                                            },
+                                            fee: 50,
+                                            protocol: 'uniswap_v4',
+                                            network: 'mainnet',
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+);
+
+const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
+    const params = c.get('validatedData');
+
+    const dbConfig = config.uniswapDatabases[params.network];
+    if (!dbConfig) {
+        return c.json({ error: `Network not found: ${params.network}` }, 400);
+    }
+    const query = sqlQueries.pools?.[dbConfig.type];
+    if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
+
+    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    return handleUsageQueryError(c, response);
+});
+
+export default route;

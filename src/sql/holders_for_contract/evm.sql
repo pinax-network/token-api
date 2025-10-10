@@ -27,15 +27,18 @@ metadata AS
     )
 )
 SELECT
-    block_num,
-    timestamp as last_balance_update,
+    timestamp AS last_update,
+    block_num AS last_update_block_num,
+    toUnixTimestamp(a.timestamp) AS last_update_timestamp,
     toString(address) AS address,
+    toString(contract) AS contract,
     toString(amount) AS amount,
     a.amount / pow(10, decimals) AS value,
     value,
     name,
     symbol,
     decimals,
-    {network_id: String} as network_id
+    {network:String} as network
 FROM filtered_balances AS a
 LEFT JOIN metadata AS b USING contract
+ORDER BY amount DESC

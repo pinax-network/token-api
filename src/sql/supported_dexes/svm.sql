@@ -6,11 +6,11 @@ SELECT
     IF(program_id = amm, false, true) AS is_aggregator,
     sum(transactions) AS total_transactions
 FROM pool_activity_summary AS p
-WHERE ({program_id:String} = '' OR program_id = {program_id:String})
-    AND ({amm:String} = '' OR amm = {amm:String})
+WHERE ({program_id:Array(String)} = [''] OR program_id IN {program_id:Array(String)})
+    AND ({amm:Array(String)} = [''] OR amm IN {amm:Array(String)})
 GROUP BY
     p.program_id,
     p.amm
-ORDER BY total_transactions DESC
+ORDER BY total_transactions DESC, program_id, amm
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}

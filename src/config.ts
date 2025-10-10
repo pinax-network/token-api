@@ -21,8 +21,6 @@ export const DEFAULT_IDLE_TIMEOUT = 60;
 export const DEFAULT_PRETTY_LOGGING = false;
 export const DEFAULT_VERBOSE = false;
 export const DEFAULT_SORT_BY = 'DESC';
-export const DEFAULT_AGE = 30;
-export const DEFAULT_MAX_AGE = 180;
 export const DEFAULT_OHLC_QUANTILE = 0.02;
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
@@ -208,7 +206,8 @@ function parseDatabases(dbs: string): Record<string, { database: string; type: '
 
                 if (network_id && db_suffix)
                     return {
-                        [network_id]: {
+                        // Temporary hardcoding rename of `matic` to `polygon`
+                        [network_id === 'matic' ? 'polygon' : network_id]: {
                             database: `${network_id}:${db_suffix}`,
                             type: network_id === 'solana' ? 'svm' : 'evm', // TODO: Get type from registry
                         },
