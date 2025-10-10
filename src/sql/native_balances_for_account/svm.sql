@@ -10,7 +10,7 @@ WITH filtered_balances AS
         9 AS decimals
     FROM balances_native AS b
     WHERE account IN {address:Array(String)}
-    AND (b.amount > 0 OR {include_null_balances:Bool})
+    AND (lamports > 0 OR {include_null_balances:Bool})
     GROUP BY account
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
@@ -21,7 +21,7 @@ SELECT
     block_num                           AS last_update_block_num,
     toUnixTimestamp(b.timestamp)        AS last_update_timestamp,
     toString(program_id)                AS program_id,
-    {address:String}                    AS address,
+    toString(account)                   AS address,
     toString(mint)                      AS mint,
     toString(b.amount)                  AS amount,
     b.amount / pow(10, decimals)        AS value,
