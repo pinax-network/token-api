@@ -92,8 +92,8 @@ export const svmProtocolSchema = z
 // Common Query Parameter Schemas (with defaults for SQL)
 // ----------------------
 
-export const limitSchema = z.coerce.number().int().min(1).max(config.maxLimit).default(DEFAULT_LIMIT).meta({
-    description: '[plan restricted] The maximum number of items returned in a single request.',
+export const limitSchema = z.coerce.number().int().min(1).max(config.maxLimit).default(DEFAULT_LIMIT).optional().meta({
+    description: 'Number of items* returned in a single request.<br>*Plan restricted.',
 });
 
 export const pageSchema = z.coerce
@@ -102,7 +102,8 @@ export const pageSchema = z.coerce
     .min(1)
     .max(Math.floor(767465558638592 / config.maxLimit))
     .default(1)
-    .meta({ description: 'The page number of the results to return.' });
+    .optional()
+    .meta({ description: 'Page number to fetch.<br>Empty `data` array signifies end of results.' });
 
 export const intervalSchema = z
     .enum(['1h', '4h', '1d', '1w'])
@@ -532,7 +533,7 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         })
                         .meta({
                             ...schema.meta(),
-                            description: `[plan restricted] Single value or array of values (separate multiple values with \`${separator}\`).`,
+                            description: `${schema.description}<br>Single value or array of values* (separate multiple values with \`${separator}\`)<br>*Plan restricted.`,
                         });
                 }
 
