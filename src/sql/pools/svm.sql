@@ -1,14 +1,12 @@
 WITH filtered_pools AS (
     SELECT
         program_id,
-        program_name,
+        program_names(program_id) AS program_name,
         amm,
-        amm_name,
+        program_names(amm) AS amm_name,
         amm_pool,
         mint0,
-        mint0_name,
         mint1,
-        mint1_name,
         transactions
     FROM pool_activity_summary
     WHERE ({amm:Array(String)} = [''] OR amm IN {amm:Array(String)})
@@ -23,14 +21,8 @@ SELECT
     toString(amm) AS amm,
     toString(amm_name) AS amm_name,
     toString(amm_pool) AS amm_pool,
-    CAST(
-        ( toString(mint1), toString(mint1_name) )
-        AS Tuple(address String, symbol  String)
-    ) AS input_mint,
-    CAST(
-        ( toString(mint0), toString(mint0_name) )
-        AS Tuple(address String, symbol  String)
-    ) AS output_mint,
+    toString(mint1) AS input_mint,
+    toString(mint0) AS output_mint,
     sum(transactions) AS transactions,
     {network:String} AS network
 FROM filtered_pools AS pools
