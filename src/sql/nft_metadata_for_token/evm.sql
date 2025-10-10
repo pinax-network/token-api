@@ -1,6 +1,6 @@
 WITH erc721 AS (
     SELECT
-        token_id,
+        toString(token_id) AS token_id,
         'ERC721' AS token_standard,
         contract,
         o.owner AS owner,
@@ -12,11 +12,12 @@ WITH erc721 AS (
     FROM erc721_metadata_by_token AS t
     FINAL
     JOIN erc721_owners AS o USING (contract, token_id)
-    WHERE contract = {contract: String} AND t.token_id IN {token_id:Array(String)}
+    WHERE contract = {contract: String} 
+    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 ),
 erc1155 AS (
     SELECT
-        token_id,
+        toString(token_id) AS token_id,
         'ERC1155' AS token_standard,
         contract,
         o.owner AS owner,
@@ -28,7 +29,9 @@ erc1155 AS (
     FROM erc1155_metadata_by_token AS t
     FINAL
     LEFT JOIN erc1155_balances AS o USING (contract, token_id)
-    WHERE contract = {contract: String} AND t.token_id IN {token_id:Array(String)} AND balance > 0
+    WHERE contract = {contract: String}
+    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+    AND balance > 0
 ),
 combined AS (
     SELECT * FROM erc721
@@ -38,18 +41,19 @@ combined AS (
 filtered_nft_metadata AS (
     SELECT
         contract,
-        token_id,
+        toString(token_id) AS token_id,
         name,
         description,
         media_uri AS image,
         attributes
     FROM nft_metadata
-    WHERE contract = {contract: String} AND token_id IN {token_id:Array(String)}
+    WHERE contract = {contract: String}
+    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 )
 SELECT
     token_standard,
     contract,
-    toString(token_id) AS token_id,
+    token_id,
     owner,
     uri,
     if(length(m.name) > 0, m.name, c.name) AS name,
@@ -75,4 +79,6 @@ SELECT
     {network:String} as network
 FROM combined AS c
 LEFT JOIN filtered_nft_metadata AS m USING (contract, token_id)
-ORDER BY token_standard
+ORDER BY token_standard, contract, token_id
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}

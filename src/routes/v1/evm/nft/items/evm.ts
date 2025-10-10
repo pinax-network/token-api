@@ -19,7 +19,7 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     contract: { schema: evmContractSchema },
-    token_id: { schema: nftTokenIdSchema, batched: true },
+    token_id: { schema: nftTokenIdSchema, batched: true, default: '' },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
