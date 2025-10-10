@@ -17,7 +17,7 @@ filtered_transfers AS (
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']  OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
-    ORDER BY timestamp DESC, contract, log_index
+    ORDER BY timestamp DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -51,4 +51,4 @@ SELECT
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN metadata AS c USING contract
-ORDER BY timestamp DESC, contract, log_index
+ORDER BY timestamp DESC
