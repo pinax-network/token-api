@@ -39,6 +39,6 @@ SELECT
     output_amount,
     {network:String} AS network
 FROM s
-ORDER BY timestamp DESC, program_id, amm, amm_pool
+ORDER BY timestamp DESC, program_id, amm, amm_pool, user
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}

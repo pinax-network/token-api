@@ -27,6 +27,6 @@ SELECT
     {network:String} AS network
 FROM filtered_pools AS pools
 GROUP BY program_id, program_name, amm, amm_name, amm_pool, input_mint, output_mint
-ORDER BY program_id, amm, transactions DESC, amm_pool
+ORDER BY transactions DESC, program_id, amm, amm_pool
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

@@ -50,7 +50,7 @@ SELECT
     {network:String} as network
 FROM filtered_orders
 LEFT JOIN metadata_by_contract AS m ON m.contract = token
-GROUP BY timestamp, block_num, tx_hash, token, token_id, symbol, name, offerer, recipient, sale_currency
-ORDER BY timestamp DESC, token, token_id
+GROUP BY timestamp, block_num, token, token_id, tx_hash, symbol, name, offerer, recipient, sale_currency
+ORDER BY timestamp DESC, token, token_id, transaction_id, symbol, name, offerer, recipient, sale_currency
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}
