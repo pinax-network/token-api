@@ -24,7 +24,7 @@ const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
 
     signature: { schema: svmTransactionSchema, batched: true, default: '' },
-    address: { schema: svmTokenAccountSchema, batched: true, default: '' },
+    // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
     source: { schema: svmTokenAccountSchema, batched: true, default: '' },
     destination: { schema: svmTokenAccountSchema, batched: true, default: '' },
     authority: { schema: svmAuthoritySchema, batched: true, default: '' },

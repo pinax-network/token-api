@@ -23,7 +23,7 @@ const querySchema = createQuerySchema({
 
     transaction_id: { schema: evmTransactionSchema, batched: true, default: '' },
     contract: { schema: evmContractSchema, batched: true, default: '' },
-    address: { schema: evmAddressSchema, batched: true, default: '' },
+    // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, default: '' },
     to_address: { schema: evmAddressSchema, batched: true, default: '' },
 

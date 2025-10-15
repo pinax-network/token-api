@@ -10,10 +10,11 @@ filtered_transfers AS (
         `to`,
         value AS amount
     FROM transfers
-    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+    PREWHERE
+        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({address:Array(String)} = ['']  OR `from` IN {address:Array(String)} OR `to` IN {address:Array(String)})
+    WHERE
+        ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']  OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
