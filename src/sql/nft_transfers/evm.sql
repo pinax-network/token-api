@@ -1,11 +1,11 @@
 WITH erc721 AS (
     SELECT
         CASE
-            WHEN lower(from) IN (
+            WHEN from IN (
                 '0x0000000000000000000000000000000000000000',
                 '0x000000000000000000000000000000000000dead'
             ) THEN 'MINT'
-            WHEN lower(to) IN (
+            WHEN to IN (
                 '0x0000000000000000000000000000000000000000',
                 '0x000000000000000000000000000000000000dead'
             ) THEN 'BURN'
@@ -25,6 +25,7 @@ WITH erc721 AS (
     FROM erc721_transfers AS t
     WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND ({type:String} = '' OR `@type` = {type:String})
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
         AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
@@ -35,11 +36,11 @@ WITH erc721 AS (
 erc1155 AS (
     SELECT
         CASE
-            WHEN lower(from) IN (
+            WHEN from IN (
                 '0x0000000000000000000000000000000000000000',
                 '0x000000000000000000000000000000000000dead'
             ) THEN 'MINT'
-            WHEN lower(to) IN (
+            WHEN to IN (
                 '0x0000000000000000000000000000000000000000',
                 '0x000000000000000000000000000000000000dead'
             ) THEN 'BURN'
@@ -84,7 +85,7 @@ erc721_metadata_by_contract AS (
         name,
         symbol
     FROM erc721_metadata_by_contract
-    WHERE contract = {contract:String}
+    WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
 ),
 erc1155_metadata_by_contract AS (
     SELECT DISTINCT
@@ -92,23 +93,23 @@ erc1155_metadata_by_contract AS (
         name,
         symbol
     FROM erc721_metadata_by_contract
-    WHERE contract = {contract:String}
+    WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
 )
 SELECT
-    `@type`,
     c.block_num,
-    c.block_hash,
-    c.timestamp,
+    c.timestamp AS datetime,
+    toUnixTimestamp(c.timestamp) AS timestamp,
+    `@type`,
+    transfer_type,
     tx_hash AS transaction_id,
-    token_standard,
     contract,
+    toString(token_id) AS token_id,
     if(length(m.name) > 0, m.name, m2.name) AS name,
     if(length(m.symbol) > 0, m.symbol, m2.symbol) AS symbol,
+    token_standard,
     from,
     to,
-    toString(token_id) AS token_id,
     amount,
-    transfer_type,
     {network:String} as network
 FROM limit_combined AS c
 LEFT JOIN erc721_metadata_by_contract AS m USING (contract)

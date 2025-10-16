@@ -5,24 +5,27 @@ import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { sqlQueries } from '../../../../../sql/index.js';
+import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
+    nftTokenStandardSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
+    contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            token_standard: z.string(),
+            contract: evmContractSchema,
+            token_standard: nftTokenStandardSchema,
             address: evmAddressSchema,
             quantity: z.number().meta({ description: 'Number of tokens held by this address' }),
             unique_tokens: z.number().meta({ description: 'Number of unique token IDs held by this address' }),
@@ -37,7 +40,6 @@ const openapi = describeRoute(
         summary: 'NFT Holders',
         description:
             'Returns wallet addresses holding NFT collection tokens with quantity and percentage distribution.',
-
         tags: ['EVM NFTs'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -51,12 +53,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            token_standard: 'ERC721',
                                             contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            token_standard: 'ERC721',
                                             address: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
-                                            quantity: 632,
-                                            unique_tokens: 632,
-                                            percentage: 7.110711071107111,
+                                            quantity: 358,
+                                            unique_tokens: 358,
+                                            percentage: 4.027902790279028,
                                             network: 'mainnet',
                                         },
                                     ],

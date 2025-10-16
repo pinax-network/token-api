@@ -6,6 +6,11 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    SVM_ADDRESS_DESTINATION_EXAMPLE,
+    SVM_AUTHORITY_USER_EXAMPLE,
+    SVM_TRANSACTION_TRANSFER_EXAMPLE,
+} from '../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
@@ -23,15 +28,30 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
 
-    signature: { schema: svmTransactionSchema, batched: true, default: '' },
+    signature: {
+        schema: svmTransactionSchema,
+        batched: true,
+        default: '',
+        meta: { example: SVM_TRANSACTION_TRANSFER_EXAMPLE },
+    },
     // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
     source: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    destination: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    authority: { schema: svmAuthoritySchema, batched: true, default: '' },
+    destination: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        default: '',
+        meta: { example: SVM_ADDRESS_DESTINATION_EXAMPLE },
+    },
+    authority: {
+        schema: svmAuthoritySchema,
+        batched: true,
+        default: '',
+        meta: { example: SVM_AUTHORITY_USER_EXAMPLE },
+    },
     mint: { schema: svmMintSchema, batched: true, default: '' },
     program_id: { schema: svmSPLTokenProgramIdSchema, default: '' },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -47,22 +67,24 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             signature: z.string(),
+            transaction_index: z.number(),
+            instruction_index: z.number(),
 
             // -- instruction --
-            program_id: svmAddressSchema,
-            mint: svmAddressSchema,
-            authority: svmAddressSchema,
+            program_id: svmSPLTokenProgramIdSchema,
+            mint: svmMintSchema,
+            authority: svmAuthoritySchema,
 
             // -- transfer --
             source: svmAddressSchema,
             destination: svmAddressSchema,
             amount: z.string(),
             value: z.number(),
-            decimals: z.nullable(z.number().int()),
+            decimals: z.number().nullable(),
 
-            name: z.string(),
-            symbol: z.string(),
-            uri: z.string(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -88,18 +110,20 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 357525780,
-                                            datetime: '2025-08-03 04:39:21',
-                                            timestamp: 1754195961,
+                                            block_num: 372132067,
+                                            datetime: '2025-10-09 02:10:01',
+                                            timestamp: 1759975801,
                                             signature:
-                                                'BxkksmejT6seHWtRC8aieMUgxpHwoYmdv9GmjeCKuLbL1xxWBSSXqrWQybfRMmKR6ZFc61kuGQzftBCwEKByiVK',
+                                                '2Y3YJMa7Gx96ZprnWxSQHiahGdbiNFwF1DdT4ZWGf8cwJnv4fRTcFg9Z5THuAHhja66fi6Jd8fLngtH1d8qSNj3H',
+                                            transaction_index: 65,
+                                            instruction_index: 0,
                                             program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
                                             mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-                                            authority: '5YPxToTobawvkbn5rkWKYDhZqHf5v6LAtRLNPGiq6U2A',
-                                            source: 'BEyX6Nwqj1wQqSJWEHK5ezKtNxatyrgGu1tbCLnLpNQt',
+                                            authority: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
+                                            source: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW',
                                             destination: '64nnJ2CBUZ3VasttjVhxbQXqzbjAxnj4VT4vBrrveNV',
-                                            amount: 1520033500,
-                                            value: 1520.0335,
+                                            amount: '835996345',
+                                            value: 835.996345,
                                             decimals: 6,
                                             name: 'Pump',
                                             symbol: 'PUMP',

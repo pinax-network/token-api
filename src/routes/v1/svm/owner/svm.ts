@@ -8,8 +8,8 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    svmAddressSchema,
     svmNetworkIdSchema,
+    svmOwnerSchema,
     svmTokenAccountSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
@@ -23,12 +23,13 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
             // -- contract --
-            owner: svmAddressSchema,
+            account: svmTokenAccountSchema,
+            owner: svmOwnerSchema,
             is_closed: z.boolean(),
 
             // -- chain --
@@ -58,6 +59,7 @@ const openapi = describeRoute(
                                             last_update: '2025-07-14 17:17:19',
                                             last_update_block_num: 353288878,
                                             last_update_timestamp: 1752513439,
+                                            account: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW',
                                             owner: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
                                             is_closed: false,
                                             network: 'solana',

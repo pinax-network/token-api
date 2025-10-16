@@ -10,7 +10,6 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
 } from '../../../../types/zod.js';
@@ -30,12 +29,12 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_timestamp: z.number(),
 
             // -- contract --
-            contract: evmAddressSchema,
+            contract: evmContractSchema,
 
             // -- contract --
-            name: z.string(),
-            symbol: z.string(),
-            decimals: z.number(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            decimals: z.number().nullable(),
 
             // -- token --
             circulating_supply: z.number(),
@@ -71,19 +70,19 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-09-17 14:26:47',
-                                            last_update_block_num: 23383390,
-                                            last_update_timestamp: 1758119207,
-                                            contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                            name: 'Graph Token',
-                                            symbol: 'GRT',
+                                            last_update: '2025-10-16 09:24:47',
+                                            last_update_block_num: 23589316,
+                                            last_update_timestamp: 1760606687,
+                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                            name: 'Wrapped Ether',
+                                            symbol: 'WETH',
                                             decimals: 18,
-                                            circulating_supply: 10800334780.716036,
-                                            total_supply: 10800262816.048214,
-                                            holders: 174139,
+                                            circulating_supply: 2335108.0877502915,
+                                            total_supply: 2335107.8841477665,
+                                            holders: 3014993,
                                             network: 'mainnet',
                                             icon: {
-                                                web3icon: 'GRT',
+                                                web3icon: 'ETH',
                                             },
                                         },
                                     ],

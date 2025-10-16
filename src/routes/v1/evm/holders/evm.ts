@@ -23,20 +23,20 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
             // -- contract --
             address: evmAddressSchema,
-            contract: evmAddressSchema,
+            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
             // -- contract --
-            name: z.optional(z.string()),
-            symbol: z.optional(z.string()),
-            decimals: z.optional(z.number()),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            decimals: z.number().nullable(),
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -62,15 +62,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-08 09:37:23',
-                                            last_update_block_num: 23532189,
-                                            last_update_timestamp: 1759916243,
-                                            address: '0x36aff7001294dae4c2ed4fdefc478a00de77f090',
-                                            contract: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
-                                            amount: '2923522533292933142497637650',
-                                            value: 2923522533.2929335,
-                                            name: 'Graph Token',
-                                            symbol: 'GRT',
+                                            last_update: '2025-10-16 09:08:11',
+                                            last_update_block_num: 23589233,
+                                            last_update_timestamp: 1760605691,
+                                            address: '0x59cd1c87501baa753d0b5b5ab5d8416a45cd71db',
+                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                            amount: '97590855599990900949144',
+                                            value: 97590.85559999091,
+                                            name: 'Wrapped Ether',
+                                            symbol: 'WETH',
                                             decimals: 18,
                                             network: 'mainnet',
                                         },

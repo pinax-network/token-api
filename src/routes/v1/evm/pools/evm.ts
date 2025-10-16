@@ -6,9 +6,15 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    EVM_CONTRACT_USDC_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V3_EXAMPLE,
+    EVM_POOL_USDC_WETH_EXAMPLE,
+} from '../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmAddressSchema,
+    evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
     evmPoolSchema,
@@ -20,10 +26,25 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    factory: { schema: evmFactorySchema, batched: true, default: '' },
-    pool: { schema: evmPoolSchema, batched: true, default: '' },
-    input_token: { schema: evmAddressSchema, batched: true, default: '' },
-    output_token: { schema: evmAddressSchema, batched: true, default: '' },
+    factory: {
+        schema: evmFactorySchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_FACTORY_UNISWAP_V3_EXAMPLE },
+    },
+    pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
+    input_token: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
+    },
+    output_token: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
+    },
     protocol: { schema: evmProtocolSchema, default: '' },
 });
 
@@ -31,19 +52,19 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            block_num: z.number(),
-            datetime: z.iso.datetime(),
+            // block_num: z.number(),
+            // datetime: z.iso.datetime(),
 
             // -- transaction --
-            transaction_id: z.string(),
+            // transaction_id: z.string(),
 
             // -- pool --
-            factory: evmAddressSchema,
+            factory: evmFactorySchema,
             pool: evmPoolSchema,
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
             fee: z.number(),
-            protocol: z.string(),
+            protocol: evmProtocolSchema,
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -69,24 +90,20 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 23039540,
-                                            datetime: '2025-07-31 14:00:11',
-                                            transaction_id:
-                                                '0xd9a2023a8cb1e49639bdab160dc5e706200b10b3bde91709fa41ab7ef44af58f',
-                                            factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
-                                            pool: '0x3bdd63a1dcf34df8f6a568092646c6d49e482ecf3b824c06b352b7e37f96c3b8',
+                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
                                             input_token: {
-                                                address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
-                                                symbol: 'wstETH',
-                                                decimals: 18,
+                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                                                symbol: 'USDC',
+                                                decimals: 6,
                                             },
                                             output_token: {
                                                 address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
                                                 symbol: 'WETH',
                                                 decimals: 18,
                                             },
-                                            fee: 50,
-                                            protocol: 'uniswap_v4',
+                                            fee: 500,
+                                            protocol: 'uniswap_v3',
                                             network: 'mainnet',
                                         },
                                     ],

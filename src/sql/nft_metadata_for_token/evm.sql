@@ -51,14 +51,14 @@ filtered_nft_metadata AS (
     AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 )
 SELECT
-    token_standard,
+    owner AS address,
     contract,
     token_id,
-    owner,
-    uri,
+    token_standard,
     if(length(m.name) > 0, m.name, c.name) AS name,
     if(length(m.description) > 0, m.description, c.description) AS description,
     if(length(m.image) > 0, m.image, c.image) AS image,
+    uri,
     if(length(m.attributes) > 0,
         arrayMap(
             trait -> mapUpdate(

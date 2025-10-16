@@ -8,10 +8,16 @@ import { natives as nativeContracts } from '../../../../../inject/prices.tokens.
 import { natives as nativeSymbols } from '../../../../../inject/symbol.tokens.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import {
+    EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+    EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+    EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
+    EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+    EVM_TRANSACTION_NFT_SALE_EXAMPLE,
+} from '../../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
-    evmAddress,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -24,14 +30,44 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    transaction_id: { schema: evmTransactionSchema, batched: true, default: '' },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
-    token_id: { schema: nftTokenIdSchema, batched: true, default: '' },
-    address: { schema: evmAddressSchema, batched: true, default: '' },
-    from_address: { schema: evmAddressSchema, batched: true, default: '' },
-    to_address: { schema: evmAddressSchema, batched: true, default: '' },
+    transaction_id: {
+        schema: evmTransactionSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TRANSACTION_NFT_SALE_EXAMPLE },
+    },
+    contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE },
+    },
+    token_id: {
+        schema: nftTokenIdSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE },
+    },
+    address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
+    },
+    from_address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
+    },
+    to_address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE },
+    },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -41,17 +77,18 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // Block
-            timestamp: z.string(),
             block_num: z.number(),
-            transaction_id: z.string(),
+            datetime: z.iso.datetime(),
+            timestamp: z.number(),
 
             // Sale
-            token: z.string(),
-            token_id: z.string(),
-            symbol: z.string(),
-            name: z.string(),
-            offerer: evmAddress,
-            recipient: evmAddress,
+            transaction_id: evmTransactionSchema,
+            contract: evmContractSchema,
+            token_id: nftTokenIdSchema,
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            offerer: evmAddressSchema,
+            recipient: evmAddressSchema,
             sale_amount: z.number(),
             sale_currency: z.string(),
 
@@ -78,17 +115,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            timestamp: '2025-05-29 07:52:47',
-                                            block_num: 22587041,
+                                            block_num: 22098625,
+                                            datetime: '2025-03-21 23:46:11',
+                                            timestamp: 1742600771,
                                             transaction_id:
-                                                '0x6755df1514a066150357d454254e1ce6c1e043f873193125dc98d4c4417861ff',
-                                            token: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
-                                            token_id: '6398',
-                                            symbol: 'PPG',
+                                                '0x8cc8b83e7b7fec752bd689700156990e7ce4d6b890f7b5ab58adf2fb602a98b9',
+                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            token_id: '5712',
                                             name: 'PudgyPenguins',
-                                            offerer: '0xf671888173bf2fe28d71fba3106cf36d10f470fe',
-                                            recipient: '0x43bf952762b087195b8ea70cf81cb6715b6bf5a9',
-                                            sale_amount: 10.0667234,
+                                            symbol: 'PPG',
+                                            offerer: '0x355062b5d0e324815290b96370e87607a71d613d',
+                                            recipient: '0x7ccde43632b3287fda060719d802b2c4cb6f769b',
+                                            sale_amount: 9.73,
                                             sale_currency: 'ETH',
                                             network: 'mainnet',
                                         },

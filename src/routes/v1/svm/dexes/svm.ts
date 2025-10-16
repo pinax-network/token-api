@@ -8,7 +8,6 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    svmAddressSchema,
     svmAmmSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
@@ -24,9 +23,9 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            program_id: svmAddressSchema,
+            program_id: svmProgramIdSchema,
             program_name: z.string(),
-            amm: svmAddressSchema,
+            amm: svmAmmSchema,
             amm_name: z.string(),
             is_aggregator: z.boolean(),
             total_transactions: z.number(),
@@ -52,12 +51,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            program_id: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-                                            program_name: 'Raydium Liquidity Pool V4',
+                                            program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+                                            program_name: 'Jupiter Aggregator v6',
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_name: 'Raydium Liquidity Pool V4',
-                                            is_aggregator: false,
-                                            total_transactions: 5503648369,
+                                            is_aggregator: true,
+                                            total_transactions: 1008573050,
                                         },
                                     ],
                                 },

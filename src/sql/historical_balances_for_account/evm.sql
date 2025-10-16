@@ -50,8 +50,8 @@ metadata AS
 )
 SELECT
     datetime,
-    o.contract AS contract,
     {address:String} AS address,
+    o.contract AS contract,
     open_raw / pow(10, decimals) AS open,
     greatest(high_raw, open_raw, close_raw) / pow(10, decimals) AS high,
     least(low_raw, open_raw, close_raw) / pow(10, decimals) AS low,

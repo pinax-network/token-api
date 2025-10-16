@@ -5,13 +5,12 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { SVM_MINT_USDC_EXAMPLE, SVM_MINT_WSOL_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
-    svmMintResponseSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
@@ -22,32 +21,26 @@ const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
 
     amm: { schema: svmAmmSchema, batched: true, default: '' },
-    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: '' },
-    input_mint: { schema: svmMintSchema, batched: true, default: '' },
-    output_mint: { schema: svmMintSchema, batched: true, default: '' },
+    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: '', meta: { example: '' } },
+    input_mint: { schema: svmMintSchema, batched: true, default: '', meta: { example: SVM_MINT_WSOL_EXAMPLE } },
+    output_mint: { schema: svmMintSchema, batched: true, default: '', meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, default: '' },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            program_id: svmAddressSchema,
+            program_id: svmProgramIdSchema,
             program_name: z.string(),
 
             // -- swap --
-            amm: svmAddressSchema,
+            amm: svmAmmSchema,
             amm_name: z.string(),
-            amm_pool: z.optional(svmAddressSchema),
+            amm_pool: svmAmmPoolSchema,
 
-            input_mint: z.object({
-                address: svmMintResponseSchema,
-                symbol: z.string(),
-            }),
-            output_mint: z.object({
-                address: svmMintResponseSchema,
-                symbol: z.string(),
-            }),
-            transactions: z.number().positive(),
+            input_mint: svmMintSchema,
+            output_mint: svmMintSchema,
+            transactions: z.number(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -73,20 +66,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                            program_name: 'Pump.fun AMM',
-                                            amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-                                            amm_name: 'Pump.fun AMM',
-                                            amm_pool: '7FYhmwuWk8TBLaSBKTsNMrrWNUTWZp5vUSqwjigDii9f',
-                                            input_mint: {
-                                                address: 'So11111111111111111111111111111111111111112',
-                                                symbol: 'Wrapped SOL',
-                                            },
-                                            output_mint: {
-                                                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                                symbol: 'Circle: USDC Token',
-                                            },
-                                            transactions: 3,
+                                            program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+                                            program_name: 'Jupiter Aggregator v6',
+                                            amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+                                            amm_name: 'Raydium Liquidity Pool V4',
+                                            amm_pool: '',
+                                            input_mint: 'So11111111111111111111111111111111111111112',
+                                            output_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                            transactions: 6583671,
                                             network: 'solana',
                                         },
                                     ],

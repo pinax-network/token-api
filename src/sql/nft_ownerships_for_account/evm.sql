@@ -1,11 +1,11 @@
 WITH erc721 AS (
     SELECT DISTINCT
+        o.owner AS address,
+        o.contract,
         toString(o.token_id) AS token_id,
         o.token_standard,
-        o.contract,
-        o.owner AS owner,
-        m.symbol,
         m.name,
+        m.symbol,
         {network:String} AS network
     FROM (
         SELECT
@@ -20,12 +20,12 @@ WITH erc721 AS (
 ),
 erc1155 AS (
     SELECT DISTINCT
+        o.owner AS address,
+        o.contract,
         toString(o.token_id) AS token_id,
         o.token_standard,
-        o.contract,
-        o.owner AS owner,
-        m.symbol,
         m.name,
+        m.symbol,
         {network:String} AS network
     FROM (
         SELECT
@@ -46,7 +46,8 @@ combined AS (
     SELECT * FROM erc1155
 )
 SELECT * FROM combined
-WHERE ({token_standard: String} = '' OR token_standard = {token_standard: String})
+WHERE ({token_standard:String} = '' OR token_standard = {token_standard:String})
+AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 ORDER BY token_standard, contract, token_id
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

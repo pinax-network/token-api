@@ -6,6 +6,11 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_POOL_USDC_WETH_EXAMPLE,
+    EVM_TRANSACTION_SWAP_EXAMPLE,
+} from '../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
@@ -23,14 +28,19 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    transaction_id: { schema: evmTransactionSchema, batched: true, default: '' },
-    pool: { schema: evmPoolSchema, batched: true, default: '' },
-    caller: { schema: evmAddressSchema, batched: true, default: '' },
-    sender: { schema: evmAddressSchema, batched: true, default: '' },
-    recipient: { schema: evmAddressSchema, batched: true, default: '' },
+    transaction_id: {
+        schema: evmTransactionSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TRANSACTION_SWAP_EXAMPLE },
+    },
+    pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
+    caller: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    sender: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    recipient: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     protocol: { schema: evmProtocolSchema, default: '' },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -44,28 +54,28 @@ const responseSchema = apiUsageResponseSchema.extend({
             datetime: z.iso.datetime(),
             timestamp: z.number(),
 
-            // -- chain --
-            network: evmNetworkIdSchema,
-
-            // -- transaction --
-            transaction_id: z.string(),
-
             // -- swap --
+            transaction_id: z.string(),
+            factory: evmFactorySchema,
+            pool: evmPoolSchema,
+            input_token: evmTokenResponseSchema,
+            output_token: evmTokenResponseSchema,
+
             caller: evmAddressSchema,
             sender: evmAddressSchema,
             recipient: evmAddressSchema,
-            factory: evmFactorySchema,
-            pool: evmPoolSchema,
-            token0: evmTokenResponseSchema,
-            token1: evmTokenResponseSchema,
-            amount0: z.string(),
-            amount1: z.string(),
-            price0: z.number(),
-            price1: z.number(),
-            value0: z.number(),
-            value1: z.number(),
-            fee: z.string(),
-            protocol: z.string(),
+
+            input_amount: z.string(),
+            input_value: z.number(),
+            output_amount: z.string(),
+            output_value: z.number(),
+            price: z.number(),
+            price_inv: z.number(),
+            protocol: evmProtocolSchema,
+            summary: z.string(),
+
+            // -- chain --
+            network: evmNetworkIdSchema,
         })
     ),
 });
@@ -88,33 +98,35 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 22589391,
-                                            datetime: '2025-05-29 15:47:47',
-                                            timestamp: 1748533667,
+                                            block_num: 23590326,
+                                            datetime: '2025-10-16 12:48:47',
+                                            timestamp: 1760618927,
                                             transaction_id:
-                                                '0x1ce019b0ad129b8bd21b6c83b75de5e5fd7cd07f2ee739ca3198adcbeb61f5a9',
-                                            caller: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
-                                            pool: '0xb98437c7ba28c6590dd4e1cc46aa89eed181f97108e5b6221730d41347bc817f',
-                                            factory: '0x000000000004444c5dc75cb358380d2e3de08a90',
-                                            token0: {
-                                                address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-                                                symbol: 'WBTC',
-                                                decimals: 8,
-                                            },
-                                            token1: {
+                                                '0xf6374799c227c9db38ff5ac1d5bebe8b607a1de1238cd861ebd1053ec07305ca',
+                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+                                            input_token: {
                                                 address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
                                                 symbol: 'USDC',
                                                 decimals: 6,
                                             },
-                                            sender: '0x66a9893cc07d91d95644aedd05d03f95e1dba8af',
-                                            recipient: null,
-                                            amount0: '-894320',
-                                            amount1: '957798098',
-                                            value0: -0.0089432,
-                                            value1: 957.798098,
-                                            price0: 107417.48517180652,
-                                            price1: 0.00000930947134352077,
-                                            protocol: 'uniswap_v4',
+                                            output_token: {
+                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                                symbol: 'WETH',
+                                                decimals: 18,
+                                            },
+                                            caller: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            sender: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            recipient: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            input_amount: '40735537734',
+                                            input_value: 40735.537734,
+                                            output_amount: '10042247631260591234',
+                                            output_value: 10.042247631260592,
+                                            price: 246517483.4798306,
+                                            price_inv: 4.0565074163667475e-9,
+                                            protocol: 'uniswap_v3',
+                                            summary:
+                                                'Swap 40.74 thousand USDC for 10.042247631260592 WETH on Uniswap V3',
                                             network: 'mainnet',
                                         },
                                     ],

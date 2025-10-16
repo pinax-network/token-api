@@ -9,7 +9,6 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmAddress,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -20,7 +19,12 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema, batched: true },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
+    contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' },
+    },
     include_null_balances: { schema: includeNullBalancesSchema, default: false },
 });
 
@@ -28,20 +32,20 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
             // -- balance --
-            address: evmAddress,
-            contract: evmAddress,
+            address: evmAddressSchema,
+            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
             // -- contract --
-            name: z.optional(z.string()),
-            symbol: z.optional(z.string()),
-            decimals: z.optional(z.number()),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            decimals: z.number().nullable(),
 
             // -- network --
             network: evmNetworkIdSchema,
