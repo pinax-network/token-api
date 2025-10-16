@@ -5,7 +5,13 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
-import { apiUsageResponseSchema, createQuerySchema, svmMintSchema, svmNetworkIdSchema } from '../../../../types/zod.js';
+import {
+    apiUsageResponseSchema,
+    createQuerySchema,
+    svmMintSchema,
+    svmNetworkIdSchema,
+    svmSPLTokenProgramIdSchema,
+} from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = createQuerySchema({
@@ -16,17 +22,17 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            program_id: z.string(),
-            mint: z.string(),
-            decimals: z.number(),
+            program_id: svmSPLTokenProgramIdSchema,
+            mint: svmMintSchema,
+            decimals: z.number().nullable(),
 
-            name: z.string(),
-            symbol: z.string(),
-            uri: z.string(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
 
             // circulating_supply: z.number(),
             // total_supply: z.number(),
@@ -54,15 +60,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-09-25 13:14:06',
-                                            last_update_block_num: 369174420,
-                                            last_update_timestamp: 1758806046,
-                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            mint: 'So11111111111111111111111111111111111111112',
-                                            decimals: 9,
-                                            name: 'Wrapped SOL',
-                                            symbol: 'SOL',
-                                            uri: null,
+                                            last_update: '2025-10-16 10:34:46',
+                                            last_update_block_num: 373731565,
+                                            last_update_timestamp: 1760610886,
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            decimals: 6,
+                                            name: 'Pump',
+                                            symbol: 'PUMP',
+                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
                                             network: 'solana',
                                         },
                                     ],

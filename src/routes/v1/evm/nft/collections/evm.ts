@@ -6,6 +6,7 @@ import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { CHAIN_ID_MAP, querySpamScore } from '../../../../../services/spamScoring.js';
 import { sqlQueries } from '../../../../../sql/index.js';
+import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -17,23 +18,23 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
+    contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            contract: evmAddressSchema,
-            contract_creation: z.string(),
+            contract_creation: z.iso.datetime(),
             contract_creator: evmAddressSchema,
-            name: z.string(),
-            symbol: z.string(),
+            contract: evmContractSchema,
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
             owners: z.number(),
             total_supply: z.number(),
             total_unique_supply: z.number(),
             total_transfers: z.number(),
-            spam_status: z.enum(['spam', 'not_spam', 'pending', 'not_supported', 'error']).optional(),
             network_id: evmNetworkIdSchema,
+            spam_status: z.enum(['spam', 'not_spam', 'pending', 'not_supported', 'error']),
         })
     ),
 });
@@ -59,18 +60,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            token_standard: 'ERC721',
-                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
                                             contract_creation: '2021-07-22 12:26:01',
                                             contract_creator: '0xe9da256a28630efdc637bfd4c65f0887be1aeda8',
+                                            contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
                                             name: 'PudgyPenguins',
                                             symbol: 'PPG',
-                                            owners: 12258,
+                                            token_standard: 'ERC721',
+                                            owners: 4952,
                                             total_supply: 8888,
                                             total_unique_supply: 8888,
-                                            total_transfers: 185128,
-                                            spam_status: 'not_spam',
+                                            total_transfers: 193641,
                                             network: 'mainnet',
+                                            spam_status: 'pending',
                                         },
                                     ],
                                 },

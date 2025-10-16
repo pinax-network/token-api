@@ -7,6 +7,11 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { injectSymbol } from '../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
+    EVM_ADDRESS_TO_EXAMPLE,
+    EVM_CONTRACT_NATIVE_EXAMPLE,
+    EVM_TRANSACTION_TRANSFER_EXAMPLE,
+} from '../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
@@ -21,13 +26,18 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    transaction_id: { schema: evmTransactionSchema, batched: true, default: '' },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
+    transaction_id: {
+        schema: evmTransactionSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
+    },
+    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, default: '' },
-    to_address: { schema: evmAddressSchema, batched: true, default: '' },
+    to_address: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -42,17 +52,17 @@ const responseSchema = apiUsageResponseSchema.extend({
             timestamp: z.number(),
 
             // -- transaction --
-            transaction_id: z.string(),
+            transaction_id: evmTransactionSchema,
 
             // -- transfer --
-            contract: evmAddressSchema,
+            contract: evmContractSchema,
             from: evmAddressSchema,
             to: evmAddressSchema,
 
             // -- contract --
-            name: z.string(),
-            symbol: z.string(),
-            decimals: z.number(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            decimals: z.number().nullable(),
 
             amount: z.string(),
             value: z.number(),
@@ -80,19 +90,20 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 23383393,
-                                            datetime: '2025-09-17 14:27:23',
-                                            timestamp: 1758119243,
+                                            block_num: 23565775,
+                                            datetime: '2025-10-13 02:19:47',
+                                            timestamp: 1760321987,
                                             transaction_id:
-                                                '0xebf58ec6ab1b7fa10fa2d64b21d7d27528c46a36d4c349fc6ddecf9836bc3bba',
+                                                '0x96b1b180d22dae2b18a783ebdd5ae33f6867f3572f87c69a135c6c0a15a63c8e',
+                                            log_index: 4404,
                                             contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                            from: '0x7a250d5630b4cf539739df2c5dacb4c659f2488d',
-                                            to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                            from: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                                            to: '0xdadb0d80178819f2319190d340ce9a924f783711',
                                             name: 'Native',
                                             symbol: 'ETH',
                                             decimals: 18,
-                                            amount: '2420480000000000',
-                                            value: 0.00242048,
+                                            amount: '5038198000000',
+                                            value: 0.000005038198,
                                             network: 'mainnet',
                                         },
                                     ],

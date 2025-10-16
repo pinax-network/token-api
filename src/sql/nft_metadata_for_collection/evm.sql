@@ -80,12 +80,12 @@ contract_creation AS (
     WHERE address = {contract: String}
 )
 SELECT
-    token_standard,
-    contract,
     timestamp AS contract_creation,
     creator AS contract_creator,
+    contract,
     name,
     symbol,
+    token_standard,
     owners,
     total_supply,
     total_unique_supply,

@@ -6,6 +6,7 @@ import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { stables } from '../../../../../inject/prices.tokens.js';
 import { sqlQueries } from '../../../../../sql/index.js';
+import { EVM_POOL_USDC_WETH_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -19,9 +20,9 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    pool: { schema: evmPoolSchema },
+    pool: { schema: evmPoolSchema, meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
 });
 
@@ -30,6 +31,7 @@ const responseSchema = apiUsageResponseSchema.extend({
         z.object({
             datetime: z.iso.datetime(),
             ticker: z.string(),
+            pool: evmPoolSchema,
             open: z.number(),
             high: z.number(),
             low: z.number(),
@@ -59,14 +61,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2025-05-29 15:00:00',
-                                            ticker: 'WETHUSDC',
-                                            open: 2674.206768283323,
-                                            high: 2674.206768283323,
-                                            low: 2648.1288363948797,
-                                            close: 2648.1288363948797,
-                                            volume: 5062048.294222999,
-                                            transactions: 169,
+                                            datetime: '2025-10-16 00:00:00',
+                                            ticker: 'USDCWETH',
+                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+                                            open: 3986.8562193110524,
+                                            high: 4067.092237083535,
+                                            low: 3959.52075942394,
+                                            close: 3989.7646037044765,
+                                            volume: 32956701.586648002,
+                                            uaw: 1363,
+                                            transactions: 3066,
                                         },
                                     ],
                                 },

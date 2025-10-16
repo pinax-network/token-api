@@ -9,6 +9,7 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     evmAddressSchema,
+    evmContractSchema,
     evmNetworkIdSchema,
     includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
@@ -24,20 +25,20 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
             // -- balance --
             address: evmAddressSchema,
-            contract: evmAddressSchema,
+            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
             // -- contract --
-            name: z.optional(z.string()),
-            symbol: z.optional(z.string()),
-            decimals: z.optional(z.number()),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            decimals: z.number().nullable(),
 
             // -- network --
             network: evmNetworkIdSchema,
@@ -63,15 +64,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-08 04:12:11',
-                                            last_update_block_num: 23530574,
-                                            last_update_timestamp: 1759896731,
+                                            last_update: '2025-10-15 23:16:23',
+                                            last_update_block_num: 23586308,
+                                            last_update_timestamp: 1760570183,
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
                                             contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                            amount: '29589346873619754955',
-                                            value: 29.589346873619753,
+                                            amount: '784155102524588711',
+                                            value: 0.7841551025245886,
                                             name: 'Native',
-                                            symbol: 'Native',
+                                            symbol: 'ETH',
                                             decimals: 18,
                                             network: 'mainnet',
                                         },

@@ -1,5 +1,21 @@
 import { z } from 'zod';
 import { config, DEFAULT_LIMIT } from '../config.js';
+import {
+    EVM_ADDRESS_VITALIK_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V2_EXAMPLE,
+    EVM_POOL_USDC_WETH_EXAMPLE,
+    EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+    EVM_TRANSACTION_SWAP_EXAMPLE,
+    SVM_ADDRESS_OWNER_EXAMPLE,
+    SVM_ADDRESS_WSOL_EXAMPLE,
+    SVM_AMM_POOL_PUMP_EXAMPLE,
+    SVM_AMM_RAYDIUM_V4_EXAMPLE,
+    SVM_AUTHORITY_USER_EXAMPLE,
+    SVM_MINT_PUMP_EXAMPLE,
+    SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
+    SVM_TRANSACTION_SWAP_EXAMPLE,
+} from './examples.js';
 
 // ----------------------
 // Base Validation Schemas (composable primitives)
@@ -129,40 +145,57 @@ export const intervalSchema = z
     });
 
 export const timestampSchema = z
-    .union([
-        z.coerce.number().positive().meta({
-            description: 'UNIX timestamp in seconds.',
-        }),
-        z
-            .string()
-            .transform((dateString, ctx) => {
-                const date = new Date(dateString);
-                if (Number.isNaN(date.getTime())) {
-                    ctx.addIssue({
-                        code: 'custom',
-                        message: 'Invalid date string',
-                    });
-                    return z.NEVER;
-                }
-                return Math.floor(date.getTime() / 1000);
-            })
-            .meta({
-                type: 'string',
-                description: 'Date string (e.g. "2025-01-01T00:00:00Z", "January 1st 2025", ...).',
-            }),
-    ])
-    .refine((timestamp) => timestamp >= 0 && timestamp <= Number.MAX_SAFE_INTEGER, {
-        message: 'Timestamp must be a valid UNIX timestamp in seconds',
+    .string()
+    .transform((input, ctx) => {
+        // Try to parse as a number first (UNIX timestamp)
+        const asNumber = Number(input);
+        if (!Number.isNaN(asNumber) && input.trim() !== '') {
+            // It's a valid number, treat as UNIX timestamp
+            if (asNumber < 0 || asNumber > Number.MAX_SAFE_INTEGER) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Timestamp must be a valid UNIX timestamp in seconds',
+                });
+                return z.NEVER;
+            }
+
+            const date = new Date(asNumber * 1000);
+            if (Number.isNaN(date.getTime())) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Invalid timestamp',
+                });
+                return z.NEVER;
+            }
+
+            return asNumber;
+        }
+
+        // Try to parse as a date string
+        const date = new Date(input);
+        if (Number.isNaN(date.getTime())) {
+            ctx.addIssue({
+                code: 'custom',
+                message: 'Invalid date string',
+            });
+            return z.NEVER;
+        }
+
+        const timestamp = Math.floor(date.getTime() / 1000);
+
+        if (timestamp < 0 || timestamp > Number.MAX_SAFE_INTEGER) {
+            ctx.addIssue({
+                code: 'custom',
+                message: 'Timestamp must be a valid UNIX timestamp in seconds',
+            });
+            return z.NEVER;
+        }
+
+        return timestamp;
     })
-    .refine(
-        (timestamp) => {
-            const date = new Date(timestamp * 1000);
-            return !Number.isNaN(date.getTime());
-        },
-        { message: 'Invalid timestamp' }
-    )
     .meta({
-        description: 'UNIX timestamp in seconds or date string.',
+        type: 'string',
+        description: 'UNIX timestamp in seconds or date string (e.g. "2025-01-01T00:00:00Z", "2025-01-01", ...).',
     });
 
 export const blockNumberSchema = z.coerce.number().int().min(0).meta({ description: 'Filter by block number' });
@@ -177,9 +210,15 @@ export const includeNullBalancesSchema = booleanFromString.meta({
 export const nftTokenIdSchema = z.coerce
     .string()
     .refine((val) => /^(\d+|)$/.test(val), 'Invalid Token ID')
-    .meta({ description: 'Token ID', type: 'string' });
+    .meta({ description: 'Token ID', type: 'string', example: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE });
 
-export const nftTokenStandardSchema = z.enum(['ERC721', 'ERC1155']).meta({ description: 'Token standard' });
+export const nftTokenStandardSchema = z
+    .enum(['ERC721', 'ERC1155'])
+    .meta({ description: 'Token standard', example: 'ERC721' });
+
+export const nftTransferTypeSchema = z
+    .enum(['BURN', 'MINT', 'TRANSFER'])
+    .meta({ description: 'Transfer category', example: 'TRANSFER' });
 
 // ----------------------
 // Composable Field Schemas (EVM)
@@ -188,10 +227,12 @@ export const nftTokenStandardSchema = z.enum(['ERC721', 'ERC1155']).meta({ descr
 // Address-based fields (all use evmAddress as base)
 export const evmContractSchema = evmAddress.meta({
     description: 'Filter by contract address',
+    example: EVM_CONTRACT_WETH_EXAMPLE,
 });
 
 export const evmAddressSchema = evmAddress.meta({
     description: 'Filter by address',
+    example: EVM_ADDRESS_VITALIK_EXAMPLE,
 });
 
 export const evmPoolSchema = z
@@ -201,14 +242,17 @@ export const evmPoolSchema = z
     .meta({
         description: 'Filter by pool address',
         type: 'string',
+        example: EVM_POOL_USDC_WETH_EXAMPLE,
     });
 
 export const evmFactorySchema = evmAddress.meta({
     description: 'Filter by factory address',
+    example: EVM_FACTORY_UNISWAP_V2_EXAMPLE,
 });
 
 export const evmTransactionSchema = evmTransaction.meta({
     description: 'Filter by transaction hash',
+    example: EVM_TRANSACTION_SWAP_EXAMPLE,
 });
 
 // ----------------------
@@ -217,34 +261,42 @@ export const evmTransactionSchema = evmTransaction.meta({
 
 export const svmAddressSchema = svmAddress.meta({
     description: 'Filter by address',
+    example: SVM_ADDRESS_WSOL_EXAMPLE,
 });
 
 export const svmOwnerSchema = svmAddress.meta({
     description: 'Filter by owner address',
+    example: SVM_ADDRESS_OWNER_EXAMPLE,
 });
 
 export const svmTokenAccountSchema = svmAddress.meta({
     description: 'Filter by token account address',
+    example: SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
 });
 
 export const svmMintSchema = svmAddress.meta({
     description: 'Filter by mint address',
+    example: SVM_MINT_PUMP_EXAMPLE,
 });
 
 export const svmAuthoritySchema = svmAddress.meta({
     description: 'Filter by authority address',
+    example: SVM_AUTHORITY_USER_EXAMPLE,
 });
 
 export const svmAmmSchema = svmAddress.meta({
     description: 'Filter by AMM address',
+    example: SVM_AMM_RAYDIUM_V4_EXAMPLE,
 });
 
 export const svmAmmPoolSchema = svmAddress.meta({
     description: 'Filter by AMM pool address',
+    example: SVM_AMM_POOL_PUMP_EXAMPLE,
 });
 
 export const svmTransactionSchema = svmTransaction.meta({
     description: 'Filter by transaction signature',
+    example: SVM_TRANSACTION_SWAP_EXAMPLE,
 });
 
 export const svmProgramIdSchema = z
@@ -255,51 +307,30 @@ export const svmProgramIdSchema = z
         'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
         'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
     ])
-    .meta({ description: 'Filter by program ID' });
+    .meta({ description: 'Filter by program ID', example: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4' });
 
 export const svmSPLTokenProgramIdSchema = z
-    .enum(['TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'])
-    .meta({ description: 'Filter by SPL token program ID' });
+    .enum([
+        '11111111111111111111111111111111',
+        'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+        'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    ])
+    .meta({ description: 'Filter by SPL token program ID', example: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' });
 
 export const svmMetadataSchema = z.string().nullable().optional();
-
-// ----------------------
-// Examples (for documentation)
-// ----------------------
-
-// EVM Examples
-export const VitalikAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
-export const WETHContract = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-export const GRTContract = '0xc944e90c64b2c07662a292be6244bdf05cda44a7';
-export const USDC_WETH_Pool = '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640';
-export const PudgyPenguinsContract = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8';
-export const PudgyPenguinsTokenId = '5712';
-
-// SVM Examples
-export const RaydiumWSOLMarketTokenAccount = '4ct7br2vTPzfdmY3S5HLtTxcGSBfn6pnw98hsS6v359A';
-export const RaydiumWSOLMarketOwner = '3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv';
-export const RaydiumV4ProgramId = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8';
-export const USDC_WSOL_Pool = '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2';
-export const WSOLMint = 'So11111111111111111111111111111111111111112';
-export const SPL2022ProgramId = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
-export const PumpFunProgramId = 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA';
-export const PumpFunMetadataNameExample = 'Pump';
-export const PumpFunMetadataSymbolExample = 'PUMP';
-export const PumpFunMetadataUriExample =
-    'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m';
 
 // ----------------------
 // Response Schemas
 // ----------------------
 
 export const evmTokenResponseSchema = z.object({
-    address: evmAddress,
-    symbol: z.string(),
-    decimals: z.number(),
+    address: evmAddressSchema.nullable(),
+    symbol: z.string().nullable(),
+    decimals: z.number().nullable(),
 });
 
 export const svmMintResponseSchema = z.object({
-    address: svmAddress,
+    address: svmAddressSchema,
     decimals: z.number(),
 });
 
@@ -311,9 +342,9 @@ export const paginationQuerySchema = z.object({
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
 export const statisticsResponseSchema = z.object({
-    elapsed: z.optional(z.number()),
-    rows_read: z.optional(z.number()),
-    bytes_read: z.optional(z.number()),
+    elapsed: z.number().optional(),
+    rows_read: z.number().optional(),
+    bytes_read: z.number().optional(),
 });
 
 export const paginationResponseSchema = z.object({
@@ -390,7 +421,7 @@ export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
  * @property default - Default value set at schema output (short-circuits parsing). Field becomes optional.
  * @property prefault - Pre-parse default value set at schema input (does not short-circuit). Field becomes optional.
  * @property separator - Separator for parsing comma-separated strings in batched fields (default: ',')
- * @property description - Description for OpenAPI/documentation metadata
+ * @property meta - Additional metadata to attach to the schema (e.g., description, custom fields)
  *
  * @note Only one of `default` or `prefault` can be set. This is enforced at the type level.
  */
@@ -398,7 +429,7 @@ type FieldConfig = {
     schema: z.ZodTypeAny;
     batched?: boolean;
     separator?: string;
-    description?: string;
+    meta?: Record<string, unknown>;
 } & (
     | { default: unknown; prefault?: never }
     | { prefault: unknown; default?: never }
@@ -465,7 +496,7 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
  *   - `default`: Optional default value at output (short-circuits parsing), makes field optional
  *   - `prefault`: Optional default value at input (does not short-circuit), makes field optional
  *   - `separator`: Optional string separator for batched fields (default: ',')
- *   - `description`: Optional description for OpenAPI metadata
+ *   - `meta`: Optional metadata object to attach to the schema (e.g., { description: '...', customField: '...' })
  * @param include_pagination - Choose to include `limit` and `page` to the query parameters
  *
  * @returns Zod object schema for query parameters
@@ -473,8 +504,15 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
  * @example
  * ```ts
  * const querySchema = createQuerySchema({
- *   network: { schema: svmNetworkIdSchema },
- *   owner: { schema: svmOwnerSchema, batched: true },
+ *   network: {
+ *     schema: svmNetworkIdSchema,
+ *     meta: { description: 'The blockchain network to query' }
+ *   },
+ *   owner: {
+ *     schema: svmOwnerSchema,
+ *     batched: true,
+ *     meta: { description: 'Owner address(es)', customField: 'value' }
+ *   },
  *   // Using default (output-level, short-circuits)
  *   mint: { schema: svmMintSchema, batched: true, default: [''] },
  *   // Using prefault (input-level, goes through parsing)
@@ -495,7 +533,7 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                     default: defaultValue,
                     prefault: prefaultValue,
                     separator = ',',
-                    description,
+                    meta,
                 } = config;
 
                 let resultSchema = schema;
@@ -575,7 +613,10 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         .meta({ ...resultSchema.meta(), default: prefaultValue });
                 }
 
-                if (description) resultSchema = resultSchema.meta({ ...resultSchema.meta(), description });
+                // Apply custom metadata if provided
+                if (meta) {
+                    resultSchema = resultSchema.meta({ ...resultSchema.meta(), ...meta });
+                }
 
                 return [fieldName, resultSchema];
             })

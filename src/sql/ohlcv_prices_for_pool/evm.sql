@@ -6,6 +6,7 @@ WITH ohlc AS (
             toStartOfInterval(timestamp, INTERVAL {interval: UInt64} MINUTE)
         ) AS datetime,
         CONCAT(symbol0, symbol1) AS ticker,
+        pool,
         argMinMerge(open0) AS open_raw,
         greatest(quantileDeterministicMerge({high_quantile: Float32})(quantile0), open_raw, close_raw) AS high_raw,
         least(quantileDeterministicMerge({low_quantile: Float32})(quantile0), open_raw, close_raw) AS low_raw,
@@ -16,7 +17,7 @@ WITH ohlc AS (
         toString(token0) IN {stablecoin_contracts: Array(String)} AS is_stablecoin
     FROM ohlc_prices
     WHERE pool = {pool: String} AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-    GROUP BY datetime, symbol0, symbol1, token0
+    GROUP BY datetime, pool, symbol0, symbol1, token0
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
@@ -24,6 +25,7 @@ WITH ohlc AS (
 SELECT
     datetime,
     ticker,
+    pool,
     if(is_stablecoin, 1/open_raw, open_raw) AS open,
     if(is_stablecoin, 1/low_raw, high_raw) AS high,
     if(is_stablecoin, 1/high_raw, low_raw) AS low,

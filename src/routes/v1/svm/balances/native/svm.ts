@@ -10,7 +10,9 @@ import {
     createQuerySchema,
     includeNullBalancesSchema,
     svmAddressSchema,
+    svmMintSchema,
     svmNetworkIdSchema,
+    svmSPLTokenProgramIdSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
@@ -24,7 +26,7 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string(),
+            last_update: z.iso.datetime(),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
@@ -32,18 +34,19 @@ const responseSchema = apiUsageResponseSchema.extend({
             // signature: z.string(),
 
             // -- instruction --
-            program_id: svmAddressSchema,
+            program_id: svmSPLTokenProgramIdSchema,
 
             // -- balance --
             address: svmAddressSchema,
-            mint: svmAddressSchema,
+            mint: svmMintSchema,
+
             amount: z.string(),
             value: z.number(),
-            decimals: z.number(),
+            decimals: z.number().nullable(),
 
-            name: z.string(),
-            symbol: z.string(),
-            uri: z.string(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
 
             // -- network --
             network: svmNetworkIdSchema,
@@ -69,14 +72,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-09-10 00:12:02',
-                                            last_update_block_num: 365784894,
-                                            last_update_timestamp: 1757463122,
+                                            last_update: '2025-10-16 08:20:15',
+                                            last_update_block_num: 373711220,
+                                            last_update_timestamp: 1760602815,
                                             program_id: '11111111111111111111111111111111',
-                                            address: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
+                                            address: 'So11111111111111111111111111111111111111112',
                                             mint: 'So11111111111111111111111111111111111111111',
-                                            amount: '7769223380',
-                                            value: 7.76922338,
+                                            amount: '1173096711863',
+                                            value: 1173.096711863,
                                             decimals: 9,
                                             name: 'SOL',
                                             symbol: 'SOL',

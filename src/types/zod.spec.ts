@@ -200,19 +200,38 @@ describe('Common Query Parameter Schemas', () => {
     });
 
     describe('timestampSchema', () => {
-        it('should parse UNIX timestamps', () => {
-            expect(timestampSchema.parse(1735689600)).toBe(1735689600);
+        it('should parse UNIX timestamps as strings', () => {
             expect(timestampSchema.parse('1735689600')).toBe(1735689600);
         });
 
         it('should parse date strings', () => {
             const result = timestampSchema.parse('2025-01-01T00:00:00Z');
-            expect(result).toBeGreaterThan(0);
+            expect(result).toBe(1735689600);
         });
 
-        it('should reject invalid timestamps', () => {
-            expect(() => timestampSchema.parse(-1)).toThrow();
-            expect(() => timestampSchema.parse('invalid date')).toThrow();
+        it('should parse various date formats', () => {
+            const isoResult = timestampSchema.parse('2025-01-01');
+            expect(isoResult).toBeGreaterThan(0);
+        });
+
+        it('should reject negative timestamps', () => {
+            expect(() => timestampSchema.parse('-1')).toThrow();
+        });
+
+        it('should reject timestamps exceeding MAX_SAFE_INTEGER', () => {
+            expect(() => timestampSchema.parse('9007199254740992')).toThrow();
+        });
+
+        it('should reject invalid date strings', () => {
+            expect(() => timestampSchema.parse('invalid date')).toThrow('Invalid date string');
+        });
+
+        it('should reject empty strings', () => {
+            expect(() => timestampSchema.parse('')).toThrow('Invalid date string');
+        });
+
+        it('should handle numeric strings with whitespace', () => {
+            expect(timestampSchema.parse('  1735689600  ')).toBe(1735689600);
         });
     });
 
@@ -410,11 +429,6 @@ describe('Response Schemas', () => {
             const result = statisticsResponseSchema.parse(stats);
             expect(result.elapsed).toBe(0.188);
         });
-
-        it('should allow optional fields', () => {
-            const result = statisticsResponseSchema.parse({});
-            expect(result).toBeDefined();
-        });
     });
 
     describe('paginationResponseSchema', () => {
@@ -432,7 +446,7 @@ describe('Response Schemas', () => {
         it('should validate complete API response objects', () => {
             const response = {
                 data: [{ id: 1 }],
-                statistics: { elapsed: 0.1 },
+                statistics: { rows_read: 1, bytes_read: 1, elapsed: 0.1 },
                 pagination: { previous_page: 1, current_page: 1 },
                 results: 1,
                 request_time: new Date(),

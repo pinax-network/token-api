@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { SVM_ADDRESS_USER_EXAMPLE, SVM_MINT_USDC_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -12,7 +13,6 @@ import {
     svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
-    svmMintResponseSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
@@ -26,13 +26,18 @@ const querySchema = createQuerySchema({
 
     signature: { schema: svmTransactionSchema, batched: true, default: '' },
     amm: { schema: svmAmmSchema, batched: true, default: '' },
-    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: '' },
-    user: { schema: svmAddressSchema, batched: true, default: '' },
-    input_mint: { schema: svmMintSchema, batched: true, default: '' },
-    output_mint: { schema: svmMintSchema, batched: true, default: '' },
+    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: '', meta: { example: '' } },
+    user: { schema: svmAddressSchema, batched: true, default: '', meta: { example: SVM_ADDRESS_USER_EXAMPLE } },
+    input_mint: {
+        schema: svmMintSchema,
+        batched: true,
+        default: '',
+        meta: { example: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw' },
+    },
+    output_mint: { schema: svmMintSchema, batched: true, default: '', meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, default: '' },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -47,23 +52,23 @@ const responseSchema = apiUsageResponseSchema.extend({
             timestamp: z.number(),
 
             // -- ordering --
+            signature: svmTransactionSchema,
             transaction_index: z.number(),
             instruction_index: z.number(),
 
             // -- transaction --
-            signature: z.string(),
-            program_id: svmAddressSchema,
+            program_id: svmProgramIdSchema,
             program_name: z.string(),
 
             // -- swap --
             user: svmAddressSchema,
-            amm: svmAddressSchema,
+            amm: svmAmmSchema,
             amm_name: z.string(),
-            amm_pool: z.optional(svmAddressSchema),
+            amm_pool: svmAmmPoolSchema,
 
-            input_mint: svmMintResponseSchema,
+            input_mint: svmMintSchema,
             input_amount: z.number(),
-            output_mint: svmMintResponseSchema,
+            output_mint: svmMintSchema,
             output_amount: z.number(),
 
             // -- chain --
@@ -90,20 +95,22 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 372221800,
-                                            datetime: '2025-10-09 12:02:08',
-                                            timestamp: 1760011328,
+                                            block_num: 373763118,
+                                            datetime: '2025-10-16 14:03:09',
+                                            timestamp: 1760623389,
                                             signature:
-                                                '3qcJzzpLU8BEGUUvcJRvdEiobcZiVrpEYSqS1mnhQhoNqXkT3hTWmYXGUwCmeVmuinUWtZ7LvXxX66CKyZUXSPdS',
-                                            program_id: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-                                            program_name: 'Raydium Liquidity Pool V4',
+                                                '5pdoVcSiSBr3LMAijdRYKrL5RoLFjLgHxHbZ34dUBVubnsQt3q1v48LuPazebsSiBVuSbSTyJdzf3G9jqqn8o6jA',
+                                            transaction_index: 8,
+                                            instruction_index: 1,
+                                            program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+                                            program_name: 'Jupiter Aggregator v6',
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-                                            amm_pool: '2TEj7Y1chTcYs9zkaJe4vixnqtu78Pw1ycCUBj13zr9X',
-                                            user: '9aSBR9f4SaDMrFFky8jKbsjr8EHRNeQm2PwseUsnVHR9',
-                                            input_mint: 'FtJDf7AUidcVWyRJKumniPRWAKxAWSJwtLRx294hJYzj',
-                                            input_amount: 57000000,
-                                            output_mint: 'HgBRDKEjwuZkhbkvBURhpmy6bvP9mEzFYeAt5prVcFbR',
-                                            output_amount: 960088729559,
+                                            amm_pool: '',
+                                            user: '5MGfsuYNRhbuN6x1M6WaR3721dSDGtXpcsHxNsgkjsXC',
+                                            input_mint: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw',
+                                            input_amount: 49572355581648,
+                                            output_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                            output_amount: 936671,
                                             network: 'solana',
                                         },
                                     ],

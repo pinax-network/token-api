@@ -34,9 +34,6 @@ filtered_tokens AS (
     WHERE t.address IN (SELECT address FROM unique_tokens)
 )
 SELECT
-    pools.block_num AS block_num,
-    datetime,
-    transaction_id,
     pools.factory AS factory,
     pools.pool AS pool,
     CAST(
@@ -83,7 +80,7 @@ SELECT
     ) AS output_token,
     pools.fee AS fee,
     pools.protocol AS protocol,
-    {network: String} as network
+    {network:String} as network
 FROM filtered_pools AS pools
 LEFT JOIN filtered_tokens t0 ON pools.token0 = t0.address
 LEFT JOIN filtered_tokens t1 ON pools.token1 = t1.address

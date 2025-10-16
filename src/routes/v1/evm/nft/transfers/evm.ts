@@ -6,15 +6,23 @@ import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import {
+    EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+    EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+    EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
+    EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+    EVM_TRANSACTION_NFT_SALE_EXAMPLE,
+} from '../../../../../types/examples.js';
+import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
-    evmAddress,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
     evmTransactionSchema,
     nftTokenIdSchema,
+    nftTokenStandardSchema,
+    nftTransferTypeSchema,
     timestampSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
@@ -22,14 +30,48 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
-    transaction_id: { schema: evmTransactionSchema, batched: true, default: '' },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
-    token_id: { schema: nftTokenIdSchema, batched: true, default: '' },
-    address: { schema: evmAddressSchema, batched: true, default: '' },
-    from_address: { schema: evmAddressSchema, batched: true, default: '' },
-    to_address: { schema: evmAddressSchema, batched: true, default: '' },
+    type: {
+        schema: nftTransferTypeSchema,
+        default: '',
+    },
+    transaction_id: {
+        schema: evmTransactionSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TRANSACTION_NFT_SALE_EXAMPLE },
+    },
+    contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE },
+    },
+    token_id: {
+        schema: nftTokenIdSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE },
+    },
+    address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
+    },
+    from_address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
+    },
+    to_address: {
+        schema: evmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE },
+    },
 
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
@@ -38,21 +80,22 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            // NFT token metadata
-            '@type': z.enum(['TRANSFER', 'MINT', 'BURN']),
             block_num: z.number(),
-            block_hash: z.string(),
-            timestamp: z.string(),
-            transaction_id: z.string(),
-            contract: evmAddress,
-            symbol: z.optional(z.string()),
-            name: z.optional(z.string()),
-            from: evmAddress,
-            to: evmAddress,
-            token_id: z.string(),
+            datetime: z.iso.datetime(),
+            timestamp: z.number(),
+
+            // NFT token metadata
+            '@type': nftTransferTypeSchema,
+            transfer_type: z.string(),
+            transaction_id: evmTransactionSchema,
+            contract: evmContractSchema,
+            token_id: nftTokenIdSchema,
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            token_standard: nftTokenStandardSchema,
+            from: evmAddressSchema,
+            to: evmAddressSchema,
             amount: z.number(),
-            transfer_type: z.optional(z.string()),
-            token_standard: z.optional(z.string()),
             network: evmNetworkIdSchema,
         })
     ),
@@ -76,22 +119,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
+                                            block_num: 22098625,
+                                            datetime: '2025-03-21 23:46:11',
+                                            timestamp: 1742600771,
                                             '@type': 'TRANSFER',
-                                            block_num: 22588725,
-                                            block_hash:
-                                                '0xe8d2f48bb5d7619fd0c180d6d54e7ca94c5f4eddfcfa7a82d4da55b310dd462a',
-                                            timestamp: '2025-05-29 13:32:23',
+                                            transfer_type: 'Single',
                                             transaction_id:
-                                                '0xa7b3302a5fe4a60e4ece22dfb2d98604daef5dc610fa328d8d0a7a92f3efc7b9',
-                                            token_standard: 'ERC721',
+                                                '0x8cc8b83e7b7fec752bd689700156990e7ce4d6b890f7b5ab58adf2fb602a98b9',
                                             contract: '0xbd3531da5cf5857e7cfaa92426877b022e612cf8',
+                                            token_id: '5712',
                                             name: 'PudgyPenguins',
                                             symbol: 'PPG',
-                                            from: '0x2afec1c9af7a5494503f8acfd5c1fdd7d2c57480',
-                                            to: '0x29469395eaf6f95920e59f858042f0e28d98a20b',
-                                            token_id: '500',
+                                            token_standard: 'ERC721',
+                                            from: '0x355062b5d0e324815290b96370e87607a71d613d',
+                                            to: '0x7ccde43632b3287fda060719d802b2c4cb6f769b',
                                             amount: 1,
-                                            transfer_type: 'Single',
                                             network: 'mainnet',
                                         },
                                     ],

@@ -21,7 +21,7 @@ const querySchema = createQuerySchema({
 
     contract: { schema: evmContractSchema },
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
 });
 

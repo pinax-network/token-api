@@ -6,10 +6,10 @@ import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { injectSymbol } from '../../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../../sql/index.js';
+import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmAddress,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -21,9 +21,9 @@ import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
-    interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
+    interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1w' } },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
 });
 
@@ -31,14 +31,15 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             datetime: z.iso.datetime(),
-            contract: evmAddress,
-            name: z.string(),
-            symbol: z.string(),
+            address: evmAddressSchema,
+            contract: evmContractSchema,
             decimals: z.number(),
             open: z.number(),
             high: z.number(),
             low: z.number(),
             close: z.number(),
+            name: z.string(),
+            symbol: z.string(),
             // -- network --
             network: evmNetworkIdSchema,
         })
@@ -64,13 +65,13 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2025-09-18 00:00:00',
-                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                            datetime: '2025-10-09 00:00:00',
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            open: 1.007335779304439,
-                                            high: 1.008887377352517,
-                                            low: 1.007335779304439,
-                                            close: 1.008884587909372,
+                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                            open: 29.589346973619755,
+                                            high: 50.783103394640676,
+                                            low: 0.7830483276016842,
+                                            close: 0.7841551025245886,
                                             name: 'Native',
                                             symbol: 'ETH',
                                             decimals: 18,

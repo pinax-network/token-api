@@ -11,6 +11,8 @@ import {
     createQuerySchema,
     intervalSchema,
     svmAmmPoolSchema,
+    svmAmmSchema,
+    svmMintSchema,
     svmNetworkIdSchema,
     timestampSchema,
 } from '../../../../../types/zod.js';
@@ -21,7 +23,7 @@ const querySchema = createQuerySchema({
     amm_pool: { schema: svmAmmPoolSchema },
 
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: 1735689600 },
+    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
     end_time: { schema: timestampSchema, default: 9999999999 },
 });
 
@@ -29,7 +31,12 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             datetime: z.iso.datetime(),
-            ticker: z.string(),
+            amm: svmAmmSchema,
+            amm_pool: svmAmmPoolSchema,
+            token0: svmMintSchema,
+            token0_decimals: z.number().nullable(),
+            token1: svmMintSchema,
+            token1_decimals: z.number().nullable(),
             open: z.number(),
             high: z.number(),
             low: z.number(),
@@ -58,20 +65,20 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2025-09-15 00:00:00',
+                                            datetime: '2025-10-16 00:00:00',
                                             amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
                                             amm_pool: 'AmmpSnW5xVeKHTAU9fMjyKEMPgrzmUj3ah5vgvHhAB5J',
                                             token0: '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',
                                             token0_decimals: 6,
                                             token1: 'So11111111111111111111111111111111111111112',
                                             token1_decimals: 9,
-                                            open: 0.003648785031942177,
-                                            high: 0.0036724218787403977,
-                                            low: 0.0034598947533987442,
-                                            close: 0.0035191405556241413,
-                                            volume: 3.521022449,
-                                            uaw: 76,
-                                            transactions: 159,
+                                            open: 0.0020385820805914096,
+                                            high: 0.002037622484039942,
+                                            low: 0.002029088299722426,
+                                            close: 0.0020285665581652053,
+                                            volume: 0.14567917800000002,
+                                            uaw: 8,
+                                            transactions: 8,
                                         },
                                     ],
                                 },

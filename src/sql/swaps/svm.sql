@@ -2,6 +2,8 @@ WITH s AS (
     SELECT
         block_num,
         timestamp,
+        transaction_index,
+        instruction_index,
         signature,
         program_id,
         program_names(program_id) AS program_name,
@@ -28,6 +30,8 @@ SELECT
     s.timestamp AS datetime,
     toUnixTimestamp(s.timestamp) AS timestamp,
     toString(signature) AS signature,
+    transaction_index,
+    instruction_index,
     toString(program_id) AS program_id,
     program_name,
     toString(amm) AS amm,

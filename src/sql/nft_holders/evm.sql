@@ -5,8 +5,8 @@ WITH erc721 AS (
         WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
-        'ERC721' AS token_standard,
         {contract:String} AS contract,
+        'ERC721' AS token_standard,
         owner AS address,
         count() AS quantity,
         uniq(token_id) AS unique_tokens,
@@ -23,8 +23,8 @@ erc1155 AS (
         WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
-        'ERC1155' AS token_standard,
         {contract:String} AS contract,
+        'ERC1155' AS token_standard,
         owner,
         sum(balance) AS quantity,
         uniq(token_id) AS unique_tokens,

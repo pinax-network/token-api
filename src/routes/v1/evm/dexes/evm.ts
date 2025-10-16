@@ -18,6 +18,7 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     factory: { schema: evmFactorySchema, batched: true, default: '' },
+    protocol: { schema: evmProtocolSchema, default: '' },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -51,8 +52,8 @@ const openapi = describeRoute(
                                         {
                                             factory: '0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f',
                                             protocol: 'uniswap_v2',
-                                            total_uaw: 13479919,
-                                            total_transactions: 20679385,
+                                            total_uaw: 13529627,
+                                            total_transactions: 20736917,
                                         },
                                     ],
                                 },
