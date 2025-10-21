@@ -1,4 +1,25 @@
-WITH filtered_transfers AS
+WITH
+arrayFilter(x -> x != '',
+    arrayDistinct(
+        arrayConcat(
+            {source:Array(String)},
+            {destination:Array(String)},
+            {address:Array(String)}
+        )
+    )
+) AS accounts,
+
+dates AS (
+    SELECT DISTINCT date
+    FROM accounts_by_date
+    WHERE
+        account IN {source:Array(String)} OR
+        account IN {destination:Array(String)} OR
+        account IN {address:Array(String)}
+    GROUP BY date
+),
+
+filtered_transfers AS
 (
     SELECT
         block_num,
@@ -22,6 +43,7 @@ WITH filtered_transfers AS
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND (empty(accounts) OR toDate(timestamp) IN dates)
     WHERE
         ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
@@ -29,6 +51,7 @@ WITH filtered_transfers AS
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
         AND ({mint:Array(String)} = [''] OR mint IN {mint:Array(String)})
         AND ({program_id:String} = '' OR program_id = {program_id:String})
+        AND ({address:Array(String)} = [''] OR (source IN {address:Array(String)} OR destination IN {address:Array(String)}))
     ORDER BY timestamp DESC, signature, transaction_index, instruction_index
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
