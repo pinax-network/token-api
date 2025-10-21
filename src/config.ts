@@ -34,6 +34,7 @@ export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
 export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 // Make cache duration minimum to be same as max SQL execution time
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
+export const DEFAULT_PLANS = '';
 
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.4';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
@@ -188,6 +189,11 @@ const opts = program
             .env('CACHE_DURATIONS')
             .default(DEFAULT_CACHE_DURATIONS)
     )
+    .addOption(
+        new Option('--plans <string>', 'Plan configurations (name:limit,batched,depth_months)')
+            .env('PLANS')
+            .default(DEFAULT_PLANS)
+    )
     .parse()
     .opts();
 
@@ -275,6 +281,42 @@ const config = z
                     .array(z.number().nonnegative('Cache duration must be non-negative'))
                     .min(2, { message: 'At least two cache durations are required' })
             ),
+        plans: z.string().transform((val) => {
+            // Empty config means bypass plan limits (for local development)
+            if (!val || val.trim() === '') {
+                return null;
+            }
+
+            const plans = new Map<string, { maxLimit: number; maxBatched: number; maxDepthMonths: number }>();
+
+            val.split(';').forEach((planDef) => {
+                const [name, limits] = planDef.split(':');
+                if (!name || !limits) {
+                    throw new Error(`Malformed plan entry: "${planDef}". Skipping.`);
+                }
+
+                const [limit, batched, depthMonths] = limits.split(',').map(Number);
+                if (limit == null || batched == null || depthMonths == null) {
+                    throw new Error(`Invalid limits for plan "${name}". Skipping.`);
+                }
+
+                plans.set(name, {
+                    maxLimit: limit,
+                    maxBatched: batched,
+                    maxDepthMonths: depthMonths,
+                });
+
+                if (!name.startsWith('tgm-')) {
+                    plans.set(`tgm-${name.toUpperCase()}`, {
+                        maxLimit: limit,
+                        maxBatched: batched,
+                        maxDepthMonths: depthMonths,
+                    });
+                }
+            });
+
+            return plans;
+        }),
     })
     .transform((data) => ({
         ...data,
