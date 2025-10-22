@@ -116,7 +116,7 @@ export function validatorHook(
         const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
         if (is_ohlcv_endpoint && max_depth_months !== 0 && data.start_time && data.end_time) {
             if (data.end_time < data.start_time)
-                return APIErrorResponse(ctx, 400, 'bad_query_input', `'end_time' cannot be greater than 'start_time'.`);
+                return APIErrorResponse(ctx, 400, 'bad_query_input', `'end_time' cannot be less than 'start_time'.`);
 
             // Clamp `end_time` to `now()` for month difference calculation
             const clampedEndTime = Math.min(data.end_time, now());
