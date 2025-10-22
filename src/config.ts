@@ -296,7 +296,7 @@ const config = z
                 }
 
                 const [limit, batched, depthMonths] = limits.split(',').map(Number);
-                if (limit == null || batched == null || depthMonths == null) {
+                if (Number.isNaN(limit) || Number.isNaN(batched) || Number.isNaN(depthMonths)) {
                     throw new Error(`Invalid limits for plan "${name}". Skipping.`);
                 }
 
