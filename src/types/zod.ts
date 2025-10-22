@@ -577,28 +577,30 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
 
                 // If no default or prefault, make it required with proper error message
                 if (defaultValue === undefined && prefaultValue === undefined) {
-                    resultSchema = z.preprocess((val, ctx) => {
-                        if (val === undefined || val === '') {
-                            ctx.addIssue({
-                                code: 'invalid_type',
-                                expected: 'string',
-                                received: typeof val,
-                                message: `${fieldName} is required`,
-                            });
-                            return z.NEVER;
-                        }
+                    resultSchema = z
+                        .preprocess((val, ctx) => {
+                            if (val === undefined || val === '') {
+                                ctx.addIssue({
+                                    code: 'invalid_type',
+                                    expected: 'string',
+                                    received: typeof val,
+                                    message: `${fieldName} is required`,
+                                });
+                                return z.NEVER;
+                            }
 
-                        // Check if multiple values provided for non-batched field
-                        if (!batched && Array.isArray(val)) {
-                            ctx.addIssue({
-                                code: 'custom',
-                                message: `multiple values are not supported on this endpoint. Please provide only a single value.`,
-                            });
-                            return z.NEVER;
-                        }
+                            // Check if multiple values provided for non-batched field
+                            if (!batched && Array.isArray(val)) {
+                                ctx.addIssue({
+                                    code: 'custom',
+                                    message: `multiple values are not supported on this endpoint. Please provide only a single value.`,
+                                });
+                                return z.NEVER;
+                            }
 
-                        return val;
-                    }, resultSchema);
+                            return val;
+                        }, resultSchema)
+                        .meta({ ...resultSchema.meta() });
                 } else if (defaultValue !== undefined) {
                     // Apply default (output-level) if provided - takes precedence over prefault
                     resultSchema = resultSchema
@@ -614,9 +616,12 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                 }
 
                 // Apply custom metadata if provided
-                if (meta) {
-                    resultSchema = resultSchema.meta({ ...resultSchema.meta(), ...meta });
-                }
+                if (meta) resultSchema = resultSchema.meta({ ...resultSchema.meta(), ...meta });
+
+                const description = resultSchema.meta()?.description;
+                // Hard-limit on OpenAPI schema description length for GPT agents
+                if (description && description.length >= 300)
+                    throw new Error(`'${fieldName}' description field has more than 300 characters.`);
 
                 return [fieldName, resultSchema];
             })

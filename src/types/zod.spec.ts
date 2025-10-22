@@ -689,4 +689,74 @@ describe('createQuerySchema', () => {
             expect(() => schema.parse({ owner: 'invalid' })).toThrow('Invalid SVM address');
         });
     });
+
+    describe('description length validation', () => {
+        it('should accept description with exactly 299 characters', () => {
+            const definitions = {
+                field: {
+                    schema: z.string().meta({ description: 'a'.repeat(299) }),
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).not.toThrow();
+        });
+
+        it('should reject description with exactly 300 characters', () => {
+            const definitions = {
+                field: {
+                    schema: z.string().meta({ description: 'a'.repeat(300) }),
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).toThrow(
+                "'field' description field has more than 300 characters."
+            );
+        });
+
+        it('should reject description with more than 300 characters', () => {
+            const definitions = {
+                field: {
+                    schema: z.string().meta({ description: 'a'.repeat(500) }),
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).toThrow(
+                "'field' description field has more than 300 characters."
+            );
+        });
+
+        it('should accept field with no description', () => {
+            const definitions = {
+                field: {
+                    schema: z.string(),
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).not.toThrow();
+        });
+
+        it('should accept description with empty string', () => {
+            const definitions = {
+                field: {
+                    schema: z.string().meta({ description: '' }),
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).not.toThrow();
+        });
+
+        it('should reject long description in batched field', () => {
+            const definitions = {
+                field: {
+                    schema: z.string().meta({ description: 'a'.repeat(300) }),
+                    batched: true,
+                    separator: ',',
+                },
+            };
+
+            expect(() => createQuerySchema(definitions)).toThrow(
+                "'field' description field has more than 300 characters."
+            );
+        });
+    });
 });
