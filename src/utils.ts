@@ -95,7 +95,7 @@ export function validatorHook(
 
         // Limit
         if (max_limit !== 0 && data.limit && data.limit > max_limit)
-            return APIErrorResponse(ctx, 403, 'forbidden', `Parameter 'limit' exceed maximum of ${max_limit} items.`);
+            return APIErrorResponse(ctx, 403, 'forbidden', `Parameter 'limit' exceeds maximum of ${max_limit} items.`);
 
         // Batched parameters
         const exceededParams = Object.entries(data)
