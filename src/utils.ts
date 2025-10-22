@@ -127,8 +127,6 @@ export function validatorHook(
             cutoffDate.setUTCMinutes(0);
             cutoffDate.setUTCSeconds(0);
             cutoffDate.setUTCMilliseconds(0);
-            console.log(cutoffDate);
-
             const startDate = new Date(data.start_time * 1000);
 
             // Check if start_time is before the cutoff date
