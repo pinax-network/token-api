@@ -295,23 +295,23 @@ const config = z
                     throw new Error(`Malformed plan entry: "${planDef}". Skipping.`);
                 }
 
-                const [limit, batched, depthMonths] = limits.split(',').map(Number);
+                const parts = limits.split(',');
+                if (parts.length !== 3) {
+                    throw new Error(
+                        `Invalid limits for plan "${name}": expected 3 values, got ${parts.length}. Skipping.`
+                    );
+                }
+
+                const [limit, batched, depthMonths] = [Number(parts[0]), Number(parts[1]), Number(parts[2])];
                 if (Number.isNaN(limit) || Number.isNaN(batched) || Number.isNaN(depthMonths)) {
                     throw new Error(`Invalid limits for plan "${name}". Skipping.`);
                 }
 
-                plans.set(name, {
-                    maxLimit: limit,
-                    maxBatched: batched,
-                    maxDepthMonths: depthMonths,
-                });
+                const planLimits = { maxLimit: limit, maxBatched: batched, maxDepthMonths: depthMonths };
+                plans.set(name, planLimits);
 
                 if (!name.startsWith('tgm-')) {
-                    plans.set(`tgm-${name.toUpperCase()}`, {
-                        maxLimit: limit,
-                        maxBatched: batched,
-                        maxDepthMonths: depthMonths,
-                    });
+                    plans.set(`tgm-${name.toUpperCase()}`, planLimits);
                 }
             });
 
