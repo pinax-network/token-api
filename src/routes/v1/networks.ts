@@ -23,7 +23,7 @@ const networksSchema = z.object({
             name: z.string(),
         }),
     }),
-    alias: z.array(z.string()),
+    aliases: z.array(z.string()),
 });
 
 const responseSchema = z.object({
