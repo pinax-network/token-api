@@ -58,8 +58,8 @@ filtered_transfers AS
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
     WHERE
-        toRelativeMinuteNum(timestamp) IN dates AND
-        ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
+        toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
+        AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
         AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
