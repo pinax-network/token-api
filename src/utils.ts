@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 import { resolver } from 'hono-openapi/zod';
 import { ZodError } from 'zod';
+import { config } from './config.js';
 import { logger } from './logger.js';
 import {
     type ApiErrorResponse,
@@ -53,20 +54,97 @@ export function now() {
     return Math.floor(Date.now() / 1000);
 }
 
+export function getDateMinusMonths(months: number): string {
+    const date = new Date();
+    date.setMonth(date.getMonth() - months);
+    return date.toISOString().substring(0, 10);
+}
+
 export function validatorHook(
-    parseResult: { success: true; data: object } | { success: false; error: unknown },
+    parseResult:
+        | {
+              success: true;
+              data: {
+                  limit?: number;
+                  start_time?: number;
+                  end_time?: number;
+              } & {
+                  [key: string]: unknown | unknown[];
+              };
+          }
+        | { success: false; error: unknown },
     ctx: Context
 ) {
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
 
-    // TODO: implement plan limits
-    // const plan = ctx.req.header('X-Plan');
-    // if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', 'Missing `X-Plan` header in request.');
+    const plan = ctx.req.header('X-Plan');
 
-    ctx.set('validatedData', {
-        ...(ctx.get('validatedData') || {}),
-        ...parseResult.data,
-    });
+    // Bypass plan limits if PLANS config is empty (local development)
+    if (config.plans !== null) {
+        if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', `Missing 'X-Plan' header in request.`);
+
+        const planConfig = config.plans.get(plan);
+        if (!planConfig) {
+            return APIErrorResponse(ctx, 400, 'bad_header', `'X-Plan' header has invalid value.`);
+        }
+
+        const max_limit: number = planConfig.maxLimit;
+        const max_batched: number = planConfig.maxBatched;
+        const max_depth_months: number = planConfig.maxDepthMonths;
+        const data = parseResult.data;
+
+        // Limit
+        if (max_limit !== 0 && data.limit && data.limit > max_limit)
+            return APIErrorResponse(ctx, 403, 'forbidden', `Parameter 'limit' exceeds maximum of ${max_limit} items.`);
+
+        // Batched parameters
+        const exceededParams = Object.entries(data)
+            .filter(([_, value]) => Array.isArray(value) && value.length > max_batched)
+            .map(([key, value]) => ({ name: key, length: (value as unknown[]).length }));
+
+        if (max_batched !== 0 && exceededParams.length > 0) {
+            const paramDetails = exceededParams.map((p) => `'${p.name}' (${p.length} values)`).join(', ');
+            return APIErrorResponse(
+                ctx,
+                403,
+                'forbidden',
+                `Parameters ${paramDetails} exceed maximum batch limit of ${max_batched}.`
+            );
+        }
+
+        // Historical depth for OHLCV
+        const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
+        if (is_ohlcv_endpoint && max_depth_months !== 0 && data.start_time && data.end_time) {
+            if (data.end_time < data.start_time)
+                return APIErrorResponse(ctx, 400, 'bad_query_input', `'end_time' cannot be less than 'start_time'.`);
+
+            // Clamp `end_time` to `now()` for month difference calculation
+            const clampedEndTime = Math.min(data.end_time, now());
+            const endDate = new Date(clampedEndTime * 1000);
+            const cutoffDate = new Date(endDate);
+            cutoffDate.setMonth(cutoffDate.getMonth() - max_depth_months);
+            cutoffDate.setUTCHours(0);
+            cutoffDate.setUTCMinutes(0);
+            cutoffDate.setUTCSeconds(0);
+            cutoffDate.setUTCMilliseconds(0);
+            const startDate = new Date(data.start_time * 1000);
+
+            // Check if start_time is before the cutoff date
+            if (startDate < cutoffDate)
+                return APIErrorResponse(
+                    ctx,
+                    403,
+                    'forbidden',
+                    `Parameters 'start_time', 'end_time' exceed maximum historical depth of ${max_depth_months} months.`
+                );
+        }
+    }
+
+    if (parseResult.data)
+        ctx.set('validatedData', {
+            ...(ctx.get('validatedData') || {}),
+            ...parseResult.data,
+        });
 }
 
 export interface RouteDescription {
