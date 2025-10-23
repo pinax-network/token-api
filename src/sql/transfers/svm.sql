@@ -16,9 +16,6 @@
 
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
-    PREWHERE
-        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
     GROUP BY ts
 
