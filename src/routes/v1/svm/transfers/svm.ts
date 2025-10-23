@@ -34,7 +34,7 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: SVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
-    // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
+    address: { schema: svmTokenAccountSchema, batched: true, default: '' },
     source: { schema: svmTokenAccountSchema, batched: true, default: '' },
     destination: {
         schema: svmTokenAccountSchema,
