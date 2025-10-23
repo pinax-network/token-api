@@ -1,4 +1,42 @@
-WITH filtered_transfers AS
+ WITH dates AS
+(
+    SELECT toRelativeHourNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
+    GROUP BY ts
+
+    UNION ALL
+
+    SELECT toRelativeHourNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
+    GROUP BY ts
+
+    UNION ALL
+
+    SELECT toRelativeHourNum(timestamp) AS ts
+    FROM transfers
+    PREWHERE
+        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+    WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
+    GROUP BY ts
+
+    UNION ALL
+
+    SELECT toRelativeHourNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
+    GROUP BY ts
+
+    UNION ALL
+
+    SELECT toRelativeHourNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
+    GROUP BY ts
+),
+filtered_transfers AS
 (
     SELECT
         block_num,
@@ -22,8 +60,9 @@ WITH filtered_transfers AS
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND toRelativeHourNum(timestamp) IN dates
     WHERE
-        ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
+        AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
         AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
