@@ -1,9 +1,13 @@
- WITH dates AS
+-- get ranges of minutes that contain our transfers
+WITH dates AS
 (
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
     GROUP BY ts
+    ORDER BY ts DESC
+    -- there can only be 1 time range with our signature
+    LIMIT 1
 
     UNION ALL
 
@@ -11,6 +15,9 @@
     FROM transfers
     WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
     GROUP BY ts
+    ORDER BY ts DESC
+    -- limit number of ranges to avoid overfetching for very active senders
+    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -18,6 +25,8 @@
     FROM transfers
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
     GROUP BY ts
+    ORDER BY ts DESC
+    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -25,6 +34,8 @@
     FROM transfers
     WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
     GROUP BY ts
+    ORDER BY ts DESC
+    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -32,6 +43,8 @@
     FROM transfers
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
     GROUP BY ts
+    ORDER BY ts DESC
+    LIMIT {offset:UInt64}+{limit:UInt64}
 ),
 filtered_transfers AS
 (
@@ -59,7 +72,12 @@ filtered_transfers AS
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
     WHERE
         (
-            ({signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND {mint:Array(String)} = [''])
+            (
+                -- if no filters are applied, return the last 24 hours
+                {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND {mint:Array(String)} = ['']
+                AND timestamp >= now() - INTERVAL 24 HOUR
+            )
+            -- if filters are applied, return the ranges we pre-filtered
             OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
         )
         AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
@@ -82,7 +100,7 @@ metadata AS
     FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state_latest
+        FROM metadata_mint_state
         JOIN filtered_transfers USING mint
         GROUP BY metadata
     )
