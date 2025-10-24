@@ -1,12 +1,23 @@
--- get ranges of minutes that contain our transfers
-WITH dates AS
+WITH
+/* 1) Count how many filters are active */
+active_filters AS
+(
+    SELECT
+        toUInt8({signature:Array(String)}   != ['']) +
+        toUInt8({source:Array(String)}      != ['']) +
+        toUInt8({destination:Array(String)} != ['']) +
+        toUInt8({authority:Array(String)}   != ['']) +
+        toUInt8({mint:Array(String)}        != [''])
+    AS n
+),
+/* 2) Union buckets from only active filters */
+dates_union AS
 (
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
     GROUP BY ts
     ORDER BY ts DESC
-    -- there can only be 1 time range with our signature
     LIMIT 1
 
     UNION ALL
@@ -15,9 +26,6 @@ WITH dates AS
     FROM transfers
     WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
     GROUP BY ts
-    ORDER BY ts DESC
-    -- limit number of ranges to avoid overfetching for very active senders
-    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -25,8 +33,6 @@ WITH dates AS
     FROM transfers
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
     GROUP BY ts
-    ORDER BY ts DESC
-    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -34,8 +40,6 @@ WITH dates AS
     FROM transfers
     WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
     GROUP BY ts
-    ORDER BY ts DESC
-    LIMIT {offset:UInt64}+{limit:UInt64}
 
     UNION ALL
 
@@ -43,9 +47,19 @@ WITH dates AS
     FROM transfers
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
     GROUP BY ts
+),
+/* 3) Intersect: keep only buckets present in ALL active filters */
+dates AS
+(
+    SELECT du.ts
+    FROM dates_union du
+    GROUP BY du.ts
+    HAVING count() = (SELECT n FROM active_filters)
     ORDER BY ts DESC
     LIMIT {offset:UInt64}+{limit:UInt64}
+
 ),
+
 filtered_transfers AS
 (
     SELECT
@@ -73,11 +87,10 @@ filtered_transfers AS
     WHERE
         (
             (
-                -- if no filters are applied, return the last 24 hours
-                {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND {mint:Array(String)} = ['']
-                AND timestamp >= now() - INTERVAL 24 HOUR
+                {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND
+                {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND
+                {mint:Array(String)} = [''] AND timestamp >= now() - INTERVAL 24 HOUR
             )
-            -- if filters are applied, return the ranges we pre-filtered
             OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
         )
         AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
