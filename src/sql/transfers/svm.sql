@@ -90,7 +90,9 @@ filtered_transfers AS
                 /* if no filters are active, search through the last hour only */
                 {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND
                 {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND
-                {mint:Array(String)} = [''] AND timestamp >= now() - INTERVAL 1 HOUR
+                {mint:Array(String)} = [''] AND timestamp BETWEEN
+                                                greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
+                                                AND least(toDateTime({end_time:UInt64}), now())
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
