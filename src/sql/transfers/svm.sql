@@ -16,39 +16,39 @@ dates_union AS
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
-    GROUP BY ts
-    ORDER BY ts DESC
-    LIMIT 1
+    LIMIT 1 BY ts
+    LIMIT 1 /* there can only be one time range with our trx, so use early return */
 
     UNION ALL
 
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
-    GROUP BY ts
+    LIMIT 1 BY ts
 
     UNION ALL
 
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
-    GROUP BY ts
+    LIMIT 1 BY ts
 
     UNION ALL
 
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
-    GROUP BY ts
+    LIMIT 1 BY ts
 
     UNION ALL
 
+    /* this doesn't work good for very active mints like native */
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
-    GROUP BY ts
+    LIMIT 1 BY ts
 ),
-/* 3) Intersect: keep only buckets present in ALL active filters */
+/* 3) Intersect: keep only buckets present in ALL active filters, i.e. if we filter by source & dest we'll have 2 minute ranges where they intersect - keep them*/
 dates AS
 (
     SELECT du.ts
@@ -87,12 +87,15 @@ filtered_transfers AS
     WHERE
         (
             (
+                /* if no filters are active, search through the last hour only */
                 {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND
                 {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND
-                {mint:Array(String)} = [''] AND timestamp >= now() - INTERVAL 24 HOUR
+                {mint:Array(String)} = [''] AND timestamp >= now() - INTERVAL 1 HOUR
             )
+            /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
         )
+        /* filter the trimmed down ranges by the filters */
         AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
         AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
