@@ -1,4 +1,67 @@
-WITH filtered_transfers AS
+WITH
+/* 1) Count how many filters are active */
+active_filters AS
+(
+    SELECT
+        toUInt8({signature:Array(String)}   != ['']) +
+        toUInt8({source:Array(String)}      != ['']) +
+        toUInt8({destination:Array(String)} != ['']) +
+        toUInt8({authority:Array(String)}   != ['']) +
+        toUInt8({mint:Array(String)}        != [''])
+    AS n
+),
+/* 2) Union buckets from only active filters */
+dates_union AS
+(
+    SELECT toRelativeMinuteNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
+    LIMIT 1 BY ts
+    LIMIT 1 /* there can only be one time range with our trx, so use early return */
+
+    UNION ALL
+
+    SELECT toRelativeMinuteNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
+    LIMIT 1 BY ts
+
+    UNION ALL
+
+    SELECT toRelativeMinuteNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
+    LIMIT 1 BY ts
+
+    UNION ALL
+
+    SELECT toRelativeMinuteNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
+    LIMIT 1 BY ts
+
+    UNION ALL
+
+    /* this doesn't work good for very active mints like native */
+    /* ideally we should use "order by timestamp desc" and limit but projection can't do that: https://github.com/ClickHouse/ClickHouse/issues/47333 */
+    SELECT toRelativeMinuteNum(timestamp) AS ts
+    FROM transfers
+    WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
+    LIMIT 1 BY ts
+),
+/* 3) Intersect: keep only buckets present in ALL active filters, i.e. if we filter by source & dest we'll have 2 minute ranges where they intersect - keep them*/
+dates AS
+(
+    SELECT du.ts
+    FROM dates_union du
+    GROUP BY du.ts
+    HAVING count() = (SELECT n FROM active_filters)
+    ORDER BY ts DESC
+    LIMIT {offset:UInt64}+{limit:UInt64}
+
+),
+
+filtered_transfers AS
 (
     SELECT
         block_num,
@@ -23,7 +86,20 @@ WITH filtered_transfers AS
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
     WHERE
-        ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
+        (
+            (
+                /* if no filters are active, search through the last hour only */
+                {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND
+                {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND
+                {mint:Array(String)} = [''] AND timestamp BETWEEN
+                                                greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
+                                                AND least(toDateTime({end_time:UInt64}), now())
+            )
+            /* if filters are active, search through the intersecting minute ranges */
+            OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
+        )
+        /* filter the trimmed down ranges by the filters */
+        AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
         AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
@@ -43,7 +119,7 @@ metadata AS
     FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state_latest
+        FROM metadata_mint_state
         JOIN filtered_transfers USING mint
         GROUP BY metadata
     )
