@@ -43,6 +43,7 @@ dates_union AS
     UNION ALL
 
     /* this doesn't work good for very active mints like native */
+    /* ideally we should use "order by timestamp desc" and limit but projection can't do that: https://github.com/ClickHouse/ClickHouse/issues/47333 */
     SELECT toRelativeMinuteNum(timestamp) AS ts
     FROM transfers
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
