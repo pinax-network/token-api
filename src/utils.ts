@@ -81,8 +81,13 @@ export function validatorHook(
 
     const plan = ctx.req.header('X-Plan');
 
-    // Bypass plan limits if PLANS config is empty (local development)
-    if (config.plans !== null) {
+    // Bypass plan limits if PLANS config is empty (local development) and for monitoring endpoints
+    if (
+        config.plans !== null &&
+        ctx.req.path !== '/v1/health' &&
+        ctx.req.path !== '/v1/version' &&
+        ctx.req.path !== '/v1/networks'
+    ) {
         if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', `Missing 'X-Plan' header in request.`);
 
         const planConfig = config.plans.get(plan);
