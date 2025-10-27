@@ -1,18 +1,32 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { Context } from 'hono';
 import { z } from 'zod';
+import { config } from './config.js';
 import { APIErrorResponse, now, validatorHook, withErrorResponses, withTimeout } from './utils.js';
 
-// Mock context helper
-function createMockContext(): Context {
+type ConfigWithPlans = typeof config & {
+    plans: Map<string, { maxLimit: number; maxBatched: number; maxBars: number; allowedIntervals: string[] }> | null;
+};
+
+function createMockContext(
+    overrides: Partial<{
+        path: string;
+        headers: Record<string, string>;
+        validatedData: Record<string, unknown>;
+    }> = {}
+): Context {
     const store = new Map<string, unknown>();
+    if (overrides.validatedData) {
+        store.set('validatedData', overrides.validatedData);
+    }
 
     return {
         json: mock((data: unknown, status: number) => ({ data, status })),
         set: mock((key: string, value: unknown) => store.set(key, value)),
         get: mock((key: string) => store.get(key)),
         req: {
-            header: mock((_name: string) => undefined),
+            path: overrides.path || '/api/v1/tokens',
+            header: mock((name: string) => overrides.headers?.[name] || undefined),
         },
     } as unknown as Context;
 }
@@ -114,7 +128,6 @@ describe('now', () => {
         const result = now();
         const expected = Math.floor(Date.now() / 1000);
 
-        // Allow 1 second difference for test execution time
         expect(Math.abs(result - expected)).toBeLessThanOrEqual(1);
     });
 
@@ -130,16 +143,20 @@ describe('now', () => {
 });
 
 describe('validatorHook', () => {
+    beforeEach(() => {
+        (config as ConfigWithPlans).plans = null;
+    });
+
     it('should set validated data on successful parse', () => {
         const ctx = createMockContext();
         const parseResult = {
             success: true as const,
-            data: { name: 'John', age: 30 },
+            data: { limit: 10, name: 'John', age: 30 },
         };
 
         validatorHook(parseResult, ctx);
 
-        expect(ctx.set).toHaveBeenCalledWith('validatedData', { name: 'John', age: 30 });
+        expect(ctx.set).toHaveBeenCalledWith('validatedData', { limit: 10, name: 'John', age: 30 });
     });
 
     it('should merge with existing validated data', () => {
@@ -148,13 +165,14 @@ describe('validatorHook', () => {
 
         const parseResult = {
             success: true as const,
-            data: { name: 'John' },
+            data: { limit: 10, name: 'John' },
         };
 
         validatorHook(parseResult, ctx);
 
         expect(ctx.set).toHaveBeenCalledWith('validatedData', {
             existing: 'data',
+            limit: 10,
             name: 'John',
         });
     });
@@ -206,10 +224,564 @@ describe('validatorHook', () => {
 
         validatorHook(parseResult, ctx);
 
-        // ctx.set should only be called by APIErrorResponse, not for validatedData
         const mockSet = ctx.set as ReturnType<typeof mock>;
         const validatedDataCalls = mockSet.mock.calls.filter((call: unknown[]) => call[0] === 'validatedData');
         expect(validatedDataCalls).toHaveLength(0);
+    });
+
+    describe('Plan Limits', () => {
+        describe('Config plans is null (local development bypass)', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = null;
+            });
+
+            it('should bypass all checks when config.plans is null', () => {
+                const ctx = createMockContext();
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 10000,
+                        addresses: new Array(1000).fill('0x123'),
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+                expect(ctx.set).toHaveBeenCalledWith('validatedData', expect.any(Object));
+            });
+
+            it('should not require X-Plan header when bypassed', () => {
+                const ctx = createMockContext();
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 100 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('Invalid parse result', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['starter', { maxLimit: 15, maxBatched: 3, maxBars: 200, allowedIntervals: ['1d', '1w'] }],
+                ]);
+            });
+
+            it('should return error when parseResult.success is false', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: false as const,
+                    error: { issues: [{ message: 'Invalid input' }] },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('Missing or invalid X-Plan header', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['starter', { maxLimit: 15, maxBatched: 3, maxBars: 200, allowedIntervals: ['1d', '1w'] }],
+                ]);
+            });
+
+            it('should return error when X-Plan header is missing', () => {
+                const ctx = createMockContext();
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 5 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+
+            it('should return error when X-Plan header has invalid value', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'nonexistent' } });
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 5 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('Starter Plan - Basic limits and batching', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['starter', { maxLimit: 15, maxBatched: 3, maxBars: 200, allowedIntervals: ['1d', '1w'] }],
+                    ['tgm-STARTER', { maxLimit: 15, maxBatched: 3, maxBars: 200, allowedIntervals: ['1d', '1w'] }],
+                ]);
+            });
+
+            it('should allow limit within bounds', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 15 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+                expect(ctx.set).toHaveBeenCalled();
+            });
+
+            it('should reject limit exceeding max_limit', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 16 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+
+            it('should allow batched parameters within bounds', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 10,
+                        addresses: ['0x123', '0x456', '0x789'],
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should reject batched parameters exceeding limit', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 10,
+                        addresses: ['0x123', '0x456', '0x789', '0xabc'],
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+
+            it('should work with tgm- prefixed alias', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'tgm-STARTER' } });
+                const parseResult = {
+                    success: true as const,
+                    data: { limit: 15 },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('Hobby Plan - OHLCV intervals and bars', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['hobby', { maxLimit: 25, maxBatched: 5, maxBars: 300, allowedIntervals: ['4h', '1d', '1w'] }],
+                    ['tgm-HOBBY', { maxLimit: 25, maxBatched: 5, maxBars: 300, allowedIntervals: ['4h', '1d', '1w'] }],
+                ]);
+            });
+
+            it('should allow 4h interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const sevenDaysAgo = nowTimestamp - 7 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 240,
+                        start_time: sevenDaysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should reject 1h interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const oneDayAgo = nowTimestamp - 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 60,
+                        start_time: oneDayAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+
+            it('should allow up to 300 bars at 4h interval (50 days)', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const fiftyDaysAgo = nowTimestamp - 50 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 240,
+                        start_time: fiftyDaysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should reject more than 300 bars at 4h interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const fiftyOneDaysAgo = nowTimestamp - 51 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 240,
+                        start_time: fiftyOneDaysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+
+            it('should allow up to 300 bars at 1d interval (300 days)', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const daysAgo = nowTimestamp - 300 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 1440,
+                        start_time: daysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('Growth Plan - Extended limits', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    [
+                        'growth',
+                        { maxLimit: 150, maxBatched: 30, maxBars: 5000, allowedIntervals: ['1h', '4h', '1d', '1w'] },
+                    ],
+                    [
+                        'tgm-GROWTH',
+                        { maxLimit: 150, maxBatched: 30, maxBars: 5000, allowedIntervals: ['1h', '4h', '1d', '1w'] },
+                    ],
+                ]);
+            });
+
+            it('should allow 1h interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'growth' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const oneDayAgo = nowTimestamp - 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 100,
+                        interval: 60,
+                        start_time: oneDayAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should allow up to 5000 bars at 1h interval (208 days)', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'growth' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const daysAgo = nowTimestamp - 208 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 100,
+                        interval: 60,
+                        start_time: daysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should reject more than 5000 bars at 1h interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'growth' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const daysAgo = nowTimestamp - 210 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 100,
+                        interval: 60,
+                        start_time: daysAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('Business Plan - Unlimited OHLCV', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['business', { maxLimit: 750, maxBatched: 100, maxBars: 0, allowedIntervals: [] }],
+                    ['tgm-BUSINESS', { maxLimit: 750, maxBatched: 100, maxBars: 0, allowedIntervals: [] }],
+                ]);
+            });
+
+            it('should allow any interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'business' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const oneDayAgo = nowTimestamp - 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 500,
+                        interval: 60,
+                        start_time: oneDayAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should allow unlimited bars', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'business' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const fiveYearsAgo = nowTimestamp - 5 * 365 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 500,
+                        interval: 60,
+                        start_time: fiveYearsAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('Elite Plan - All unlimited', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['elite', { maxLimit: 0, maxBatched: 0, maxBars: 0, allowedIntervals: [] }],
+                ]);
+            });
+
+            it('should allow unlimited bars and any interval', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'elite' },
+                    path: '/api/v1/tokens/historical',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const tenYearsAgo = nowTimestamp - 10 * 365 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 10000,
+                        interval: 60,
+                        start_time: tenYearsAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('Multiple batched parameters exceeding limits', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['starter', { maxLimit: 15, maxBatched: 3, maxBars: 200, allowedIntervals: ['1d', '1w'] }],
+                ]);
+            });
+
+            it('should report all exceeded batched parameters', () => {
+                const ctx = createMockContext({ headers: { 'X-Plan': 'starter' } });
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 10,
+                        addresses: ['0x123', '0x456', '0x789', '0xabc'],
+                        chain_ids: ['1', '56', '137', '10'],
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('Edge cases', () => {
+            beforeEach(() => {
+                (config as ConfigWithPlans).plans = new Map([
+                    ['hobby', { maxLimit: 25, maxBatched: 5, maxBars: 300, allowedIntervals: ['4h', '1d', '1w'] }],
+                ]);
+            });
+
+            it('should clamp future end_time to now for bars calculation', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const future = nowTimestamp + 30 * 24 * 60 * 60;
+                const fiftyDaysAgo = nowTimestamp - 50 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 240,
+                        start_time: fiftyDaysAgo,
+                        end_time: future,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should not check bars when interval is missing', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/ohlc',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const oneYearAgo = nowTimestamp - 365 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        start_time: oneYearAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should not check OHLCV limits on non-OHLCV endpoints', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    path: '/api/v1/tokens/balances',
+                });
+                const nowTimestamp = Math.floor(Date.now() / 1000);
+                const oneYearAgo = nowTimestamp - 365 * 24 * 60 * 60;
+
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        interval: 60,
+                        start_time: oneYearAgo,
+                        end_time: nowTimestamp,
+                    },
+                };
+
+                const result = validatorHook(parseResult, ctx);
+                expect(result).toBeUndefined();
+            });
+
+            it('should merge validatedData with existing context data', () => {
+                const ctx = createMockContext({
+                    headers: { 'X-Plan': 'hobby' },
+                    validatedData: { existing: 'data' },
+                });
+                const parseResult = {
+                    success: true as const,
+                    data: {
+                        limit: 20,
+                        address: '0x123',
+                    },
+                };
+
+                validatorHook(parseResult, ctx);
+                expect(ctx.set).toHaveBeenCalledWith('validatedData', {
+                    existing: 'data',
+                    limit: 20,
+                    address: '0x123',
+                });
+            });
+        });
     });
 });
 
@@ -254,7 +826,6 @@ describe('withErrorResponses', () => {
 
         const result = withErrorResponses(routeDescription);
 
-        // The function merges responses, so both should exist
         expect(result.responses[400]).toBeDefined();
         expect(result.responses[400].description).toBeDefined();
     });
@@ -313,7 +884,7 @@ describe('withTimeout', () => {
 
         try {
             await withTimeout(promise, 50);
-            expect(true).toBe(false); // Should not reach here
+            expect(true).toBe(false);
         } catch (error) {
             expect(error).toBeInstanceOf(Error);
             expect((error as Error).message).toBe('Operation timed out');
@@ -327,7 +898,7 @@ describe('withTimeout', () => {
 
         try {
             await withTimeout(promise, 50, 'Custom timeout message');
-            expect(true).toBe(false); // Should not reach here
+            expect(true).toBe(false);
         } catch (error) {
             expect((error as Error).message).toBe('Custom timeout message');
         }
@@ -340,7 +911,7 @@ describe('withTimeout', () => {
 
         try {
             await withTimeout(promise, 200);
-            expect(true).toBe(false); // Should not reach here
+            expect(true).toBe(false);
         } catch (error) {
             expect((error as Error).message).toBe('Promise failed');
         }
@@ -357,7 +928,7 @@ describe('withTimeout', () => {
 
         try {
             await withTimeout(promise, 100);
-            expect(true).toBe(false); // Should not reach here
+            expect(true).toBe(false);
         } catch (error) {
             expect((error as Error).message).toBe('immediate failure');
         }
@@ -370,7 +941,7 @@ describe('withTimeout', () => {
 
         try {
             await withTimeout(promise, 1);
-            expect(true).toBe(false); // Should not reach here
+            expect(true).toBe(false);
         } catch (error) {
             expect(error).toBeInstanceOf(Error);
         }

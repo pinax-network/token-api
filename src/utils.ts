@@ -1,11 +1,13 @@
 import type { Context } from 'hono';
 import { resolver } from 'hono-openapi/zod';
 import { ZodError } from 'zod';
+import { config } from './config.js';
 import { logger } from './logger.js';
 import {
     type ApiErrorResponse,
     type ClientErrorResponse,
     clientErrorResponseSchema,
+    intervalSchema,
     type ServerErrorResponse,
     serverErrorResponseSchema,
 } from './types/zod.js';
@@ -53,20 +55,122 @@ export function now() {
     return Math.floor(Date.now() / 1000);
 }
 
+export function getDateMinusMonths(months: number): string {
+    const date = new Date();
+    date.setMonth(date.getMonth() - months);
+    return date.toISOString().substring(0, 10);
+}
+
 export function validatorHook(
-    parseResult: { success: true; data: object } | { success: false; error: unknown },
+    parseResult:
+        | {
+              success: true;
+              data: {
+                  limit?: number;
+                  start_time?: number;
+                  end_time?: number;
+                  interval?: number;
+              } & {
+                  [key: string]: unknown | unknown[];
+              };
+          }
+        | { success: false; error: unknown },
     ctx: Context
 ) {
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
 
-    // TODO: implement plan limits
-    // const plan = ctx.req.header('X-Plan');
-    // if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', 'Missing `X-Plan` header in request.');
+    const plan = ctx.req.header('X-Plan');
 
-    ctx.set('validatedData', {
-        ...(ctx.get('validatedData') || {}),
-        ...parseResult.data,
-    });
+    // Bypass plan limits if PLANS config is empty (local development)
+    if (config.plans !== null) {
+        if (!plan) return APIErrorResponse(ctx, 400, 'bad_header', `Missing 'X-Plan' header in request.`);
+
+        const planConfig = config.plans.get(plan);
+        if (!planConfig) {
+            return APIErrorResponse(ctx, 400, 'bad_header', `'X-Plan' header has invalid value.`);
+        }
+
+        const max_limit: number = planConfig.maxLimit;
+        const max_batched: number = planConfig.maxBatched;
+        const max_bars: number = planConfig.maxBars;
+        const allowed_intervals: string[] = planConfig.allowedIntervals;
+        const data = parseResult.data;
+
+        // Limit
+        if (max_limit !== 0 && data.limit && data.limit > max_limit)
+            return APIErrorResponse(ctx, 403, 'forbidden', `Parameter 'limit' exceeds maximum of ${max_limit} items.`);
+
+        // Batched parameters
+        const exceededParams = Object.entries(data)
+            .filter(([_, value]) => Array.isArray(value) && value.length > max_batched)
+            .map(([key, value]) => ({ name: key, length: (value as unknown[]).length }));
+
+        if (max_batched !== 0 && exceededParams.length > 0) {
+            const paramDetails = exceededParams.map((p) => `'${p.name}' (${p.length} values)`).join(', ');
+            return APIErrorResponse(
+                ctx,
+                403,
+                'forbidden',
+                `Parameters ${paramDetails} exceed maximum batch limit of ${max_batched}.`
+            );
+        }
+
+        // OHLCV bars and interval restrictions
+        const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
+        if (is_ohlcv_endpoint) {
+            // Check interval restrictions
+            if (allowed_intervals.length > 0 && data.interval) {
+                // Parse allowed intervals using intervalSchema
+                const allowedIntervalMinutes: number[] = [];
+                for (const intervalStr of allowed_intervals) {
+                    const parseResult = intervalSchema.safeParse(intervalStr);
+                    if (parseResult.success) {
+                        allowedIntervalMinutes.push(parseResult.data);
+                    }
+                }
+
+                if (!allowedIntervalMinutes.includes(data.interval)) {
+                    return APIErrorResponse(
+                        ctx,
+                        403,
+                        'forbidden',
+                        `Parameter 'interval' must be one of: ${allowed_intervals.join(', ')}.`
+                    );
+                }
+            }
+
+            // Check bars limit (time range / interval)
+            if (max_bars !== 0 && data.start_time && data.end_time && data.interval) {
+                if (data.end_time < data.start_time)
+                    return APIErrorResponse(
+                        ctx,
+                        400,
+                        'bad_query_input',
+                        `Parameter 'end_time' cannot be less than 'start_time'.`
+                    );
+
+                const clampedEndTime = Math.min(data.end_time, now());
+                const timeRangeSeconds = clampedEndTime - data.start_time;
+                const intervalSeconds = data.interval * 60;
+                const requestedBars = Math.ceil(timeRangeSeconds / intervalSeconds);
+
+                if (requestedBars > max_bars) {
+                    return APIErrorResponse(
+                        ctx,
+                        403,
+                        'forbidden',
+                        `Requested time range would return ${requestedBars} bars, exceeding maximum of ${max_bars} bars.`
+                    );
+                }
+            }
+        }
+    }
+
+    if (parseResult.data)
+        ctx.set('validatedData', {
+            ...(ctx.get('validatedData') || {}),
+            ...parseResult.data,
+        });
 }
 
 export interface RouteDescription {

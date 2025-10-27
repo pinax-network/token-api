@@ -105,7 +105,7 @@ export const svmProtocolSchema = z
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 // ----------------------
-// Common Query Parameter Schemas (with defaults for SQL)
+// Common Query Parameter Schemas
 // ----------------------
 
 export const limitSchema = z.coerce.number().int().min(1).max(config.maxLimit).default(DEFAULT_LIMIT).optional().meta({
@@ -121,8 +121,9 @@ export const pageSchema = z.coerce
     .optional()
     .meta({ description: 'Page number to fetch.<br>Empty `data` array signifies end of results.' });
 
+const intervals = ['1h', '4h', '1d', '1w'] as const;
 export const intervalSchema = z
-    .enum(['1h', '4h', '1d', '1w'])
+    .enum(intervals)
     .transform((interval: string) => {
         switch (interval) {
             case '1h':
@@ -139,9 +140,10 @@ export const intervalSchema = z
     })
     .meta({
         type: 'string',
-        enum: ['1h', '4h', '1d', '1w'],
+        enum: intervals,
         default: '1d',
-        description: 'The interval for which to aggregate price data (hourly, 4-hours, daily or weekly).',
+        description:
+            'The interval* for which to aggregate price data (hourly, 4-hours, daily or weekly).<br>*Plan restricted.',
     });
 
 export const timestampSchema = z

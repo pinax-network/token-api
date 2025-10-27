@@ -16,14 +16,14 @@ import {
     intervalSchema,
     timestampSchema,
 } from '../../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
     contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1w' } },
-    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
+    start_time: { schema: timestampSchema, prefault: getDateMinusMonths(1) },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
 });
 
