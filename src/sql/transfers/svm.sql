@@ -11,54 +11,50 @@ active_filters AS
     AS n
 ),
 /* 2) Union buckets from only active filters */
-dates_union AS
+minutes_union AS
 (
-    SELECT toRelativeMinuteNum(timestamp) AS ts
-    FROM transfers
+    SELECT minute
+    FROM transfers_by_signature
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
-    LIMIT 1 BY ts
+    ORDER BY minute DESC
     LIMIT 1 /* there can only be one time range with our trx, so use early return */
 
     UNION ALL
 
-    SELECT toRelativeMinuteNum(timestamp) AS ts
-    FROM transfers
+    SELECT minute
+    FROM transfers_by_source
     WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
-    LIMIT 1 BY ts
+    ORDER BY minute DESC
 
     UNION ALL
 
-    SELECT toRelativeMinuteNum(timestamp) AS ts
-    FROM transfers
+    SELECT minute
+    FROM transfers_by_destination
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
-    LIMIT 1 BY ts
+    ORDER BY minute DESC
 
     UNION ALL
 
-    SELECT toRelativeMinuteNum(timestamp) AS ts
-    FROM transfers
+    SELECT minute
+    FROM transfers_by_authority
     WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
-    LIMIT 1 BY ts
+    ORDER BY minute DESC
 
     UNION ALL
 
-    /* this doesn't work good for very active mints like native */
-    /* ideally we should use "order by timestamp desc" and limit but projection can't do that: https://github.com/ClickHouse/ClickHouse/issues/47333 */
-    SELECT toRelativeMinuteNum(timestamp) AS ts
-    FROM transfers
+    SELECT minute
+    FROM transfers_by_mint
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
-    LIMIT 1 BY ts
+    ORDER BY minute DESC
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, i.e. if we filter by source & dest we'll have 2 minute ranges where they intersect - keep them*/
-dates AS
+filtered_minutes AS
 (
-    SELECT du.ts
-    FROM dates_union du
-    GROUP BY du.ts
-    HAVING count() = (SELECT n FROM active_filters)
-    ORDER BY ts DESC
-    LIMIT {offset:UInt64}+{limit:UInt64}
-
+    SELECT minute FROM minutes_union
+    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
 ),
 
 filtered_transfers AS
@@ -96,7 +92,7 @@ filtered_transfers AS
                                                 AND least(toDateTime({end_time:UInt64}), now())
             )
             /* if filters are active, search through the intersecting minute ranges */
-            OR toRelativeMinuteNum(timestamp) IN (SELECT ts FROM dates)
+            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         )
         /* filter the trimmed down ranges by the filters */
         AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
@@ -105,7 +101,7 @@ filtered_transfers AS
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
         AND ({mint:Array(String)} = [''] OR mint IN {mint:Array(String)})
         AND ({program_id:String} = '' OR program_id = {program_id:String})
-    ORDER BY timestamp DESC, signature, transaction_index, instruction_index
+    ORDER BY timestamp DESC /*, signature, transaction_index, instruction_index */
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
