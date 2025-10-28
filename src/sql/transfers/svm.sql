@@ -120,7 +120,7 @@ metadata AS
     WHERE metadata IN (
         SELECT metadata
         FROM metadata_mint_state_latest
-        JOIN filtered_transfers USING mint
+        WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
         GROUP BY metadata
     )
 )
