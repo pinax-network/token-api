@@ -55,8 +55,13 @@ filtered_minutes AS
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
 ),
-
 filtered_transfers AS
 (
     SELECT
@@ -81,27 +86,26 @@ filtered_transfers AS
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-    WHERE
-        (
+        AND (
             (
                 /* if no filters are active, search through the last hour only */
-                {signature:Array(String)} = [''] AND {source:Array(String)} = [''] AND
-                {destination:Array(String)} = [''] AND {authority:Array(String)} = [''] AND
-                {mint:Array(String)} = [''] AND timestamp BETWEEN
-                                                greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
-                                                AND least(toDateTime({end_time:UInt64}), now())
+                (SELECT n FROM active_filters) = 0
+                AND timestamp BETWEEN
+                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
+                    AND least(toDateTime({end_time:UInt64}), now())
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         )
-        /* filter the trimmed down ranges by the filters */
-        AND ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
+    WHERE
+        /* filter the trimmed down minute ranges by the active filters */
+        ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
         AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
         AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
         AND ({mint:Array(String)} = [''] OR mint IN {mint:Array(String)})
         AND ({program_id:String} = '' OR program_id = {program_id:String})
-    ORDER BY timestamp DESC /*, signature, transaction_index, instruction_index */
+    ORDER BY timestamp DESC, transaction_index, instruction_index
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -115,7 +119,7 @@ metadata AS
     FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state
+        FROM metadata_mint_state_latest
         JOIN filtered_transfers USING mint
         GROUP BY metadata
     )
@@ -141,4 +145,4 @@ SELECT
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN metadata USING mint
-ORDER BY timestamp DESC, signature, transaction_index, instruction_index
+ORDER BY timestamp DESC, transaction_index, instruction_index
