@@ -105,7 +105,7 @@ filtered_transfers AS
         AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
         AND ({mint:Array(String)} = [''] OR mint IN {mint:Array(String)})
         AND ({program_id:String} = '' OR program_id = {program_id:String})
-    ORDER BY timestamp DESC, transaction_index, instruction_index
+    ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -145,4 +145,4 @@ SELECT
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN metadata USING mint
-ORDER BY timestamp DESC, transaction_index, instruction_index
+ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
