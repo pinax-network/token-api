@@ -51,7 +51,7 @@ const querySchema = createQuerySchema({
     mint: { schema: svmMintSchema, batched: true, default: '' },
     program_id: { schema: svmSPLTokenProgramIdSchema, default: '' },
 
-    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
+    start_time: { schema: timestampSchema, prefault: '2020-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
