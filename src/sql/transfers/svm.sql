@@ -17,7 +17,6 @@ minutes_union AS
     FROM transfers_by_signature
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
     ORDER BY minute DESC
-    LIMIT 1 /* there can only be one time range with our trx, so use early return */
 
     UNION ALL
 
