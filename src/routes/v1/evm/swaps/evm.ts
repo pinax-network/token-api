@@ -40,7 +40,7 @@ const querySchema = createQuerySchema({
     recipient: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     protocol: { schema: evmProtocolSchema, default: '' },
 
-    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
+    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
     start_block: { schema: blockNumberSchema, default: 0 },
     end_block: { schema: blockNumberSchema, default: 9999999999 },
