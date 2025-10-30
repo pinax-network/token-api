@@ -66,6 +66,7 @@ s AS (
         block_num,
         timestamp,
         tx_hash,
+        index,
         pool,
         toString(caller) AS caller,
         toString(sender) AS sender,
@@ -97,7 +98,8 @@ s AS (
         AND ({caller:Array(String)} = ['']  OR caller IN {caller:Array(String)})
         AND ({sender:Array(String)} = ['']  OR sender IN {sender:Array(String)})
         AND ({recipient:Array(String)} = [''] OR recipient IN {recipient:Array(String)})
-    ORDER BY timestamp DESC
+        AND ({protocol:String} = '' OR protocol = {protocol:String})
+    ORDER BY timestamp DESC, index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -179,6 +181,7 @@ SELECT
     s.timestamp AS datetime,
     toUnixTimestamp(s.timestamp) AS timestamp,
     s.tx_hash AS transaction_id,
+    s.index AS block_index,
     toString(p.factory) AS factory,
     s.pool AS pool,
     if(invert_tokens, p.output_token, p.input_token) AS input_token,
@@ -199,7 +202,7 @@ SELECT
         if(output_value > 1000, formatReadableQuantity(output_value), toString(round(output_value, output_token.decimals))),
         output_token.symbol,
         arrayStringConcat(
-            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)), 
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
                      splitByChar('_', protocol)),
             ' '
         )
@@ -207,4 +210,4 @@ SELECT
     {network:String} AS network
 FROM s
 LEFT JOIN p USING (pool)
-ORDER BY timestamp DESC
+ORDER BY timestamp DESC, block_index DESC
