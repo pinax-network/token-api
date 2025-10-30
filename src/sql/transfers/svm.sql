@@ -108,20 +108,45 @@ filtered_transfers AS
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
-metadata AS
+spl_mints AS
+(
+    SELECT DISTINCT mint
+    FROM filtered_transfers
+    WHERE mint != 'So11111111111111111111111111111111111111111'
+),
+spl_metadata AS
 (
     SELECT
         mint,
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
-    FROM metadata_view
-    WHERE metadata IN (
-        SELECT metadata
-        FROM metadata_mint_state_latest
-        WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
-        GROUP BY metadata
+    FROM (
+        SELECT mint, name, symbol, uri
+        FROM metadata_view
+        WHERE metadata IN (
+            SELECT metadata
+            FROM metadata_mint_state_latest
+            WHERE mint IN (SELECT mint FROM spl_mints)
+            GROUP BY metadata
+        )
     )
+    WHERE (SELECT count() FROM spl_mints) > 0
+),
+native_metadata AS
+(
+    SELECT
+        'So11111111111111111111111111111111111111111' AS mint,
+        'Native' AS name,
+        'SOL' AS symbol,
+        NULL AS uri
+    WHERE 'So11111111111111111111111111111111111111111' IN (SELECT DISTINCT mint FROM filtered_transfers)
+),
+metadata AS
+(
+    SELECT * FROM spl_metadata
+    UNION ALL
+    SELECT * FROM native_metadata
 )
 SELECT
     block_num,
