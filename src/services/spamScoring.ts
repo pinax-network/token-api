@@ -32,7 +32,7 @@ const CACHE_TTL = 30 * 24 * 60 * 60; // 30 days
 
 /**
  * Maps network ID to its corresponding chain ID
- * @param networkId The network ID (e.g., 'mainnet', 'matic')
+ * @param networkId The network ID (e.g., 'mainnet', 'polygon')
  * @returns The corresponding chain ID (e.g., 1 for Ethereum mainnet)
  */
 function getChainId(networkId: string): number | undefined {

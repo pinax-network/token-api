@@ -25,6 +25,8 @@ export const natives = new Map<string, Symbol>([
     ['arbitrum-one', { symbol: 'ETH', decimals: 18, name: 'Ethereum' }],
     ['optimism', { symbol: 'ETH', decimals: 18, name: 'Optimism' }],
     ['matic', { symbol: 'POL', decimals: 18, name: 'Polygon' }],
+    ['polygon', { symbol: 'POL', decimals: 18, name: 'Polygon' }],
     ['unichain', { symbol: 'ETH', decimals: 18, name: 'Ethereum' }],
+    ['avalanche', { symbol: 'AVAX', decimals: 18, name: 'Avalanche' }],
     ['solana', { symbol: 'SOL', decimals: 18, name: 'Solana' }],
 ]);

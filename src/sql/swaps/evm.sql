@@ -1,4 +1,67 @@
-WITH s AS (
+WITH
+/* 1) Count how many filters are active */
+active_filters AS
+(
+    SELECT
+        toUInt8({transaction_id:Array(String)} != ['']) +
+        toUInt8({pool:Array(String)}           != ['']) +
+        toUInt8({caller:Array(String)}         != ['']) +
+        toUInt8({sender:Array(String)}         != ['']) +
+        toUInt8({recipient:Array(String)}      != [''])
+    AS n
+),
+/* 2) Union buckets from only active filters */
+minutes_union AS
+(
+    SELECT minute
+    FROM swaps_by_tx_hash
+    WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps_by_pool
+    WHERE ({pool:Array(String)} != [''] AND pool IN {pool:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps_by_caller
+    WHERE ({caller:Array(String)} != [''] AND caller IN {caller:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps_by_sender
+    WHERE ({sender:Array(String)} != [''] AND sender IN {sender:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps_by_recipient
+    WHERE ({recipient:Array(String)} != [''] AND recipient IN {recipient:Array(String)})
+    ORDER BY minute DESC
+),
+/* 3) Intersect: keep only buckets present in ALL active filters */
+filtered_minutes AS
+(
+    SELECT minute FROM minutes_union
+    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
+),
+s AS (
     SELECT
         block_num,
         timestamp,
@@ -13,14 +76,29 @@ WITH s AS (
         protocol,
         s.amount0 < 0 AS invert_tokens
     FROM swaps AS s
-    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+    PREWHERE
+        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
+        AND (
+            (
+                /* if no filters are active, search through the last hour only */
+                (SELECT n FROM active_filters) = 0
+                AND timestamp BETWEEN
+                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
+                    AND least(toDateTime({end_time:UInt64}), now())
+            )
+            /* if filters are active, search through the intersecting minute ranges */
+            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
+        )
+    WHERE
+        /* filter the trimmed down minute ranges by the active filters */
+        ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({pool:Array(String)} = ['']  OR pool IN {pool:Array(String)})
         AND ({caller:Array(String)} = ['']  OR caller IN {caller:Array(String)})
         AND ({sender:Array(String)} = ['']  OR sender IN {sender:Array(String)})
         AND ({recipient:Array(String)} = [''] OR recipient IN {recipient:Array(String)})
-    ORDER BY timestamp DESC
+        AND ({protocol:String} = '' OR protocol = {protocol:String})
+    ORDER BY timestamp DESC, tx_hash
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -61,7 +139,7 @@ p AS (
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'POL',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c0.symbol
@@ -82,7 +160,7 @@ p AS (
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'POL',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c1.symbol
@@ -122,7 +200,7 @@ SELECT
         if(output_value > 1000, formatReadableQuantity(output_value), toString(round(output_value, output_token.decimals))),
         output_token.symbol,
         arrayStringConcat(
-            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)), 
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
                      splitByChar('_', protocol)),
             ' '
         )
@@ -130,4 +208,4 @@ SELECT
     {network:String} AS network
 FROM s
 LEFT JOIN p USING (pool)
-ORDER BY timestamp DESC
+ORDER BY timestamp DESC, transaction_id

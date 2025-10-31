@@ -46,7 +46,7 @@ SELECT
                     (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
                     (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
                     (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'matic', 'MATIC',
+                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'polygon', 'POL',
                     (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
                     (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
                     t0.symbol
@@ -67,7 +67,7 @@ SELECT
                     (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
                     (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
                     (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'matic', 'MATIC',
+                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'polygon', 'POL',
                     (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
                     (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
                     t1.symbol
