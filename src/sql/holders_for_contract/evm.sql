@@ -9,7 +9,7 @@ WITH filtered_balances AS (
     WHERE
         contract = {contract: String}
     GROUP BY contract, address
-    ORDER BY amount DESC
+    ORDER BY amount DESC, address
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -21,10 +21,7 @@ metadata AS
         symbol,
         decimals
     FROM metadata_view
-    WHERE contract IN (
-        SELECT contract
-        FROM filtered_balances
-    )
+    WHERE contract = {contract: String}
 )
 SELECT
     timestamp AS last_update,
@@ -34,11 +31,10 @@ SELECT
     toString(contract) AS contract,
     toString(amount) AS amount,
     a.amount / pow(10, decimals) AS value,
-    value,
     name,
     symbol,
     decimals,
     {network:String} as network
 FROM filtered_balances AS a
 LEFT JOIN metadata AS b USING contract
-ORDER BY amount DESC
+ORDER BY value DESC, address
