@@ -66,7 +66,6 @@ s AS (
         block_num,
         timestamp,
         tx_hash,
-        index,
         pool,
         toString(caller) AS caller,
         toString(sender) AS sender,
@@ -99,7 +98,7 @@ s AS (
         AND ({sender:Array(String)} = ['']  OR sender IN {sender:Array(String)})
         AND ({recipient:Array(String)} = [''] OR recipient IN {recipient:Array(String)})
         AND ({protocol:String} = '' OR protocol = {protocol:String})
-    ORDER BY timestamp DESC, index DESC
+    ORDER BY timestamp DESC, tx_hash
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -140,7 +139,7 @@ p AS (
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
-                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'POL',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
                         p.token0 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c0.symbol
@@ -161,7 +160,7 @@ p AS (
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'avalanche', 'AVAX',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'base', 'ETH',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'bsc', 'BNB',
-                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'MATIC',
+                        p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'polygon', 'POL',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'optimism', 'ETH',
                         p.token1 = '0x0000000000000000000000000000000000000000' AND {network:String} = 'unichain', 'ETH',
                         c1.symbol
@@ -181,7 +180,6 @@ SELECT
     s.timestamp AS datetime,
     toUnixTimestamp(s.timestamp) AS timestamp,
     s.tx_hash AS transaction_id,
-    s.index AS block_index,
     toString(p.factory) AS factory,
     s.pool AS pool,
     if(invert_tokens, p.output_token, p.input_token) AS input_token,
@@ -210,4 +208,4 @@ SELECT
     {network:String} AS network
 FROM s
 LEFT JOIN p USING (pool)
-ORDER BY timestamp DESC, block_index DESC
+ORDER BY timestamp DESC, transaction_id
