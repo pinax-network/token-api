@@ -31,14 +31,14 @@ threshold AS (
 top_balances AS (
     SELECT
         b.address as address,
-        b.contract as contract,
+        any(b.contract) as contract,
         argMax(b.balance, b.timestamp) as balance,
         max(b.timestamp) as timestamp,
         max(b.block_num) as block_num
     FROM balances AS b
     WHERE b.contract = {contract: String}
       AND b.balance >= (SELECT min_balance FROM threshold)
-    GROUP BY contract, address
+    GROUP BY address
     ORDER BY balance DESC, address
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
