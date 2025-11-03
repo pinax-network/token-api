@@ -43,6 +43,16 @@ import {
     svmTransaction,
     svmTransactionSchema,
     timestampSchema,
+    tvmAddress,
+    tvmAddressSchema,
+    tvmContractSchema,
+    tvmFactorySchema,
+    tvmNetworkIdSchema,
+    tvmPoolSchema,
+    tvmProtocolSchema,
+    tvmTokenResponseSchema,
+    tvmTransaction,
+    tvmTransactionSchema,
 } from './zod.js';
 
 describe('Base Validation Schemas', () => {
@@ -109,6 +119,47 @@ describe('Base Validation Schemas', () => {
             expect(() => svmTransaction.parse('short')).toThrow();
         });
     });
+
+    describe('tvmAddress', () => {
+        it('should validate correct TVM addresses', () => {
+            expect(tvmAddress.parse('TRX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jGX')).toBe('TRX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jGX');
+            expect(tvmAddress.parse('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t')).toBe('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+        });
+
+        it('should reject invalid TVM addresses', () => {
+            expect(() => tvmAddress.parse('invalid')).toThrow();
+            expect(() => tvmAddress.parse('0x1234567890abcdef')).toThrow();
+            expect(() => tvmAddress.parse('T123')).toThrow(); // Too short
+            expect(() => tvmAddress.parse('ARYX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jGX')).toThrow(); // Doesn't start with T
+            expect(() => tvmAddress.parse('TRX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jG0')).toThrow(); // Contains invalid char '0'
+        });
+    });
+
+    describe('tvmTransaction', () => {
+        it('should validate correct TVM transaction hashes', () => {
+            const validTx = 'a7c8e5f9b2d4c6e8a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7';
+            expect(tvmTransaction.parse(validTx)).toBe(validTx);
+        });
+
+        it('should transform to lowercase', () => {
+            const txUpper = 'A7C8E5F9B2D4C6E8A1B3C5D7E9F1A3B5C7D9E1F3A5B7C9D1E3F5A7B9C1D3E5F7';
+            expect(tvmTransaction.parse(txUpper)).toBe(txUpper.toLowerCase());
+        });
+
+        it('should reject transaction hashes with 0x prefix', () => {
+            expect(() =>
+                tvmTransaction.parse('0xa7c8e5f9b2d4c6e8a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7')
+            ).toThrow();
+        });
+
+        it('should reject invalid transaction hashes', () => {
+            expect(() => tvmTransaction.parse('invalid')).toThrow();
+            expect(() => tvmTransaction.parse('a7c8e5f9')).toThrow(); // Too short
+            expect(() =>
+                tvmTransaction.parse('g7c8e5f9b2d4c6e8a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7')
+            ).toThrow(); // Invalid char 'g'
+        });
+    });
 });
 
 describe('Network Schemas', () => {
@@ -122,6 +173,13 @@ describe('Network Schemas', () => {
     describe('svmNetworkIdSchema', () => {
         it('should accept valid SVM network IDs', () => {
             const result = svmNetworkIdSchema.parse('solana');
+            expect(result).toBeDefined();
+        });
+    });
+
+    describe('tvmNetworkIdSchema', () => {
+        it('should accept valid TVM network IDs', () => {
+            const result = tvmNetworkIdSchema.parse('tron');
             expect(result).toBeDefined();
         });
     });
@@ -147,6 +205,18 @@ describe('Protocol Schemas', () => {
 
         it('should reject invalid protocols', () => {
             expect(() => svmProtocolSchema.parse('invalid')).toThrow();
+        });
+    });
+
+    describe('tvmProtocolSchema', () => {
+        it('should accept valid protocols', () => {
+            expect(tvmProtocolSchema.parse('justswap')).toBe('justswap');
+            expect(tvmProtocolSchema.parse('sunswap')).toBe('sunswap');
+            expect(tvmProtocolSchema.parse('sunpump')).toBe('sunpump');
+        });
+
+        it('should reject invalid protocols', () => {
+            expect(() => tvmProtocolSchema.parse('invalid')).toThrow();
         });
     });
 });
@@ -378,6 +448,33 @@ describe('Composable Field Schemas', () => {
             expect(result).toBeUndefined();
         });
     });
+
+    describe('TVM schemas', () => {
+        it('tvmContractSchema should validate contracts', () => {
+            const result = tvmContractSchema.parse('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+            expect(result).toBe('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+        });
+
+        it('tvmAddressSchema should validate addresses', () => {
+            const result = tvmAddressSchema.parse('TRX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jGX');
+            expect(result).toBe('TRX9Uehj3GuFVh5jjVjNqb6q9cgVHJ4jGX');
+        });
+
+        it('tvmPoolSchema should validate pool addresses', () => {
+            const pool = tvmPoolSchema.parse('TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE');
+            expect(pool).toBe('TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE');
+        });
+
+        it('tvmFactorySchema should validate factory addresses', () => {
+            const result = tvmFactorySchema.parse('TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax');
+            expect(result).toBe('TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax');
+        });
+
+        it('tvmTransactionSchema should validate transaction hashes', () => {
+            const tx = 'a7c8e5f9b2d4c6e8a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7';
+            expect(tvmTransactionSchema.parse(tx)).toBe(tx);
+        });
+    });
 });
 
 describe('Response Schemas', () => {
@@ -402,6 +499,22 @@ describe('Response Schemas', () => {
             };
             const result = svmMintResponseSchema.parse(mint);
             expect(result.decimals).toBe(9);
+        });
+    });
+
+    describe('tvmTokenResponseSchema', () => {
+        it('should validate token response objects', () => {
+            const token = {
+                address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                symbol: 'USDT',
+                name: 'Tether USD',
+                decimals: 6,
+            };
+            const result = tvmTokenResponseSchema.parse(token);
+            expect(result.address).toBe('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+            expect(result.symbol).toBe('USDT');
+            expect(result.name).toBe('Tether USD');
+            expect(result.decimals).toBe(6);
         });
     });
 
