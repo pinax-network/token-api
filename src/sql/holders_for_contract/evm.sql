@@ -1,40 +1,59 @@
-WITH filtered_balances AS (
+/* 1) Get the token metadata */
+WITH
+metadata AS (
     SELECT
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp,
-        address,
-        contract,
-        argMax(balance, b.timestamp) AS amount
-    FROM balances AS b
-    WHERE
-        contract = {contract: String}
-    GROUP BY contract, address
-    ORDER BY amount DESC, address
-    LIMIT   {limit:UInt64}
-    OFFSET  {offset:UInt64}
-),
-metadata AS
-(
-    SELECT
-        contract,
-        name,
-        symbol,
-        decimals
+         contract,
+         decimals,
+         name,
+         symbol
     FROM metadata_view
     WHERE contract = {contract: String}
+),
+/* 2) Calculate the threshold based on the 99.995 percentile of the 1M sample size */
+balance_stats AS (
+    SELECT
+        count(*) as total_count,
+        quantileExact(0.99995)(balance) AS percentile_threshold
+    FROM (
+        SELECT balance
+        FROM balances
+        WHERE contract = {contract: String} AND balance > 0
+        LIMIT 1000000
+    )
+),
+/* 3) If not enough balances in the contract, pick 1 for threshold */
+threshold AS (
+    SELECT
+        if(total_count < 1000000, 1, percentile_threshold) as min_balance
+    FROM balance_stats
+),
+/* 4) Get the top balances based on the threshold we picked above */
+top_balances AS (
+    SELECT
+        b.address as address,
+        b.contract as contract,
+        argMax(b.balance, b.timestamp) as balance,
+        max(b.timestamp) as timestamp,
+        max(b.block_num) as block_num
+    FROM balances AS b
+    WHERE b.contract = {contract: String}
+      AND b.balance >= (SELECT min_balance FROM threshold)
+    GROUP BY contract, address
+    ORDER BY balance DESC, address
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
 )
 SELECT
-    timestamp AS last_update,
     block_num AS last_update_block_num,
     toUnixTimestamp(a.timestamp) AS last_update_timestamp,
     toString(address) AS address,
     toString(contract) AS contract,
-    toString(amount) AS amount,
-    a.amount / pow(10, decimals) AS value,
-    name,
-    symbol,
-    decimals,
+    toString(a.balance) AS amount,
+    a.balance / pow(10, b.decimals) AS value,
+    b.name,
+    b.symbol,
+    b.decimals,
     {network:String} as network
-FROM filtered_balances AS a
+FROM top_balances AS a
 LEFT JOIN metadata AS b USING contract
 ORDER BY value DESC, address
