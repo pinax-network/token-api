@@ -13,7 +13,8 @@ metadata AS (
 balance_stats AS (
     SELECT
         count(*) as total_count,
-        quantileExact(0.99995)(balance) AS percentile_threshold
+        /* when limit is higher we have to widen the threshold */
+        quantileExact(1 - ({offset:UInt64} + {limit:UInt64}) * 0.000005)(balance) AS percentile_threshold
     FROM (
         SELECT balance
         FROM balances
