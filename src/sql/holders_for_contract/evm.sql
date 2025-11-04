@@ -9,23 +9,28 @@ metadata AS (
     FROM metadata_view
     WHERE contract = {contract: String}
 ),
-/* 1) Get the cutoff - 1000 works for most EVM chains, but there are some exceptions to make it fast */
+/* 1) Get the cutoff for native token - 100 by default, pick optimal number by chain based token value and activity */
+/* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
+/* SELECT countDistinct(address) FROM balances WHERE contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND balance > N * pow(10, 18); */
 cutoff AS (
     SELECT
         multiIf(
             {network: String} = 'unichain', toUInt64(1),
-            {network: String} = 'arbitrum-one', toUInt64(10),
-            {network: String} = 'base', toUInt64(100),
+            {network: String} = 'avalanche', toUInt64(10),
+            {network: String} = 'arbitrum-one', toUInt64(100),
             {network: String} = 'optimism', toUInt64(100),
+            {network: String} = 'base', toUInt64(100),
+            {network: String} = 'bsc', toUInt64(1000),
+            {network: String} = 'mainnet', toUInt64(5000),
             {network: String} = 'polygon', toUInt64(10000),
-            toUInt64(1000)
+            toUInt64(100)
         ) AS eth_cut
 ),
-/* 2) Branch if it's a native token - cut off at 100 ETH */
+/* 2) Branch if it's a native token with cutoff */
 top_native AS (
     SELECT
         address,
-        argMax(balance, timestamp) AS amount,
+        argMax(balance, timestamp) AS amt,
         max(timestamp) AS ts,
         max(block_num) AS bn,
         any(contract) AS cnt
@@ -38,7 +43,7 @@ top_native AS (
 top_erc20 AS (
     SELECT
         address,
-        argMax(balance, timestamp) AS amount,
+        argMax(balance, timestamp) AS amt,
         max(timestamp) AS ts,
         max(block_num) AS bn,
         any(contract) AS cnt
@@ -48,25 +53,26 @@ top_erc20 AS (
     GROUP BY address
 ),
 top_balances AS (
-    SELECT address, amount, ts, bn, cnt AS contract
+    SELECT address, amt, ts, bn, cnt AS contract
     FROM top_native
     UNION ALL
-    SELECT address, amount, ts, bn, cnt AS contract
+    SELECT address, amt, ts, bn, cnt AS contract
     FROM top_erc20
 )
 SELECT
+    ts AS last_update,
     bn AS last_update_block_num,
     toUnixTimestamp(ts) AS last_update_timestamp,
     toString(address) AS address,
-    contract,
-    a.amount / pow(10, b.decimals) AS value,
-    toString(a.amount) AS amount,
-    b.name,
-    b.symbol,
-    b.decimals,
+    toString(contract) AS contract,
+    toString(amt) AS amount,
+    amt / pow(10, decimals) AS value,
+    name,
+    symbol,
+    decimals,
     {network:String} as network
-FROM top_balances AS a
-LEFT JOIN metadata AS b USING contract
+FROM top_balances
+LEFT JOIN metadata USING contract
 ORDER BY value DESC, address
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}
