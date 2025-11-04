@@ -16,13 +16,13 @@ cutoff AS (
     SELECT
         multiIf(
             {network: String} = 'unichain', toUInt64(1),
-            {network: String} = 'avalanche', toUInt64(10),
+            {network: String} = 'optimism', toUInt64(10),
+            {network: String} = 'base', toUInt64(10),
             {network: String} = 'arbitrum-one', toUInt64(100),
-            {network: String} = 'optimism', toUInt64(100),
-            {network: String} = 'base', toUInt64(100),
-            {network: String} = 'bsc', toUInt64(1000),
+            {network: String} = 'bsc', toUInt64(100),
+            {network: String} = 'avalanche', toUInt64(1000),
             {network: String} = 'mainnet', toUInt64(5000),
-            {network: String} = 'polygon', toUInt64(10000),
+            {network: String} = 'polygon', toUInt64(50000),
             toUInt64(100)
         ) AS eth_cut
 ),
