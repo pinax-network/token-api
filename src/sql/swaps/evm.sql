@@ -61,6 +61,11 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
+/* Latest ingested timestamp in source table */
+latest_ts AS
+(
+    SELECT max(timestamp) AS ts FROM swaps
+),
 s AS (
     SELECT
         block_num,
@@ -84,8 +89,8 @@ s AS (
                 /* if no filters are active, search through the last hour only */
                 (SELECT n FROM active_filters) = 0
                 AND timestamp BETWEEN
-                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), now()) - INTERVAL 1 HOUR)
-                    AND least(toDateTime({end_time:UInt64}), now())
+                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - INTERVAL 1 HOUR)
+                    AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
