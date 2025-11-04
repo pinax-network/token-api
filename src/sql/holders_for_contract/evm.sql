@@ -9,48 +9,46 @@ metadata AS (
     FROM metadata_view
     WHERE contract = {contract: String}
 ),
-/* 2) Calculate the threshold based on the 99.995 percentile of the 1M sample size */
-balance_stats AS (
+/* 2) Branch if it's a native token - cut off at 100 ETH */
+top_native AS (
     SELECT
-        count(*) as total_count,
-        /* when limit is higher we have to widen the threshold */
-        quantileExact(1 - ({offset:UInt64} + {limit:UInt64}) * 0.000005)(balance) AS percentile_threshold
-    FROM (
-        SELECT balance
-        FROM balances
-        WHERE contract = {contract: String} AND balance > 0
-        LIMIT 1000000
-    )
-),
-/* 3) If not enough balances in the contract, pick 1 for threshold */
-threshold AS (
-    SELECT
-        if(total_count < 1000000, 1, percentile_threshold) as min_balance
-    FROM balance_stats
-),
-/* 4) Get the top balances based on the threshold we picked above */
-top_balances AS (
-    SELECT
-        b.address as address,
-        any(b.contract) as contract,
-        argMax(b.balance, b.timestamp) as balance,
-        max(b.timestamp) as timestamp,
-        max(b.block_num) as block_num
-    FROM balances AS b
-    WHERE b.contract = {contract: String}
-      AND b.balance >= (SELECT min_balance FROM threshold)
+        address,
+        argMax(balance, timestamp) AS amount,
+        max(timestamp) AS ts,
+        max(block_num) AS bn,
+        any(contract) AS cnt
+    FROM balances
+    WHERE {contract: String} = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND contract = {contract: String}
+      AND balance > 100 * pow(10,18)
     GROUP BY address
-    ORDER BY balance DESC, address
-    LIMIT {limit:UInt64}
-    OFFSET {offset:UInt64}
+),
+/* 3) Branch if it's an ERC20 token - no cut off */
+top_erc20 AS (
+    SELECT
+        address,
+        argMax(balance, timestamp) AS amount,
+        max(timestamp) AS ts,
+        max(block_num) AS bn,
+        any(contract) AS cnt
+    FROM balances
+    WHERE {contract: String} != '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND contract = {contract: String}
+      AND balance > 0
+    GROUP BY address
+),
+top_balances AS (
+    SELECT address, amount, ts, bn, cnt AS contract
+    FROM top_native
+    UNION ALL
+    SELECT address, amount, ts, bn, cnt AS contract
+    FROM top_erc20
 )
 SELECT
-    block_num AS last_update_block_num,
-    toUnixTimestamp(a.timestamp) AS last_update_timestamp,
+    bn AS last_update_block_num,
+    toUnixTimestamp(ts) AS last_update_timestamp,
     toString(address) AS address,
-    toString(contract) AS contract,
-    toString(a.balance) AS amount,
-    a.balance / pow(10, b.decimals) AS value,
+    contract,
+    a.amount / pow(10, b.decimals) AS value,
+    toString(a.amount) AS amount,
     b.name,
     b.symbol,
     b.decimals,
@@ -58,3 +56,5 @@ SELECT
 FROM top_balances AS a
 LEFT JOIN metadata AS b USING contract
 ORDER BY value DESC, address
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}
