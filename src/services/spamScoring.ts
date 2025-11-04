@@ -10,14 +10,23 @@ import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
  * Interface for spam score response from the external API
  */
 interface SpamApiResponse {
-    status?: string;
+    success: boolean;
+    timestamp: string;
+    version: string;
+    data: {
+        chain_id: number;
+        contracts: Record<string, SpamApiContractResponse>;
+    };
+}
+interface SpamApiContractResponse {
+    status: 'legitimate' | 'spam' | 'no_data' | 'inconclusive' | 'error';
     message?: string;
     reasoning?: string;
     processing_time_ms?: number;
     cached?: boolean;
 }
 
-interface CachedSpamApiResponse extends SpamApiResponse {
+interface CachedSpamApiResponse extends SpamApiContractResponse {
     timestamp: number;
 }
 
@@ -28,13 +37,8 @@ interface Response {
     timestamp: number;
 }
 
-function getContractSpamStatus(apiResponse: SpamApiResponse): Response {
-    return {
-        result: 'success',
-        contract_spam_status: apiResponse.reasoning === 'legitimate' ? 'not_spam' : 'spam',
-        message: apiResponse.message,
-        timestamp: Date.now(),
-    };
+function getContractSpamStatus(apiResponse: SpamApiContractResponse): 'spam' | 'not_spam' {
+    return apiResponse.status === 'spam' ? 'spam' : 'not_spam';
 }
 
 // add chains as they are added to the model
@@ -99,6 +103,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
             return {
                 contract_spam_status: getContractSpamStatus(cachedData),
                 result: 'success',
+                timestamp: cachedData.timestamp,
             };
         }
     } catch (error) {
@@ -116,6 +121,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
     return {
         result: 'pending',
         message: 'Spam score check in progress',
+        timestamp: Date.now(),
     };
 }
 
@@ -130,7 +136,7 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
     try {
         console.log(`Background fetch of spam score for ${contractAddress} on ${chainId}`);
 
-        const response = await withTimeout<SpamScoreResponse>(
+        const response = await withTimeout<SpamApiContractResponse>(
             fetch(`${config.spamApiUrl}/v1/contract/status`, {
                 method: 'POST',
                 headers: {
@@ -143,24 +149,27 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
                     const errorText = await res.text();
                     throw new Error(`Failed to fetch spam score: ${res.status} ${errorText}`);
                 }
-                const response = await res.json();
-                if (!response[contractAddress]) {
+                const response = (await res.json()) as SpamApiResponse;
+                if (!response.success) {
+                    throw new Error(`Failed to fetch spam score for ${contractAddress}`);
+                }
+                if (!response.data?.contracts?.[contractAddress]) {
                     throw new Error(`Contract ${contractAddress} not found in response`);
                 }
-                // If Spam API model fails it defaults to "false" with "Error" in the message. We don't want to cache that.
-                // This is fragile but that needs to be fixed upstream
-                if (response.message?.startsWith('Error')) {
-                    throw new Error(response.message);
-                }
-                return response[contractAddress];
+
+                return response.data.contracts[contractAddress];
             }),
             TIMEOUT_MS,
             'Spam scoring API request timed out'
         );
 
+        if (!['legitimate', 'spam'].includes(response.status)) {
+            throw new Error(`Contract ${contractAddress} has status ${response.status}. Message: ${response.message}`);
+        }
+
         console.log(`Caching spam score for ${contractAddress} on ${chainId}`);
         await setInCache(cacheKey, { ...response, timestamp: Date.now() }, CACHE_TTL);
     } catch (error) {
-        console.error(`Error fetching spam score for ${contractAddress} on ${chainId}:`, error);
+        console.warn(`Error fetching spam score for ${contractAddress} on ${chainId}:`, error);
     }
 }

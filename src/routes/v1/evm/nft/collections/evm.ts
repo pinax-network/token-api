@@ -113,7 +113,11 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
         let spamStatus: 'spam' | 'not_spam' | 'pending' | 'not_supported' | 'error' = 'pending';
 
         if (spamScore.result === 'success') {
-            spamStatus = spamScore.contract_spam_status ? 'spam' : 'not_spam';
+            if (spamScore.contract_spam_status === 'spam') {
+                spamStatus = 'spam';
+            } else {
+                spamStatus = 'not_spam';
+            }
         } else if (spamScore.result === 'error') {
             spamStatus = 'error';
         } else if (spamScore.result === 'not_supported') {

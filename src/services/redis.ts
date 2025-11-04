@@ -75,5 +75,5 @@ export async function setInCache<T>(key: string, value: T, ttl: number = DEFAULT
  * @returns Cache key string
  */
 export function getSpamScoreKey(contractAddress: string, networkId: string): string {
-    return `spam:${networkId}:${contractAddress}`;
+    return `spam:v0.3.0:${networkId}:${contractAddress}`;
 }
