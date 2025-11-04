@@ -9,22 +9,45 @@ import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
 /**
  * Interface for spam score response from the external API
  */
-interface SpamScoreResponse {
-    result: 'success' | 'error' | 'pending' | 'not_supported';
-    contract_spam_status?: boolean;
+interface SpamApiResponse {
+    status?: string;
     message?: string;
+    reasoning?: string;
+    processing_time_ms?: number;
+    cached?: boolean;
 }
 
-interface CachedSpamScore {
-    contract_spam_status?: boolean;
+interface CachedSpamApiResponse extends SpamApiResponse {
+    timestamp: number;
+}
+
+interface Response {
+    result: 'success' | 'error' | 'pending' | 'not_supported';
+    contract_spam_status?: 'spam' | 'not_spam';
     message?: string;
     timestamp: number;
+}
+
+function getContractSpamStatus(apiResponse: SpamApiResponse): Response {
+    return {
+        result: 'success',
+        contract_spam_status: apiResponse.reasoning === 'legitimate' ? 'not_spam' : 'spam',
+        message: apiResponse.message,
+        timestamp: Date.now(),
+    };
 }
 
 // add chains as they are added to the model
 export const CHAIN_ID_MAP: Record<string, number> = {
     mainnet: 1,
     base: 8453,
+    polygon: 137,
+    matic: 137,
+    'arbitrum-one': 42161,
+    avalanche: 43114,
+    // optimism: 10,
+    // bsc: 56,
+    // unichain: 10000,
 };
 const TIMEOUT_MS = 60000;
 const STALE_MS = 24 * 60 * 60 * 1000; // 1 day
@@ -44,14 +67,15 @@ function getChainId(networkId: string): number | undefined {
  * Immediately returns pending status if not in cache and triggers background fetch
  * @param contractAddress The contract address to check
  * @param networkId The network ID (e.g., 'mainnet')
- * @returns Promise resolving to a SpamScoreResponse
+ * @returns Promise resolving to a Response
  */
-export async function querySpamScore(contractAddress: string, networkId: string): Promise<SpamScoreResponse> {
+export async function querySpamScore(contractAddress: string, networkId: string): Promise<Response> {
     const chainId = getChainId(networkId);
     if (!chainId) {
         return {
             result: 'not_supported',
             message: `Network ${networkId} is not supported for spam scoring`,
+            timestamp: Date.now(),
         };
     }
 
@@ -59,7 +83,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
 
     // First check cache
     try {
-        const cachedData = await getFromCache<CachedSpamScore>(cacheKey);
+        const cachedData = await getFromCache<CachedSpamApiResponse>(cacheKey);
 
         if (cachedData) {
             console.log(`Retrieved spam score from cache for ${contractAddress} on ${networkId}`);
@@ -73,7 +97,7 @@ export async function querySpamScore(contractAddress: string, networkId: string)
             }
 
             return {
-                ...cachedData,
+                contract_spam_status: getContractSpamStatus(cachedData),
                 result: 'success',
             };
         }
