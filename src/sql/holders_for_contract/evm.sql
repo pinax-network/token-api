@@ -1,4 +1,4 @@
-/* 1) Get the token metadata */
+/* 0) Get the token metadata */
 WITH
 metadata AS (
     SELECT
@@ -8,6 +8,18 @@ metadata AS (
          symbol
     FROM metadata_view
     WHERE contract = {contract: String}
+),
+/* 1) Get the cutoff - 1000 works for most EVM chains, but there are some exceptions to make it fast */
+cutoff AS (
+    SELECT
+        multiIf(
+            {network: String} = 'unichain', toUInt64(1),
+            {network: String} = 'arbitrum-one', toUInt64(10),
+            {network: String} = 'base', toUInt64(100),
+            {network: String} = 'optimism', toUInt64(100),
+            {network: String} = 'polygon', toUInt64(10000),
+            toUInt64(1000)
+        ) AS eth_cut
 ),
 /* 2) Branch if it's a native token - cut off at 100 ETH */
 top_native AS (
@@ -19,7 +31,7 @@ top_native AS (
         any(contract) AS cnt
     FROM balances
     WHERE {contract: String} = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND contract = {contract: String}
-      AND balance > 100 * pow(10,18)
+      AND balance > (SELECT eth_cut FROM cutoff) * pow(10,18)
     GROUP BY address
 ),
 /* 3) Branch if it's an ERC20 token - no cut off */
