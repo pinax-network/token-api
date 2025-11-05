@@ -7,21 +7,6 @@ WITH accounts AS (
       AND owner IN {owner:Array(String)}
     GROUP BY owner, o.account
 ),
-mints AS (
-    SELECT DISTINCT mint
-    FROM (
-        SELECT arrayJoin({mint:Array(String)}) AS mint
-        WHERE {mint:Array(String)} != ['']
-
-        UNION ALL
-
-        SELECT mint
-        FROM mint_state_latest
-        WHERE {mint:Array(String)} = [''] 
-          AND account IN (SELECT account FROM accounts)
-    )
-    WHERE mint != ''
-),
 filtered_balances AS
 (
     SELECT
@@ -35,8 +20,7 @@ filtered_balances AS
         any(decimals) AS decimals
     FROM balances AS b
     LEFT JOIN accounts USING account
-    WHERE mint IN (SELECT mint FROM mints)
-        AND mint != 'So11111111111111111111111111111111111111111'
+    WHERE ({mint:Array(String)} == [''] OR mint IN {mint:Array(String)})
         AND account IN (SELECT account FROM accounts)
         AND ({program_id:String} = '' OR program_id = {program_id:String})
         AND (b.amount > 0 OR {include_null_balances:Bool})
