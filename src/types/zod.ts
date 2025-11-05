@@ -15,6 +15,11 @@ import {
     SVM_MINT_PUMP_EXAMPLE,
     SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
     SVM_TRANSACTION_SWAP_EXAMPLE,
+    TVM_ADDRESS_JUSTIN_SUN_EXAMPLE,
+    TVM_CONTRACT_USDT_EXAMPLE,
+    TVM_FACTORY_SUNSWAP_EXAMPLE,
+    TVM_POOL_USDT_WTRX_EXAMPLE,
+    TVM_TRANSACTION_TRANSFER_EXAMPLE,
 } from './examples.js';
 
 // ----------------------
@@ -63,6 +68,19 @@ export const svmTransaction = z.coerce
     .pipe(z.string())
     .meta({ type: 'string' });
 
+export const tvmAddress = z.coerce
+    .string()
+    .refine((val) => /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(val), 'Invalid TVM address')
+    .pipe(z.string())
+    .meta({ type: 'string' });
+
+export const tvmTransaction = z.coerce
+    .string()
+    .refine((val) => /^[0-9a-fA-F]{64}$/.test(val), 'Invalid TVM transaction hash')
+    .transform((hash) => hash.toLowerCase())
+    .pipe(z.string())
+    .meta({ type: 'string' });
+
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export const commit = z.coerce.string().regex(/^[0-9a-f]{7}$/);
 
@@ -71,6 +89,8 @@ export type EvmAddress = z.infer<typeof evmAddress>;
 export type EvmTransaction = z.infer<typeof evmTransaction>;
 export type SvmAddress = z.infer<typeof svmAddress>;
 export type SvmTransaction = z.infer<typeof svmTransaction>;
+export type TvmAddress = z.infer<typeof tvmAddress>;
+export type TvmTransaction = z.infer<typeof tvmTransaction>;
 export type Version = z.infer<typeof version>;
 export type Commit = z.infer<typeof commit>;
 
@@ -92,6 +112,13 @@ export const svmNetworkIdSchema = z
         example: config.defaultSvmNetwork,
     });
 
+export const tvmNetworkIdSchema = z
+    .enum([config.tvmNetworks.at(0) ?? config.defaultTvmNetwork, ...config.tvmNetworks.slice(1)])
+    .meta({
+        description: 'The Graph Network ID for TVM networks https://thegraph.com/networks',
+        example: config.defaultTvmNetwork,
+    });
+
 // ----------------------
 // Protocol Schemas
 // ----------------------
@@ -103,6 +130,10 @@ export const evmProtocolSchema = z
 export const svmProtocolSchema = z
     .enum(['raydium_amm_v4'])
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
+
+export const tvmProtocolSchema = z
+    .enum(['justswap', 'sunswap', 'sunpump'])
+    .meta({ description: 'Protocol name', example: 'sunswap' });
 
 // ----------------------
 // Common Query Parameter Schemas
@@ -322,6 +353,37 @@ export const svmSPLTokenProgramIdSchema = z
 export const svmMetadataSchema = z.string().nullable().optional();
 
 // ----------------------
+// Composable Field Schemas (TVM)
+// ----------------------
+
+// Address-based fields (all use evmAddress as base)
+export const tvmContractSchema = tvmAddress.meta({
+    description: 'Filter by contract address',
+    example: TVM_CONTRACT_USDT_EXAMPLE,
+});
+
+export const tvmAddressSchema = tvmAddress.meta({
+    description: 'Filter by address',
+    example: TVM_ADDRESS_JUSTIN_SUN_EXAMPLE,
+});
+
+export const tvmPoolSchema = tvmAddress.meta({
+    description: 'Filter by pool address',
+    type: 'string',
+    example: TVM_POOL_USDT_WTRX_EXAMPLE,
+});
+
+export const tvmFactorySchema = tvmAddress.meta({
+    description: 'Filter by factory address',
+    example: TVM_FACTORY_SUNSWAP_EXAMPLE,
+});
+
+export const tvmTransactionSchema = tvmTransaction.meta({
+    description: 'Filter by transaction hash',
+    example: TVM_TRANSACTION_TRANSFER_EXAMPLE,
+});
+
+// ----------------------
 // Response Schemas
 // ----------------------
 
@@ -333,6 +395,13 @@ export const evmTokenResponseSchema = z.object({
 
 export const svmMintResponseSchema = z.object({
     address: svmAddressSchema,
+    decimals: z.number(),
+});
+
+export const tvmTokenResponseSchema = z.object({
+    address: tvmAddressSchema,
+    symbol: z.string(),
+    name: z.string(),
     decimals: z.number(),
 });
 

@@ -27,6 +27,7 @@ export const DEFAULT_LIMIT = 10;
 export const DEFAULT_MAX_QUERY_EXECUTION_TIME = 10; // 10 seconds query timeout to match `fetch` MCP timeout
 export const DEFAULT_DEFAULT_EVM_NETWORK = 'mainnet';
 export const DEFAULT_DEFAULT_SVM_NETWORK = 'solana';
+export const DEFAULT_DEFAULT_TVM_NETWORK = 'tron';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
@@ -36,9 +37,9 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
 
-export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.4';
+export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.8;tron:tvm-tokens@v0.1.1';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
-export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0';
+export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0;tron:tvm-dex@v0.1.5';
 export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
 
 // GitHub metadata
@@ -92,6 +93,11 @@ const opts = program
         new Option('--default-svm-network <string>', 'Default SVM Network ID')
             .env('DEFAULT_SVM_NETWORK')
             .default(DEFAULT_DEFAULT_SVM_NETWORK)
+    )
+    .addOption(
+        new Option('--default-tvm-network <string>', 'Default TVM Network ID')
+            .env('DEFAULT_TVM_NETWORK')
+            .default(DEFAULT_DEFAULT_TVM_NETWORK)
     )
     .addOption(
         new Option('--token-databases <string>', 'Token Clickhouse databases')
@@ -197,7 +203,7 @@ const opts = program
     .parse()
     .opts();
 
-function parseDatabases(dbs: string): Record<string, { database: string; type: 'svm' | 'evm' }> {
+function parseDatabases(dbs: string): Record<string, { database: string; type: 'svm' | 'evm' | 'tvm' }> {
     return Object.assign(
         {},
         ...dbs
@@ -215,7 +221,8 @@ function parseDatabases(dbs: string): Record<string, { database: string; type: '
                         // Temporary hardcoding rename of `matic` to `polygon`
                         [network_id === 'matic' ? 'polygon' : network_id]: {
                             database: `${network_id}:${db_suffix}`,
-                            type: network_id === 'solana' ? 'svm' : 'evm', // TODO: Get type from registry
+                            // TODO: Get type from registry
+                            type: network_id === 'solana' ? 'svm' : network_id === 'tron' ? 'tvm' : 'evm',
                         },
                     };
             })
@@ -238,6 +245,7 @@ const config = z
         password: z.string(),
         defaultEvmNetwork: z.string().min(1, 'Default EVM network cannot be empty'),
         defaultSvmNetwork: z.string().min(1, 'Default SVM network cannot be empty'),
+        defaultTvmNetwork: z.string().min(1, 'Default TVM network cannot be empty'),
         tokenDatabases: z.string().min(1, 'Token databases configuration cannot be empty').transform(parseDatabases),
         nftDatabases: z.string().min(1, 'NFT databases configuration cannot be empty').transform(parseDatabases),
         uniswapDatabases: z
@@ -375,10 +383,27 @@ const config = z
                 );
             })
             .sort(),
+        tvmNetworks: Object.keys({
+            ...data.tokenDatabases,
+            ...data.nftDatabases,
+            ...data.uniswapDatabases,
+            ...data.contractDatabases,
+        })
+            .filter((networkId) => {
+                return (
+                    {
+                        ...data.tokenDatabases,
+                        ...data.nftDatabases,
+                        ...data.uniswapDatabases,
+                        ...data.contractDatabases,
+                    }[networkId]?.type === 'tvm'
+                );
+            })
+            .sort(),
     }))
     .transform((data) => ({
         ...data,
-        networks: [...data.evmNetworks, ...data.svmNetworks],
+        networks: [...data.evmNetworks, ...data.svmNetworks, ...data.tvmNetworks],
     }))
     .parse(opts);
 

@@ -75,8 +75,12 @@ export function getNetwork(id: string) {
 async function validateNetworks() {
     if (config.skipNetworksValidation) return;
 
-    if (!config.networks.includes(config.defaultEvmNetwork) && !config.networks.includes(config.defaultSvmNetwork)) {
-        throw new Error('Default network for EVM or SVM not found');
+    if (
+        !config.networks.includes(config.defaultEvmNetwork) &&
+        !config.networks.includes(config.defaultSvmNetwork) &&
+        !config.networks.includes(config.defaultTvmNetwork)
+    ) {
+        throw new Error('Default network for EVM, SVM or TVM not found');
     }
 
     const query = 'SHOW DATABASES';
@@ -103,6 +107,7 @@ await validateNetworks();
 logger.trace('Supported networks:\n', config.networks);
 logger.trace(`Default EVM network: ${config.defaultEvmNetwork}`);
 logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
+logger.trace(`Default TVM network: ${config.defaultTvmNetwork}`);
 
 route.get('/networks', openapi, async (c) => {
     return c.json({
