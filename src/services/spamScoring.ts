@@ -46,7 +46,6 @@ export const CHAIN_ID_MAP: Record<string, number> = {
     mainnet: 1,
     base: 8453,
     polygon: 137,
-    matic: 137,
     'arbitrum-one': 42161,
     avalanche: 43114,
     // optimism: 10,
