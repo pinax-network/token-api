@@ -14,11 +14,12 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: svmNetworkIdSchema },
-    amm: { schema: svmAmmSchema, batched: true, default: '' },
-    program_id: { schema: svmProgramIdSchema, batched: true, default: '' },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: svmNetworkIdSchema },
+    },
+    false // Disable pagination for this endpoint, return all results in one go
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -28,7 +29,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             amm: svmAmmSchema,
             amm_name: z.string(),
             is_aggregator: z.boolean(),
-            total_transactions: z.number(),
+            transactions: z.number(),
         })
     ),
 });
@@ -36,7 +37,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Supported DEXs',
-        description: 'Returns supported Solana DEXs.',
+        description: 'Returns all supported Solana DEXs.',
 
         tags: ['SVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -56,7 +57,7 @@ const openapi = describeRoute(
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_name: 'Raydium Liquidity Pool V4',
                                             is_aggregator: true,
-                                            total_transactions: 1008573050,
+                                            transactions: 1008573050,
                                         },
                                     ],
                                 },
