@@ -27,22 +27,25 @@ jobs:
               run: |
                   # Extract version from package.json
                   PACKAGE_VERSION=$(node -p "require('./package.json').version")
-                  
+
                   # Extract version from git tag (remove 'v' prefix if present)
                   GIT_TAG=${GITHUB_REF#refs/tags/}
                   GIT_VERSION=${GIT_TAG#v}
-                  
+
                   echo "Package.json version: $PACKAGE_VERSION"
                   echo "Git tag version: $GIT_VERSION"
-                  
-                  # Compare versions
-                  if [ "$PACKAGE_VERSION" != "$GIT_VERSION" ]; then
+
+                  # Check if tag contains pre-release suffix (e.g., -pre1, -1, -alpha, -beta)
+                  if [[ "$GIT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
+                      echo "ℹ️  Pre-release tag detected, skipping version check"
+                      echo "✅ Pre-release tags are allowed"
+                  elif [ "$PACKAGE_VERSION" != "$GIT_VERSION" ]; then
                       echo "❌ Error: Version mismatch!"
                       echo "package.json version ($PACKAGE_VERSION) does not match git tag ($GIT_VERSION)"
                       exit 1
+                  else
+                      echo "✅ Versions match!"
                   fi
-                  
-                  echo "✅ Versions match!"
 
             - name: Log in to the Container registry
               uses: docker/login-action@v3
@@ -69,6 +72,6 @@ jobs:
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
                   build-args: |
-                    GIT_COMMIT=${{ github.sha }}
-                    GIT_REPOSITORY=${{ github.repository }}
-                    GIT_DATE=${{ env.GIT_DATE }}
+                      GIT_COMMIT=${{ github.sha }}
+                      GIT_REPOSITORY=${{ github.repository }}
+                      GIT_DATE=${{ env.GIT_DATE }}
