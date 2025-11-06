@@ -54,9 +54,11 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             transaction_id: tvmTransactionSchema,
+            transaction_index: z.number(),
 
             // -- log --
             log_index: z.number(),
+            log_ordinal: z.number(),
 
             // -- transfer --
             contract: tvmContractSchema,
@@ -99,7 +101,9 @@ const openapi = describeRoute(
                                             timestamp: 1762354671,
                                             transaction_id:
                                                 '46c608cd66c873753f7d86a3dc6b46453052505730cc5f6e951533083b1d40ab',
+                                            transaction_index: 273,
                                             log_index: 0,
+                                            log_ordinal: 1020,
                                             contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
                                             from: 'TAYtGZzxZf1GhPfGwZKskWQnz7Qj3rwLDh',
                                             to: 'THWuviP5wEiPBLZ1g1iPPiH4kV7FRXWFP1',

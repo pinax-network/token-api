@@ -8,9 +8,8 @@ import { injectSymbol } from '../../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import {
     TVM_ADDRESS_FROM_EXAMPLE,
-    TVM_ADDRESS_TO_EXAMPLE,
-    // TVM_CONTRACT_WTRX_EXAMPLE,
-    TVM_TRANSACTION_TRANSFER_EXAMPLE,
+    TVM_ADDRESS_NATIVE_TO_EXAMPLE,
+    TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE,
 } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -30,12 +29,15 @@ const querySchema = createQuerySchema({
         schema: tvmTransactionSchema,
         batched: true,
         default: '',
-        meta: { example: TVM_TRANSACTION_TRANSFER_EXAMPLE },
+        meta: { example: TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE },
     },
-    // contract: { schema: tvmContractSchema, batched: true, default: '', meta: { example: TVM_CONTRACT_WTRX_EXAMPLE } },
-    // address: { schema: tvmAddressSchema, batched: true, default: '' },
     from_address: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_FROM_EXAMPLE } },
-    to_address: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_TO_EXAMPLE } },
+    to_address: {
+        schema: tvmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: TVM_ADDRESS_NATIVE_TO_EXAMPLE },
+    },
 
     start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
@@ -53,6 +55,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             transaction_id: tvmTransactionSchema,
+            transaction_index: z.number(),
 
             // -- transfer --
             from: tvmAddressSchema,
@@ -89,15 +92,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 73978497,
-                                            datetime: '2025-07-15 15:37:15',
-                                            timestamp: 1752593835,
+                                            block_num: 77231160,
+                                            datetime: '2025-11-05 14:57:36',
+                                            timestamp: 1762354656,
                                             transaction_id:
-                                                'daddbf0810fb73620ebb1ad3c915afd32f3cf13a267d740f27284583df97a01a',
+                                                '7504152368a31f51dc0128f07b01815a4f1033c8247a7c2f415a55d59cfe4351',
+                                            transaction_index: 260,
                                             from: 'TAYtGZzxZf1GhPfGwZKskWQnz7Qj3rwLDh',
-                                            to: 'THWuviP5wEiPBLZ1g1iPPiH4kV7FRXWFP1',
-                                            amount: '333000000',
-                                            value: 333,
+                                            to: 'TMXZAySpsog7WtaeKb8WotoHepNsD1jjTc',
+                                            amount: '4821375',
+                                            value: 4.821375,
                                             name: 'Tron',
                                             symbol: 'TRX',
                                             decimals: 6,

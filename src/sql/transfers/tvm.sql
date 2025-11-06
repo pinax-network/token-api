@@ -55,9 +55,11 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
+    tx_index AS transaction_index,
 
     /* log */
     log_index,
+    log_ordinal,
     log_address AS contract,
 
     /* transfer */

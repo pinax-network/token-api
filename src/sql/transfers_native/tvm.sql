@@ -47,6 +47,7 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
+    tx_index AS transaction_index,
 
     /* transfer */
     `from`,
