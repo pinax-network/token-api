@@ -105,7 +105,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
     // this DB is used to fetch token metadata (symbol, name, decimals)
-    params.tokens_svm_db = db_svm_tokens.database;
+    params.db_svm_tokens = db_svm_tokens.database;
 
     const response = await makeUsageQueryJson(
         c,
