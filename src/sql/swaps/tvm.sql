@@ -1,66 +1,104 @@
 WITH
-tx_hash_minutes AS (
+/* 1) Count how many filters are active */
+active_filters AS
+(
+    SELECT
+        toUInt8({transaction_id:Array(String)} != ['']) +
+        toUInt8({user:Array(String)} != ['']) +
+        toUInt8({pool:Array(String)} != ['']) +
+        toUInt8({factory:Array(String)} != ['']) +
+        toUInt8({protocol:String} != '') +
+        toUInt8({input_token:Array(String)} != ['']) +
+        toUInt8({output_token:Array(String)} != [''])
+    AS n
+),
+/* 2) Union minutes from only active filters */
+minutes_union AS
+(
     SELECT toRelativeMinuteNum(timestamp) AS minute
     FROM swaps
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY tx_hash, minute
-),
-user_minutes AS (
+
+    UNION ALL
+
     SELECT toRelativeMinuteNum(timestamp) AS minute
     FROM swaps
     WHERE ({user:Array(String)} != [''] AND user IN {user:Array(String)})
     GROUP BY user, minute
-),
-pool_minutes AS (
+
+    UNION ALL
+
     SELECT toRelativeMinuteNum(timestamp) AS minute
     FROM swaps
     WHERE ({pool:Array(String)} != [''] AND pool IN {pool:Array(String)})
     GROUP BY pool, minute
-),
-input_token_minutes AS (
+
+    UNION ALL
+
+    SELECT toRelativeMinuteNum(timestamp) AS minute
+    FROM swaps
+    WHERE ({factory:Array(String)} != [''] AND factory IN {factory:Array(String)})
+    GROUP BY factory, minute
+
+    UNION ALL
+
+    SELECT toRelativeMinuteNum(timestamp) AS minute
+    FROM swaps
+    WHERE ({protocol:String} != '' AND protocol = {protocol:String})
+    GROUP BY protocol, minute
+
+    UNION ALL
+
     SELECT toRelativeMinuteNum(timestamp) AS minute
     FROM swaps
     WHERE ({input_token:Array(String)} != [''] AND input_contract IN {input_token:Array(String)})
     GROUP BY input_contract, minute
-),
-output_token_minutes AS (
+
+    UNION ALL
+
     SELECT toRelativeMinuteNum(timestamp) AS minute
     FROM swaps
     WHERE ({output_token:Array(String)} != [''] AND output_contract IN {output_token:Array(String)})
     GROUP BY output_contract, minute
 ),
-factory_dates AS (
-    SELECT toDate(addMinutes(toDateTime('1970-01-01 00:00:00'), toRelativeMinuteNum(timestamp))) AS date
-    FROM swaps
-    WHERE ({factory:Array(String)} != [''] AND factory IN {factory:Array(String)})
-    GROUP BY factory, date
+filtered_minutes AS (
+    SELECT minute FROM minutes_union
+    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time:UInt64})) AND toRelativeMinuteNum(toDateTime({end_time:UInt64}))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        {limit:UInt64} + {offset:UInt64},           /* safe to limit if there is 1 active filter */
+        ({limit:UInt64} + {offset:UInt64}) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
 ),
-protocol_dates AS (
-    SELECT toDate(addMinutes(toDateTime('1970-01-01 00:00:00'), toRelativeMinuteNum(timestamp))) AS date
-    FROM swaps
-    WHERE ({protocol:String} != '' AND protocol = {protocol:String})
-    GROUP BY protocol, date
+/* Latest ingested timestamp in source table */
+latest_ts AS
+(
+    SELECT max(timestamp) AS ts FROM swaps
 ),
 filtered_swaps AS (
     SELECT * FROM swaps
+    PREWHERE
+        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND (
+            (
+                /* if no filters are active search only the last 10 minutes */
+                (SELECT n FROM active_filters) = 0
+                AND timestamp BETWEEN
+                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - INTERVAL 60 MINUTE)
+                    AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
+            )
+            /* if filters are active, search through the intersecting minute ranges */
+            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
+        )
     WHERE
-        /* filter by timestamp and block_num early to reduce data scanned */
-            ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
-        AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
-        AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
-        AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
-
-        /* filter by minute ranges if any filters are active */
-        AND ({transaction_id:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN tx_hash_minutes)
-        AND ({user:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN user_minutes)
-        AND ({pool:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN pool_minutes)
-        AND ({factory:Array(String)} = [''] OR toDate(timestamp) IN factory_dates)
-        AND ({protocol:String} = '' OR toDate(timestamp) IN protocol_dates)
-        AND ({input_token:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN input_token_minutes)
-        AND ({output_token:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN output_token_minutes)
-
         /* filter by active filters if any */
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
+        ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({user:Array(String)} = [''] OR user IN {user:Array(String)})
         AND ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
         AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
