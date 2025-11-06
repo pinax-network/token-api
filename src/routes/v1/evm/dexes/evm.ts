@@ -9,25 +9,26 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     evmAddressSchema,
-    evmFactorySchema,
     evmNetworkIdSchema,
     evmProtocolSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    factory: { schema: evmFactorySchema, batched: true, default: '' },
-    protocol: { schema: evmProtocolSchema, default: '' },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+    },
+    false // Disable pagination for this endpoint, return all results in one go
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             factory: evmAddressSchema,
             protocol: evmProtocolSchema,
-            total_uaw: z.number(),
-            total_transactions: z.number(),
+            uaw: z.number(),
+            transactions: z.number(),
+            last_activity: z.iso.datetime(),
         })
     ),
 });
@@ -35,7 +36,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Supported DEXs',
-        description: 'Returns supported EVM DEXs.',
+        description: 'Returns all supported EVM DEXs.',
 
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -52,8 +53,9 @@ const openapi = describeRoute(
                                         {
                                             factory: '0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f',
                                             protocol: 'uniswap_v2',
-                                            total_uaw: 13529627,
-                                            total_transactions: 20736917,
+                                            uaw: 10432787,
+                                            transactions: 16029788,
+                                            last_activity: '2025-11-06 16:00:00',
                                         },
                                     ],
                                 },

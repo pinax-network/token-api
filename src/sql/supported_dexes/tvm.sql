@@ -12,8 +12,4 @@ WITH all_dexes AS (
         factory
 )
 SELECT * FROM all_dexes
-WHERE ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
-AND ({protocol:String} = '' OR protocol IN {protocol:String})
-ORDER BY transactions DESC
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+ORDER BY transactions DESC, uaw DESC, protocol, factory

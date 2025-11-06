@@ -9,17 +9,17 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     tvmAddressSchema,
-    tvmFactorySchema,
     tvmNetworkIdSchema,
     tvmProtocolSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: tvmNetworkIdSchema },
-    factory: { schema: tvmFactorySchema, batched: true, default: '' },
-    protocol: { schema: tvmProtocolSchema, default: '' },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: tvmNetworkIdSchema },
+    },
+    false // Disable pagination for this endpoint, return all results in one go
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -36,7 +36,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Supported DEXs',
-        description: 'Returns supported TVM DEXs.',
+        description: 'Returns all supported TVM DEXs.',
 
         tags: ['TVM DEXs'],
         security: [{ bearerAuth: [] }],
