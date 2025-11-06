@@ -35,7 +35,7 @@ transfers AS (
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = [''] OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = [''] OR `to` IN {to_address:Array(String)})
-    ORDER BY timestamp DESC, block_num DESC, tx_index DESC
+    ORDER BY timestamp DESC, block_num DESC, block_hash DESC, tx_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
