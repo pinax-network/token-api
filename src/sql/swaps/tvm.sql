@@ -67,7 +67,7 @@ filtered_swaps AS (
         AND ({protocol:String} = '' OR protocol = {protocol:String})
         AND ({input_token:Array(String)} = [''] OR input_contract IN {input_token:Array(String)})
         AND ({output_token:Array(String)} = [''] OR output_contract IN {output_token:Array(String)})
-    ORDER BY timestamp DESC
+    ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
