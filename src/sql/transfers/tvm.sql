@@ -75,4 +75,5 @@ SELECT
     {network:String} AS network
 FROM transfers AS t
 /* Get token metadata (name, symbol, decimals) */
-JOIN metadata_rpc AS m ON t.log_address = m.contract;
+JOIN metadata_rpc AS m ON t.log_address = m.contract
+ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
