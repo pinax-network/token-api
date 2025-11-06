@@ -86,19 +86,18 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params: any = c.get('validatedData');
 
-    const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    const db = config.uniswapDatabases[params.network];
+    const db_tvm_tokens = config.tokenDatabases[params.network];
+    if (!db || !db_tvm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    let query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
+    let query = sqlQueries.ohlcv_prices_for_pool?.[db.type];
     if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
-    const trc20MetadataDB = config.tokenDatabases[params.network]?.database || '';
-    query = query.replaceAll('{trc20Metadata_db}', trc20MetadataDB);
-
-    console.log(query);
+    // this DB is used to fetch token metadata (symbol, name, decimals)
+    params.db_tvm_tokens = db_tvm_tokens.database;
 
     const response = await makeUsageQueryJson(
         c,
@@ -109,7 +108,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
             low_quantile: config.ohlcQuantile,
             stablecoin_contracts: [...stables],
         },
-        { database: dbConfig.database }
+        { database: db.database }
     );
     return handleUsageQueryError(c, response);
 });

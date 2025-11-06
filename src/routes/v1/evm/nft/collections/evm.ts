@@ -90,21 +90,22 @@ type ValidatedData = z.infer<typeof querySchema>;
 const route = new Hono<{ Variables: { validatedData: ValidatedData } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params: any = c.get('validatedData');
 
-    const dbConfig = config.nftDatabases[params.network];
-    if (!dbConfig) {
+    const db = config.uniswapDatabases[params.network];
+    const db_evm_contracts = config.contractDatabases[params.network];
+    if (!db || !db_evm_contracts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    let query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
+    let query = sqlQueries.nft_metadata_for_collection?.[db.type];
     if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
-    const contractsDb = config.contractDatabases[params.network]?.database || '';
+    // this DB is used to fetch contract metadata (creator, creation date)
+    params.db_evm_contracts = db_evm_contracts.database;
     const contractAddress = params.contract.toLowerCase();
-    query = query.replace('{contracts_db}', contractsDb);
 
     const [response, spamScore] = await Promise.all([
-        makeUsageQueryJson(c, [query], params, { database: dbConfig.database }),
+        makeUsageQueryJson(c, [query], params, { database: db.database }),
         querySpamScore(contractAddress, params.network),
     ]);
 
