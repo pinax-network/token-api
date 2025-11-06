@@ -67,7 +67,7 @@ filtered_swaps AS (
         AND ({protocol:String} = '' OR protocol = {protocol:String})
         AND ({input_token:Array(String)} = [''] OR input_contract IN {input_token:Array(String)})
         AND ({output_token:Array(String)} = [''] OR output_contract IN {output_token:Array(String)})
-    ORDER BY timestamp DESC
+    ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -79,8 +79,10 @@ SELECT
 
     /* transaction */
     toString(s.tx_hash) as transaction_id,
+    tx_index AS transaction_index,
 
     /* log */
+    log_index,
     log_ordinal,
     log_address,
     log_topic0,

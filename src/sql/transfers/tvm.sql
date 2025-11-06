@@ -43,7 +43,7 @@ transfers AS (
         AND ({from_address:Array(String)} = [''] OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = [''] OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = [''] OR log_address IN {contract:Array(String)})
-    ORDER BY timestamp DESC
+    ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -55,9 +55,11 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
+    tx_index AS transaction_index,
 
     /* log */
     log_index,
+    log_ordinal,
     log_address AS contract,
 
     /* transfer */

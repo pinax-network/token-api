@@ -69,8 +69,10 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             transaction_id: z.string(),
+            transaction_index: z.number(),
 
             // -- log --
+            log_index: z.number(),
             log_ordinal: z.number(),
             log_address: tvmAddressSchema,
             log_topic0: z.string(),
@@ -118,6 +120,8 @@ const openapi = describeRoute(
                                             timestamp: 1762361703,
                                             transaction_id:
                                                 'e74815245a8f1321ce5ede99cde8e021f75bf8e3d4f94cd8949d283eb56fee63',
+                                            transaction_index: 0,
+                                            log_index: 1,
                                             log_ordinal: 662,
                                             log_address: 'TFGDbUyP8xez44C76fin3bn3Ss6jugoUwJ',
                                             log_topic0:
