@@ -27,13 +27,13 @@ SELECT
     datetime,
     CONCAT(
         (
-            SELECT abi_hex_to_string(symbol_hex)
-            FROM `{trc20Metadata_db}`.metadata_rpc
+            SELECT symbol
+            FROM {db_tvm_tokens:Identifier}.metadata
             WHERE contract = (SELECT DISTINCT token0 FROM ohlc)
         ),
         (
-            SELECT abi_hex_to_string(symbol_hex)
-            FROM `{trc20Metadata_db}`.metadata_rpc
+            SELECT symbol
+            FROM {db_tvm_tokens:Identifier}.metadata
             WHERE contract = (SELECT DISTINCT token1 FROM ohlc)
         )
     ) AS ticker,

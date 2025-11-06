@@ -165,13 +165,22 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     const params = c.get('validatedData');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    // this DB is used to fetch TRC-20 token metadata (name, symbol, decimals)
+    const db_tvm_tokens = config.tokenDatabases[params.network];
+
+    if (!dbConfig || !db_tvm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
+
     const query = sqlQueries.swaps?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        { ...params, db_tvm_tokens: db_tvm_tokens.database },
+        { database: dbConfig.database }
+    );
     return handleUsageQueryError(c, response);
 });
 

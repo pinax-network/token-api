@@ -93,18 +93,25 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     const params = c.get('validatedData');
 
     const dbConfig = config.nftDatabases[params.network];
-    if (!dbConfig) {
+    // this DB is used to fetch contract metadata (creator, creation date)
+    const db_evm_contracts = config.contractDatabases[params.network];
+
+    if (!dbConfig || !db_evm_contracts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    let query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
+
+    const query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
-    const contractsDb = config.contractDatabases[params.network]?.database || '';
     const contractAddress = params.contract.toLowerCase();
-    query = query.replace('{contracts_db}', contractsDb);
 
     const [response, spamScore] = await Promise.all([
-        makeUsageQueryJson(c, [query], params, { database: dbConfig.database }),
+        makeUsageQueryJson(
+            c,
+            [query],
+            { ...params, db_evm_contracts: db_evm_contracts.database },
+            { database: dbConfig.database }
+        ),
         querySpamScore(contractAddress, params.network),
     ]);
 

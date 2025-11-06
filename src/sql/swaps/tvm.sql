@@ -105,6 +105,6 @@ SELECT
 
     {network:String} AS network
 FROM filtered_swaps AS s
-LEFT JOIN `tron:tvm-tokens@v0.1.2`.metadata AS m1 ON s.input_contract = m1.contract
-LEFT JOIN `tron:tvm-tokens@v0.1.2`.metadata AS m2 ON s.output_contract = m2.contract
+LEFT JOIN {db_tvm_tokens:Identifier}.metadata AS m1 ON s.input_contract = m1.contract
+LEFT JOIN {db_tvm_tokens:Identifier}.metadata AS m2 ON s.output_contract = m2.contract
 ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC

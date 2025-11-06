@@ -97,13 +97,16 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     const params = c.get('validatedData');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    // this DB is used to fetch token metadata (symbol, name, decimals)
+    const db_svm_tokens = config.tokenDatabases[params.network];
+
+    if (!dbConfig || !db_svm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    let query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
+
+    const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
-    query = query.replaceAll('{svm_metadata_db}', config.tokenDatabases[params.network]?.database || '');
     const response = await makeUsageQueryJson(
         c,
         [query],
@@ -112,6 +115,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
             high_quantile: 0.95,
             low_quantile: 0.05,
             stablecoin_contracts: [...stables],
+            db_svm_tokens: db_svm_tokens.database,
         },
         { database: dbConfig.database }
     );
