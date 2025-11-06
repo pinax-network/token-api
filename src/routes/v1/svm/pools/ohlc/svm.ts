@@ -94,18 +94,18 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params: any = c.get('validatedData');
+    const params = c.get('validatedData');
 
-    const db = config.uniswapDatabases[params.network];
+    const dbConfig = config.uniswapDatabases[params.network];
+    // this DB is used to fetch token metadata (symbol, name, decimals)
     const db_svm_tokens = config.tokenDatabases[params.network];
-    if (!db || !db_svm_tokens) {
+
+    if (!dbConfig || !db_svm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    let query = sqlQueries.ohlcv_prices_for_pool?.[db.type];
-    if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
-    // this DB is used to fetch token metadata (symbol, name, decimals)
-    params.db_svm_tokens = db_svm_tokens.database;
+    const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
+    if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(
         c,
@@ -115,8 +115,9 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
             high_quantile: 0.95,
             low_quantile: 0.05,
             stablecoin_contracts: [...stables],
+            db_svm_tokens: db_svm_tokens.database,
         },
-        { database: db.database }
+        { database: dbConfig.database }
     );
     return handleUsageQueryError(c, response);
 });
