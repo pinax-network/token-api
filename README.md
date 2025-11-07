@@ -63,9 +63,9 @@ The Token API provides access to onchain NFT and fungible token data, including 
    ```
 
 3. **Configure environment variables**
-   
+
    Create a `.env` file in the root directory:
-   
+
    ```env
    # API Server Configuration
    PORT=8000
@@ -77,7 +77,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
    USERNAME=default
    PASSWORD=
    MAX_LIMIT=10000
-   
+
    # Database Sources (Substreams packages)
    DBS_TOKEN=mainnet:evm-tokens@v1.14.0
    DBS_NFT=mainnet:evm-nft-tokens@v0.5.1
@@ -99,7 +99,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
    The API will be available at `http://localhost:8000`
 
 5. **Explore the API**
-   
+
    Visit the interactive documentation at `http://localhost:8000/` (when running locally)
 
 ### Environment Variables
@@ -157,7 +157,7 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 
 ### EVM Networks
 - **Ethereum Mainnet** (`mainnet`)
-- **Arbitrum One** (`arbitrum-one`) 
+- **Arbitrum One** (`arbitrum-one`)
 - **Avalanche C-Chain** (`avalanche`)
 - **Base** (`base`)
 - **BNB Smart Chain** (`bsc`)
@@ -226,7 +226,10 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 3. Make your changes
 4. Add tests for new functionality
 5. Run the test suite
-6. Submit a pull request
+6. Add a changeset: `bun run changeset` (required for all PRs)
+7. Submit a pull request
+
+See [Release Process](docs/RELEASING.md) for details on changesets and versioning.
 
 ## License
 
