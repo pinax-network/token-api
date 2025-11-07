@@ -826,29 +826,29 @@ describe('withErrorResponses', () => {
 
         const result = withErrorResponses(routeDescription);
 
-        expect(result.responses[400]).toBeDefined();
-        expect(result.responses[400].description).toBeDefined();
+        expect(result.responses?.['400']).toBeDefined();
+        expect((result.responses?.['400'] as any)?.description).toBeDefined();
     });
 
     it('should include proper error response schemas', () => {
         const routeDescription = { responses: {} };
         const result = withErrorResponses(routeDescription);
 
-        expect(result.responses['400'].content['application/json'].schema).toBeDefined();
-        expect(result.responses['500'].content['application/json'].schema).toBeDefined();
+        expect((result.responses?.['400'] as any)?.content?.['application/json']?.schema).toBeDefined();
+        expect((result.responses?.['500'] as any)?.content?.['application/json']?.schema).toBeDefined();
     });
 
     it('should include example error responses', () => {
         const routeDescription = { responses: {} };
         const result = withErrorResponses(routeDescription);
 
-        expect(result.responses['400'].content['application/json'].examples.example.value).toEqual({
+        expect((result.responses?.['400'] as any)?.content?.['application/json']?.examples?.example?.value).toEqual({
             status: 400,
             code: 'bad_query_input',
             message: 'Invalid query parameter provided',
         });
 
-        expect(result.responses['500'].content['application/json'].examples.example.value).toEqual({
+        expect((result.responses?.['500'] as any)?.content?.['application/json']?.examples?.example?.value).toEqual({
             status: 500,
             code: 'internal_server_error',
             message: 'An unexpected error occurred',
@@ -862,8 +862,8 @@ describe('withErrorResponses', () => {
 
         const result = withErrorResponses(routeDescription);
 
-        expect(result.responses['400']).toBeDefined();
-        expect(result.responses['500']).toBeDefined();
+        expect(result.responses?.['400']).toBeDefined();
+        expect(result.responses?.['500']).toBeDefined();
     });
 });
 
