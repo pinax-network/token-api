@@ -1,7 +1,7 @@
 import { NetworksRegistry } from '@pinax/graph-networks-registry';
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { resolver } from 'hono-openapi/zod';
+import { resolver } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../../clickhouse/client.js';
 import { config } from '../../config.js';

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/zod';
+import { resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
@@ -83,7 +83,7 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params = c.req.valid('query');
 
     const dbConfig = config.nftDatabases[params.network];
     if (!dbConfig) {

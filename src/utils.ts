@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { resolver } from 'hono-openapi/zod';
+import { resolver } from 'hono-openapi';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import { logger } from './logger.js';

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/zod';
+import { resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
@@ -30,7 +30,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            datetime: z.iso.datetime(),
+            datetime: z.string().describe('ISO 8601 datetime string'),
             amm: svmAmmSchema,
             amm_pool: svmAmmPoolSchema,
             token0: svmMintSchema,
@@ -94,7 +94,7 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
     // this DB is used to fetch token metadata (symbol, name, decimals)
