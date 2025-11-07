@@ -8,6 +8,8 @@ jobs:
     check:
         name: Check for changeset
         runs-on: ubuntu-latest
+        # Skip bots and chore branches
+        if: ${{ !contains(github.head_ref, 'chore') && !contains(github.head_ref, 'renovate') }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -21,9 +23,4 @@ jobs:
               run: bun install --frozen-lockfile
 
             - name: Check for changeset
-              run: |
-                  if [ "${{ github.event.pull_request.user.login }}" = "renovate[bot]" ] || [ "${{ github.event.pull_request.user.login }}" = "dependabot[bot]" ]; then
-                    echo "Skipping changeset check for bot PRs"
-                    exit 0
-                  fi
-                  bun run changeset status --since=origin/${{ github.base_ref }}
+              run: bun run changeset status --since=origin/${{ github.base_ref }}
