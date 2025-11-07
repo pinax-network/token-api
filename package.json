@@ -38,8 +38,7 @@
         "fix": "biome check --write --unsafe",
         "lint": "bun run typecheck && biome check .",
         "changeset": "changeset",
-        "changeset:version": "changeset version",
-        "changeset:publish": "changeset publish"
+        "changeset:version": "changeset version"
     },
     "dependencies": {
         "@clickhouse/client": "^1.12.0",

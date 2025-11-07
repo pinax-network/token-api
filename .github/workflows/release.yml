@@ -52,7 +52,7 @@ jobs:
             echo ""
             echo "Please create a new release with tag v$NEW_VERSION instead."
             echo ""
-            echo "Tip: Run 'bunx changeset status' locally to see what version will be created."
+            echo "Tip: Run 'bun changeset status --verbose' locally to see what version will be created."
             exit 1
           fi
 

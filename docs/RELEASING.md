@@ -7,7 +7,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 When you make a change that should be included in the changelog, run:
 
 ```bash
-bun run changeset
+bun changeset
 ```
 
 This will prompt you to:
@@ -28,15 +28,15 @@ Bot PRs (Renovate, Dependabot) automatically skip the changeset check.
 
 1. **Check what version will be created** (locally):
    ```bash
-   bunx changeset status
+   bun changeset status --verbose
    ```
    This shows you what version changesets will bump to based on pending changesets.
 
 2. **Go to GitHub Releases**: https://github.com/pinax-network/token-api/releases/new
 
 3. **Create a new tag** matching the version from step 1: e.g., `v3.6.0`
-   
-   ⚠️ **Important**: The tag must match what changesets will create, or the workflow will fail with a helpful error message.
+
+   ⚠️ **Important**: The tag must match what changesets will create, or the workflow will fail
 
 4. **Write release notes**: Summarize the changes (or use "Generate release notes" button)
 
@@ -83,7 +83,7 @@ That's it! No manual version bumping, no manual changelog updates, no manual Doc
 git checkout -b feature/new-endpoint
 
 # 2. Add changeset
-bun run changeset
+bun changeset
 # Select: minor
 # Summary: "Add new /v1/tokens endpoint"
 
@@ -101,7 +101,7 @@ git push
 # 1. Merge PRs to main
 
 # 2. Check what version will be created
-bunx changeset status
+bun changeset status --verbose
 # Output: "Packages to be bumped at minor: token-api"
 
 # 3. Go to GitHub Releases UI

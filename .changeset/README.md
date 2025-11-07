@@ -8,16 +8,14 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 
 ```bash
 # Create a new changeset (run this for every PR)
-bun run changeset
+bun changeset
 
 # Check status of pending changesets
-bunx changeset status
+bun changeset status --verbose
 
 # Version packages (maintainers only - automated via GitHub Actions)
-bun run changeset:version
+bun changeset:version
 
-# Publish to npm (if applicable)
-bun run changeset:publish
 ```
 
 ### Change Types
@@ -79,22 +77,23 @@ When you make a change that should be included in the changelog:
 **Always check what version will be created:**
 
 ```bash
-bunx changeset status
+bun changeset status --verbose
 ```
 
 Example output:
 ```
-🦋  info Packages to be bumped at minor:
-🦋  - token-api
+🦋  info Packages to be bumped at patch
+🦋  - token-api 3.5.4
+🦋    - .changeset/migrate-hono-openapi-v1.md
 ```
 
-This means the next version will be a **minor** bump.
+This means the next version will be a **patch** bump to 3.5.4
 
 ### Creating a Release
 
-1. Run `bunx changeset status` to see the version
-2. If current version is `3.5.3` and status shows `minor`, next version is `3.6.0`
-3. Create GitHub release with tag `v3.6.0`
+1. Run `bun changeset status --verbose` to see the version
+2. If you see `3.5.4` then this will be the next version
+3. Create GitHub release with tag `v3.5.4`
 4. Publish (the workflow validates the tag matches)
 
 The GitHub Action automatically:
@@ -114,7 +113,7 @@ Release tag is v3.5.4 but changesets bumped version to 3.6.0
 
 Please create a new release with tag v3.6.0 instead.
 
-Tip: Run 'bunx changeset status' locally to see what version will be created.
+Tip: Run 'bun changeset status --verbose' locally to see what version will be created.
 ```
 
 **What to do:**
