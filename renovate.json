@@ -6,12 +6,9 @@
     "recreateWhen": "never",
     "labels": ["dependencies"],
     "rebaseWhen": "conflicted",
-    "automerge": true,
-    "automergeType": "pr",
-    "assignAutomerge": true,
+    "automerge": false,
     "lockFileMaintenance": {
-        "enabled": true,
-        "automerge": true
+        "enabled": true
     },
     "packageRules": [
         {
