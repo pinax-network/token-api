@@ -1,29 +1,5 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
-
-### Changed
-
-- Migrated from `hono-openapi` v0 to v1
-- Updated validator data access pattern from `c.get('validatedData')` to `c.req.valid('query')`
-- Replaced Zod date types with string types for JSON Schema compatibility
-- Converted `request_time` from Date object to ISO string format
-
-### Removed
-
-- Removed unused dependencies: `@hono/zod-openapi`, `@hono/zod-validator`, `zod-openapi`
-
-### Added
-
-- Added `@hono/standard-validator` as required peer dependency for `hono-openapi` v1
-- Added changesets for version management and changelog generation
-- Added automated release workflow via GitHub Actions
-
 ## [3.5.3] - 2024-11-07
 
 ### Fixed
