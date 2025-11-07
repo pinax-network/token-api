@@ -1,5 +1,6 @@
 import type { Context } from 'hono';
-import { resolver } from 'hono-openapi/zod';
+import type { DescribeRouteOptions } from 'hono-openapi';
+import { resolver } from 'hono-openapi';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import { logger } from './logger.js';
@@ -179,13 +180,8 @@ export function validatorHook(
         });
 }
 
-export interface RouteDescription {
-    responses?: Record<string, unknown>;
-    [key: string]: unknown;
-}
-
 // Wrapper function to add error responses to existing route descriptions
-export function withErrorResponses(routeDescription: RouteDescription) {
+export function withErrorResponses(routeDescription: DescribeRouteOptions): DescribeRouteOptions {
     return {
         ...routeDescription,
         responses: {

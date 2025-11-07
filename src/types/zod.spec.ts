@@ -562,7 +562,7 @@ describe('Response Schemas', () => {
                 statistics: { rows_read: 1, bytes_read: 1, elapsed: 0.1 },
                 pagination: { previous_page: 1, current_page: 1 },
                 results: 1,
-                request_time: new Date(),
+                request_time: new Date().toISOString(),
                 duration_ms: 100,
             };
             const result = apiUsageResponseSchema.parse(response);

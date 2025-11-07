@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
-import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/zod';
+import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
@@ -25,7 +24,7 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.iso.datetime(),
+            last_update: z.string().describe('ISO 8601 datetime string'),
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
@@ -90,7 +89,7 @@ const openapi = describeRoute(
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params = c.req.valid('query');
 
     const dbConfig = config.tokenDatabases[params.network];
     if (!dbConfig) {

@@ -430,7 +430,7 @@ export const apiUsageResponseSchema = z.object({
     statistics: statisticsResponseSchema,
     pagination: paginationResponseSchema,
     results: z.number(),
-    request_time: z.date(),
+    request_time: z.string().describe('ISO 8601 datetime string'),
     duration_ms: z.number(),
 });
 

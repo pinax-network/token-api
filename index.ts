@@ -1,6 +1,6 @@
 import { type Context, Hono } from 'hono';
 import './src/banner.js';
-import { openAPISpecs } from 'hono-openapi';
+import { openAPIRouteHandler } from 'hono-openapi';
 import { APP_DESCRIPTION, APP_VERSION, config } from './src/config.js';
 import { logger } from './src/logger.js';
 import routes from './src/routes/index.js';
@@ -24,7 +24,7 @@ app.get('/favicon.svg', () => new Response(Bun.file('./public/favicon.svg')));
 app.get('/banner.jpg', () => new Response(Bun.file('./public/banner.jpg')));
 app.get(
     '/openapi',
-    openAPISpecs(app, {
+    openAPIRouteHandler(app, {
         documentation: {
             info: {
                 title: 'Token API (Beta)',
