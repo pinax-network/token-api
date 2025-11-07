@@ -134,12 +134,12 @@ SELECT
     /* input token */
     toString(input_amount) AS input_amount,
     s.input_amount / pow(10, m1.decimals) AS input_value,
-    CAST( ( s.input_contract, m1.symbol, m1.name, m1.decimals ) AS Tuple(address String, symbol String, name String, decimals UInt8)) AS input_token,
+    CAST( ( s.input_contract, m1.symbol, m1.name, m1.decimals ) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS input_token,
 
     /* output token */
     toString(output_amount) AS output_amount,
     s.output_amount / pow(10, m2.decimals) AS output_value,
-    CAST( ( s.output_contract, m2.symbol, m2.name, m2.decimals ) AS Tuple(address String, symbol String, name String, decimals UInt8)) AS output_token,
+    CAST( ( s.output_contract, m2.symbol, m2.name, m2.decimals ) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS output_token,
 
     {network:String} AS network
 FROM filtered_swaps AS s
