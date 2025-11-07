@@ -82,7 +82,7 @@ export async function makeUsageQueryJson<T = unknown>(
                 current_page: page,
             },
             results: result.rows ?? 0,
-            request_time,
+            request_time: request_time.toISOString(),
             duration_ms: Date.now() - Number(request_time),
         };
     } catch (err) {
