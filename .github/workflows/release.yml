@@ -12,7 +12,7 @@ jobs:
     if: github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-')
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,16 +35,16 @@ jobs:
         run: |
           # Run changeset version to consume changesets and update CHANGELOG.md
           bun run changeset:version
-          
+
           # Get the new version from package.json
           NEW_VERSION=$(node -p "require('./package.json').version")
           RELEASE_TAG="${{ github.event.release.tag_name }}"
           RELEASE_VERSION="${RELEASE_TAG#v}"
-          
+
           echo "Release tag: $RELEASE_TAG"
           echo "Release version: $RELEASE_VERSION"
           echo "Changesets bumped to: $NEW_VERSION"
-          
+
           # Check if versions match
           if [ "$NEW_VERSION" != "$RELEASE_VERSION" ]; then
             echo "❌ Error: Version mismatch!"
@@ -55,7 +55,7 @@ jobs:
             echo "Tip: Run 'bunx changeset status' locally to see what version will be created."
             exit 1
           fi
-          
+
           # Check if there are changes to commit
           if [[ -n $(git status --porcelain) ]]; then
             git add .

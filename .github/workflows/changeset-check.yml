@@ -1,29 +1,29 @@
 name: Changeset Check
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+    pull_request:
+        types: [opened, synchronize, reopened]
 
 jobs:
-  check:
-    name: Check for changeset
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    check:
+        name: Check for changeset
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
 
-      - name: Check for changeset
-        run: |
-          if [ "${{ github.event.pull_request.user.login }}" = "renovate[bot]" ] || [ "${{ github.event.pull_request.user.login }}" = "dependabot[bot]" ]; then
-            echo "Skipping changeset check for bot PRs"
-            exit 0
-          fi
-          bunx changeset status --since=origin/${{ github.base_ref }}
+            - name: Check for changeset
+              run: |
+                  if [ "${{ github.event.pull_request.user.login }}" = "renovate[bot]" ] || [ "${{ github.event.pull_request.user.login }}" = "dependabot[bot]" ]; then
+                    echo "Skipping changeset check for bot PRs"
+                    exit 0
+                  fi
+                  bun run changeset status --since=origin/${{ github.base_ref }}
