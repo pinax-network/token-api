@@ -11,7 +11,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 bun changeset
 
 # Check status of pending changesets
-bun changeset status --verbose
+bun changeset:status
 
 # Version packages (maintainers only - automated via GitHub Actions)
 bun changeset:version
@@ -77,7 +77,7 @@ When you make a change that should be included in the changelog:
 **Always check what version will be created:**
 
 ```bash
-bun changeset status --verbose
+bun changeset:status
 ```
 
 Example output:
@@ -91,7 +91,7 @@ This means the next version will be a **patch** bump to 3.5.4
 
 ### Creating a Release
 
-1. Run `bun changeset status --verbose` to see the version
+1. Run `bun changeset:status` to see the version
 2. If you see `3.5.4` then this will be the next version
 3. Create GitHub release with tag `v3.5.4`
 4. Publish (the workflow validates the tag matches)
@@ -113,7 +113,7 @@ Release tag is v3.5.4 but changesets bumped version to 3.6.0
 
 Please create a new release with tag v3.6.0 instead.
 
-Tip: Run 'bun changeset status --verbose' locally to see what version will be created.
+Tip: Run 'bun changeset:status' locally to see what version will be created.
 ```
 
 **What to do:**

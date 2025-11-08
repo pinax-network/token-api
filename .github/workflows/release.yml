@@ -50,9 +50,9 @@ jobs:
             echo "❌ Error: Version mismatch!"
             echo "Release tag is $RELEASE_TAG but changesets bumped version to $NEW_VERSION"
             echo ""
-            echo "Please create a new release with tag v$NEW_VERSION instead."
+            echo "Please delete $RELEASE_TAG release and create a new one with tag v$NEW_VERSION instead."
             echo ""
-            echo "Tip: Run 'bun changeset status --verbose' locally to see what version will be created."
+            echo "Tip: Run 'bun changeset:status' locally to see what version will be created."
             exit 1
           fi
 
