@@ -1,0 +1,58 @@
+name: Docker Develop
+
+on:
+    push:
+        branches:
+            - main
+    release:
+        types: [published]
+
+env:
+    REGISTRY: ghcr.io
+
+jobs:
+    docker:
+        runs-on: ubuntu-latest
+        # Run on branch pushes OR pre-releases (with '-' in tag)
+        if: |
+            github.event_name == 'push' ||
+            (github.event_name == 'release' && (github.event.release.prerelease == true || contains(github.event.release.tag_name, '-')))
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Log in to registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Extract metadata
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ${{ env.REGISTRY }}/${{ github.repository }}
+                  tags: |
+                      type=sha,prefix=,suffix=-{{date 'X'}},enable=${{ github.event_name == 'push' }}
+                      type=raw,value=develop,enable=${{ github.event_name == 'push' }}
+                      type=semver,pattern={{raw}},enable=${{ github.event_name == 'release' }}
+
+            - name: Set build date
+              run: echo "GIT_DATE=$(git log -1 --format=%cd --date=short)" >> $GITHUB_ENV
+
+            - name: Build and push
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  build-args: |
+                      GIT_COMMIT=${{ github.sha }}
+                      GIT_REPOSITORY=${{ github.repository }}
+                      GIT_DATE=${{ env.GIT_DATE }}

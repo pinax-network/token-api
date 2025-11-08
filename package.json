@@ -36,7 +36,10 @@
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
-        "lint": "bun run typecheck && biome check ."
+        "lint": "bun run typecheck && biome check .",
+        "changeset": "changeset",
+        "changeset:version": "changeset version",
+        "changeset:status": "changeset status --verbose"
     },
     "dependencies": {
         "@clickhouse/client": "^1.12.0",
@@ -54,7 +57,8 @@
     },
     "devDependencies": {
         "@biomejs/biome": "^2.1.4",
-        "typescript": "^5.9.2",
-        "@types/bun": "^1.2.19"
+        "@changesets/cli": "^2.29.7",
+        "@types/bun": "^1.2.19",
+        "typescript": "^5.9.2"
     }
 }
