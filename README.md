@@ -230,7 +230,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 7. Lint `bun lint` and fix if needed `bun fix`
 8. Submit a pull request
 
-See [Release Process](docs/RELEASING.md) for details on changesets, versioning and release process.
+See [Release Process](RELEASING.md) for details on changesets, versioning and release process.
 
 ## License
 
