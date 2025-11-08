@@ -143,7 +143,7 @@ The release workflow will automatically skip these.
 
 ## Additional Resources
 
-- [Release Process Guide](../docs/RELEASING.md)
+- [Release Process Guide](../RELEASING.md)
 - [Changesets Documentation](https://github.com/changesets/changesets)
 - [Keep a Changelog](https://keepachangelog.com/)
 - [Semantic Versioning](https://semver.org/)
