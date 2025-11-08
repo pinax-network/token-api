@@ -4,26 +4,26 @@ WITH
 arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
 arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
 arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
-(length(tx_ids) > 0) AS has_tx_filter,
-(length(from_addresses) > 0) AS has_from_filter,
-(length(to_addresses) > 0) AS has_to_filter,
+(length(tx_ids) > 0) AS has_tx_hash,
+(length(from_addresses) > 0) AS has_from,
+(length(to_addresses) > 0) AS has_to,
 
 tx_hash_timestamps AS (
     SELECT timestamp
     FROM native_transfer
-    WHERE has_tx_filter AND tx_hash IN {transaction_id:Array(String)}
+    WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY timestamp
 ),
 from_minutes AS (
     SELECT minute
     FROM native_transfer
-    WHERE has_from_filter AND `from` IN {from_address:Array(String)}
+    WHERE has_from AND `from` IN {from_address:Array(String)}
     GROUP BY minute
 ),
 to_minutes AS (
     SELECT minute
     FROM native_transfer
-    WHERE has_to_filter AND `to` IN {to_address:Array(String)}
+    WHERE has_to AND `to` IN {to_address:Array(String)}
     GROUP BY minute
 )
 SELECT
@@ -58,14 +58,14 @@ WHERE
     AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
     /* timestamp/minute filters */
-    AND (NOT has_tx_filter OR timestamp IN tx_hash_timestamps)
-    AND (NOT has_from_filter OR minute IN from_minutes)
-    AND (NOT has_to_filter OR minute IN to_minutes)
+    AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
+    AND (NOT has_from OR minute IN from_minutes)
+    AND (NOT has_to OR minute IN to_minutes)
 
     /* filter by active filters if any */
-    AND (NOT has_tx_filter OR tx_hash IN {transaction_id:Array(String)})
-    AND (NOT has_from_filter OR `from` IN {from_address:Array(String)})
-    AND (NOT has_to_filter OR `to` IN {to_address:Array(String)})
+    AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
+    AND (NOT has_from OR `from` IN {from_address:Array(String)})
+    AND (NOT has_to OR `to` IN {to_address:Array(String)})
 ORDER BY timestamp DESC, block_num DESC, tx_index DESC
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}

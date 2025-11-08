@@ -1,26 +1,37 @@
+/* Clean up transaction_id param: drop the sentinel '' if present */
 WITH
+
+arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
+arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
+arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
+arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
+(length(tx_ids) > 0) AS has_tx_hash,
+(length(from_addresses) > 0) AS has_from,
+(length(to_addresses) > 0) AS has_to,
+(length(contracts) > 0) AS has_contract,
+
 tx_hash_timestamps AS (
     SELECT timestamp
     FROM trc20_transfer
-    WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
+    WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY timestamp
 ),
 from_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE {from_address:Array(String)} != [''] OR `from` IN {from_address:Array(String)}
+    WHERE has_from AND `from` IN {from_address:Array(String)}
     GROUP BY minute
 ),
 to_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE {to_address:Array(String)} != [''] OR `to` IN {to_address:Array(String)}
+    WHERE has_to AND `to` IN {to_address:Array(String)}
     GROUP BY minute
 ),
-log_address_minutes AS (
+contract_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE ({contract:Array(String)} != [''] AND log_address IN {contract:Array(String)})
+    WHERE has_contract AND log_address IN {contract:Array(String)}
     GROUP BY minute
 ),
 transfers AS (
@@ -33,16 +44,17 @@ transfers AS (
         AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
         /* timestamp/minute filters */
-        AND ({transaction_id:Array(String)} = [''] OR timestamp IN tx_hash_timestamps)
-        AND ({contract:Array(String)} = [''] OR minute IN log_address_minutes)
-        AND ({from_address:Array(String)} = [''] OR minute IN (SELECT minute FROM from_minutes))
-        AND ({to_address:Array(String)} = [''] OR minute IN to_minutes)
+        AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
+        AND (NOT has_from OR minute IN from_minutes)
+        AND (NOT has_to OR minute IN to_minutes)
+        AND (NOT has_contract OR minute IN contract_minutes)
 
         /* filter by active filters if any */
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({contract:Array(String)} = [''] OR log_address IN {contract:Array(String)})
-        AND ({from_address:Array(String)} = [''] OR `from` IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR `to` IN {to_address:Array(String)})
+        AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
+        AND (NOT has_from OR `from` IN {from_address:Array(String)})
+        AND (NOT has_to OR `to` IN {to_address:Array(String)})
+        AND (NOT has_contract OR log_address IN {contract:Array(String)})
+
     ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
