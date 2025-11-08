@@ -63,5 +63,6 @@ jobs:
             git push origin main
             echo "✅ Version and changelog updated"
           else
-            echo "ℹ️  No changes to commit"
+            echo "❌ No changes to commit. Add at least one changeset with `bun changeset` and try again."
+            exit 1
           fi
