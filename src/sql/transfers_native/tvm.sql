@@ -1,43 +1,30 @@
+/* Clean up transaction_id param: drop the sentinel '' if present */
 WITH
-tx_hash_minutes AS (
-    SELECT toRelativeMinuteNum(timestamp) AS minute
+
+arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
+arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
+arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
+(length(tx_ids) > 0) AS has_tx_filter,
+(length(from_addresses) > 0) AS has_from_filter,
+(length(to_addresses) > 0) AS has_to_filter,
+
+tx_hash_timestamps AS (
+    SELECT timestamp
     FROM native_transfer
-    WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
-    GROUP BY tx_hash, minute
+    WHERE has_tx_filter AND tx_hash IN {transaction_id:Array(String)}
+    GROUP BY timestamp
 ),
 from_minutes AS (
-    SELECT toRelativeMinuteNum(timestamp) AS minute
+    SELECT minute
     FROM native_transfer
-    WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
-    GROUP BY `from`, minute
+    WHERE has_from_filter AND `from` IN {from_address:Array(String)}
+    GROUP BY minute
 ),
 to_minutes AS (
-    SELECT toRelativeMinuteNum(timestamp) AS minute
+    SELECT minute
     FROM native_transfer
-    WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
-    GROUP BY `to`, minute
-),
-transfers AS (
-    SELECT * FROM native_transfer
-    WHERE
-        /* filter by timestamp and block_num early to reduce data scanned */
-            ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
-        AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
-        AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
-        AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
-
-        /* filter by minute ranges if any filters are active */
-        AND ({transaction_id:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN tx_hash_minutes)
-        AND ({from_address:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN from_minutes)
-        AND ({to_address:Array(String)} = [''] OR toRelativeMinuteNum(timestamp) IN to_minutes)
-
-        /* filter by active filters if any */
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({from_address:Array(String)} = [''] OR `from` IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR `to` IN {to_address:Array(String)})
-    ORDER BY timestamp DESC, block_num DESC, block_hash DESC, tx_index DESC
-    LIMIT   {limit:UInt64}
-    OFFSET  {offset:UInt64}
+    WHERE has_to_filter AND `to` IN {to_address:Array(String)}
+    GROUP BY minute
 )
 SELECT
     /* block */
@@ -59,5 +46,26 @@ SELECT
     'Tron' AS name,
     'TRX' AS symbol,
     6 AS decimals,
+
+    /* network */
     {network:String} AS network
-FROM transfers AS t;
+FROM native_transfer AS t
+WHERE
+    /* filter by timestamp and block_num early to reduce data scanned */
+        ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
+    AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
+    AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
+    AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
+
+    /* timestamp/minute filters */
+    AND (NOT has_tx_filter OR timestamp IN tx_hash_timestamps)
+    AND (NOT has_from_filter OR minute IN from_minutes)
+    AND (NOT has_to_filter OR minute IN to_minutes)
+
+    /* filter by active filters if any */
+    AND (NOT has_tx_filter OR tx_hash IN {transaction_id:Array(String)})
+    AND (NOT has_from_filter OR `from` IN {from_address:Array(String)})
+    AND (NOT has_to_filter OR `to` IN {to_address:Array(String)})
+ORDER BY timestamp DESC, block_num DESC, tx_index DESC
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}
