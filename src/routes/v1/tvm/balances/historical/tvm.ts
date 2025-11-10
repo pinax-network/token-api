@@ -9,6 +9,7 @@ import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -29,7 +30,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             address: evmAddressSchema,
             contract: evmContractSchema,
             decimals: z.number(),

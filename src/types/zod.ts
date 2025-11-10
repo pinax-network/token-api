@@ -83,6 +83,11 @@ export const tvmTransaction = z.coerce
 
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export const commit = z.coerce.string().regex(/^[0-9a-f]{7}$/);
+// Use custom regex for validation both ISO datetimes (T/Z format) and SQL datetimes (spaces)
+// e.g. 2025-01-01T12:00:00.000Z / 2025-01-01 12:00:00
+export const dateTimeSchema = z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/, 'Invalid datetime format');
 
 // Type exports
 export type EvmAddress = z.infer<typeof evmAddress>;

@@ -14,6 +14,7 @@ import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
+    dateTimeSchema,
     timestampSchema,
     tvmAddressSchema,
     tvmNetworkIdSchema,
@@ -49,7 +50,7 @@ const responseSchema = apiUsageResponseSchema.extend({
         z.object({
             // -- block --
             block_num: z.number(),
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             timestamp: z.number(),
 
             // -- transaction --

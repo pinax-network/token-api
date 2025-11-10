@@ -15,6 +15,7 @@ import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -80,7 +81,7 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             block_num: z.number(),
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             timestamp: z.number(),
 
             // NFT token metadata

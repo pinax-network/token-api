@@ -9,6 +9,7 @@ import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/exampl
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -23,7 +24,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            contract_creation: z.string().describe('ISO 8601 datetime string'),
+            contract_creation: dateTimeSchema,
             contract_creator: evmAddressSchema,
             contract: evmContractSchema,
             name: z.string().nullable(),

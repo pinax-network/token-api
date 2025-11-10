@@ -7,6 +7,7 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     tvmAddressSchema,
     tvmNetworkIdSchema,
     tvmProtocolSchema,
@@ -27,7 +28,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             protocol: tvmProtocolSchema,
             transactions: z.number(),
             uaw: z.number(),
-            last_activity: z.string().describe('ISO 8601 datetime string'),
+            last_activity: dateTimeSchema,
         })
     ),
 });

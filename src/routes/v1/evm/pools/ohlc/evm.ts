@@ -9,6 +9,7 @@ import { EVM_POOL_USDC_WETH_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmNetworkIdSchema,
     evmPoolSchema,
     intervalSchema,
@@ -28,7 +29,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             ticker: z.string(),
             pool: evmPoolSchema,
             open: z.number(),

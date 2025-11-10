@@ -4,7 +4,7 @@ import { z } from 'zod';
 import client from '../../clickhouse/client.js';
 import { config } from '../../config.js';
 import { logger } from '../../logger.js';
-import { booleanFromString } from '../../types/zod.js';
+import { booleanFromString, dateTimeSchema } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 const querySchema = z.object({
@@ -17,7 +17,7 @@ const healthResponseSchema = z.object({
         database: z.enum(['up', 'down', 'slow']),
         api_endpoints: z.enum(['up', 'down', 'partial', 'skipped']),
     }),
-    request_time: z.string().describe('ISO 8601 datetime string'),
+    request_time: dateTimeSchema,
     duration_ms: z.number(),
 });
 type HealthResponse = z.infer<typeof healthResponseSchema>;
