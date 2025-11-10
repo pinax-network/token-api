@@ -51,18 +51,18 @@ SELECT
     {network:String} AS network
 FROM native_transfer AS t
 WHERE
-    /* filter by timestamp and block_num early to reduce data scanned */
+    /* start/end filters */
         ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
     AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
     AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
     AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
-    /* timestamp/minute filters */
+    /* timestamp filters */
     AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
     AND (NOT has_from OR minute IN from_minutes)
     AND (NOT has_to OR minute IN to_minutes)
 
-    /* filter by active filters if any */
+    /* direct filters */
     AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
     AND (NOT has_from OR `from` IN {from_address:Array(String)})
     AND (NOT has_to OR `to` IN {to_address:Array(String)})

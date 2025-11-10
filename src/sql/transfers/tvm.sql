@@ -16,23 +16,71 @@ tx_hash_timestamps AS (
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY timestamp
 ),
+/* single filters */
 from_minutes AS (
     SELECT minute
-    FROM trc20_transfer
-    WHERE has_from AND `from` IN {from_address:Array(String)}
+    FROM trc20_transfer_minutes
+    WHERE
+        has_from AND NOT has_to AND NOT has_contract
+        AND `from` IN {from_address:Array(String)}
     GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
 ),
 to_minutes AS (
     SELECT minute
-    FROM trc20_transfer
-    WHERE has_to AND `to` IN {to_address:Array(String)}
+    FROM trc20_transfer_minutes
+    WHERE
+        has_to AND NOT has_from AND NOT has_contract
+        AND `to` IN {to_address:Array(String)}
     GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
 ),
 contract_minutes AS (
     SELECT minute
-    FROM trc20_transfer
-    WHERE has_contract AND log_address IN {contract:Array(String)}
+    FROM trc20_transfer_minutes
+    WHERE
+        has_contract AND NOT has_from AND NOT has_to
+        AND log_address IN {contract:Array(String)}
     GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
+),
+/* 2 filters */
+from_contract_minutes AS (
+    SELECT minute
+    FROM trc20_transfer_minutes
+    WHERE
+        has_contract AND has_from AND NOT has_to
+        AND log_address IN {contract:Array(String)}
+        AND `from`      IN {from_address:Array(String)}
+    GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
+),
+to_contract_minutes AS (
+    SELECT minute
+    FROM trc20_transfer_minutes
+    WHERE
+        has_to AND has_contract AND NOT has_from
+        AND log_address IN {contract:Array(String)}
+        AND `to`        IN {to_address:Array(String)}
+    GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
+),
+/* 3 filters */
+from_to_contract_minutes AS (
+    SELECT minute
+    FROM trc20_transfer_minutes
+    WHERE
+        has_to AND has_contract AND has_from
+        AND log_address IN {contract:Array(String)}
+        AND `to`        IN {to_address:Array(String)}
+    GROUP BY minute
+    ORDER BY minute DESC
+    LIMIT 10000
 ),
 transfers AS (
     SELECT * FROM trc20_transfer
@@ -43,13 +91,15 @@ transfers AS (
         AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
         AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
-        /* timestamp/minute filters */
+        /* timestamp filters */
         AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
-        AND (NOT has_from OR minute IN from_minutes)
-        AND (NOT has_to OR minute IN to_minutes)
-        AND (NOT has_contract OR minute IN contract_minutes)
+        AND (NOT has_from OR toStartOfMinute(timestamp) IN from_minutes)
+        AND (NOT has_to OR toStartOfMinute(timestamp) IN to_minutes)
+        AND (NOT has_contract OR toStartOfTenMinutes(timestamp) IN contract_minutes)
+        AND (NOT (has_from AND has_contract) OR toStartOfMinute(timestamp) IN from_contract_minutes)
+        AND (NOT (has_to AND has_contract) OR toStartOfMinute(timestamp) IN to_contract_minutes)
 
-        /* filter by active filters if any */
+        /* direct filters */
         AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
         AND (NOT has_from OR `from` IN {from_address:Array(String)})
         AND (NOT has_to OR `to` IN {to_address:Array(String)})
@@ -58,6 +108,15 @@ transfers AS (
     ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+token_metadata AS (
+    SELECT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM `tron:tvm-tokens@v0.1.2`.metadata
+    WHERE contract IN (SELECT DISTINCT log_address AS contract FROM transfers)
 )
 SELECT
     /* block */
@@ -88,6 +147,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM transfers AS t
-/* Get token metadata (name, symbol, decimals) */
-JOIN `tron:tvm-tokens@v0.1.2`.metadata AS m ON t.log_address = m.contract
+LEFT JOIN token_metadata AS m ON t.log_address = m.contract
 ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
