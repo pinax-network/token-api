@@ -8,6 +8,7 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmContractSchema,
     evmNetworkIdSchema,
     intervalSchema,
@@ -27,7 +28,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             ticker: z.string(),
             open: z.number(),
             high: z.number(),

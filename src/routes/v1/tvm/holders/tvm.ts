@@ -7,6 +7,7 @@ import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -22,7 +23,7 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            last_update: z.string().describe('ISO 8601 datetime string'),
+            last_update: dateTimeSchema,
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 

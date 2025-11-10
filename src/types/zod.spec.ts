@@ -6,6 +6,7 @@ import {
     blockNumberSchema,
     clientErrorResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddress,
     evmAddressSchema,
     evmContractSchema,
@@ -158,6 +159,52 @@ describe('Base Validation Schemas', () => {
             expect(() =>
                 tvmTransaction.parse('g7c8e5f9b2d4c6e8a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7')
             ).toThrow(); // Invalid char 'g'
+        });
+    });
+
+    describe('dateTimeSchema', () => {
+        it('should accept ISO 8601 with Z timezone', () => {
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23Z')).toBe('2025-11-07T07:13:23Z');
+        });
+
+        it('should accept ISO 8601 without timezone', () => {
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23')).toBe('2025-11-07T07:13:23');
+        });
+
+        it('should accept ISO 8601 with offset timezone', () => {
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23+00:00')).toBe('2025-11-07T07:13:23+00:00');
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23-05:00')).toBe('2025-11-07T07:13:23-05:00');
+        });
+
+        it('should accept SQL datetime format with space separator', () => {
+            expect(dateTimeSchema.parse('2025-11-07 07:13:23')).toBe('2025-11-07 07:13:23');
+            expect(dateTimeSchema.parse('2025-10-04 23:05:35')).toBe('2025-10-04 23:05:35');
+        });
+
+        it('should accept fractional seconds with T separator', () => {
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23.456Z')).toBe('2025-11-07T07:13:23.456Z');
+            expect(dateTimeSchema.parse('2025-11-07T07:13:23.123456')).toBe('2025-11-07T07:13:23.123456');
+        });
+
+        it('should accept fractional seconds with space separator', () => {
+            expect(dateTimeSchema.parse('2025-11-07 07:13:23.456')).toBe('2025-11-07 07:13:23.456');
+            expect(dateTimeSchema.parse('2025-11-07 07:13:23.123456')).toBe('2025-11-07 07:13:23.123456');
+        });
+
+        it('should accept SQL format with timezone', () => {
+            expect(dateTimeSchema.parse('2025-11-07 07:13:23Z')).toBe('2025-11-07 07:13:23Z');
+            expect(dateTimeSchema.parse('2025-11-07 07:13:23+00:00')).toBe('2025-11-07 07:13:23+00:00');
+        });
+
+        it('should reject invalid datetime formats', () => {
+            expect(() => dateTimeSchema.parse('invalid')).toThrow('Invalid datetime format');
+            expect(() => dateTimeSchema.parse('2025-11-07')).toThrow('Invalid datetime format');
+            expect(() => dateTimeSchema.parse('07:13:23')).toThrow('Invalid datetime format');
+        });
+
+        it('should reject dates with invalid separators', () => {
+            expect(() => dateTimeSchema.parse('2025/11/07T07:13:23Z')).toThrow('Invalid datetime format');
+            expect(() => dateTimeSchema.parse('2025-11-07X07:13:23Z')).toThrow('Invalid datetime format');
         });
     });
 });

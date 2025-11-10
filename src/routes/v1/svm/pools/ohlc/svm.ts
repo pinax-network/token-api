@@ -8,6 +8,7 @@ import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     intervalSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
@@ -29,7 +30,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            datetime: z.string().describe('ISO 8601 datetime string'),
+            datetime: dateTimeSchema,
             amm: svmAmmSchema,
             amm_pool: svmAmmPoolSchema,
             token0: svmMintSchema,

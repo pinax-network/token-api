@@ -52,7 +52,7 @@ const responseSchema = apiUsageResponseSchema.extend({
         z.object({
             // -- block --
             // block_num: z.number(),
-            // datetime: z.string().describe('ISO 8601 datetime string'),
+            // datetime: dateTimeSchema,
 
             // -- transaction --
             // transaction_id: z.string(),
