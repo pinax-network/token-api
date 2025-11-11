@@ -9,6 +9,12 @@ arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,
 (length(contracts) > 0) AS has_contract,
+has_contract AND NOT has_from AND NOT has_to AS is_contract_only,
+has_from AND NOT has_to AND NOT has_contract AS is_from_only,
+has_to AND NOT has_from AND NOT has_contract AS is_to_only,
+has_contract AND has_to AND NOT has_from AS is_contract_to,
+has_contract AND has_from AND NOT has_to AS is_contract_from,
+has_contract AND has_from AND has_to AS is_contract_from_to,
 
 tx_hash_timestamps AS (
     SELECT timestamp
@@ -21,7 +27,7 @@ from_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_from AND NOT has_to AND NOT has_contract
+        is_from_only
         AND `from` IN {from_address:Array(String)}
     GROUP BY minute
     ORDER BY minute DESC
@@ -31,7 +37,7 @@ to_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_to AND NOT has_from AND NOT has_contract
+        is_to_only
         AND `to` IN {to_address:Array(String)}
     GROUP BY minute
     ORDER BY minute DESC
@@ -41,7 +47,7 @@ contract_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_contract AND NOT has_from AND NOT has_to
+        is_contract_only
         AND log_address IN {contract:Array(String)}
     GROUP BY minute
     ORDER BY minute DESC
@@ -52,7 +58,7 @@ contract_from_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_contract AND has_from AND NOT has_to
+        is_contract_from
         AND log_address IN {contract:Array(String)}
         AND `from`      IN {from_address:Array(String)}
     GROUP BY minute
@@ -63,7 +69,7 @@ contract_to_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_contract AND has_to AND NOT has_from
+        is_contract_to
         AND log_address IN {contract:Array(String)}
         AND `to`        IN {to_address:Array(String)}
     GROUP BY minute
@@ -75,7 +81,7 @@ contract_from_to_minutes AS (
     SELECT minute
     FROM trc20_transfer_minutes
     WHERE
-        has_to AND has_contract AND has_from
+        is_contract_from_to
         AND log_address IN {contract:Array(String)}
         AND `from`      IN {from_address:Array(String)}
         AND `to`        IN {to_address:Array(String)}
@@ -95,43 +101,24 @@ transfers AS (
         /* minute-based filters bound to single/double/triple mode */
 
         /* timestamp filter */
-        AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
-
+        AND ( NOT has_tx_hash OR timestamp IN tx_hash_timestamps )
         /* 3-filters: from + to + contract */
-        AND (
-            NOT (has_contract AND has_from AND has_to)
-            OR toStartOfMinute(timestamp) IN contract_from_to_minutes
-        )
+        AND ( NOT is_contract_from_to OR toStartOfMinute(timestamp) IN contract_from_to_minutes )
 
         /* 2-filters: (from + contract) and (to + contract) */
-        AND (
-            NOT (has_contract AND has_from AND NOT has_to)
-            OR toStartOfMinute(timestamp) IN contract_from_minutes
-        )
-        AND (
-            NOT (has_contract AND has_to AND NOT has_from)
-            OR toStartOfMinute(timestamp) IN contract_to_minutes
-        )
+        AND ( NOT is_contract_from OR toStartOfMinute(timestamp) IN contract_from_minutes )
+        AND ( NOT is_contract_to OR toStartOfMinute(timestamp) IN contract_to_minutes )
 
         /* 1-filter: from OR to OR contract alone */
-        AND (
-            NOT (has_from AND NOT has_to AND NOT has_contract)
-            OR toStartOfMinute(timestamp) IN from_minutes
-        )
-        AND (
-            NOT (has_to AND NOT has_from AND NOT has_contract)
-            OR toStartOfMinute(timestamp) IN to_minutes
-        )
-        AND (
-            NOT (has_contract AND NOT has_from AND NOT has_to)
-            OR toStartOfMinute(timestamp) IN contract_minutes
-        )
+        AND ( NOT is_from_only OR toStartOfMinute(timestamp) IN from_minutes )
+        AND ( NOT is_to_only OR toStartOfMinute(timestamp) IN to_minutes )
+        AND ( NOT is_contract_only OR toStartOfMinute(timestamp) IN contract_minutes )
 
         /* direct filters */
-        AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
-        AND (NOT has_from OR `from` IN {from_address:Array(String)})
-        AND (NOT has_to OR `to` IN {to_address:Array(String)})
-        AND (NOT has_contract OR log_address IN {contract:Array(String)})
+        AND ( NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)} )
+        AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
+        AND ( NOT has_to OR `to` IN {to_address:Array(String)} )
+        AND ( NOT has_contract OR log_address IN {contract:Array(String)} )
 
     ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
@@ -152,7 +139,7 @@ metadata AS (
 )
 SELECT
     /* block */
-    t.block_num as block_num,
+    block_num,
     t.timestamp as datetime,
     toUnixTimestamp(t.timestamp) as timestamp,
 
