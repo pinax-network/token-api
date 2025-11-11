@@ -101,7 +101,8 @@ transfers AS (
         /* minute-based filters bound to single/double/triple mode */
 
         /* timestamp filter */
-        AND ( NOT has_tx_hash OR timestamp IN tx_hash_timestamps )
+        AND ( NOT has_tx_hash OR timestamp IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
+
         /* 3-filters: from + to + contract */
         AND ( NOT is_contract_from_to OR toStartOfMinute(timestamp) IN contract_from_to_minutes )
 
@@ -115,7 +116,6 @@ transfers AS (
         AND ( NOT is_contract_only OR toStartOfMinute(timestamp) IN contract_minutes )
 
         /* direct filters */
-        AND ( NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)} )
         AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
         AND ( NOT has_to OR `to` IN {to_address:Array(String)} )
         AND ( NOT has_contract OR log_address IN {contract:Array(String)} )
