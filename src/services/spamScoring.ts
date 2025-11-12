@@ -45,11 +45,11 @@ function getContractSpamStatus(apiResponse: SpamApiContractResponse): 'spam' | '
 export const CHAIN_ID_MAP: Record<string, number> = {
     mainnet: 1,
     base: 8453,
-    // polygon: 137,
-    // 'arbitrum-one': 42161,
-    // avalanche: 43114,
-    // optimism: 10,
-    // bsc: 56,
+    polygon: 137,
+    'arbitrum-one': 42161,
+    avalanche: 43114,
+    optimism: 10,
+    bsc: 56,
     // unichain: 10000,
 };
 const TIMEOUT_MS = 60000;
