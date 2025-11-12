@@ -2,10 +2,8 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { natives as nativeContracts } from '../../../../../inject/prices.tokens.js';
 import { natives as nativeSymbols } from '../../../../../inject/symbol.tokens.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import {
     EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
     EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
@@ -26,6 +24,7 @@ import {
     timestampSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { nftController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -143,25 +142,17 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.nftDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.nft_sales?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for NFT sales could not be loaded' }, 500);
-
-    const sale_currency = nativeSymbols.get(params.network)?.symbol ?? 'Native';
-
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params, sale_currency, nativeContracts: Array.from(nativeContracts) },
-        { database: dbConfig.database }
-    );
-    return handleUsageQueryError(c, response);
+const handler = nftController.createHandler({
+    schema: querySchema,
+    query: { key: 'nft_sales', errorMessage: 'Query for NFT sales could not be loaded' },
+    transformParams: (params) => ({
+        ...params,
+        sale_currency: nativeSymbols.get(params.network)?.symbol ?? 'Native',
+        nativeContracts: Array.from(nativeContracts),
+    }),
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

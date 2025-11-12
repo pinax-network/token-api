@@ -2,9 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { stables } from '../../../../../inject/prices.tokens.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -17,6 +15,7 @@ import {
     timestampSchema,
 } from '../../../../../types/zod.js';
 import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { dexController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
@@ -93,33 +92,19 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.uniswapDatabases[params.network];
-    // this DB is used to fetch token metadata (symbol, name, decimals)
-    const db_svm_tokens = config.tokenDatabases[params.network];
-
-    if (!dbConfig || !db_svm_tokens) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-
-    const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        {
-            ...params,
-            high_quantile: 0.95,
-            low_quantile: 0.05,
-            stablecoin_contracts: [...stables],
-            db_svm_tokens: db_svm_tokens.database,
-        },
-        { database: dbConfig.database }
-    );
-    return handleUsageQueryError(c, response);
+const handler = dexController.createHandler({
+    schema: querySchema,
+    query: { key: 'ohlcv_prices_for_pool', errorMessage: 'Query for OHLC pool data could not be loaded' },
+    transformParams: (params) => ({
+        ...params,
+        high_quantile: 0.95,
+        low_quantile: 0.05,
+        stablecoin_contracts: [...stables],
+        db_svm_tokens: config.tokenDatabases[params.network]?.database ?? '',
+    }),
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

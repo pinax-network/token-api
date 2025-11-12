@@ -1,13 +1,8 @@
-import { NetworksRegistry } from '@pinax/graph-networks-registry';
 import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
-import client from '../../clickhouse/client.js';
-import { config } from '../../config.js';
-import { logger } from '../../logger.js';
+import { monitorController } from '../../application/container.js';
 import { withErrorResponses } from '../../utils.js';
-
-const registry = await NetworksRegistry.fromLatestVersion();
 
 const route = new Hono();
 
@@ -42,7 +37,7 @@ const openapi = describeRoute(
                         schema: resolver(responseSchema),
                         examples: {
                             example: {
-                                value: { networks: [getNetwork('mainnet')] },
+                                value: { networks: [monitorController.getNetwork('mainnet')] },
                             },
                         },
                     },
@@ -52,70 +47,6 @@ const openapi = describeRoute(
     })
 );
 
-export function getNetwork(id: string) {
-    const network = registry.getNetworkByGraphId(id);
-    if (!network) {
-        logger.warn(`Network ${id} not found`);
-        return {};
-    }
-
-    return {
-        id,
-        fullName: network.fullName,
-        shortName: network.shortName,
-        networkType: network.networkType,
-        nativeToken: network.nativeToken,
-        caip2Id: network.caip2Id,
-        icon: network.icon,
-        aliases: network.aliases,
-    };
-}
-
-async function validateNetworks() {
-    if (config.skipNetworksValidation) return;
-
-    if (
-        !config.networks.includes(config.defaultEvmNetwork) &&
-        !config.networks.includes(config.defaultSvmNetwork) &&
-        !config.networks.includes(config.defaultTvmNetwork)
-    ) {
-        throw new Error('Default network for EVM, SVM or TVM not found');
-    }
-
-    const query = 'SHOW DATABASES';
-    const result = await client({ database: config.database }).query({ query, format: 'JSONEachRow' });
-    const dbs = await result.json<{ name: string }>();
-    for (const network of config.networks) {
-        if (
-            !dbs.find(
-                (db) =>
-                    db.name === config.tokenDatabases[network]?.database ||
-                    db.name === config.nftDatabases[network]?.database ||
-                    db.name === config.uniswapDatabases[network]?.database
-            )
-        ) {
-            throw new Error(`Databases for ${network} not found`);
-        }
-    }
-}
-
-// store networks in memory
-// this is a workaround to avoid loading networks from the database on every request
-await validateNetworks();
-
-logger.trace('Supported networks:\n', config.networks);
-logger.trace(`Default EVM network: ${config.defaultEvmNetwork}`);
-logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
-logger.trace(`Default TVM network: ${config.defaultTvmNetwork}`);
-
-route.get('/networks', openapi, async (c) => {
-    return c.json({
-        networks: config.networks
-            .map((id) => getNetwork(id))
-            .sort((a, b) => {
-                return a.id && b.id ? a.id.localeCompare(b.id) : -1;
-            }),
-    });
-});
+route.get('/networks', openapi, monitorController.networksHandler());
 
 export default route;

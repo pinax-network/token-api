@@ -2,9 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { CHAIN_ID_MAP, querySpamScore } from '../../../../../services/spamScoring.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -15,6 +13,7 @@ import {
     evmNetworkIdSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { nftController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -89,55 +88,40 @@ type ValidatedData = z.infer<typeof querySchema>;
 
 const route = new Hono<{ Variables: { validatedData: ValidatedData } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
+const handler = nftController.createHandler({
+    schema: querySchema,
+    query: {
+        key: 'nft_metadata_for_collection',
+        errorMessage: 'Query for NFT collections could not be loaded',
+    },
+    transformParams: (params) => ({
+        ...params,
+        db_evm_contracts: config.contractDatabases[params.network]?.database ?? '',
+    }),
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
+    postProcess: async (response, params) => {
+        const contractAddress = params.contract.toLowerCase();
+        const spamScore = await querySpamScore(contractAddress, params.network);
 
-    const dbConfig = config.nftDatabases[params.network];
-    // this DB is used to fetch contract metadata (creator, creation date)
-    const db_evm_contracts = config.contractDatabases[params.network];
+        if (!('status' in response) && Array.isArray(response.data)) {
+            let spamStatus: 'spam' | 'not_spam' | 'pending' | 'not_supported' | 'error' = 'pending';
 
-    if (!dbConfig || !db_evm_contracts) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-
-    const query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
-
-    const contractAddress = params.contract.toLowerCase();
-
-    const [response, spamScore] = await Promise.all([
-        makeUsageQueryJson(
-            c,
-            [query],
-            { ...params, db_evm_contracts: db_evm_contracts.database },
-            { database: dbConfig.database }
-        ),
-        querySpamScore(contractAddress, params.network),
-    ]);
-
-    // inject spam score into result
-    if (!('status' in response) && Array.isArray(response.data)) {
-        let spamStatus: 'spam' | 'not_spam' | 'pending' | 'not_supported' | 'error' = 'pending';
-
-        if (spamScore.result === 'success') {
-            if (spamScore.contract_spam_status === 'spam') {
-                spamStatus = 'spam';
-            } else {
-                spamStatus = 'not_spam';
+            if (spamScore.result === 'success') {
+                spamStatus = spamScore.contract_spam_status === 'spam' ? 'spam' : 'not_spam';
+            } else if (spamScore.result === 'error') {
+                spamStatus = 'error';
+            } else if (spamScore.result === 'not_supported') {
+                spamStatus = 'not_supported';
             }
-        } else if (spamScore.result === 'error') {
-            spamStatus = 'error';
-        } else if (spamScore.result === 'not_supported') {
-            spamStatus = 'not_supported';
+
+            response.data = response.data.map((item) => ({
+                ...item,
+                spam_status: spamStatus,
+            }));
         }
-
-        response.data = response.data.map((item) => ({
-            ...item,
-            spam_status: spamStatus,
-        }));
-    }
-
-    return handleUsageQueryError(c, response);
+    },
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

@@ -2,9 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { injectSymbol } from '../../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -17,6 +15,7 @@ import {
     timestampSchema,
 } from '../../../../../types/zod.js';
 import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { tokenController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -89,20 +88,15 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.historical_balances_for_account?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for historical balances could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
-    injectSymbol(response, params.network, true);
-
-    return handleUsageQueryError(c, response);
+const handler = tokenController.createHandler({
+    schema: querySchema,
+    query: { key: 'historical_balances_for_account', errorMessage: 'Query for historical balances could not be loaded' },
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
+    postProcess: (response, params) => {
+        injectSymbol(response, params.network, true);
+    },
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

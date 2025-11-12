@@ -2,10 +2,9 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { injectIcons } from '../../../../inject/icon.js';
 import { injectSymbol } from '../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { tokenController } from '../../../../application/container.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -98,23 +97,19 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.tokens_for_contract?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(c, [query], params, {
+const handler = tokenController.createHandler({
+    schema: querySchema,
+    query: { key: 'tokens_for_contract', errorMessage: 'Query for tokens could not be loaded' },
+    buildQueryOptions: (_params, dbConfig) => ({
         database: dbConfig.database,
         clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
-    });
-    injectSymbol(response, params.network, true);
-    injectIcons(response);
-    return handleUsageQueryError(c, response);
+    }),
+    postProcess: (response, params) => {
+        injectSymbol(response, params.network, true);
+        injectIcons(response);
+    },
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

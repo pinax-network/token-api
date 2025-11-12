@@ -2,8 +2,6 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import {
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
     EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
@@ -18,6 +16,7 @@ import {
     nftTokenStandardSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { nftController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -118,18 +117,12 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.nftDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.nft_metadata_for_token?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for NFT items could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
-    return handleUsageQueryError(c, response);
+const handler = nftController.createHandler({
+    schema: querySchema,
+    query: { key: 'nft_metadata_for_token', errorMessage: 'Query for NFT items could not be loaded' },
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

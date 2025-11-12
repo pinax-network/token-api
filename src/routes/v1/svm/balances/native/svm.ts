@@ -2,8 +2,6 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
-import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -15,6 +13,7 @@ import {
     svmSPLTokenProgramIdSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { tokenController } from '../../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
@@ -99,18 +98,12 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.native_balances_for_account?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
-    return handleUsageQueryError(c, response);
+const handler = tokenController.createHandler({
+    schema: querySchema,
+    query: { key: 'native_balances_for_account', errorMessage: 'Query for balances could not be loaded' },
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

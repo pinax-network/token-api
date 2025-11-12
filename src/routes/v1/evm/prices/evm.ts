@@ -2,9 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { stables } from '../../../../inject/prices.tokens.js';
-import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -15,6 +13,7 @@ import {
     timestampSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
+import { dexController } from '../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -82,23 +81,16 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-    const query = sqlQueries.ohlcv_prices_usd_for_contract?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for OHLC price data could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params, stablecoin_contracts: [...stables] },
-        { database: dbConfig.database }
-    );
-    return handleUsageQueryError(c, response);
+const handler = dexController.createHandler({
+    schema: querySchema,
+    query: {
+        key: 'ohlcv_prices_usd_for_contract',
+        errorMessage: 'Query for OHLC price data could not be loaded',
+    },
+    transformParams: (params) => ({ ...params, stablecoin_contracts: [...stables] }),
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;

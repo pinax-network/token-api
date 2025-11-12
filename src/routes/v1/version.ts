@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
-import { GIT_APP } from '../../config.js';
+import { monitorController } from '../../application/container.js';
 import { withErrorResponses } from '../../utils.js';
 
 const route = new Hono();
@@ -28,8 +28,6 @@ const openapi = describeRoute(
     })
 );
 
-route.get('/version', openapi, (c) => {
-    return c.json(GIT_APP);
-});
+route.get('/version', openapi, monitorController.versionHandler());
 
 export default route;

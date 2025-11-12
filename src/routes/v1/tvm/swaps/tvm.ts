@@ -2,8 +2,6 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { sqlQueries } from '../../../../sql/index.js';
 import {
     TVM_ADDRESS_SWAP_EXAMPLE,
     TVM_CONTRACT_USDT_EXAMPLE,
@@ -27,6 +25,7 @@ import {
     tvmTransactionSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
+import { dexController } from '../../../../application/container.js';
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
@@ -161,27 +160,16 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.req.valid('query');
-
-    const dbConfig = config.uniswapDatabases[params.network];
-    // this DB is used to fetch TRC-20 token metadata (name, symbol, decimals)
-    const db_tvm_tokens = config.tokenDatabases[params.network];
-
-    if (!dbConfig || !db_tvm_tokens) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
-    }
-
-    const query = sqlQueries.swaps?.[dbConfig.type];
-    if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
-
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params, db_tvm_tokens: db_tvm_tokens.database },
-        { database: dbConfig.database }
-    );
-    return handleUsageQueryError(c, response);
+const handler = dexController.createHandler({
+    schema: querySchema,
+    query: { key: 'swaps', errorMessage: 'Query for swaps could not be loaded' },
+    transformParams: (params) => ({
+        ...params,
+        db_tvm_tokens: config.tokenDatabases[params.network]?.database ?? '',
+    }),
+    buildQueryOptions: (_params, dbConfig) => ({ database: dbConfig.database }),
 });
+
+route.get('/', openapi, validator('query', querySchema, validatorHook), handler);
 
 export default route;
