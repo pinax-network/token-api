@@ -160,7 +160,7 @@ export const pageSchema = z.coerce
 const intervals = ['1h', '4h', '1d', '1w'] as const;
 export const intervalSchema = z
     .enum(intervals)
-    .transform((interval: string) => {
+    .transform((interval: string, ctx) => {
         switch (interval) {
             case '1h':
                 return 60;
@@ -171,7 +171,11 @@ export const intervalSchema = z
             case '1w':
                 return 10080;
             default:
-                return 1440;
+                ctx.addIssue({
+                    code: 'custom',
+                    message: `Invalid 'interval'`,
+                });
+                return z.NEVER;
         }
     })
     .meta({
