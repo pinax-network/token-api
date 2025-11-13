@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.5.4
+
+### Patch Changes
+
+- f2de5b5: Fix plan limits interval validation
+- 5480681: Fixed ClickHouse streaming exception handling
+- 1670488: Improve datetime response schema
+- 5480681: Migrate from `hono-openapi` v0 to v1
+- 5480681: Refactored `*/dexes` endpoints
+- 5480681: Improve `/tvm/transfers` performance
+- 5480681: Improved `/svm/balances` performance
+
 ## [3.5.3] - 2024-11-07
 
 ### Fixed
