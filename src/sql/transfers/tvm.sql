@@ -15,6 +15,10 @@ has_to AND NOT has_from AND NOT has_contract AS is_to_only,
 has_contract AND has_to AND NOT has_from AS is_contract_to,
 has_contract AND has_from AND NOT has_to AS is_contract_from,
 has_contract AND has_from AND has_to AS is_contract_from_to,
+{start_time:UInt64} = 1420070400 AS no_start_time,
+{end_time:UInt64} = 2524608000 AS no_end_time,
+{start_block:UInt64} = 0 AS no_start_block,
+{end_block:UInt64} = 9999999999 AS no_end_block,
 
 tx_hash_timestamps AS (
     SELECT (minute, timestamp)
@@ -28,6 +32,7 @@ from_minutes AS (
     FROM trc20_transfer
     WHERE
         is_from_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
         AND `from` IN {from_address:Array(String)}
     GROUP BY minute
 ),
@@ -36,6 +41,7 @@ to_minutes AS (
     FROM trc20_transfer
     WHERE
         is_to_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
         AND `to` IN {to_address:Array(String)}
     GROUP BY minute
 ),
@@ -44,6 +50,7 @@ contract_hours AS (
     FROM trc20_transfer
     WHERE
         is_contract_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
         AND log_address IN {contract:Array(String)}
     GROUP BY minute_hour
 ),
@@ -78,13 +85,14 @@ contract_from_to_minutes AS (
     GROUP BY minute
 ),
 transfers AS (
-    SELECT * FROM trc20_transfer
+    SELECT *, toStartOfHour(toDateTime(minute * 60)) AS minute_hour
+    FROM trc20_transfer
     WHERE
         /* filter by timestamp and block_num early to reduce data scanned */
-            ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
-        AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
-        AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
-        AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
+            (no_start_time OR timestamp >= toDateTime({start_time:UInt64}))
+        AND (no_end_time OR timestamp <= toDateTime({end_time:UInt64}))
+        AND (no_start_block OR block_num >= {start_block:UInt64})
+        AND (no_end_block OR block_num <= {end_block:UInt64})
 
         /* minute-based filters bound to single/double/triple mode */
 
@@ -101,7 +109,7 @@ transfers AS (
         /* 1-filter: from OR to OR contract alone */
         AND ( NOT is_from_only OR minute IN from_minutes )
         AND ( NOT is_to_only OR minute IN to_minutes )
-        AND ( NOT is_contract_only OR toStartOfHour(toDateTime(minute * 60)) IN contract_hours )
+        AND ( NOT is_contract_only OR minute_hour IN contract_hours )
 
         /* direct filters */
         AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
