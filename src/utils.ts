@@ -25,6 +25,9 @@ export function APIErrorResponse(
         message = err;
     } else if (err instanceof ZodError) {
         message = err.issues.map((issue) => `[${issue.code}] ${issue.path.join('/')}: ${issue.message}`).join(' | ');
+    } else if (Array.isArray(err)) {
+        // Handle Hono's reformatted validation errors
+        message = err.map((issue) => `[${issue.code}] ${issue.path.join('/')}: ${issue.message}`).join(' | ');
     } else if (err instanceof Error) {
         message = err.message;
     }
@@ -70,7 +73,7 @@ export function validatorHook(
                   limit?: number;
                   start_time?: number;
                   end_time?: number;
-                  interval?: number;
+                  interval?: string | number;
               } & {
                   [key: string]: unknown | unknown[];
               };
@@ -78,7 +81,9 @@ export function validatorHook(
         | { success: false; error: unknown },
     ctx: Context
 ) {
+    console.log(parseResult);
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
+    console.log(parseResult.data);
 
     const plan = ctx.req.header('X-Plan');
 
@@ -135,6 +140,9 @@ export function validatorHook(
                         allowedIntervalMinutes.push(parseResult.data);
                     }
                 }
+
+                // Validator doesn't actually apply the transform
+                data.interval = intervalSchema.parse(data.interval);
 
                 if (!allowedIntervalMinutes.includes(data.interval)) {
                     return APIErrorResponse(
