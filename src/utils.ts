@@ -129,9 +129,12 @@ export function validatorHook(
 
         // OHLCV bars and interval restrictions
         const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
-        if (is_ohlcv_endpoint) {
+        if (is_ohlcv_endpoint && data.interval) {
+            // Validator doesn't actually apply the transform
+            data.interval = intervalSchema.parse(data.interval);
+
             // Check interval restrictions
-            if (allowed_intervals.length > 0 && data.interval) {
+            if (allowed_intervals.length > 0) {
                 // Parse allowed intervals using intervalSchema
                 const allowedIntervalMinutes: number[] = [];
                 for (const intervalStr of allowed_intervals) {
@@ -140,9 +143,6 @@ export function validatorHook(
                         allowedIntervalMinutes.push(parseResult.data);
                     }
                 }
-
-                // Validator doesn't actually apply the transform
-                data.interval = intervalSchema.parse(data.interval);
 
                 if (!allowedIntervalMinutes.includes(data.interval)) {
                     return APIErrorResponse(
@@ -155,7 +155,7 @@ export function validatorHook(
             }
 
             // Check bars limit (time range / interval)
-            if (max_bars !== 0 && data.start_time && data.end_time && data.interval) {
+            if (max_bars !== 0 && data.start_time && data.end_time) {
                 if (data.end_time < data.start_time)
                     return APIErrorResponse(
                         ctx,
