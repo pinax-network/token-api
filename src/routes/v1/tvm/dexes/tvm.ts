@@ -39,7 +39,6 @@ const openapi = describeRoute(
         description: 'Returns all supported TVM DEXs.',
 
         tags: ['TVM DEXs'],
-        security: [{ bearerAuth: [] }],
         responses: {
             200: {
                 description: 'Successful Response',

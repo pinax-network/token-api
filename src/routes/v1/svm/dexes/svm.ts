@@ -39,7 +39,6 @@ const openapi = describeRoute(
         description: 'Returns all supported Solana DEXs.',
 
         tags: ['SVM DEXs'],
-        security: [{ bearerAuth: [] }],
         responses: {
             200: {
                 description: 'Successful Response',
