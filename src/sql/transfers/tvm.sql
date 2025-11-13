@@ -108,7 +108,7 @@ transfers AS (
         AND ( NOT has_to OR `to` IN {to_address:Array(String)} )
         AND ( NOT has_contract OR log_address IN {contract:Array(String)} )
 
-    ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
@@ -155,4 +155,4 @@ SELECT
     {network:String} AS network
 FROM transfers AS t
 LEFT JOIN metadata m ON t.log_address = m.contract
-ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
+ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;

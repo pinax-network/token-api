@@ -66,6 +66,6 @@ WHERE
     AND (NOT has_tx_hash OR tx_hash IN {transaction_id:Array(String)})
     AND (NOT has_from OR `from` IN {from_address:Array(String)})
     AND (NOT has_to OR `to` IN {to_address:Array(String)})
-ORDER BY timestamp DESC, block_num DESC, tx_index DESC
+ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}
