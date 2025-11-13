@@ -81,9 +81,7 @@ export function validatorHook(
         | { success: false; error: unknown },
     ctx: Context
 ) {
-    console.log(parseResult);
     if (!parseResult.success) return APIErrorResponse(ctx, 400, 'bad_query_input', parseResult.error);
-    console.log(parseResult.data);
 
     const plan = ctx.req.header('X-Plan');
 
