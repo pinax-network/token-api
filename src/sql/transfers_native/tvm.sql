@@ -7,6 +7,10 @@ arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
 (length(tx_ids) > 0) AS has_tx_hash,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,
+{start_time:UInt64} = 1420070400 AS no_start_time,
+{end_time:UInt64} = 2524608000 AS no_end_time,
+{start_block:UInt64} = 0 AS no_start_block,
+{end_block:UInt64} = 9999999999 AS no_end_block,
 
 tx_hash_timestamps AS (
     SELECT (minute, timestamp)
@@ -17,13 +21,19 @@ tx_hash_timestamps AS (
 from_minutes AS (
     SELECT minute
     FROM native_transfer
-    WHERE has_from AND `from` IN {from_address:Array(String)}
+    WHERE
+        has_from
+        AND `from` IN {from_address:Array(String)}
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
     GROUP BY minute
 ),
 to_minutes AS (
     SELECT minute
     FROM native_transfer
-    WHERE has_to AND `to` IN {to_address:Array(String)}
+    WHERE
+        has_to
+        AND `to` IN {to_address:Array(String)}
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
     GROUP BY minute
 )
 SELECT
@@ -51,11 +61,11 @@ SELECT
     {network:String} AS network
 FROM native_transfer AS t
 WHERE
-    /* start/end filters */
-        ({start_time:UInt64} = 1420070400 OR timestamp >= toDateTime({start_time:UInt64}))
-    AND ({end_time:UInt64} = 2524608000 OR timestamp <= toDateTime({end_time:UInt64}))
-    AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
-    AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
+    /* filter by timestamp and block_num early to reduce data scanned */
+        (no_start_time OR timestamp >= toDateTime({start_time:UInt64}))
+    AND (no_end_time OR timestamp <= toDateTime({end_time:UInt64}))
+    AND (no_start_block OR block_num >= {start_block:UInt64})
+    AND (no_end_block OR block_num <= {end_block:UInt64})
 
     /* timestamp filters */
     AND (NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps)
