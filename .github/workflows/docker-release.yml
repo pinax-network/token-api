@@ -40,7 +40,7 @@ jobs:
               with:
                   images: ${{ env.REGISTRY }}/${{ github.repository }}
                   tags: |
-                      type=raw,value=${{ steps.version.outputs.version }}
+                      type=raw,value=v${{ steps.version.outputs.version }}
                       type=raw,value=latest
 
             - name: Set build date
