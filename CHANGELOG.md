@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.5
+
+### Patch Changes
+
+- 3ed1242: Remove authentication requirements showing up in OpenAPI spec for `/dexes` endpoints
+
 ## 3.5.4
 
 ### Patch Changes
