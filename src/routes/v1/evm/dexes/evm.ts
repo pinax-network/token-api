@@ -38,7 +38,6 @@ const openapi = describeRoute(
         description: 'Returns all supported EVM DEXs.',
 
         tags: ['EVM DEXs'],
-        security: [{ bearerAuth: [] }],
         responses: {
             200: {
                 description: 'Successful Response',
