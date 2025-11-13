@@ -9,10 +9,10 @@ arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
 (length(to_addresses) > 0) AS has_to,
 
 tx_hash_timestamps AS (
-    SELECT timestamp
+    SELECT (minute, timestamp)
     FROM native_transfer
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
-    GROUP BY timestamp
+    GROUP BY minute, timestamp
 ),
 from_minutes AS (
     SELECT minute
@@ -58,7 +58,7 @@ WHERE
     AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
     /* timestamp filters */
-    AND (NOT has_tx_hash OR timestamp IN tx_hash_timestamps)
+    AND (NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps)
     AND (NOT has_from OR minute IN from_minutes)
     AND (NOT has_to OR minute IN to_minutes)
 

@@ -17,10 +17,10 @@ has_contract AND has_from AND NOT has_to AS is_contract_from,
 has_contract AND has_from AND has_to AS is_contract_from_to,
 
 tx_hash_timestamps AS (
-    SELECT timestamp
+    SELECT (minute, timestamp)
     FROM trc20_transfer
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
-    GROUP BY timestamp
+    GROUP BY minute, timestamp
 ),
 /* single filters */
 from_minutes AS (
@@ -88,8 +88,8 @@ transfers AS (
 
         /* minute-based filters bound to single/double/triple mode */
 
-        /* timestamp filter */
-        AND ( NOT has_tx_hash OR timestamp IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
+        /* transaction ID filter */
+        AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
 
         /* 3-filters: from + to + contract */
         AND ( NOT is_contract_from_to OR minute IN contract_from_to_minutes )
