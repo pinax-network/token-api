@@ -1,90 +1,141 @@
+/* Clean up transaction_id param: drop the sentinel '' if present */
 WITH
-/* 1) Count how many filters are active */
-active_filters AS
-(
-    SELECT
-        toUInt8({transaction_id:Array(String)} != ['']) +
-        toUInt8({from_address:Array(String)} != ['']) +
-        toUInt8({to_address:Array(String)} != ['']) +
-        toUInt8({contract:Array(String)} != [''])
-    AS n
+
+arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
+arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
+arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
+arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
+(length(tx_ids) > 0) AS has_tx_hash,
+(length(from_addresses) > 0) AS has_from,
+(length(to_addresses) > 0) AS has_to,
+(length(contracts) > 0) AS has_contract,
+has_contract AND NOT has_from AND NOT has_to AS is_contract_only,
+has_from AND NOT has_to AND NOT has_contract AS is_from_only,
+has_to AND NOT has_from AND NOT has_contract AS is_to_only,
+has_contract AND has_to AND NOT has_from AS is_contract_to,
+has_contract AND has_from AND NOT has_to AS is_contract_from,
+has_contract AND has_from AND has_to AS is_contract_from_to,
+{start_time:UInt64} = 1420070400 AS no_start_time,
+{end_time:UInt64} = 2524608000 AS no_end_time,
+{start_block:UInt64} = 0 AS no_start_block,
+{end_block:UInt64} = 9999999999 AS no_end_block,
+
+tx_hash_timestamps AS (
+    SELECT (minute, timestamp)
+    FROM trc20_transfer
+    WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
+    GROUP BY minute, timestamp
 ),
-/* 2) Union minutes from only active filters */
-minutes_union AS
-(
-    SELECT toRelativeMinuteNum(timestamp) AS minute
+/* single filters */
+from_minutes AS (
+    SELECT minute
     FROM trc20_transfer
-    WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
-    GROUP BY tx_hash, minute
-
-    UNION ALL
-
-    SELECT toRelativeMinuteNum(timestamp) AS minute
-    FROM trc20_transfer
-    WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
-    GROUP BY `from`, minute
-
-    UNION ALL
-
-    SELECT toRelativeMinuteNum(timestamp) AS minute
-    FROM trc20_transfer
-    WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
-    GROUP BY `to`, minute
-
-    UNION ALL
-
-    SELECT toRelativeMinuteNum(timestamp) AS minute
-    FROM trc20_transfer
-    WHERE ({contract:Array(String)} != [''] AND log_address IN {contract:Array(String)})
-    GROUP BY log_address, minute
-),
-filtered_minutes AS (
-    SELECT minute FROM minutes_union
-    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time:UInt64})) AND toRelativeMinuteNum(toDateTime({end_time:UInt64}))
+    WHERE
+        is_from_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
+        AND `from` IN {from_address:Array(String)}
     GROUP BY minute
-    HAVING count() >= (SELECT n FROM active_filters)
-    ORDER BY minute DESC
-    LIMIT 1 BY minute
-    LIMIT if(
-        (SELECT n FROM active_filters) <= 1,
-        {limit:UInt64} + {offset:UInt64},           /* safe to limit if there is 1 active filter */
-        ({limit:UInt64} + {offset:UInt64}) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
-    )
 ),
-/* Latest ingested timestamp in source table */
-latest_ts AS
-(
-    SELECT max(timestamp) AS ts FROM trc20_transfer
+to_minutes AS (
+    SELECT minute
+    FROM trc20_transfer
+    WHERE
+        is_to_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
+        AND `to` IN {to_address:Array(String)}
+    GROUP BY minute
+),
+contract_hours AS (
+    SELECT toStartOfHour(toDateTime(minute * 60)) AS minute_hour
+    FROM trc20_transfer
+    WHERE
+        is_contract_only
+        AND (no_start_time OR minute >= toRelativeMinuteNum(toDateTime({start_time:UInt64})))
+        AND log_address IN {contract:Array(String)}
+    GROUP BY minute_hour
+),
+/* 2 filters */
+contract_from_minutes AS (
+    SELECT minute
+    FROM trc20_transfer
+    WHERE
+        is_contract_from
+        AND log_address IN {contract:Array(String)}
+        AND `from`      IN {from_address:Array(String)}
+    GROUP BY minute
+),
+contract_to_minutes AS (
+    SELECT minute
+    FROM trc20_transfer
+    WHERE
+        is_contract_to
+        AND log_address IN {contract:Array(String)}
+        AND `to`        IN {to_address:Array(String)}
+    GROUP BY minute
+),
+/* 3 filters */
+contract_from_to_minutes AS (
+    SELECT minute
+    FROM trc20_transfer
+    WHERE
+        is_contract_from_to
+        AND log_address IN {contract:Array(String)}
+        AND `from`      IN {from_address:Array(String)}
+        AND `to`        IN {to_address:Array(String)}
+    GROUP BY minute
 ),
 transfers AS (
-    SELECT * FROM trc20_transfer
-    PREWHERE
-        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND (
-            (
-                /* if no filters are active search only the last 10 minutes */
-                (SELECT n FROM active_filters) = 0
-                AND timestamp BETWEEN
-                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - INTERVAL 10 MINUTE)
-                    AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
-            )
-            /* if filters are active, search through the intersecting minute ranges */
-            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
-        )
+    SELECT *, toStartOfHour(toDateTime(minute * 60)) AS minute_hour
+    FROM trc20_transfer
     WHERE
-        /* filter by active filters if any */
-        ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({from_address:Array(String)} = [''] OR `from` IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR `to` IN {to_address:Array(String)})
-        AND ({contract:Array(String)} = [''] OR log_address IN {contract:Array(String)})
-    ORDER BY timestamp DESC, block_num DESC, block_hash DESC, tx_index DESC, log_index DESC
+        /* filter by timestamp and block_num early to reduce data scanned */
+            (no_start_time OR timestamp >= toDateTime({start_time:UInt64}))
+        AND (no_end_time OR timestamp <= toDateTime({end_time:UInt64}))
+        AND (no_start_block OR block_num >= {start_block:UInt64})
+        AND (no_end_block OR block_num <= {end_block:UInt64})
+
+        /* minute-based filters bound to single/double/triple mode */
+
+        /* transaction ID filter */
+        AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
+
+        /* 3-filters: from + to + contract */
+        AND ( NOT is_contract_from_to OR minute IN contract_from_to_minutes )
+
+        /* 2-filters: (from + contract) and (to + contract) */
+        AND ( NOT is_contract_from OR minute IN contract_from_minutes )
+        AND ( NOT is_contract_to OR minute IN contract_to_minutes )
+
+        /* 1-filter: from OR to OR contract alone */
+        AND ( NOT is_from_only OR minute IN from_minutes )
+        AND ( NOT is_to_only OR minute IN to_minutes )
+        AND ( NOT is_contract_only OR minute_hour IN contract_hours )
+
+        /* direct filters */
+        AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
+        AND ( NOT has_to OR `to` IN {to_address:Array(String)} )
+        AND ( NOT has_contract OR log_address IN {contract:Array(String)} )
+
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+distinct_contracts AS (
+    SELECT DISTINCT log_address AS contract
+    FROM transfers
+),
+metadata AS (
+    SELECT DISTINCT
+        contract,
+        name,
+        symbol,
+        decimals
+    FROM `tron:tvm-tokens@v0.1.2`.metadata
+    WHERE contract IN distinct_contracts
 )
 SELECT
     /* block */
-    t.block_num as block_num,
+    block_num,
     t.timestamp as datetime,
     toUnixTimestamp(t.timestamp) as timestamp,
 
@@ -101,14 +152,15 @@ SELECT
     `from`,
     `to`,
     toString(t.amount) AS amount,
-    t.amount / pow(10, decimals) AS value,
 
     /* token metadata */
-    abi_hex_to_string(m.name_hex) AS name,
-    abi_hex_to_string(m.symbol_hex) AS symbol,
-    abi_hex_to_uint8(m.decimals_hex) AS decimals,
+    t.amount / pow(10, decimals) AS value,
+    name,
+    symbol,
+    decimals,
+
+    /* network */
     {network:String} AS network
 FROM transfers AS t
-/* Get token metadata (name, symbol, decimals) */
-JOIN metadata_rpc AS m ON t.log_address = m.contract
-ORDER BY timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
+LEFT JOIN metadata m ON t.log_address = m.contract
+ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
