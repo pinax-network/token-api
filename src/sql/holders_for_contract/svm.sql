@@ -32,6 +32,8 @@ metadata AS (
     )
 ),
 /* 2) Branch if it's native SOL - use balances_native table with reasonable cutoff */
+/* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
+/* SELECT countDistinct(account) FROM balances_native WHERE lamports > N * pow(10, 9); */
 top_native AS (
     SELECT
         account,
@@ -43,10 +45,12 @@ top_native AS (
         {mint:String} AS mnt
     FROM balances_native
     WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
-      AND lamports > 50000 * pow(10, 9)
+      AND lamports > 100000 * pow(10, 9)
     GROUP BY account
 ),
 /* 3) Branch if it's wrapped SOL - use balances table with reasonable cutoff */
+/* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
+/* SELECT countDistinct(account) FROM balances WHERE mint = 'So11111111111111111111111111111111111111112' AND amount > N * pow(10, 9); */
 top_wrapped AS (
     SELECT
         account,
@@ -59,7 +63,7 @@ top_wrapped AS (
     FROM balances
     WHERE {mint:String} = 'So11111111111111111111111111111111111111112'
       AND mint = {mint:String}
-      AND amount > 2000 * pow(10, 9)
+      AND amount > 4000 * pow(10, 9)
     GROUP BY account
 ),
 /* 4) Branch if it's a regular SPL token - no cutoff */
