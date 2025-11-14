@@ -2,15 +2,32 @@
 WITH
 metadata AS (
     SELECT
+        'So11111111111111111111111111111111111111111' AS mint,
+        'Native' AS name,
+        'SOL' AS symbol,
+        '' AS uri
+
+    UNION ALL
+
+    SELECT
+        'So11111111111111111111111111111111111111112' AS mint,
+        'Wrapped SOL' AS name,
+        'SOL' AS symbol,
+        '' AS uri
+
+    UNION ALL
+
+    SELECT
         mint,
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
     FROM metadata_view
-    WHERE metadata IN (
+    WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
+      AND metadata IN (
         SELECT metadata
         FROM metadata_mint_state_latest
-        WHERE {mint:String} != 'So11111111111111111111111111111111111111111' AND mint = {mint:String}
+        WHERE mint = {mint:String}
         GROUP BY metadata
     )
 ),
@@ -22,11 +39,8 @@ top_native AS (
         max(timestamp) AS ts,
         max(block_num) AS bn,
         toUInt8(9) AS dec,
-        '' AS prog_id,
-        {mint:String} AS mnt,
-        'Native' AS name_override,
-        'SOL' AS symbol_override,
-        '' AS uri_override
+        'Native' AS prog_id,
+        {mint:String} AS mnt
     FROM balances_native
     WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
       AND lamports > 50000 * pow(10, 9)
@@ -59,8 +73,7 @@ top_spl AS (
         any(program_id) AS prog_id,
         any(mint) AS mnt
     FROM balances
-    WHERE {mint:String} != 'So11111111111111111111111111111111111111111'
-      AND {mint:String} != 'So11111111111111111111111111111111111111112'
+    WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
       AND mint = {mint:String}
       AND amount > 0
     GROUP BY account
@@ -85,9 +98,9 @@ SELECT
     toString(amt) AS amount,
     amt / pow(10, dec) AS value,
     dec AS decimals,
-    if({mint:String} = 'So11111111111111111111111111111111111111111', 'Native', name) AS name,
-    if({mint:String} = 'So11111111111111111111111111111111111111111', 'SOL', symbol) AS symbol,
-    if (isNull(uri), '', uri) AS uri,
+    name,
+    symbol,
+    uri,
     {network:String} AS network
 FROM top_balances
 LEFT JOIN metadata ON mnt = metadata.mint
