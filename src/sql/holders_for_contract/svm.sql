@@ -10,7 +10,7 @@ metadata AS (
     WHERE metadata IN (
         SELECT metadata
         FROM metadata_mint_state_latest
-        WHERE mint = {mint:String}
+        WHERE {mint:String} != 'So11111111111111111111111111111111111111111' AND mint = {mint:String}
         GROUP BY metadata
     )
 ),
@@ -23,10 +23,13 @@ top_native AS (
         max(block_num) AS bn,
         toUInt8(9) AS dec,
         '' AS prog_id,
-        {mint:String} AS mnt
+        {mint:String} AS mnt,
+        'Native' AS name_override,
+        'SOL' AS symbol_override,
+        '' AS uri_override
     FROM balances_native
     WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
-      AND lamports > 50000000000000
+      AND lamports > 50000 * pow(10, 9)
     GROUP BY account
 ),
 /* 3) Branch if it's wrapped SOL - use balances table with reasonable cutoff */
@@ -42,7 +45,7 @@ top_wrapped AS (
     FROM balances
     WHERE {mint:String} = 'So11111111111111111111111111111111111111112'
       AND mint = {mint:String}
-      AND amount > 2000000000000
+      AND amount > 2000 * pow(10, 9)
     GROUP BY account
 ),
 /* 4) Branch if it's a regular SPL token - no cutoff */
@@ -82,9 +85,9 @@ SELECT
     toString(amt) AS amount,
     amt / pow(10, dec) AS value,
     dec AS decimals,
-    name,
-    symbol,
-    uri,
+    if({mint:String} = 'So11111111111111111111111111111111111111111', 'Native', name) AS name,
+    if({mint:String} = 'So11111111111111111111111111111111111111111', 'SOL', symbol) AS symbol,
+    if (isNull(uri), '', uri) AS uri,
     {network:String} AS network
 FROM top_balances
 LEFT JOIN metadata ON mnt = metadata.mint
