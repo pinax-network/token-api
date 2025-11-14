@@ -4,43 +4,46 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { SVM_MINT_WSOL_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     svmAddressSchema,
     svmMintSchema,
     svmNetworkIdSchema,
+    svmProgramIdSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-    mint: { schema: svmMintSchema },
+    mint: { schema: svmMintSchema, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            block_num: z.number(),
-            datetime: z.string(),
+            last_update: dateTimeSchema,
+            last_update_block_num: z.number(),
+            last_update_timestamp: z.number(),
 
             // -- contract --
-            address: svmAddressSchema,
+            owner: svmAddressSchema,
+            mint: svmMintSchema,
+            program_id: svmProgramIdSchema,
             amount: z.string(),
             value: z.number(),
 
+            // -- contract --
+            decimals: z.number().nullable(),
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
+
             // -- chain --
             network: svmNetworkIdSchema,
-
-            // -- contract --
-            symbol: z.optional(z.string()),
-            decimals: z.optional(z.number()),
-
-            // -- price --
-            // price_usd: z.optional(z.number()),
-            // value_usd: z.optional(z.number()),
-            // low_liquidity: z.optional(z.boolean()),
         })
     ),
 });
@@ -48,7 +51,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Returns token holders ranked by balance with holdings and supply percentage.',
+        description: 'Returns top token holders ranked by balance.',
 
         tags: ['SVM Tokens'],
         security: [{ bearerAuth: [] }],
@@ -63,13 +66,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 269656050,
-                                            last_balance_update: '2024-06-03 15:10:14',
-                                            owner: 'HuX8huX8VfNw9WpMNpgzD8TC1fXiBqhpBeBvGhJXSuaL',
-                                            amount: 7915210148973539,
-                                            value: '7915210.148973539',
-                                            decimals: 9,
-                                            symbol: 'TO IMPLEMENT',
+                                            last_update: '2025-09-17 20:06:47',
+                                            last_update_block_num: 367491952,
+                                            last_update_timestamp: 1758139607,
+                                            owner: '7AN6avKCJPMkXkW8kPwMuHmaWvJeHH69e8rKpLf9rdfk',
+                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            amount: '365461857133582111',
+                                            value: 365461857133.5821,
+                                            decimals: 6,
+                                            name: 'Pump',
+                                            symbol: 'PUMP',
+                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
                                             network: 'solana',
                                         },
                                     ],
