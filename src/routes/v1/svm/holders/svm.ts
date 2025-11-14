@@ -95,7 +95,10 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     const query = sqlQueries.holders_for_contract?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for holders could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], params, {
+        database: dbConfig.database,
+        clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
+    });
     return handleUsageQueryError(c, response);
 });
 
