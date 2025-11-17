@@ -4,6 +4,7 @@ WITH
 arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
 arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
 arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
+
 (length(tx_ids) > 0) AS has_tx_hash,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,

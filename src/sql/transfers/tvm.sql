@@ -5,11 +5,13 @@ arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
 arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
 arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
 arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
+
 (length(tx_ids) > 0) AS has_tx_hash,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,
 (length(contracts) > 0) AS has_contract,
 has_contract AND (NOT has_from) AND (NOT has_to) AS has_only_contract,
+
 toRelativeMinuteNum(toDateTime({start_time:UInt64})) AS start_minute,
 toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
 {start_time:UInt64} = 1420070400 AS no_start_time,
