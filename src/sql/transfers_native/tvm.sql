@@ -61,7 +61,7 @@ WHERE
     /* transaction ID filter */
     AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
 
-    /* timestamp filters */
+    /* minute filters */
     AND (NOT has_from OR minute IN from_minutes)
     AND (NOT has_to OR minute IN to_minutes)
 

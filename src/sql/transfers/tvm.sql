@@ -52,8 +52,6 @@ transfers AS (
         AND ({start_block:UInt64} = 0 OR block_num >= {start_block:UInt64})
         AND ({end_block:UInt64} = 9999999999 OR block_num <= {end_block:UInt64})
 
-        /* minute-based filters bound to single/double/triple mode */
-
         /* transaction ID filter */
         AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
 
