@@ -209,22 +209,19 @@ function parseDatabases(dbs: string): Record<string, { database: string; type: '
         ...dbs
             .split(';')
             .map((db) => {
-                if (!db.includes(':')) {
-                    console.warn(`Malformed database entry: "${db}". Skipping.`);
-                    return null;
-                }
                 const [network_id, ...rest] = db.split(':');
                 const db_suffix = rest.join(':');
 
-                if (network_id && db_suffix)
-                    return {
-                        // Temporary hardcoding rename of `matic` to `polygon`
-                        [network_id === 'matic' ? 'polygon' : network_id]: {
-                            database: `${network_id}:${db_suffix}`,
-                            // TODO: Get type from registry
-                            type: network_id === 'solana' ? 'svm' : network_id === 'tron' ? 'tvm' : 'evm',
-                        },
-                    };
+                if (!network_id || !db_suffix) throw new Error(`Invalid config: Malformed database entry: "${db}".`);
+
+                return {
+                    // Temporary hardcoding rename of `matic` to `polygon`
+                    [network_id === 'matic' ? 'polygon' : network_id]: {
+                        database: `${network_id}:${db_suffix}`,
+                        // TODO: Get type from registry
+                        type: network_id === 'solana' ? 'svm' : network_id === 'tron' ? 'tvm' : 'evm',
+                    },
+                };
             })
             .filter(Boolean)
     );
