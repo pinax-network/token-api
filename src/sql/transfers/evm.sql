@@ -78,7 +78,7 @@ filtered_transfers AS
                 /* if no filters are active search only the last minute */
                 (SELECT n FROM active_filters) = 0
                 AND timestamp BETWEEN
-                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - INTERVAL 1 MINUTE)
+                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
                     AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
             )
             /* if filters are active, search through the intersecting minute ranges */

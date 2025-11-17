@@ -2,7 +2,7 @@
     "private": true,
     "name": "token-api",
     "description": "Token API",
-    "version": "3.5.3",
+    "version": "3.5.5",
     "homepage": "https://github.com/pinax-network/token-api",
     "license": "Apache-2.0",
     "type": "module",
@@ -36,27 +36,29 @@
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
-        "lint": "bun run typecheck && biome check ."
+        "lint": "bun run typecheck && biome check .",
+        "changeset": "changeset",
+        "changeset:version": "changeset version",
+        "changeset:status": "changeset status --verbose"
     },
     "dependencies": {
         "@clickhouse/client": "^1.12.0",
         "@clickhouse/client-web": "^1.12.0",
-        "@hono/zod-openapi": "^1.1.0",
-        "@hono/zod-validator": "^0.7.2",
+        "@hono/standard-validator": "^0.1.5",
         "@modelcontextprotocol/sdk": "^1.17.1",
         "@pinax/graph-networks-registry": "^0.7.1",
         "@web3icons/core": "^4.0.18",
         "commander": "^14.0.0",
         "dotenv": "^17.2.1",
         "hono": "^4.8.12",
-        "hono-openapi": "^0.4.8",
+        "hono-openapi": "^1.0.0",
         "tslog": "^4.9.3",
-        "zod": "^4.0.15",
-        "zod-openapi": "^5.3.0"
+        "zod": "^4.0.15"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.1.4",
-        "typescript": "^5.9.2",
-        "@types/bun": "^1.2.19"
+        "@changesets/cli": "^2.29.7",
+        "@types/bun": "^1.2.19",
+        "typescript": "^5.9.2"
     }
 }

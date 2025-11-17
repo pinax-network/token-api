@@ -33,7 +33,16 @@ export async function makeQuery<T = unknown>(
             try {
                 const decodedRow = row.json() as
                     | ProgressRow
-                    | { row?: T; rows_before_limit_at_least?: number; meta?: Array<Record<string, unknown>> };
+                    | {
+                          row?: T;
+                          rows_before_limit_at_least?: number;
+                          meta?: Array<Record<string, unknown>>;
+                          exception?: string;
+                      };
+
+                if ('exception' in decodedRow && decodedRow.exception) {
+                    throw new Error(`Exception executing query ${query_id}: ${decodedRow.exception}`);
+                }
                 if (isProgressRow(decodedRow)) {
                     statistics = {
                         bytes_read: Number(decodedRow.progress.read_bytes),
@@ -44,7 +53,8 @@ export async function makeQuery<T = unknown>(
                     data.push(decodedRow.row);
                 }
             } catch (err) {
-                throw new Error(`Error streaming response: ${err}`);
+                logger.error({ query_id, error: err });
+                throw new Error(`Error streaming query response: ${query_id}`);
             }
         }
     }

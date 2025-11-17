@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  version-and-changelog:
+    name: Update Version and Changelog
+    runs-on: ubuntu-latest
+    # Skip pre-releases and tags with pre-release suffixes (e.g., v3.4.5-pre1, v3.4.5-alpha1)
+    if: github.event.release.prerelease == false && !contains(github.event.release.tag_name, '-')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Version packages and update changelog
+        run: |
+          # Run changeset version to consume changesets and update CHANGELOG.md
+          bun run changeset:version
+
+          # Get the new version from package.json
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          RELEASE_VERSION="${RELEASE_TAG#v}"
+
+          echo "Release tag: $RELEASE_TAG"
+          echo "Release version: $RELEASE_VERSION"
+          echo "Changesets bumped to: $NEW_VERSION"
+
+          # Check if versions match
+          if [ "$NEW_VERSION" != "$RELEASE_VERSION" ]; then
+            echo "❌ Error: Version mismatch!"
+            echo "Release tag is $RELEASE_TAG but changesets bumped version to $NEW_VERSION"
+            echo ""
+            echo "Please delete $RELEASE_TAG release and create a new one with tag v$NEW_VERSION instead."
+            echo ""
+            echo "Tip: Run 'bun changeset:status' locally to see what version will be created."
+            exit 1
+          fi
+
+          # Check if there are changes to commit
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "chore: version packages for ${{ github.event.release.tag_name }} [skip ci]"
+            git push origin main
+            echo "✅ Version and changelog updated"
+          else
+            echo "❌ No changes to commit. Add at least one changeset with `bun changeset` and try again."
+            exit 1
+          fi

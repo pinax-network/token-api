@@ -83,6 +83,11 @@ export const tvmTransaction = z.coerce
 
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export const commit = z.coerce.string().regex(/^[0-9a-f]{7}$/);
+// Use custom regex for validation both ISO datetimes (T/Z format) and SQL datetimes (spaces)
+// e.g. 2025-01-01T12:00:00.000Z / 2025-01-01 12:00:00
+export const dateTimeSchema = z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/, 'Invalid datetime format');
 
 // Type exports
 export type EvmAddress = z.infer<typeof evmAddress>;
@@ -155,7 +160,7 @@ export const pageSchema = z.coerce
 const intervals = ['1h', '4h', '1d', '1w'] as const;
 export const intervalSchema = z
     .enum(intervals)
-    .transform((interval: string) => {
+    .transform((interval: string, ctx) => {
         switch (interval) {
             case '1h':
                 return 60;
@@ -166,7 +171,11 @@ export const intervalSchema = z
             case '1w':
                 return 10080;
             default:
-                return 1440;
+                ctx.addIssue({
+                    code: 'custom',
+                    message: `Invalid 'interval'`,
+                });
+                return z.NEVER;
         }
     })
     .meta({
@@ -430,7 +439,7 @@ export const apiUsageResponseSchema = z.object({
     statistics: statisticsResponseSchema,
     pagination: paginationResponseSchema,
     results: z.number(),
-    request_time: z.date(),
+    request_time: z.string().describe('ISO 8601 datetime string'),
     duration_ms: z.number(),
 });
 

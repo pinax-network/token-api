@@ -5,7 +5,7 @@
             "type": "bun",
             "internalConsoleOptions": "neverOpen",
             "request": "launch",
-            "name": "Debug with .env",
+            "name": "Debug with .env-a",
             "program": "${workspaceFolder}/index.ts",
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
@@ -13,7 +13,21 @@
             "env": {
                 "NODE_ENV": "development"
             },
-            "runtimeArgs": ["--env-file", "${workspaceFolder}/.env", "--smol"]
+            "runtimeArgs": ["--env-file", "${workspaceFolder}/.env-a", "--smol"]
+        },
+        {
+            "type": "bun",
+            "internalConsoleOptions": "neverOpen",
+            "request": "launch",
+            "name": "Debug with .env-b",
+            "program": "${workspaceFolder}/index.ts",
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "watchMode": false,
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "runtimeArgs": ["--env-file", "${workspaceFolder}/.env-b", "--smol"]
         }
     ]
 }

@@ -1,0 +1,28 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "prHourlyLimit": 4,
+    "reviewers": ["YaroShkvorets", "0237h"],
+    "recreateWhen": "never",
+    "labels": ["dependencies"],
+    "rebaseWhen": "conflicted",
+    "automerge": false,
+    "lockFileMaintenance": {
+        "enabled": true
+    },
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["minor", "patch"],
+            "groupName": "all non-major dependencies",
+            "groupSlug": "all-minor-patch"
+        },
+        {
+            "matchUpdateTypes": ["major"],
+            "groupName": null
+        },
+        {
+            "matchManagers": ["github-actions"],
+            "groupName": null
+        }
+    ]
+}

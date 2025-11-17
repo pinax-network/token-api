@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
-import { describeRoute } from 'hono-openapi';
-import { resolver, validator } from 'hono-openapi/zod';
+import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
@@ -10,6 +9,7 @@ import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/exampl
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
@@ -24,7 +24,7 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            contract_creation: z.iso.datetime(),
+            contract_creation: dateTimeSchema,
             contract_creator: evmAddressSchema,
             contract: evmContractSchema,
             name: z.string().nullable(),
@@ -90,7 +90,7 @@ type ValidatedData = z.infer<typeof querySchema>;
 const route = new Hono<{ Variables: { validatedData: ValidatedData } }>();
 
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
-    const params = c.get('validatedData');
+    const params = c.req.valid('query');
 
     const dbConfig = config.nftDatabases[params.network];
     // this DB is used to fetch contract metadata (creator, creation date)
