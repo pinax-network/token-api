@@ -80,19 +80,6 @@ transfers AS (
     ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-distinct_contracts AS (
-    SELECT DISTINCT log_address AS contract
-    FROM transfers
-),
-metadata AS (
-    SELECT DISTINCT
-        contract,
-        name,
-        symbol,
-        decimals
-    FROM `tron:tvm-tokens@v0.1.2`.metadata
-    WHERE contract IN distinct_contracts
 )
 SELECT
     /* block */
