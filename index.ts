@@ -9,6 +9,13 @@ import { APIErrorResponse } from './src/utils.js';
 
 const app = new Hono();
 
+// Tracking all incoming requests
+app.use(async (c: Context, next) => {
+    const pathname = c.req.path;
+    logger.trace(`Incoming request: '${pathname}'`);
+    await next();
+});
+
 initRedis(config.redisUrl);
 
 // -----------
@@ -51,13 +58,6 @@ app.get(
         },
     })
 );
-
-// Tracking all incoming requests
-app.use(async (c: Context, next) => {
-    const pathname = c.req.path;
-    logger.trace(`Incoming request: [${pathname}]`);
-    await next();
-});
 
 // 404 NOT FOUND
 app.notFound((c: Context) =>
