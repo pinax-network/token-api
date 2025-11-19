@@ -1,8 +1,21 @@
 import { Hono } from 'hono';
-import v1 from './v1/index.js';
+import { dexController } from '../controllers/DexController.js';
+import { monitorController } from '../controllers/MonitorController.js';
+import { nftController } from '../controllers/NftController.js';
+import { tokenController } from '../controllers/TokenController.js';
 
-const router = new Hono();
+const app = new Hono();
 
-router.route('/v1', v1);
+// Mount Monitor Controller routes
+app.route('/', monitorController.route);
 
-export default router;
+// Mount Token Controller routes
+app.route('/', tokenController.route);
+
+// Mount Dex Controller routes
+app.route('/', dexController.route);
+
+// Mount Nft Controller routes
+app.route('/', nftController.route);
+
+export default app;

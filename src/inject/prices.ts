@@ -1,5 +1,5 @@
-import client from '../clickhouse/client.js';
-import { config, DEFAULT_LOW_LIQUIDITY_CHECK } from '../config.js';
+import client from '../infrastructure/clickhouse.js';
+import { config, DEFAULT_LOW_LIQUIDITY_CHECK } from '../infrastructure/config.js';
 import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
 import { natives, stables } from './prices.tokens.js';
 

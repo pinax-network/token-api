@@ -2,9 +2,9 @@
  * Service for retrieving spam scores for contracts
  */
 
-import { config } from '../config.js';
+import { config } from '../infrastructure/config.js';
+import { getFromCache, getSpamScoreKey, setInCache } from '../infrastructure/redis.js';
 import { withTimeout } from '../utils.js';
-import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
 
 /**
  * Interface for spam score response from the external API

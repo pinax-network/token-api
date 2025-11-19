@@ -1,10 +1,10 @@
 import { type Context, Hono } from 'hono';
 import './src/banner.js';
 import { openAPIRouteHandler } from 'hono-openapi';
-import { APP_DESCRIPTION, APP_VERSION, config } from './src/config.js';
-import { logger } from './src/logger.js';
+import { APP_DESCRIPTION, APP_VERSION, config } from './src/infrastructure/config.js';
+import { logger } from './src/infrastructure/logger.js';
+import { initRedis } from './src/infrastructure/redis.js';
 import routes from './src/routes/index.js';
-import { initRedis } from './src/services/redis.js';
 import { APIErrorResponse } from './src/utils.js';
 
 const app = new Hono();

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { config, DEFAULT_LIMIT } from '../config.js';
+import { config, DEFAULT_LIMIT } from '../infrastructure/config.js';
 import {
     EVM_ADDRESS_VITALIK_EXAMPLE,
     EVM_CONTRACT_WETH_EXAMPLE,

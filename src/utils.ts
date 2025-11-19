@@ -2,8 +2,8 @@ import type { Context } from 'hono';
 import type { DescribeRouteOptions } from 'hono-openapi';
 import { resolver } from 'hono-openapi';
 import { ZodError } from 'zod';
-import { config } from './config.js';
-import { logger } from './logger.js';
+import { config } from './infrastructure/config.js';
+import { logger } from './infrastructure/logger.js';
 import {
     type ApiErrorResponse,
     type ClientErrorResponse,

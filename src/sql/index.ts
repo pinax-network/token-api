@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { logger } from '../logger.js';
+import { logger } from '../infrastructure/logger.js';
 
 /**
  * Loads all SQL files from a specified directory (non-recursive) into a key-value object

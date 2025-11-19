@@ -1,5 +1,5 @@
 import pkg from '../package.json' with { type: 'json' };
-import { APP_VERSION } from './config.js';
+import { APP_VERSION } from './infrastructure/config.js';
 
 export function banner() {
     let text = `

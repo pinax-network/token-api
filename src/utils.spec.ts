@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { Context } from 'hono';
 import { z } from 'zod';
-import { config } from './config.js';
+import { config } from './infrastructure/config.js';
 import { APIErrorResponse, now, validatorHook, withErrorResponses, withTimeout } from './utils.js';
 
 type ConfigWithPlans = typeof config & {
