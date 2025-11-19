@@ -27,7 +27,7 @@ export class TokenService {
         const dbConfig = config.tokenDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.balances_for_contract?.[dbConfig.type];
+        const query = sqlQueries.holders_for_contract?.[dbConfig.type];
         if (!query) throw new Error('Query for holders could not be loaded');
 
         return executeUsageQuery([query], params, { ...options, database: dbConfig.database });
@@ -37,7 +37,7 @@ export class TokenService {
         const dbConfig = config.tokenDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.tokens?.[dbConfig.type];
+        const query = sqlQueries.tokens_for_contract?.[dbConfig.type];
         if (!query) throw new Error('Query for tokens could not be loaded');
 
         const response = await executeUsageQuery([query], params, { ...options, database: dbConfig.database });

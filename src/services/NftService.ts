@@ -14,7 +14,7 @@ export class NftService {
         const dbConfig = config.nftDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.nft_collections?.[dbConfig.type];
+        const query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
         if (!query) throw new Error('Query for NFT collections could not be loaded');
 
         const response = await executeUsageQuery<NftItem>([query], params, { ...options, database: dbConfig.database });
@@ -41,7 +41,7 @@ export class NftService {
         const dbConfig = config.nftDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.nft_items?.[dbConfig.type];
+        const query = sqlQueries.nft_metadata_for_token?.[dbConfig.type];
         if (!query) throw new Error('Query for NFT items could not be loaded');
 
         return executeUsageQuery([query], params, { ...options, database: dbConfig.database });
@@ -51,7 +51,7 @@ export class NftService {
         const dbConfig = config.nftDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.nft_ownerships?.[dbConfig.type];
+        const query = sqlQueries.nft_ownerships_for_account?.[dbConfig.type];
         if (!query) throw new Error('Query for NFT ownerships could not be loaded');
 
         const response = await executeUsageQuery<NftItem>([query], params, { ...options, database: dbConfig.database });
@@ -100,7 +100,7 @@ export class NftService {
 
         // Note: Using nft_ownerships query for holders as per existing implementation logic if separate query doesn't exist
         // But checking routes/v1/evm/nft/holders/evm.ts, it uses nft_ownerships query with specific params
-        const query = sqlQueries.nft_ownerships?.[dbConfig.type];
+        const query = sqlQueries.nft_holders?.[dbConfig.type];
         if (!query) throw new Error('Query for NFT holders could not be loaded');
 
         return executeUsageQuery([query], params, { ...options, database: dbConfig.database });

@@ -8,7 +8,7 @@ export class DexService {
         const dbConfig = config.uniswapDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.dexes?.[dbConfig.type];
+        const query = sqlQueries.supported_dexes?.[dbConfig.type];
         if (!query) throw new Error('Query for dexes could not be loaded');
 
         return executeUsageQuery([query], params, { ...options, database: dbConfig.database });
@@ -34,7 +34,7 @@ export class DexService {
         const dbConfig = config.uniswapDatabases[network];
         if (!dbConfig) throw new Error(`Network not found: ${network}`);
 
-        const query = sqlQueries.pools_ohlc?.[dbConfig.type];
+        const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
         if (!query) throw new Error('Query for pools OHLC could not be loaded');
 
         return executeUsageQuery([query], params, { ...options, database: dbConfig.database });
