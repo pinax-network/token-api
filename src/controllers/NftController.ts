@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { handleUsageQueryError } from '../handleQuery.js';
 import { nftService } from '../services/NftService.js';
 import {
+    booleanFromString,
     createQuerySchema,
     evmAddressSchema,
     evmContractSchema,
@@ -36,7 +37,7 @@ const evmNftSalesQuerySchema = createQuerySchema({
     contract: { schema: evmContractSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const evmNftTransfersQuerySchema = createQuerySchema({
@@ -46,7 +47,7 @@ const evmNftTransfersQuerySchema = createQuerySchema({
     to: { schema: evmAddressSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const evmNftHoldersQuerySchema = createQuerySchema({

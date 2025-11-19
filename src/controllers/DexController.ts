@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { handleUsageQueryError } from '../handleQuery.js';
 import { dexService } from '../services/DexService.js';
 import {
+    booleanFromString,
     createQuerySchema,
     evmFactorySchema,
     evmNetworkIdSchema,
@@ -60,7 +61,7 @@ const evmSwapsQuerySchema = createQuerySchema({
     pool: { schema: evmPoolSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const svmSwapsQuerySchema = createQuerySchema({
@@ -68,7 +69,7 @@ const svmSwapsQuerySchema = createQuerySchema({
     pool: { schema: svmAmmPoolSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const tvmSwapsQuerySchema = createQuerySchema({

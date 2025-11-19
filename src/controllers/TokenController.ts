@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { handleUsageQueryError } from '../handleQuery.js';
 import { tokenService } from '../services/TokenService.js';
 import {
+    booleanFromString,
     createQuerySchema,
     evmAddressSchema,
     evmContractSchema,
@@ -62,19 +63,19 @@ const tvmTokensQuerySchema = createQuerySchema({
 const evmHoldersQuerySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     contract: { schema: evmContractSchema },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const svmHoldersQuerySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
     mint: { schema: svmMintSchema },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const tvmHoldersQuerySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
     contract: { schema: tvmContractSchema },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const evmTransfersQuerySchema = createQuerySchema({
@@ -84,7 +85,7 @@ const evmTransfersQuerySchema = createQuerySchema({
     to: { schema: evmAddressSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const svmTransfersQuerySchema = createQuerySchema({
@@ -94,7 +95,7 @@ const svmTransfersQuerySchema = createQuerySchema({
     to: { schema: svmOwnerSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 const tvmTransfersQuerySchema = createQuerySchema({
@@ -104,7 +105,7 @@ const tvmTransfersQuerySchema = createQuerySchema({
     to: { schema: tvmAddressSchema, batched: true, default: '' },
     transaction: { schema: z.string(), batched: true, default: '' },
     block_number: { schema: z.number(), default: 0 },
-    include_pagination: { schema: z.boolean().default(true) },
+    include_pagination: { schema: booleanFromString, default: true },
 });
 
 // Response Schemas (simplified for brevity, ideally should be imported or defined fully)
