@@ -30,12 +30,12 @@ SELECT
     amm_pool,
     token0,
     coalesce(
-        (SELECT decimals FROM {db_svm_tokens:Identifier}.mints WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
+        (SELECT decimals FROM {db_svm_tokens:Identifier}.mints_view WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
         9
     ) AS token0_decimals,
     token1,
     coalesce(
-        (SELECT decimals FROM {db_svm_tokens:Identifier}.mints WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
+        (SELECT decimals FROM {db_svm_tokens:Identifier}.mints_view WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
         9
     ) AS token1_decimals,
     pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/open_raw, open_raw) AS open,
