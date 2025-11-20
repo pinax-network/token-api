@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.6.0
+
+### Minor Changes
+
+- 80897c2: Added /tvm/tokens metadata endpoint
+- bb7e180: Added `/svm/holders` endpoint to query top token holders for native and SPL tokens
+
+### Patch Changes
+
+- d399598: Updated dependencies
+- 21db6da: Fixed bug with deep pagination in _/transfers and _/swaps endpoints
+- ac43cd7: Fix wrong response schemas in the OpenAPI specification
+- a673363: Improved query performance by disabling HTTP keep-alive in ClickHouse client
+- 2ea4ae8: Fix logging for incoming requests to Token API
+
 ## 3.5.5
 
 ### Patch Changes
