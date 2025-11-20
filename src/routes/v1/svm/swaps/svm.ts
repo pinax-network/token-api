@@ -61,10 +61,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             program_name: z.string(),
 
             // -- swap --
-            user: svmAddressSchema,
             amm: svmAmmSchema,
-            amm_name: z.string(),
             amm_pool: svmAmmPoolSchema,
+            user: svmAddressSchema,
 
             input_mint: svmMintSchema,
             input_amount: z.number(),

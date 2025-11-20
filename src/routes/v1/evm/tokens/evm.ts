@@ -47,7 +47,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- icon --
             icon: z.object({
                 web3icon: z.string(),
-            }),
+            }).optional(),
         })
     ),
 });

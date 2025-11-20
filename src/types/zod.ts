@@ -343,11 +343,17 @@ export const svmTransactionSchema = svmTransaction.meta({
 
 export const svmProgramIdSchema = z
     .enum([
+        'LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj',
+        'CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C',
         '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-        '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',
+        'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK',
+        'Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB',
+        'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+        'LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo',
+        'cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG',
         'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
         'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
-        'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+        '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',
     ])
     .meta({ description: 'Filter by program ID', example: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4' });
 
