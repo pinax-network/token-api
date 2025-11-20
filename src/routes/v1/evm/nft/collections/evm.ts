@@ -33,7 +33,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             total_supply: z.number(),
             total_unique_supply: z.number(),
             total_transfers: z.number(),
-            network_id: evmNetworkIdSchema,
+            network: evmNetworkIdSchema,
             spam_status: z.enum(['spam', 'not_spam', 'pending', 'not_supported', 'error']),
         })
     ),
