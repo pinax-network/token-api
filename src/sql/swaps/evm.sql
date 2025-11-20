@@ -111,6 +111,7 @@ filtered_pools AS (
     SELECT
         pool,
         factory,
+        protocol,
         token0,
         token1
     FROM pools
@@ -124,14 +125,16 @@ unique_tokens AS (
 filtered_tokens AS (
     SELECT
         t.address,
-        if(isNull(t.symbol), '', t.symbol) AS symbol,
-        coalesce(t.decimals, 0) AS decimals
+        argMax(if(isNull(t.symbol), '', t.symbol), t.block_num) AS symbol,
+        argMax(coalesce(t.decimals, 0), t.block_num) AS decimals
     FROM erc20_metadata_initialize t
     WHERE t.address IN (SELECT address FROM unique_tokens)
+    GROUP BY t.address
 ),
 p AS (
     SELECT
         pool,
+        protocol,
         factory,
         c0.decimals AS decimals0,
         c1.decimals AS decimals1,
@@ -212,5 +215,5 @@ SELECT
     ) AS summary,
     {network:String} AS network
 FROM s
-LEFT JOIN p USING (pool)
+LEFT JOIN p USING (pool, protocol)
 ORDER BY timestamp DESC, transaction_id
