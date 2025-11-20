@@ -19,7 +19,7 @@ metadata AS
     FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state_latest
+        FROM metadata_mint_state
         WHERE mint = {mint:String}
         GROUP BY metadata
     )
