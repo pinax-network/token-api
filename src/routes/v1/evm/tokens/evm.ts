@@ -45,9 +45,11 @@ const responseSchema = apiUsageResponseSchema.extend({
             network: evmNetworkIdSchema,
 
             // -- icon --
-            icon: z.object({
-                web3icon: z.string(),
-            }).optional(),
+            icon: z
+                .object({
+                    web3icon: z.string(),
+                })
+                .optional(),
         })
     ),
 });
