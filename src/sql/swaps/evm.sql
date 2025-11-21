@@ -111,6 +111,7 @@ filtered_pools AS (
     SELECT
         pool,
         factory,
+        protocol,
         token0,
         token1
     FROM pools
@@ -132,6 +133,7 @@ filtered_tokens AS (
 p AS (
     SELECT
         pool,
+        protocol,
         factory,
         c0.decimals AS decimals0,
         c1.decimals AS decimals1,
@@ -212,5 +214,5 @@ SELECT
     ) AS summary,
     {network:String} AS network
 FROM s
-LEFT JOIN p USING (pool)
+LEFT JOIN p USING (pool, protocol)
 ORDER BY timestamp DESC, transaction_id
