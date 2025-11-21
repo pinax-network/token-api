@@ -26,7 +26,7 @@ metadata AS (
     WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
       AND metadata IN (
         SELECT metadata
-        FROM metadata_mint_state_latest
+        FROM metadata_mint_state
         WHERE mint = {mint:String}
         GROUP BY metadata
     )
