@@ -125,11 +125,10 @@ unique_tokens AS (
 filtered_tokens AS (
     SELECT
         t.address,
-        argMax(if(isNull(t.symbol), '', t.symbol), t.block_num) AS symbol,
-        argMax(coalesce(t.decimals, 0), t.block_num) AS decimals
+        if(isNull(t.symbol), '', t.symbol) AS symbol,
+        coalesce(t.decimals, 0) AS decimals
     FROM erc20_metadata_initialize t
     WHERE t.address IN (SELECT address FROM unique_tokens)
-    GROUP BY t.address
 ),
 p AS (
     SELECT
