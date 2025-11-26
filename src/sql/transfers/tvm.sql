@@ -10,7 +10,6 @@ arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,
 (length(contracts) > 0) AS has_contract,
-has_contract AND (NOT has_from) AND (NOT has_to) AS has_only_contract,
 
 toRelativeMinuteNum(toDateTime({start_time:UInt64})) AS start_minute,
 toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
@@ -29,26 +28,32 @@ tx_hash_timestamps AS (
 from_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE has_from AND `from` IN {from_address:Array(String)}
+    WHERE has_from AND NOT has_contract
+        AND (no_start_time OR minute >= start_minute)
+        AND (no_end_time OR minute <= end_minute)
+        AND `from` IN {from_address:Array(String)}
     GROUP BY minute
+    LIMIT {limit:UInt64} + {offset:UInt64}
 ),
 to_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE has_to AND `to` IN {to_address:Array(String)}
+    WHERE has_to AND NOT has_contract
+        AND (no_start_time OR minute >= start_minute)
+        AND (no_end_time OR minute <= end_minute)
+        AND `to` IN {to_address:Array(String)}
     GROUP BY minute
+    LIMIT {limit:UInt64} + {offset:UInt64}
 ),
-/* USDT has very high volume, so we need to limit the number of minutes we scan */
 contract_minutes AS (
     SELECT minute
     FROM trc20_transfer
-    WHERE has_only_contract
+    WHERE has_contract AND NOT has_from AND NOT has_to
         AND (no_start_time OR minute >= start_minute)
         AND (no_end_time OR minute <= end_minute)
         AND log_address IN {contract:Array(String)}
     GROUP BY minute
-    ORDER BY minute DESC
-    LIMIT 100000
+    LIMIT {limit:UInt64} + {offset:UInt64}
 ),
 transfers AS (
     SELECT *
@@ -62,9 +67,9 @@ transfers AS (
         AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
 
         /* minute filters */
-        AND ( NOT has_from OR minute IN from_minutes )
-        AND ( NOT has_to OR minute IN to_minutes )
-        AND ( NOT has_only_contract OR minute IN contract_minutes )
+        AND ( NOT (has_from AND NOT has_contract) OR minute IN from_minutes )
+        AND ( NOT (has_to AND NOT has_contract) OR minute IN to_minutes )
+        AND ( NOT (has_contract AND NOT has_from AND NOT has_to) OR minute IN contract_minutes )
 
         /* direct filters */
         AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
