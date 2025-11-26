@@ -74,7 +74,8 @@ contract_from_minutes AS (
             AND (no_end_time OR minute <= end_minute)
             AND `from` IN {from_address:Array(String)}
         GROUP BY minute
-    ) LIMIT {limit:UInt64} + {offset:UInt64}
+    /* higher multiplication factor to account for double filtering */
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
 ),
 contract_to_minutes AS (
     SELECT * FROM (
@@ -90,12 +91,13 @@ contract_to_minutes AS (
 
         SELECT minute
         FROM trc20_transfer
-        WHERE has_contract AND has_from
+        WHERE has_contract AND has_to
             AND (no_start_time OR minute >= start_minute)
             AND (no_end_time OR minute <= end_minute)
             AND `to` IN {to_address:Array(String)}
         GROUP BY minute
-    ) LIMIT {limit:UInt64} + {offset:UInt64}
+    /* higher multiplication factor to account for double filtering */
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
 ),
 transfers AS (
     SELECT *
