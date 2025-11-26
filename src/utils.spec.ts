@@ -403,8 +403,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '4h',
-                        start_time: sevenDaysAgo,
-                        end_time: nowTimestamp,
+                        start_time: sevenDaysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -425,8 +425,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '1h',
-                        start_time: oneDayAgo,
-                        end_time: nowTimestamp,
+                        start_time: oneDayAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -447,8 +447,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '4h',
-                        start_time: fiftyDaysAgo,
-                        end_time: nowTimestamp,
+                        start_time: fiftyDaysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -469,8 +469,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '4h',
-                        start_time: fiftyOneDaysAgo,
-                        end_time: nowTimestamp,
+                        start_time: fiftyOneDaysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -491,8 +491,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '1d',
-                        start_time: daysAgo,
-                        end_time: nowTimestamp,
+                        start_time: daysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -528,8 +528,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 100,
                         interval: '1h',
-                        start_time: oneDayAgo,
-                        end_time: nowTimestamp,
+                        start_time: oneDayAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -550,8 +550,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 100,
                         interval: '1h',
-                        start_time: daysAgo,
-                        end_time: nowTimestamp,
+                        start_time: daysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -572,8 +572,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 100,
                         interval: '1h',
-                        start_time: daysAgo,
-                        end_time: nowTimestamp,
+                        start_time: daysAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -603,8 +603,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 500,
                         interval: '1h',
-                        start_time: oneDayAgo,
-                        end_time: nowTimestamp,
+                        start_time: oneDayAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -625,8 +625,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 500,
                         interval: '1h',
-                        start_time: fiveYearsAgo,
-                        end_time: nowTimestamp,
+                        start_time: fiveYearsAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -655,8 +655,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 10000,
                         interval: '1h',
-                        start_time: tenYearsAgo,
-                        end_time: nowTimestamp,
+                        start_time: tenYearsAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -709,8 +709,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '4h',
-                        start_time: fiftyDaysAgo,
-                        end_time: future,
+                        start_time: fiftyDaysAgo.toString(),
+                        end_time: future.toString(),
                     },
                 };
 
@@ -730,8 +730,8 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        start_time: oneYearAgo,
-                        end_time: nowTimestamp,
+                        start_time: oneYearAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
@@ -752,8 +752,8 @@ describe('validatorHook', () => {
                     data: {
                         limit: 20,
                         interval: '1h',
-                        start_time: oneYearAgo,
-                        end_time: nowTimestamp,
+                        start_time: oneYearAgo.toString(),
+                        end_time: nowTimestamp.toString(),
                     },
                 };
 
