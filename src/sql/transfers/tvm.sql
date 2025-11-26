@@ -55,6 +55,48 @@ contract_minutes AS (
     GROUP BY minute
     LIMIT {limit:UInt64} + {offset:UInt64}
 ),
+contract_from_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM trc20_transfer
+        WHERE has_contract AND has_from
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND log_address IN {contract:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM trc20_transfer
+        WHERE has_contract AND has_from
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND `from` IN {from_address:Array(String)}
+        GROUP BY minute
+    ) LIMIT {limit:UInt64} + {offset:UInt64}
+),
+contract_to_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM trc20_transfer
+        WHERE has_contract AND has_to
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND log_address IN {contract:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM trc20_transfer
+        WHERE has_contract AND has_from
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND `to` IN {to_address:Array(String)}
+        GROUP BY minute
+    ) LIMIT {limit:UInt64} + {offset:UInt64}
+),
 transfers AS (
     SELECT *
     FROM trc20_transfer
@@ -70,6 +112,8 @@ transfers AS (
         AND ( NOT (has_from AND NOT has_contract) OR minute IN from_minutes )
         AND ( NOT (has_to AND NOT has_contract) OR minute IN to_minutes )
         AND ( NOT (has_contract AND NOT has_from AND NOT has_to) OR minute IN contract_minutes )
+        AND ( NOT (has_contract AND has_from) OR minute IN contract_from_minutes )
+        AND ( NOT (has_contract AND has_to) OR minute IN contract_to_minutes )
 
         /* direct filters */
         AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
