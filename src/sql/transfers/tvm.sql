@@ -110,5 +110,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM transfers AS t
-LEFT JOIN metadata m ON t.log_address = m.contract
+ANY LEFT JOIN metadata m ON t.log_address = m.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
