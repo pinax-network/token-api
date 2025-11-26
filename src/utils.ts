@@ -72,9 +72,9 @@ export function validatorHook(
               success: true;
               data: {
                   limit?: number;
-                  start_time?: string;
-                  end_time?: string;
-                  interval?: string;
+                  start_time?: number | string;
+                  end_time?: number | string;
+                  interval?: number | string;
               } & {
                   [key: string]: unknown | unknown[];
               };
