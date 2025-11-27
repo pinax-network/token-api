@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.6.1
+
+### Patch Changes
+
+- da0c035: Fixed bug with incorrect pool field in `/evm/swaps` endpoint
+- 16a03cd: Fixed bug with incomplete results in `/tvm/swaps` response on deep pagination
+
 ## 3.6.0
 
 ### Minor Changes
