@@ -11,7 +11,6 @@ import {
     intervalSchema,
     type ServerErrorResponse,
     serverErrorResponseSchema,
-    timestampSchema,
 } from './types/zod.js';
 
 export function APIErrorResponse(
@@ -72,9 +71,9 @@ export function validatorHook(
               success: true;
               data: {
                   limit?: number;
-                  start_time?: number | string;
-                  end_time?: number | string;
-                  interval?: number | string;
+                  start_time?: number;
+                  end_time?: number;
+                  interval?: number;
               } & {
                   [key: string]: unknown | unknown[];
               };
@@ -129,9 +128,6 @@ export function validatorHook(
         // OHLCV bars and interval restrictions
         const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
         if (is_ohlcv_endpoint && data.interval) {
-            // Parse explicitly since validator doesn't parse ZodTransforms (only validates them)
-            const interval = intervalSchema.parse(data.interval);
-
             // Check interval restrictions
             if (allowed_intervals.length > 0) {
                 // Parse allowed intervals using intervalSchema
@@ -143,7 +139,7 @@ export function validatorHook(
                     }
                 }
 
-                if (!allowedIntervalMinutes.includes(interval)) {
+                if (!allowedIntervalMinutes.includes(data.interval)) {
                     return APIErrorResponse(
                         ctx,
                         403,
@@ -155,11 +151,7 @@ export function validatorHook(
 
             // Check bars limit (time range / interval)
             if (max_bars !== 0 && data.start_time && data.end_time) {
-                // Parse explicitly since validator doesn't parse ZodTransforms (only validates them)
-                const start_time = timestampSchema.parse(data.start_time);
-                const end_time = timestampSchema.parse(data.end_time);
-
-                if (end_time < start_time)
+                if (data.end_time < data.start_time)
                     return APIErrorResponse(
                         ctx,
                         400,
@@ -167,17 +159,19 @@ export function validatorHook(
                         `Parameter 'end_time' cannot be less than 'start_time'.`
                     );
 
-                const clampedEndTime = Math.min(end_time, now());
-                const timeRangeSeconds = clampedEndTime - start_time;
-                const intervalSeconds = interval * 60;
-                const requestedBars = Math.ceil(timeRangeSeconds / intervalSeconds);
+                const clamped_end_time = Math.min(data.end_time, now());
+                const time_range_seconds = clamped_end_time - data.start_time;
+                const interval_seconds = data.interval * 60;
+                const requested_bars = Math.ceil(time_range_seconds / interval_seconds);
 
-                if (requestedBars > max_bars) {
+                logger.info('requested:', requested_bars);
+                logger.info('max:', max_bars);
+                if (requested_bars > max_bars) {
                     return APIErrorResponse(
                         ctx,
                         403,
                         'forbidden',
-                        `Requested time range would return ${requestedBars} bars, exceeding maximum of ${max_bars} bars.`
+                        `Requested time range would return ${requested_bars} bars, exceeding maximum of ${max_bars} bars.`
                     );
                 }
             }
