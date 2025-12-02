@@ -29,7 +29,21 @@ pool_minutes AS (
 ),
 
 filtered_swaps AS (
-    SELECT *
+    SELECT
+        block_num,
+        timestamp,
+        minute,
+        tx_hash,
+        tx_index,
+        log_index,
+        factory,
+        pool,
+        protocol,
+        user,
+        input_contract,
+        output_contract,
+        input_amount,
+        output_amount
     FROM swaps
     WHERE
         /* direct minutes */
@@ -54,23 +68,58 @@ filtered_swaps AS (
     ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+
+unique_contracts AS (
+    SELECT input_contract AS contract FROM filtered_swaps
+    UNION DISTINCT
+    SELECT output_contract AS contract FROM filtered_swaps
+),
+
+metadata AS (
+    SELECT
+        m.contract AS contract,
+        any(m.name) AS name,
+        any(m.symbol) AS symbol,
+        any(m.decimals) AS decimals,
+        CAST((m.contract, any(m.symbol), any(m.name), any(m.decimals)) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS token_info
+    FROM {db_evm_tokens:Identifier}.metadata_view AS m
+    INNER JOIN unique_contracts AS u ON m.contract = u.contract
+    GROUP BY m.contract
 )
 
 SELECT
-    block_num,
-    timestamp AS datetime,
-    toUnixTimestamp(timestamp) AS timestamp,
-    tx_hash AS transaction_id,
-    toString(factory) AS factory,
-    pool,
-    input_contract AS input_token,
-    output_contract AS output_token,
-    user AS caller,
-    user AS sender,
-    user AS recipient,
-    input_amount,
-    output_amount,
-    protocol,
+    s.block_num AS block_num,
+    s.timestamp AS datetime,
+    toUnixTimestamp(s.timestamp) AS timestamp,
+    s.tx_hash AS transaction_id,
+    toString(s.factory) AS factory,
+    s.pool AS pool,
+    s.user AS caller,
+    s.user AS sender,
+    s.user AS recipient,
+    toString(s.input_amount) AS input_amount,
+    s.input_amount / pow(10, m1.decimals) AS input_value,
+    m1.token_info AS input_token,
+    toString(s.output_amount) AS output_amount,
+    s.output_amount / pow(10, m2.decimals) AS output_value,
+    m2.token_info AS output_token,
+    if(s.input_amount > 0, (s.output_amount / pow(10, m2.decimals)) / (s.input_amount / pow(10, m1.decimals)), 0) AS price,
+    if(s.output_amount > 0, (s.input_amount / pow(10, m1.decimals)) / (s.output_amount / pow(10, m2.decimals)), 0) AS price_inv,
+    s.protocol AS protocol,
+    format('Swap {} {} for {} {} on {}',
+        if(s.input_amount / pow(10, m1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, m1.decimals)), toString(s.input_amount / pow(10, m1.decimals))),
+        m1.symbol,
+        if(s.output_amount / pow(10, m2.decimals) > 1000, formatReadableQuantity(s.output_amount / pow(10, m2.decimals)), toString(s.output_amount / pow(10, m2.decimals))),
+        m2.symbol,
+        arrayStringConcat(
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
+                     splitByChar('_', s.protocol)),
+            ' '
+        )
+    ) AS summary,
     {network:String} AS network
-FROM filtered_swaps
-ORDER BY timestamp DESC, tx_hash
+FROM filtered_swaps AS s
+LEFT JOIN metadata AS m1 ON s.input_contract = m1.contract
+LEFT JOIN metadata AS m2 ON s.output_contract = m2.contract
+ORDER BY s.timestamp DESC, s.tx_hash
