@@ -70,22 +70,21 @@ filtered_swaps AS (
     OFFSET  {offset:UInt64}
 ),
 
-unique_contracts AS (
-    SELECT input_contract AS contract FROM filtered_swaps
-    UNION DISTINCT
-    SELECT output_contract AS contract FROM filtered_swaps
-),
-
 metadata AS (
     SELECT
-        m.contract AS contract,
-        any(m.name) AS name,
-        any(m.symbol) AS symbol,
-        any(m.decimals) AS decimals,
-        CAST((m.contract, any(m.symbol), any(m.name), any(m.decimals)) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS token_info
-    FROM {db_evm_tokens:Identifier}.metadata_view AS m
-    INNER JOIN unique_contracts AS u ON m.contract = u.contract
-    GROUP BY m.contract
+        contract,
+        CAST(
+            (contract, symbol, name, decimals)
+            AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))
+        ) AS token,
+        symbol,
+        decimals
+    FROM {db_evm_tokens:Identifier}.metadata_view
+    WHERE contract IN (
+        SELECT input_contract FROM filtered_swaps
+        UNION DISTINCT
+        SELECT output_contract FROM filtered_swaps
+    )
 )
 
 SELECT
@@ -98,12 +97,12 @@ SELECT
     s.user AS caller,
     s.user AS sender,
     s.user AS recipient,
+    m1.token AS input_token,
+    m2.token AS output_token,
     toString(s.input_amount) AS input_amount,
     s.input_amount / pow(10, m1.decimals) AS input_value,
-    m1.token_info AS input_token,
     toString(s.output_amount) AS output_amount,
     s.output_amount / pow(10, m2.decimals) AS output_value,
-    m2.token_info AS output_token,
     if(s.input_amount > 0, (s.output_amount / pow(10, m2.decimals)) / (s.input_amount / pow(10, m1.decimals)), 0) AS price,
     if(s.output_amount > 0, (s.input_amount / pow(10, m1.decimals)) / (s.output_amount / pow(10, m2.decimals)), 0) AS price_inv,
     s.protocol AS protocol,
@@ -123,3 +122,4 @@ FROM filtered_swaps AS s
 LEFT JOIN metadata AS m1 ON s.input_contract = m1.contract
 LEFT JOIN metadata AS m2 ON s.output_contract = m2.contract
 ORDER BY s.timestamp DESC, s.tx_hash
+SETTINGS query_plan_optimize_lazy_materialization = false
