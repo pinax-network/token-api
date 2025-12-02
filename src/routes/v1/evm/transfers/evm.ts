@@ -122,7 +122,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, validator('query', querySchema, validatorHook), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.tokenDatabases[params.network];
+    const dbConfig = config.evmTransfersDatabases[params.network];
     if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }

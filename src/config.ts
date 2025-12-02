@@ -37,6 +37,7 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
 
+export const DEFAULT_DBS_EVM_TRANSFERS = 'mainnet:evm-transfers@v0.2.0';
 export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.8;tron:tvm-tokens@v0.1.1';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
 export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0;tron:tvm-dex@v0.1.5';
@@ -103,6 +104,11 @@ const opts = program
         new Option('--token-databases <string>', 'Token Clickhouse databases')
             .env('DBS_TOKEN')
             .default(DEFAULT_DBS_TOKEN)
+    )
+    .addOption(
+        new Option('--evm-transfer-databases <string>', 'EVM Transfers Clickhouse databases')
+            .env('DBS_EVM_TRANSFERS')
+            .default(DEFAULT_DBS_EVM_TRANSFERS)
     )
     .addOption(
         new Option('--nft-databases <string>', 'NFT Clickhouse databases').env('DBS_NFT').default(DEFAULT_DBS_NFT)
@@ -244,6 +250,7 @@ const config = z
         defaultSvmNetwork: z.string().min(1, 'Default SVM network cannot be empty'),
         defaultTvmNetwork: z.string().min(1, 'Default TVM network cannot be empty'),
         tokenDatabases: z.string().min(1, 'Token databases configuration cannot be empty').transform(parseDatabases),
+        evmTransfersDatabases: z.string().min(1, 'EVM Transfers databases configuration cannot be empty').transform(parseDatabases),
         nftDatabases: z.string().min(1, 'NFT databases configuration cannot be empty').transform(parseDatabases),
         uniswapDatabases: z
             .string()
@@ -348,6 +355,7 @@ const config = z
         ...data,
         evmNetworks: Object.keys({
             ...data.tokenDatabases,
+            ...data.evmTransfersDatabases,
             ...data.nftDatabases,
             ...data.uniswapDatabases,
             ...data.contractDatabases,
@@ -356,6 +364,7 @@ const config = z
                 return (
                     {
                         ...data.tokenDatabases,
+                        ...data.evmTransfersDatabases,
                         ...data.nftDatabases,
                         ...data.uniswapDatabases,
                         ...data.contractDatabases,
