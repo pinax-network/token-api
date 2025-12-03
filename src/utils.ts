@@ -164,8 +164,6 @@ export function validatorHook(
                 const interval_seconds = data.interval * 60;
                 const requested_bars = Math.ceil(time_range_seconds / interval_seconds);
 
-                logger.info('requested:', requested_bars);
-                logger.info('max:', max_bars);
                 if (requested_bars > max_bars) {
                     return APIErrorResponse(
                         ctx,
