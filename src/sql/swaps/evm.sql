@@ -2,9 +2,15 @@ WITH
 
 arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
 arrayFilter(x -> x != '', {pool:Array(String)}) AS pools,
+arrayFilter(x -> x != '', {user:Array(String)}) AS users,
+arrayFilter(x -> x != '', {input_contract:Array(String)}) AS input_contracts,
+arrayFilter(x -> x != '', {output_contract:Array(String)}) AS output_contracts,
 
 (length(tx_ids) > 0) AS has_tx_hash,
 (length(pools) > 0) AS has_pool,
+(length(users) > 0) AS has_user,
+(length(input_contracts) > 0) AS has_input_contract,
+(length(output_contracts) > 0) AS has_output_contract,
 
 toRelativeMinuteNum(toDateTime({start_time:UInt64})) AS start_minute,
 toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
@@ -24,6 +30,30 @@ pool_minutes AS (
     SELECT minute
     FROM swaps
     WHERE has_pool AND pool IN {pool:Array(String)}
+    GROUP BY minute
+    LIMIT {limit:UInt64} + {offset:UInt64}
+),
+
+user_minutes AS (
+    SELECT minute
+    FROM swaps
+    WHERE has_user AND user IN {user:Array(String)}
+    GROUP BY minute
+    LIMIT {limit:UInt64} + {offset:UInt64}
+),
+
+input_contract_minutes AS (
+    SELECT minute
+    FROM swaps
+    WHERE has_input_contract AND input_contract IN {input_contract:Array(String)}
+    GROUP BY minute
+    LIMIT {limit:UInt64} + {offset:UInt64}
+),
+
+output_contract_minutes AS (
+    SELECT minute
+    FROM swaps
+    WHERE has_output_contract AND output_contract IN {output_contract:Array(String)}
     GROUP BY minute
     LIMIT {limit:UInt64} + {offset:UInt64}
 ),
@@ -55,9 +85,15 @@ filtered_swaps AS (
 
         /* minute filters */
         AND ( NOT has_pool OR minute IN pool_minutes )
+        AND ( NOT has_user OR minute IN user_minutes )
+        AND ( NOT has_input_contract OR minute IN input_contract_minutes )
+        AND ( NOT has_output_contract OR minute IN output_contract_minutes )
 
         /* direct filters */
         AND ( NOT has_pool OR pool IN {pool:Array(String)} )
+        AND ( NOT has_user OR user IN {user:Array(String)} )
+        AND ( NOT has_input_contract OR input_contract IN {input_contract:Array(String)} )
+        AND ( NOT has_output_contract OR output_contract IN {output_contract:Array(String)} )
 
         /* timestamp and block_num filters */
         AND (no_start_block OR block_num >= {start_block:UInt64})
@@ -94,9 +130,7 @@ SELECT
     s.tx_hash AS transaction_id,
     toString(s.factory) AS factory,
     s.pool AS pool,
-    s.user AS caller,
-    s.user AS sender,
-    s.user AS recipient,
+    s.user AS user,
     m1.token AS input_token,
     m2.token AS output_token,
     toString(s.input_amount) AS input_amount,
@@ -113,7 +147,7 @@ SELECT
         m2.symbol,
         arrayStringConcat(
             arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
-                     splitByChar('_', s.protocol)),
+                     splitByChar('-', s.protocol)),
             ' '
         )
     ) AS summary,

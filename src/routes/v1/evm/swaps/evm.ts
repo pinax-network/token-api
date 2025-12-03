@@ -7,6 +7,8 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { sqlQueries } from '../../../../sql/index.js';
 import {
     EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_CONTRACT_USDC_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
     EVM_TRANSACTION_SWAP_EXAMPLE,
 } from '../../../../types/examples.js';
@@ -16,6 +18,7 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
+    evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
     evmPoolSchema,
@@ -36,10 +39,19 @@ const querySchema = createQuerySchema({
         meta: { example: EVM_TRANSACTION_SWAP_EXAMPLE },
     },
     pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
-    caller: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
-    sender: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
-    recipient: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
-    protocol: { schema: evmProtocolSchema, default: '' },
+    user: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    input_contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
+    },
+    output_contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
+    },
 
     start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
@@ -62,9 +74,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
 
-            caller: evmAddressSchema,
-            sender: evmAddressSchema,
-            recipient: evmAddressSchema,
+            user: evmAddressSchema,
 
             input_amount: z.string(),
             input_value: z.number(),

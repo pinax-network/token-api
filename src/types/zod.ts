@@ -129,8 +129,8 @@ export const tvmNetworkIdSchema = z
 // ----------------------
 
 export const evmProtocolSchema = z
-    .enum(['uniswap_v2', 'uniswap_v3', 'uniswap_v4'])
-    .meta({ description: 'Protocol name', example: 'uniswap_v3' });
+    .enum(['uniswap-v2', 'uniswap-v3', 'uniswap-v4'])
+    .meta({ description: 'Protocol name', example: 'uniswap-v3' });
 
 export const svmProtocolSchema = z
     .enum(['raydium_amm_v4'])
