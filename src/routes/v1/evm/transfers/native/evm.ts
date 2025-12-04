@@ -49,6 +49,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             transaction_id: evmTransactionSchema,
+            transaction_index: z.number(),
 
             // -- transfer --
             from: evmAddressSchema,
@@ -85,20 +86,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "block_num": 22528366,
-                                            "datetime": "2025-05-21 02:43:59",
-                                            "timestamp": 1747795439,
-                                            "transaction_id": "0xe4de1b6972c4a2a76caa68c4fead27fb7037dfd94d106911ee8aec115f7f915b",
+                                            "block_num": 23941301,
+                                            "datetime": "2025-12-04 17:59:59",
+                                            "timestamp": 1764871199,
+                                            "transaction_id": "0x1a153e6344384dbfcf0d3137f438372a1fe03f2369a4c90e644bf0dcb9b20eba",
                                             "transaction_index": 77,
-                                            "log_index": 0,
-                                            "log_ordinal": 12928,
-                                            "from": "0x7b43a644b96e2080903543b57eb75e3607af56aa",
-                                            "to": "0x4c39ed0438d5e8913acf423db6d56cce78b2d367",
-                                            "amount": "1000000000",
-                                            "value": 1000,
-                                            "name": "Tether USD",
-                                            "symbol": "USDT",
-                                            "decimals": 6,
+                                            "from": "0x396343362be2a4da1ce0c1c210945346fb82aa49",
+                                            "to": "0x388c818ca8b9251b393131c08a736a67ccb19297",
+                                            "amount": "67280623582677016",
+                                            "value": 0.06728062358267702,
+                                            "name": "Ethereum",
+                                            "symbol": "ETH",
+                                            "decimals": 18,
                                             "network": "mainnet"
                                         }
                                     ],
