@@ -250,7 +250,10 @@ const config = z
         defaultSvmNetwork: z.string().min(1, 'Default SVM network cannot be empty'),
         defaultTvmNetwork: z.string().min(1, 'Default TVM network cannot be empty'),
         tokenDatabases: z.string().min(1, 'Token databases configuration cannot be empty').transform(parseDatabases),
-        evmTransfersDatabases: z.string().min(1, 'EVM Transfers databases configuration cannot be empty').transform(parseDatabases),
+        evmTransfersDatabases: z
+            .string()
+            .min(1, 'EVM Transfers databases configuration cannot be empty')
+            .transform(parseDatabases),
         nftDatabases: z.string().min(1, 'NFT databases configuration cannot be empty').transform(parseDatabases),
         uniswapDatabases: z
             .string()
