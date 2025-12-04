@@ -89,6 +89,7 @@ async function validateNetworks() {
         if (
             !dbs.find(
                 (db) =>
+                    db.name === config.evmTransfersDatabases[network]?.database ||
                     db.name === config.tokenDatabases[network]?.database ||
                     db.name === config.nftDatabases[network]?.database ||
                     db.name === config.uniswapDatabases[network]?.database

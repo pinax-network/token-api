@@ -1,27 +1,25 @@
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { injectSymbol } from '../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { config } from '../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
+import { injectSymbol } from '../../../../../inject/symbol.js';
+import { sqlQueries } from '../../../../../sql/index.js';
 import {
     EVM_ADDRESS_TO_EXAMPLE,
-    EVM_CONTRACT_USDT_EXAMPLE,
     EVM_TRANSACTION_TRANSFER_EXAMPLE,
-} from '../../../../types/examples.js';
+} from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
     evmTransactionSchema,
     timestampSchema,
-} from '../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../utils.js';
+} from '../../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -32,8 +30,6 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
-    // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, default: '' },
     to_address: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
 
@@ -55,7 +51,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             transaction_id: evmTransactionSchema,
 
             // -- transfer --
-            contract: evmContractSchema,
             from: evmAddressSchema,
             to: evmAddressSchema,
 
@@ -75,8 +70,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers',
-        description: 'Returns ERC-20 and WETH transfers with transaction and block data.',
+        summary: 'Native Transfers',
+        description: 'Returns Native token transfers with transaction and block data.',
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -97,7 +92,6 @@ const openapi = describeRoute(
                                             "transaction_index": 77,
                                             "log_index": 0,
                                             "log_ordinal": 12928,
-                                            "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                                             "from": "0x7b43a644b96e2080903543b57eb75e3607af56aa",
                                             "to": "0x4c39ed0438d5e8913acf423db6d56cce78b2d367",
                                             "amount": "1000000000",
@@ -127,7 +121,7 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.transfers?.[dbConfig.type];
+    const query = sqlQueries.transfers_native?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for transfers could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });

@@ -106,7 +106,7 @@ const opts = program
             .default(DEFAULT_DBS_TOKEN)
     )
     .addOption(
-        new Option('--evm-transfer-databases <string>', 'EVM Transfers Clickhouse databases')
+        new Option('--evm-transfers-databases <string>', 'EVM Transfers Clickhouse databases')
             .env('DBS_EVM_TRANSFERS')
             .default(DEFAULT_DBS_EVM_TRANSFERS)
     )
