@@ -152,12 +152,7 @@ export function validatorHook(
             // Check bars limit (time range / interval)
             if (max_bars !== 0 && data.start_time && data.end_time) {
                 if (data.end_time < data.start_time)
-                    return APIErrorResponse(
-                        ctx,
-                        400,
-                        'bad_query_input',
-                        `Parameter 'end_time' cannot be less than 'start_time'.`
-                    );
+                    return APIErrorResponse(ctx, 400, 'bad_query_input', `Set 'start_time' to precede 'end_time'.`);
 
                 const clamped_end_time = Math.min(data.end_time, now());
                 const time_range_seconds = clamped_end_time - data.start_time;
