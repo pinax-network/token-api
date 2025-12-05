@@ -58,6 +58,126 @@ output_contract_minutes AS (
     LIMIT {limit:UInt64} + {offset:UInt64}
 ),
 
+user_pool_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_pool
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND user IN {user:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_pool
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND pool IN {pool:Array(String)}
+        GROUP BY minute
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
+),
+
+user_input_contract_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_input_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND user IN {user:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_input_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND input_contract IN {input_contract:Array(String)}
+        GROUP BY minute
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
+),
+
+user_output_contract_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND user IN {user:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND output_contract IN {output_contract:Array(String)}
+        GROUP BY minute
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
+),
+
+input_output_contract_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM swaps
+        WHERE has_input_contract AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND input_contract IN {input_contract:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_input_contract AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND output_contract IN {output_contract:Array(String)}
+        GROUP BY minute
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
+),
+
+user_input_output_contract_minutes AS (
+    SELECT * FROM (
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_input_contract AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND user IN {user:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_input_contract AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND input_contract IN {input_contract:Array(String)}
+        GROUP BY minute
+
+        INTERSECT ALL
+
+        SELECT minute
+        FROM swaps
+        WHERE has_user AND has_input_contract AND has_output_contract
+            AND (no_start_time OR minute >= start_minute)
+            AND (no_end_time OR minute <= end_minute)
+            AND output_contract IN {output_contract:Array(String)}
+        GROUP BY minute
+    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
+),
+
 filtered_swaps AS (
     SELECT
         block_num,
@@ -83,11 +203,30 @@ filtered_swaps AS (
         /* transaction ID filter */
         AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
 
-        /* minute filters */
-        AND ( NOT has_pool OR minute IN pool_minutes )
-        AND ( NOT has_user OR minute IN user_minutes )
-        AND ( NOT has_input_contract OR minute IN input_contract_minutes )
-        AND ( NOT has_output_contract OR minute IN output_contract_minutes )
+        /* minute filters - use INTERSECT CTEs when 2+ filters present */
+        AND ( NOT has_pool OR
+            (has_user AND minute IN user_pool_minutes) OR
+            (NOT has_user AND minute IN pool_minutes)
+        )
+        AND ( NOT has_user OR (
+            (has_pool AND minute IN user_pool_minutes) OR
+            (has_input_contract AND has_output_contract AND minute IN user_input_output_contract_minutes) OR
+            (has_input_contract AND NOT has_output_contract AND minute IN user_input_contract_minutes) OR
+            (has_output_contract AND NOT has_input_contract AND minute IN user_output_contract_minutes) OR
+            (NOT has_pool AND NOT has_input_contract AND NOT has_output_contract AND minute IN user_minutes)
+        ) )
+        AND ( NOT has_input_contract OR (
+            (has_user AND has_output_contract AND minute IN user_input_output_contract_minutes) OR
+            (has_user AND NOT has_output_contract AND minute IN user_input_contract_minutes) OR
+            (has_output_contract AND NOT has_user AND minute IN input_output_contract_minutes) OR
+            (NOT has_user AND NOT has_output_contract AND minute IN input_contract_minutes)
+        ) )
+        AND ( NOT has_output_contract OR (
+            (has_user AND has_input_contract AND minute IN user_input_output_contract_minutes) OR
+            (has_user AND NOT has_input_contract AND minute IN user_output_contract_minutes) OR
+            (has_input_contract AND NOT has_user AND minute IN input_output_contract_minutes) OR
+            (NOT has_user AND NOT has_input_contract AND minute IN output_contract_minutes)
+        ) )
 
         /* direct filters */
         AND ( NOT has_pool OR pool IN {pool:Array(String)} )
