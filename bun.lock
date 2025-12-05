@@ -6,6 +6,7 @@
       "dependencies": {
         "@clickhouse/client": "^1.12.0",
         "@clickhouse/client-web": "^1.12.0",
+        "@hono/zod-validator": "^0.7.5",
         "@pinax/graph-networks-registry": "^0.7.1",
         "@web3icons/core": "^4.0.18",
         "commander": "^14.0.0",
@@ -85,6 +86,8 @@
     "@clickhouse/client-web": ["@clickhouse/client-web@1.13.0", "", { "dependencies": { "@clickhouse/client-common": "1.13.0" } }, "sha512-5kAIYzvxxkJ4MBwEQ9ShbT6hBgZ40y92bNphiv7kUhUCesBZxg74tEXP8ii+nIX/zCD2IZYPg82hpIMgKKpIew=="],
 
     "@hono/standard-validator": ["@hono/standard-validator@0.2.0", "", { "peerDependencies": { "@standard-schema/spec": "1.0.0", "hono": ">=3.9.0" } }, "sha512-pFq0UVAnjzXcDAgqFpDeVL3MOUPrlIh/kPqBDvbCYoThVhhS+Vf37VcdsakdOFFGiqoiYVxp3LifXFhGhp/rgQ=="],
+
+    "@hono/zod-validator": ["@hono/zod-validator@0.7.5", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.25.0 || ^4.0.0" } }, "sha512-n4l4hutkfYU07PzRUHBOVzUEn38VSfrh+UVE5d0w4lyfWDOEhzxIupqo5iakRiJL44c3vTuFJBvcmUl8b9agIA=="],
 
     "@inquirer/external-editor": ["@inquirer/external-editor@1.0.3", "", { "dependencies": { "chardet": "^2.1.1", "iconv-lite": "^0.7.0" }, "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-RWbSrDiYmO4LbejWY7ttpxczuwQyZLBUyygsA9Nsv95hpzUWwnNTVQmAq3xuh7vNwCp07UTmE5i11XAEExx4RA=="],
 

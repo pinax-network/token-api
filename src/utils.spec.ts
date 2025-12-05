@@ -402,7 +402,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '4h',
+                        interval: 240,
                         start_time: sevenDaysAgo,
                         end_time: nowTimestamp,
                     },
@@ -424,7 +424,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '1h',
+                        interval: 60,
                         start_time: oneDayAgo,
                         end_time: nowTimestamp,
                     },
@@ -446,7 +446,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '4h',
+                        interval: 240,
                         start_time: fiftyDaysAgo,
                         end_time: nowTimestamp,
                     },
@@ -468,7 +468,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '4h',
+                        interval: 240,
                         start_time: fiftyOneDaysAgo,
                         end_time: nowTimestamp,
                     },
@@ -490,7 +490,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '1d',
+                        interval: 1440,
                         start_time: daysAgo,
                         end_time: nowTimestamp,
                     },
@@ -527,7 +527,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 100,
-                        interval: '1h',
+                        interval: 60,
                         start_time: oneDayAgo,
                         end_time: nowTimestamp,
                     },
@@ -549,7 +549,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 100,
-                        interval: '1h',
+                        interval: 60,
                         start_time: daysAgo,
                         end_time: nowTimestamp,
                     },
@@ -571,7 +571,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 100,
-                        interval: '1h',
+                        interval: 60,
                         start_time: daysAgo,
                         end_time: nowTimestamp,
                     },
@@ -602,7 +602,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 500,
-                        interval: '1h',
+                        interval: 60,
                         start_time: oneDayAgo,
                         end_time: nowTimestamp,
                     },
@@ -624,7 +624,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 500,
-                        interval: '1h',
+                        interval: 60,
                         start_time: fiveYearsAgo,
                         end_time: nowTimestamp,
                     },
@@ -654,7 +654,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 10000,
-                        interval: '1h',
+                        interval: 60,
                         start_time: tenYearsAgo,
                         end_time: nowTimestamp,
                     },
@@ -708,7 +708,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '4h',
+                        interval: 240,
                         start_time: fiftyDaysAgo,
                         end_time: future,
                     },
@@ -751,7 +751,7 @@ describe('validatorHook', () => {
                     success: true as const,
                     data: {
                         limit: 20,
-                        interval: '1h',
+                        interval: 60,
                         start_time: oneYearAgo,
                         end_time: nowTimestamp,
                     },

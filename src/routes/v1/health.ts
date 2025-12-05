@@ -1,5 +1,6 @@
+import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-import { describeRoute, resolver, validator } from 'hono-openapi';
+import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../../clickhouse/client.js';
 import { config } from '../../config.js';
@@ -103,7 +104,7 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-route.get('/health', openapi, validator('query', querySchema, validatorHook), async (c) => {
+route.get('/health', openapi, zValidator('query', querySchema, validatorHook), async (c) => {
     const params = c.req.valid('query');
     const startTime = Date.now();
     const skipEndpoints = params.skip_endpoints;

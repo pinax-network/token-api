@@ -73,7 +73,7 @@ export function validatorHook(
                   limit?: number;
                   start_time?: number;
                   end_time?: number;
-                  interval?: string | number;
+                  interval?: number;
               } & {
                   [key: string]: unknown | unknown[];
               };
@@ -128,9 +128,6 @@ export function validatorHook(
         // OHLCV bars and interval restrictions
         const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
         if (is_ohlcv_endpoint && data.interval) {
-            // Validator doesn't actually apply the transform
-            data.interval = intervalSchema.parse(data.interval);
-
             // Check interval restrictions
             if (allowed_intervals.length > 0) {
                 // Parse allowed intervals using intervalSchema
@@ -155,24 +152,19 @@ export function validatorHook(
             // Check bars limit (time range / interval)
             if (max_bars !== 0 && data.start_time && data.end_time) {
                 if (data.end_time < data.start_time)
-                    return APIErrorResponse(
-                        ctx,
-                        400,
-                        'bad_query_input',
-                        `Parameter 'end_time' cannot be less than 'start_time'.`
-                    );
+                    return APIErrorResponse(ctx, 400, 'bad_query_input', `Set 'start_time' to precede 'end_time'.`);
 
-                const clampedEndTime = Math.min(data.end_time, now());
-                const timeRangeSeconds = clampedEndTime - data.start_time;
-                const intervalSeconds = data.interval * 60;
-                const requestedBars = Math.ceil(timeRangeSeconds / intervalSeconds);
+                const clamped_end_time = Math.min(data.end_time, now());
+                const time_range_seconds = clamped_end_time - data.start_time;
+                const interval_seconds = data.interval * 60;
+                const requested_bars = Math.ceil(time_range_seconds / interval_seconds);
 
-                if (requestedBars > max_bars) {
+                if (requested_bars > max_bars) {
                     return APIErrorResponse(
                         ctx,
                         403,
                         'forbidden',
-                        `Requested time range would return ${requestedBars} bars, exceeding maximum of ${max_bars} bars.`
+                        `Requested time range would return ${requested_bars} bars, exceeding maximum of ${max_bars} bars.`
                     );
                 }
             }
