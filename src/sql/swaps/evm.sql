@@ -4,6 +4,7 @@ active_filters AS
 (
     SELECT
         toUInt8({transaction_id:Array(String)} != ['']) +
+        toUInt8({factory:Array(String)}        != ['']) +
         toUInt8({pool:Array(String)}           != ['']) +
         toUInt8({user:Array(String)}           != ['']) +
         toUInt8({input_contract:Array(String)} != ['']) +
@@ -16,6 +17,14 @@ minutes_union AS
     SELECT minute
     FROM swaps
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
+    GROUP BY minute
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps
+    WHERE ({factory:Array(String)} != [''] AND factory IN {factory:Array(String)})
     GROUP BY minute
     ORDER BY minute DESC
 
@@ -105,6 +114,7 @@ filtered_swaps AS
         )
     WHERE
         ({transaction_id:Array(String)} = ['']    OR tx_hash IN {transaction_id:Array(String)})
+        AND ({factory:Array(String)} = ['']       OR factory IN {factory:Array(String)})
         AND ({pool:Array(String)} = ['']          OR pool IN {pool:Array(String)})
         AND ({user:Array(String)} = ['']          OR user IN {user:Array(String)})
         AND ({input_contract:Array(String)} = [''] OR input_contract IN {input_contract:Array(String)})

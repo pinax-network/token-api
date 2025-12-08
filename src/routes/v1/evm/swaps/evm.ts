@@ -9,6 +9,7 @@ import {
     EVM_ADDRESS_SWAP_EXAMPLE,
     EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V2_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
     EVM_TRANSACTION_SWAP_EXAMPLE,
 } from '../../../../types/examples.js';
@@ -37,6 +38,12 @@ const querySchema = createQuerySchema({
         batched: true,
         default: '',
         meta: { example: EVM_TRANSACTION_SWAP_EXAMPLE },
+    },
+    factory: {
+        schema: evmFactorySchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_FACTORY_UNISWAP_V2_EXAMPLE },
     },
     pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     user: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
