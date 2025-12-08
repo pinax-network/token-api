@@ -1,188 +1,82 @@
 WITH
-
-arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
-arrayFilter(x -> x != '', {pool:Array(String)}) AS pools,
-arrayFilter(x -> x != '', {user:Array(String)}) AS users,
-arrayFilter(x -> x != '', {input_contract:Array(String)}) AS input_contracts,
-arrayFilter(x -> x != '', {output_contract:Array(String)}) AS output_contracts,
-
-(length(tx_ids) > 0) AS has_tx_hash,
-(length(pools) > 0) AS has_pool,
-(length(users) > 0) AS has_user,
-(length(input_contracts) > 0) AS has_input_contract,
-(length(output_contracts) > 0) AS has_output_contract,
-
-toRelativeMinuteNum(toDateTime({start_time:UInt64})) AS start_minute,
-toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
-{start_time:UInt64} = 1420070400 AS no_start_time,
-{end_time:UInt64} = 2524608000 AS no_end_time,
-{start_block:UInt64} = 0 AS no_start_block,
-{end_block:UInt64} = 9999999999 AS no_end_block,
-
-tx_hash_timestamps AS (
-    SELECT (minute, timestamp)
-    FROM swaps
-    WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
-    GROUP BY minute, timestamp
+/* 1) Count how many filters are active */
+active_filters AS
+(
+    SELECT
+        toUInt8({transaction_id:Array(String)} != ['']) +
+        toUInt8({pool:Array(String)}           != ['']) +
+        toUInt8({user:Array(String)}           != ['']) +
+        toUInt8({input_contract:Array(String)} != ['']) +
+        toUInt8({output_contract:Array(String)} != [''])
+    AS n
 ),
-
-pool_minutes AS (
+/* 2) Union minutes from only active filters */
+minutes_union AS
+(
     SELECT minute
     FROM swaps
-    WHERE has_pool AND pool IN {pool:Array(String)}
+    WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
-    LIMIT {limit:UInt64} + {offset:UInt64}
-),
+    ORDER BY minute DESC
 
-user_minutes AS (
+    UNION ALL
+
     SELECT minute
     FROM swaps
-    WHERE has_user AND user IN {user:Array(String)}
+    WHERE ({pool:Array(String)} != [''] AND pool IN {pool:Array(String)})
     GROUP BY minute
-    LIMIT {limit:UInt64} + {offset:UInt64}
-),
+    ORDER BY minute DESC
 
-input_contract_minutes AS (
+    UNION ALL
+
     SELECT minute
     FROM swaps
-    WHERE has_input_contract AND input_contract IN {input_contract:Array(String)}
+    WHERE ({user:Array(String)} != [''] AND user IN {user:Array(String)})
     GROUP BY minute
-    LIMIT {limit:UInt64} + {offset:UInt64}
-),
+    ORDER BY minute DESC
 
-output_contract_minutes AS (
+    UNION ALL
+
     SELECT minute
     FROM swaps
-    WHERE has_output_contract AND output_contract IN {output_contract:Array(String)}
+    WHERE ({input_contract:Array(String)} != [''] AND input_contract IN {input_contract:Array(String)})
     GROUP BY minute
-    LIMIT {limit:UInt64} + {offset:UInt64}
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps
+    WHERE ({output_contract:Array(String)} != [''] AND output_contract IN {output_contract:Array(String)})
+    GROUP BY minute
+    ORDER BY minute DESC
+),
+/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
+filtered_minutes AS
+(
+    SELECT minute FROM minutes_union
+    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
+),
+/* Latest ingested timestamp in source table */
+latest_minute AS
+(
+    SELECT max(minute) AS minute FROM swaps
 ),
 
-user_pool_minutes AS (
-    SELECT * FROM (
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_pool
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND user IN {user:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_pool
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND pool IN {pool:Array(String)}
-        GROUP BY minute
-    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
-),
-
-user_input_contract_minutes AS (
-    SELECT * FROM (
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_input_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND user IN {user:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_input_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND input_contract IN {input_contract:Array(String)}
-        GROUP BY minute
-    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
-),
-
-user_output_contract_minutes AS (
-    SELECT * FROM (
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND user IN {user:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND output_contract IN {output_contract:Array(String)}
-        GROUP BY minute
-    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
-),
-
-input_output_contract_minutes AS (
-    SELECT * FROM (
-        SELECT minute
-        FROM swaps
-        WHERE has_input_contract AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND input_contract IN {input_contract:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_input_contract AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND output_contract IN {output_contract:Array(String)}
-        GROUP BY minute
-    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
-),
-
-user_input_output_contract_minutes AS (
-    SELECT * FROM (
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_input_contract AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND user IN {user:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_input_contract AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND input_contract IN {input_contract:Array(String)}
-        GROUP BY minute
-
-        INTERSECT ALL
-
-        SELECT minute
-        FROM swaps
-        WHERE has_user AND has_input_contract AND has_output_contract
-            AND (no_start_time OR minute >= start_minute)
-            AND (no_end_time OR minute <= end_minute)
-            AND output_contract IN {output_contract:Array(String)}
-        GROUP BY minute
-    ) LIMIT ({limit:UInt64} + {offset:UInt64}) * 10
-),
-
-filtered_swaps AS (
+filtered_swaps AS
+(
     SELECT
         block_num,
         timestamp,
-        minute,
         tx_hash,
         tx_index,
         log_index,
@@ -195,52 +89,27 @@ filtered_swaps AS (
         input_amount,
         output_amount
     FROM swaps
-    WHERE
-        /* direct minutes */
-            (no_start_time OR minute >= start_minute)
-        AND (no_end_time OR minute <= end_minute)
-
-        /* transaction ID filter */
-        AND ( NOT has_tx_hash OR (minute, timestamp) IN tx_hash_timestamps AND tx_hash IN {transaction_id:Array(String)} )
-
-        /* minute filters - use INTERSECT CTEs when 2+ filters present */
-        AND ( NOT has_pool OR
-            (has_user AND minute IN user_pool_minutes) OR
-            (NOT has_user AND minute IN pool_minutes)
+    PREWHERE
+        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        AND (
+            (
+                /* if no filters are active search only the last minute */
+                (SELECT n FROM active_filters) = 0
+                AND minute BETWEEN
+                    greatest( toRelativeMinuteNum(toDateTime({start_time:UInt64})), least(toRelativeMinuteNum(toDateTime({end_time:UInt64})), (SELECT minute FROM latest_minute)) - (1 + 1 * {offset:UInt64}))
+                    AND least(toRelativeMinuteNum(toDateTime({end_time:UInt64})), (SELECT minute FROM latest_minute))
+            )
+            /* if filters are active, search through the intersecting minute ranges */
+            OR minute IN (SELECT minute FROM filtered_minutes)
         )
-        AND ( NOT has_user OR (
-            (has_pool AND minute IN user_pool_minutes) OR
-            (has_input_contract AND has_output_contract AND minute IN user_input_output_contract_minutes) OR
-            (has_input_contract AND NOT has_output_contract AND minute IN user_input_contract_minutes) OR
-            (has_output_contract AND NOT has_input_contract AND minute IN user_output_contract_minutes) OR
-            (NOT has_pool AND NOT has_input_contract AND NOT has_output_contract AND minute IN user_minutes)
-        ) )
-        AND ( NOT has_input_contract OR (
-            (has_user AND has_output_contract AND minute IN user_input_output_contract_minutes) OR
-            (has_user AND NOT has_output_contract AND minute IN user_input_contract_minutes) OR
-            (has_output_contract AND NOT has_user AND minute IN input_output_contract_minutes) OR
-            (NOT has_user AND NOT has_output_contract AND minute IN input_contract_minutes)
-        ) )
-        AND ( NOT has_output_contract OR (
-            (has_user AND has_input_contract AND minute IN user_input_output_contract_minutes) OR
-            (has_user AND NOT has_input_contract AND minute IN user_output_contract_minutes) OR
-            (has_input_contract AND NOT has_user AND minute IN input_output_contract_minutes) OR
-            (NOT has_user AND NOT has_input_contract AND minute IN output_contract_minutes)
-        ) )
-
-        /* direct filters */
-        AND ( NOT has_pool OR pool IN {pool:Array(String)} )
-        AND ( NOT has_user OR user IN {user:Array(String)} )
-        AND ( NOT has_input_contract OR input_contract IN {input_contract:Array(String)} )
-        AND ( NOT has_output_contract OR output_contract IN {output_contract:Array(String)} )
-
-        /* timestamp and block_num filters */
-        AND (no_start_block OR block_num >= {start_block:UInt64})
-        AND (no_end_block OR block_num <= {end_block:UInt64})
-        AND (no_start_time OR timestamp >= toDateTime({start_time:UInt64}))
-        AND (no_end_time OR timestamp <= toDateTime({end_time:UInt64}))
-
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
+    WHERE
+        ({transaction_id:Array(String)} = ['']    OR tx_hash IN {transaction_id:Array(String)})
+        AND ({pool:Array(String)} = ['']          OR pool IN {pool:Array(String)})
+        AND ({user:Array(String)} = ['']          OR user IN {user:Array(String)})
+        AND ({input_contract:Array(String)} = [''] OR input_contract IN {input_contract:Array(String)})
+        AND ({output_contract:Array(String)} = [''] OR output_contract IN {output_contract:Array(String)})
+    ORDER BY timestamp DESC, tx_hash, log_index
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
