@@ -124,6 +124,12 @@ filtered_swaps AS
     OFFSET  {offset:UInt64}
 ),
 
+unique_contracts AS (
+    SELECT input_contract AS contract FROM filtered_swaps
+    UNION DISTINCT
+    SELECT output_contract AS contract FROM filtered_swaps
+),
+
 metadata AS (
     SELECT
         contract,
@@ -134,11 +140,7 @@ metadata AS (
         symbol,
         decimals
     FROM {db_evm_tokens:Identifier}.metadata_view
-    WHERE contract IN (
-        SELECT input_contract FROM filtered_swaps
-        UNION DISTINCT
-        SELECT output_contract FROM filtered_swaps
-    )
+    WHERE contract IN (SELECT contract FROM unique_contracts)
     AND contract NOT IN ('0x0000000000000000000000000000000000000000', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
 
     UNION ALL
@@ -171,11 +173,7 @@ metadata AS (
             SELECT '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AS contract
         )
     )
-    WHERE contract IN (
-        SELECT input_contract FROM filtered_swaps
-        UNION DISTINCT
-        SELECT output_contract FROM filtered_swaps
-    )
+    WHERE contract IN (SELECT contract FROM unique_contracts)
 )
 
 SELECT
