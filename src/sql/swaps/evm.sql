@@ -139,7 +139,7 @@ metadata AS (
         UNION DISTINCT
         SELECT output_contract FROM filtered_swaps
     )
-    AND contract != '0x0000000000000000000000000000000000000000'
+    AND contract NOT IN ('0x0000000000000000000000000000000000000000', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
 
     UNION ALL
 
@@ -153,7 +153,7 @@ metadata AS (
         18 AS decimals
     FROM (
         SELECT
-            '0x0000000000000000000000000000000000000000' AS contract,
+            contract,
             multiIf(
                 {network:String} = 'mainnet', 'ETH',
                 {network:String} = 'arbitrum-one', 'ETH',
@@ -165,6 +165,11 @@ metadata AS (
                 {network:String} = 'unichain', 'ETH',
                 'ETH'
             ) AS native_symbol
+        FROM (
+            SELECT '0x0000000000000000000000000000000000000000' AS contract
+            UNION ALL
+            SELECT '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AS contract
+        )
     )
     WHERE contract IN (
         SELECT input_contract FROM filtered_swaps
@@ -206,4 +211,3 @@ FROM filtered_swaps AS s
 LEFT JOIN metadata AS m1 ON s.input_contract = m1.contract
 LEFT JOIN metadata AS m2 ON s.output_contract = m2.contract
 ORDER BY s.timestamp DESC, s.tx_hash
-SETTINGS query_plan_optimize_lazy_materialization = false
