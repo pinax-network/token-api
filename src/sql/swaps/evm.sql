@@ -129,6 +129,38 @@ metadata AS (
         UNION DISTINCT
         SELECT output_contract FROM filtered_swaps
     )
+    AND contract != '0x0000000000000000000000000000000000000000'
+
+    UNION ALL
+
+    SELECT
+        contract,
+        CAST(
+            (contract, native_symbol, 'Native', 18)
+            AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))
+        ) AS token,
+        native_symbol AS symbol,
+        18 AS decimals
+    FROM (
+        SELECT
+            '0x0000000000000000000000000000000000000000' AS contract,
+            multiIf(
+                {network:String} = 'mainnet', 'ETH',
+                {network:String} = 'arbitrum-one', 'ETH',
+                {network:String} = 'avalanche', 'AVAX',
+                {network:String} = 'base', 'ETH',
+                {network:String} = 'bsc', 'BNB',
+                {network:String} = 'polygon', 'POL',
+                {network:String} = 'optimism', 'ETH',
+                {network:String} = 'unichain', 'ETH',
+                'ETH'
+            ) AS native_symbol
+    )
+    WHERE contract IN (
+        SELECT input_contract FROM filtered_swaps
+        UNION DISTINCT
+        SELECT output_contract FROM filtered_swaps
+    )
 )
 
 SELECT
