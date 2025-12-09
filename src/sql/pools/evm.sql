@@ -15,7 +15,7 @@ WITH filtered_pools AS (
         AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
         AND ({input_token:Array(String)} = [''] OR token0 IN {input_token:Array(String)})
         AND ({output_token:Array(String)} = [''] OR token1 IN {output_token:Array(String)})
-        AND ({protocol:String} = '' OR protocol = {protocol:String})
+        AND ({protocol:String} = '' OR protocol = replaceAll({protocol:String}, '_', '-'))
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
@@ -91,7 +91,7 @@ SELECT
     m1.token AS input_token,
     m2.token AS output_token,
     p.fee AS fee,
-    p.protocol AS protocol,
+    replaceAll(p.protocol, '-', '_') AS protocol,
     {network:String} AS network
 FROM filtered_pools AS p
 LEFT JOIN metadata AS m1 ON p.token0 = m1.contract

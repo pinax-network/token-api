@@ -192,7 +192,7 @@ SELECT
     s.output_amount / pow(10, m2.decimals) AS output_value,
     if(s.input_amount > 0, (s.output_amount / pow(10, m2.decimals)) / (s.input_amount / pow(10, m1.decimals)), 0) AS price,
     if(s.output_amount > 0, (s.input_amount / pow(10, m1.decimals)) / (s.output_amount / pow(10, m2.decimals)), 0) AS price_inv,
-    s.protocol AS protocol,
+    replaceAll(s.protocol, '-', '_') AS protocol,
     format('Swap {} {} for {} {} on {}',
         if(s.input_amount / pow(10, m1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, m1.decimals)), toString(s.input_amount / pow(10, m1.decimals))),
         m1.symbol,
@@ -200,7 +200,7 @@ SELECT
         m2.symbol,
         arrayStringConcat(
             arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
-                     splitByChar('-', s.protocol)),
+                     splitByChar('_', replaceAll(s.protocol, '-', '_'))),
             ' '
         )
     ) AS summary,
