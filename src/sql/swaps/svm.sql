@@ -73,8 +73,8 @@ filtered_minutes AS
     LIMIT 1 BY minute
     LIMIT if(
         (SELECT n FROM active_filters) <= 1,
-        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
-        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10
     )
 ),
 /* Latest ingested timestamp in source table */
@@ -105,17 +105,14 @@ filtered_swaps AS
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND (
             (
-                /* if no filters are active, search through the last 10 minutes only */
                 (SELECT n FROM active_filters) = 0
                 AND timestamp BETWEEN
                     greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - (INTERVAL 10 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
                     AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
             )
-            /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         )
     WHERE
-        /* filter the trimmed down minute ranges by the active filters */
         ({signature:Array(String)}     = [''] OR signature      IN {signature:Array(String)})
         AND ({amm:Array(String)}           = [''] OR amm            IN {amm:Array(String)})
         AND ({amm_pool:Array(String)}      = [''] OR amm_pool       IN {amm_pool:Array(String)})
@@ -126,23 +123,81 @@ filtered_swaps AS
     ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+/* Pre-fetch only the mints we need */
+unique_mints AS (
+    SELECT DISTINCT input_mint AS mint FROM filtered_swaps
+    UNION DISTINCT
+    SELECT DISTINCT output_mint AS mint FROM filtered_swaps
+),
+/* Batch lookup decimals */
+decimals_lookup AS (
+    SELECT mint, decimals
+    FROM {db_svm_metadata:Identifier}.decimals_state
+    WHERE mint IN (SELECT mint FROM unique_mints)
+),
+/* Batch lookup symbols (mint -> metadata -> symbol) */
+symbols_lookup AS (
+    SELECT m.mint, s.symbol
+    FROM {db_svm_metadata:Identifier}.metadata_mint_state AS m
+    INNER JOIN {db_svm_metadata:Identifier}.metadata_symbol_state AS s ON m.metadata = s.metadata
+    WHERE m.mint IN (SELECT mint FROM unique_mints)
+),
+/* Build token tuples */
+tokens_lookup AS (
+    SELECT
+        d.mint,
+        CAST(
+            (
+                d.mint,
+                coalesce(s.symbol, ''),
+                coalesce(d.decimals, 0)
+            ) AS Tuple(mint String, symbol String, decimals UInt8)
+        ) AS token
+    FROM decimals_lookup d
+    LEFT JOIN symbols_lookup s ON d.mint = s.mint
 )
 SELECT
-    block_num,
+    s.block_num,
     s.timestamp AS datetime,
     toUnixTimestamp(s.timestamp) AS timestamp,
-    toString(signature) AS signature,
-    transaction_index,
-    instruction_index,
-    toString(program_id) AS program_id,
-    program_name,
-    toString(amm) AS amm,
-    toString(amm_pool) AS amm_pool,
-    toString(user) AS user,
-    toString(input_mint) AS input_mint,
-    input_amount,
-    toString(output_mint) AS output_mint,
-    output_amount,
+    toString(s.signature) AS signature,
+    s.transaction_index,
+    s.instruction_index,
+    toString(s.program_id) AS program_id,
+    s.program_name,
+    toString(s.amm) AS amm,
+    toString(s.amm_pool) AS amm_pool,
+    toString(s.user) AS user,
+    coalesce(it.token, CAST((toString(s.input_mint), '', 0) AS Tuple(mint String, symbol String, decimals UInt8))) AS input_mint,
+    toString(s.input_amount) AS input_amount,
+    s.input_amount / pow(10, coalesce(it.token.decimals, 0)) AS input_value,
+    coalesce(ot.token, CAST((toString(s.output_mint), '', 0) AS Tuple(mint String, symbol String, decimals UInt8))) AS output_mint,
+    toString(s.output_amount) AS output_amount,
+    s.output_amount / pow(10, coalesce(ot.token.decimals, 0)) AS output_value,
+    if(s.input_amount > 0,
+        (s.output_amount / pow(10, coalesce(ot.token.decimals, 0))) / (s.input_amount / pow(10, coalesce(it.token.decimals, 0))),
+        0
+    ) AS price,
+    if(s.output_amount > 0,
+        (s.input_amount / pow(10, coalesce(it.token.decimals, 0))) / (s.output_amount / pow(10, coalesce(ot.token.decimals, 0))),
+        0
+    ) AS price_inv,
+    format('Swap {} {} for {} {} on {}',
+        if(s.input_amount / pow(10, coalesce(it.token.decimals, 0)) > 1000,
+            formatReadableQuantity(s.input_amount / pow(10, coalesce(it.token.decimals, 0))),
+            toString(round(s.input_amount / pow(10, coalesce(it.token.decimals, 0)), coalesce(it.token.decimals, 0)))
+        ),
+        coalesce(it.token.symbol, 'Unknown'),
+        if(s.output_amount / pow(10, coalesce(ot.token.decimals, 0)) > 1000,
+            formatReadableQuantity(s.output_amount / pow(10, coalesce(ot.token.decimals, 0))),
+            toString(round(s.output_amount / pow(10, coalesce(ot.token.decimals, 0)), coalesce(ot.token.decimals, 0)))
+        ),
+        coalesce(ot.token.symbol, 'Unknown'),
+        s.program_name
+    ) AS summary,
     {network:String} AS network
 FROM filtered_swaps AS s
-ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
+LEFT JOIN tokens_lookup AS it ON s.input_mint = it.mint
+LEFT JOIN tokens_lookup AS ot ON s.output_mint = ot.mint
+ORDER BY s.timestamp DESC, s.transaction_index DESC, s.instruction_index DESC
