@@ -123,13 +123,20 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    const db_evm_tokens = config.tokenDatabases[params.network];
+
+    if (!dbConfig || !db_evm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.pools?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        { ...params, db_evm_tokens: db_evm_tokens.database },
+        { database: dbConfig.database }
+    );
     return handleUsageQueryError(c, response);
 });
 

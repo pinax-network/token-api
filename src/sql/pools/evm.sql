@@ -11,77 +11,89 @@ WITH filtered_pools AS (
         protocol
     FROM pools
     WHERE
-        if ({pool:Array(String)} == [''], true, pool IN {pool:Array(String)}) AND
-        if ({factory:Array(String)} == [''], true, factory IN {factory:Array(String)}) AND
-        if ({input_token:Array(String)} == [''], true, token0 IN {input_token:Array(String)}) AND
-        if ({output_token:Array(String)} == [''], true, token1 IN {output_token:Array(String)}) AND
-        if ({protocol:String} == '', true, protocol = {protocol:String})
+        ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
+        AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
+        AND ({input_token:Array(String)} = [''] OR token0 IN {input_token:Array(String)})
+        AND ({output_token:Array(String)} = [''] OR token1 IN {output_token:Array(String)})
+        AND ({protocol:String} = '' OR protocol = {protocol:String})
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
+
 unique_tokens AS (
-    SELECT DISTINCT token0 AS address FROM filtered_pools
+    SELECT token0 AS contract FROM filtered_pools
     UNION DISTINCT
-    SELECT DISTINCT token1 AS address FROM filtered_pools
+    SELECT token1 AS contract FROM filtered_pools
 ),
-filtered_tokens AS (
+
+metadata AS (
     SELECT
-        t.address,
-        if(isNull(t.symbol), '', t.symbol) AS symbol,
-        coalesce(t.decimals, 0) AS decimals
-    FROM erc20_metadata_initialize t
-    WHERE t.address IN (SELECT address FROM unique_tokens)
+        contract,
+        CAST(
+            (contract, symbol, decimals)
+            AS Tuple(address String, symbol String, decimals UInt8)
+        ) AS token,
+        symbol,
+        decimals
+    FROM {db_evm_tokens:Identifier}.metadata_view
+    WHERE contract IN (SELECT contract FROM unique_tokens)
+    AND contract NOT IN ('0x0000000000000000000000000000000000000000', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
+
+    UNION ALL
+
+    SELECT
+        contract,
+        CAST(
+            (contract, native_symbol, 18)
+            AS Tuple(address String, symbol String, decimals UInt8)
+        ) AS token,
+        native_symbol AS symbol,
+        18 AS decimals
+    FROM (
+        SELECT
+            '0x0000000000000000000000000000000000000000' AS contract,
+            multiIf(
+                {network:String} = 'mainnet', 'ETH',
+                {network:String} = 'arbitrum-one', 'ETH',
+                {network:String} = 'avalanche', 'AVAX',
+                {network:String} = 'base', 'ETH',
+                {network:String} = 'bsc', 'BNB',
+                {network:String} = 'polygon', 'POL',
+                {network:String} = 'optimism', 'ETH',
+                {network:String} = 'unichain', 'ETH',
+                'ETH'
+            ) AS native_symbol
+        WHERE '0x0000000000000000000000000000000000000000' IN (SELECT contract FROM unique_tokens)
+
+        UNION ALL
+
+        SELECT
+            '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AS contract,
+            multiIf(
+                {network:String} = 'mainnet', 'ETH',
+                {network:String} = 'arbitrum-one', 'ETH',
+                {network:String} = 'avalanche', 'AVAX',
+                {network:String} = 'base', 'ETH',
+                {network:String} = 'bsc', 'BNB',
+                {network:String} = 'polygon', 'POL',
+                {network:String} = 'optimism', 'ETH',
+                {network:String} = 'unichain', 'ETH',
+                'ETH'
+            ) AS native_symbol
+        WHERE '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' IN (SELECT contract FROM unique_tokens)
+    )
 )
+
 SELECT
-    pools.factory AS factory,
-    pools.pool AS pool,
-    CAST(
-        (
-            toString(pools.token0),
-            trim(coalesce(
-                multiIf(
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'mainnet', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'arbitrum-one', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'polygon', 'POL',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
-                    (pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
-                    t0.symbol
-                ), '')),
-            coalesce(
-                if((pools.token0 = '0x0000000000000000000000000000000000000000' OR pools.token0 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'), 18, t0.decimals), 0
-            )
-        )
-        AS Tuple(address String, symbol String, decimals UInt8)
-    ) AS input_token,
-    CAST(
-        (
-            toString(pools.token1),
-            trim(coalesce(
-                multiIf(
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'mainnet', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'arbitrum-one', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'avalanche', 'AVAX',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'base', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'bsc', 'BNB',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'polygon', 'POL',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'optimism', 'ETH',
-                    (pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') AND {network:String} = 'unichain', 'ETH',
-                    t1.symbol
-                ), '')),
-            coalesce(
-                if((pools.token1 = '0x0000000000000000000000000000000000000000' OR pools.token1 = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'), 18, t1.decimals), 0
-            )
-        )
-        AS Tuple(address String, symbol String, decimals UInt8)
-    ) AS output_token,
-    pools.fee AS fee,
-    pools.protocol AS protocol,
-    {network:String} as network
-FROM filtered_pools AS pools
-LEFT JOIN filtered_tokens t0 ON pools.token0 = t0.address
-LEFT JOIN filtered_tokens t1 ON pools.token1 = t1.address
-ORDER BY datetime DESC, protocol
+    p.factory AS factory,
+    p.pool AS pool,
+    m1.token AS input_token,
+    m2.token AS output_token,
+    p.fee AS fee,
+    p.protocol AS protocol,
+    {network:String} AS network
+FROM filtered_pools AS p
+LEFT JOIN metadata AS m1 ON p.token0 = m1.contract
+LEFT JOIN metadata AS m2 ON p.token1 = m2.contract
+ORDER BY p.datetime DESC, p.protocol
