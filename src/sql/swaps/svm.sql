@@ -90,7 +90,7 @@ filtered_swaps AS
         transaction_index,
         instruction_index,
         signature,
-        program_id,
+        toString(program_id) as program_id,
         program_names(program_id) AS program_name,
         amm,
         amm_pool,

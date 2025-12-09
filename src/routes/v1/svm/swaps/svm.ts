@@ -109,7 +109,7 @@ const openapi = describeRoute(
                                             transaction_index: 8,
                                             instruction_index: 1,
                                             program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-                                            program_name: 'Unknown',
+                                            program_name: 'Jupiter Aggregator v6',
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_pool: '',
                                             user: '5MGfsuYNRhbuN6x1M6WaR3721dSDGtXpcsHxNsgkjsXC',
@@ -129,7 +129,8 @@ const openapi = describeRoute(
                                             output_value: 0.936671,
                                             price: 0.000018895027057111676,
                                             price_inv: 52923.97819687809,
-                                            summary: 'Swap 49.57 thousand Aeth for 0.936671 USDC on Unknown',
+                                            summary:
+                                                'Swap 49.57 thousand Aeth for 0.936671 USDC on Jupiter Aggregator v6',
                                             network: 'solana',
                                         },
                                     ],
