@@ -34,7 +34,7 @@ app.get(
     openAPIRouteHandler(app, {
         documentation: {
             info: {
-                title: 'Token API (Beta)',
+                title: 'Token API',
                 version: APP_VERSION,
                 description: 'Power your apps & AI agents with real-time token data.',
             },
