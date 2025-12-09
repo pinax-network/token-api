@@ -13,6 +13,7 @@ import {
     svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
+    svmMintResponseSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
@@ -65,10 +66,16 @@ const responseSchema = apiUsageResponseSchema.extend({
             amm_pool: svmAmmPoolSchema,
             user: svmAddressSchema,
 
-            input_mint: svmMintSchema,
-            input_amount: z.number(),
-            output_mint: svmMintSchema,
-            output_amount: z.number(),
+            input_mint: svmMintResponseSchema,
+            input_amount: z.string(),
+            input_value: z.number(),
+            output_mint: svmMintResponseSchema,
+            output_amount: z.string(),
+            output_value: z.number(),
+
+            price: z.number(),
+            price_inv: z.number(),
+            summary: z.string(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -102,14 +109,27 @@ const openapi = describeRoute(
                                             transaction_index: 8,
                                             instruction_index: 1,
                                             program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-                                            program_name: 'Jupiter Aggregator v6',
+                                            program_name: 'Unknown',
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_pool: '',
                                             user: '5MGfsuYNRhbuN6x1M6WaR3721dSDGtXpcsHxNsgkjsXC',
-                                            input_mint: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw',
-                                            input_amount: 49572355581648,
-                                            output_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                            output_amount: 936671,
+                                            input_mint: {
+                                                mint: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw',
+                                                symbol: 'Aeth',
+                                                decimals: 9,
+                                            },
+                                            input_amount: '49572355581648',
+                                            input_value: 49572.355581648,
+                                            output_mint: {
+                                                mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                                symbol: 'USDC',
+                                                decimals: 6,
+                                            },
+                                            output_amount: '936671',
+                                            output_value: 0.936671,
+                                            price: 0.000018895027057111676,
+                                            price_inv: 52923.97819687809,
+                                            summary: 'Swap 49.57 thousand Aeth for 0.936671 USDC on Unknown',
                                             network: 'solana',
                                         },
                                     ],
@@ -129,13 +149,19 @@ route.get('/', openapi, validator('query', querySchema, validatorHook), async (c
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    const db_svm_metadata = config.tokenDatabases[params.network];
+    if (!dbConfig || !db_svm_metadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.swaps?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        { ...params, db_svm_metadata: db_svm_metadata.database },
+        { database: dbConfig.database }
+    );
     return handleUsageQueryError(c, response);
 });
 
