@@ -8,7 +8,8 @@ active_filters AS
         toUInt8({pool:Array(String)}           != ['']) +
         toUInt8({user:Array(String)}           != ['']) +
         toUInt8({input_contract:Array(String)} != ['']) +
-        toUInt8({output_contract:Array(String)} != [''])
+        toUInt8({output_contract:Array(String)} != ['']) +
+        toUInt8({protocol:String}              != '')
     AS n
 ),
 /* 2) Union minutes from only active filters */
@@ -57,6 +58,14 @@ minutes_union AS
     SELECT minute
     FROM swaps
     WHERE ({output_contract:Array(String)} != [''] AND output_contract IN {output_contract:Array(String)})
+    GROUP BY minute
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps
+    WHERE ({protocol:String} != '' AND protocol = replaceAll({protocol:String}, '_', '-'))
     GROUP BY minute
     ORDER BY minute DESC
 ),
@@ -119,6 +128,7 @@ filtered_swaps AS
         AND ({user:Array(String)} = ['']          OR user IN {user:Array(String)})
         AND ({input_contract:Array(String)} = [''] OR input_contract IN {input_contract:Array(String)})
         AND ({output_contract:Array(String)} = [''] OR output_contract IN {output_contract:Array(String)})
+        AND ({protocol:String} = ''                OR protocol = replaceAll({protocol:String}, '_', '-'))
     ORDER BY timestamp DESC, tx_hash, log_index
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}

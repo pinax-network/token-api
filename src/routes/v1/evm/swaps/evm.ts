@@ -59,6 +59,7 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
     },
+    protocol: { schema: evmProtocolSchema, default: '' },
 
     start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
