@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.6.2
+
+### Patch Changes
+
+- 09ab459: Improve local development experience by setting `X-Plan` header to `free` by default
+- cfcb314: Remove `BETA` tags from OpenAPI and HTML pages
+- fa67cc1: Fix plan limits not being properly enforced for OHLCV endpoints
+
 ## 3.6.1
 
 ### Patch Changes
