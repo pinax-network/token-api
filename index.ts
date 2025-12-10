@@ -13,6 +13,11 @@ const app = new Hono();
 app.use(async (c: Context, next) => {
     const pathname = c.req.path;
     logger.trace(`Incoming request: '${pathname}'`);
+
+    // Set `X-Plan` to free by default if none received
+    // This will have no effect unless `config.plans` is setup through ENV or CLI
+    if (!c.req.header('X-Plan')) c.req.raw.headers.set('X-Plan', 'free');
+
     await next();
 });
 
