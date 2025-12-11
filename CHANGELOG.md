@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.6.3
+
+### Patch Changes
+
+- 613be58: Fix missing endpoints parameters in OpenAPI spec
+
 ## 3.6.2
 
 ### Patch Changes
