@@ -5,7 +5,7 @@ WITH filtered_contract AS (
         log_address AS contract
     FROM trc20_transfer
     WHERE log_address = {contract:String}
-    ORDER BY timestamp DESC
+    ORDER BY minute DESC
     LIMIT 1
 ),
 metadata AS

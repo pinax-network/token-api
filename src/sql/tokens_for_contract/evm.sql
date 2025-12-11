@@ -1,19 +1,21 @@
-WITH m AS (
+WITH metadata AS (
     SELECT
         symbol,
         name,
         decimals
     FROM metadata_view
     WHERE contract = {contract: String}
-), s AS (
+),
+total_supply AS (
     SELECT
         argMax(total_supply, block_num) AS total_supply
     FROM total_supply
     WHERE contract = {contract: String}
     GROUP BY contract
-), b AS (
+),
+circulating AS (
     SELECT
-        count(address) AS holders,
+        count() AS holders,
         sum(balance) AS raw_circulating_supply,
         max(block_num) AS block_num,
         max(timestamp) AS timestamp
@@ -26,25 +28,22 @@ WITH m AS (
             argMax(balance, t.block_num) AS balance
         FROM balances AS t
         WHERE contract = {contract: String}
-        GROUP BY
-            contract,
-            address
+        GROUP BY contract, address
         HAVING balance > 0
     )
-    GROUP BY contract
 )
 SELECT
-    b.timestamp AS last_update,
-    b.block_num AS last_update_block_num,
-    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
+    circulating.timestamp AS last_update,
+    circulating.block_num AS last_update_block_num,
+    toUnixTimestamp(circulating.timestamp) AS last_update_timestamp,
     {contract: String} AS contract,
     name,
     symbol,
     decimals,
-    b.raw_circulating_supply / pow(10, decimals) AS circulating_supply,
-    s.total_supply / pow(10, decimals) AS total_supply,
-    b.holders AS holders,
+    circulating.raw_circulating_supply / pow(10, decimals) AS circulating_supply,
+    total_supply.total_supply / pow(10, decimals) AS total_supply,
+    circulating.holders AS holders,
     {network: String} AS network
-FROM b
-LEFT JOIN m ON 1 = 1
-LEFT JOIN s ON 1 = 1
+FROM circulating
+LEFT JOIN metadata ON 1 = 1
+LEFT JOIN total_supply ON 1 = 1

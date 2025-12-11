@@ -4,7 +4,7 @@ WITH owners AS (
         max(block_num) AS last_update_block_num,
         account,
         argMax(owner, o.block_num) AS owner
-    FROM owner_state_latest AS o
+    FROM owner_state AS o
     WHERE account IN {account:Array(String)}
     GROUP BY o.owner, account
 )

@@ -2,7 +2,7 @@ WITH accounts AS (
     SELECT DISTINCT
         owner,
         argMax(account, o.block_num) AS account
-    FROM owner_state_latest AS o
+    FROM owner_state AS o
     WHERE ({token_account:Array(String)} = [''] or o.account IN {token_account:Array(String)})
       AND owner IN {owner:Array(String)}
     GROUP BY owner, o.account
@@ -39,7 +39,7 @@ metadata AS
     FROM metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state_latest
+        FROM metadata_mint_state
         WHERE mint IN (SELECT mint FROM filtered_balances)
         GROUP BY metadata
     )
