@@ -6,7 +6,9 @@ active_filters AS
         toUInt8({transaction_id:Array(String)} != ['']) +
         toUInt8({factory:Array(String)}        != ['']) +
         toUInt8({pool:Array(String)}           != ['']) +
-        toUInt8({user:Array(String)}           != ['']) +
+        toUInt8({recipient:Array(String)}      != ['']) +
+        toUInt8({sender:Array(String)}         != ['']) +
+        toUInt8({caller:Array(String)}         != ['']) +
         toUInt8({input_contract:Array(String)} != ['']) +
         toUInt8({output_contract:Array(String)} != ['']) +
         toUInt8({protocol:String}              != '')
@@ -41,7 +43,23 @@ minutes_union AS
 
     SELECT minute
     FROM swaps
-    WHERE ({user:Array(String)} != [''] AND user IN {user:Array(String)})
+    WHERE ({recipient:Array(String)} != [''] AND user IN {recipient:Array(String)})
+    GROUP BY minute
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps
+    WHERE ({sender:Array(String)} != [''] AND user IN {sender:Array(String)})
+    GROUP BY minute
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM swaps
+    WHERE ({caller:Array(String)} != [''] AND user IN {caller:Array(String)})
     GROUP BY minute
     ORDER BY minute DESC
 
@@ -125,7 +143,15 @@ filtered_swaps AS
         ({transaction_id:Array(String)} = ['']    OR tx_hash IN {transaction_id:Array(String)})
         AND ({factory:Array(String)} = ['']       OR factory IN {factory:Array(String)})
         AND ({pool:Array(String)} = ['']          OR pool IN {pool:Array(String)})
-        AND ({user:Array(String)} = ['']          OR user IN {user:Array(String)})
+        AND (
+            ({recipient:Array(String)} == [''] AND {sender:Array(String)} == [''] AND {caller:Array(String)} == [''])
+            OR
+            ({recipient:Array(String)} != [''] AND user IN {recipient:Array(String)})
+            OR
+            ({sender:Array(String)} != [''] AND user IN {sender:Array(String)})
+            OR
+            ({caller:Array(String)} != [''] AND user IN {caller:Array(String)})
+        )
         AND ({input_contract:Array(String)} = [''] OR input_contract IN {input_contract:Array(String)})
         AND ({output_contract:Array(String)} = [''] OR output_contract IN {output_contract:Array(String)})
         AND ({protocol:String} = ''                OR protocol = replaceAll({protocol:String}, '_', '-'))
@@ -193,7 +219,9 @@ SELECT
     s.tx_hash AS transaction_id,
     toString(s.factory) AS factory,
     s.pool AS pool,
-    s.user AS user,
+    s.user AS caller,
+    s.user AS sender,
+    s.user AS recipient,
     m1.token AS input_token,
     m2.token AS output_token,
     toString(s.input_amount) AS input_amount,
@@ -202,7 +230,7 @@ SELECT
     s.output_amount / pow(10, m2.decimals) AS output_value,
     if(s.input_amount > 0, (s.output_amount / pow(10, m2.decimals)) / (s.input_amount / pow(10, m1.decimals)), 0) AS price,
     if(s.output_amount > 0, (s.input_amount / pow(10, m1.decimals)) / (s.output_amount / pow(10, m2.decimals)), 0) AS price_inv,
-    replaceAll(s.protocol, '-', '_') AS protocol,
+    replaceAll(CAST(s.protocol AS String), '-', '_') AS protocol,
     format('Swap {} {} for {} {} on {}',
         if(s.input_amount / pow(10, m1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, m1.decimals)), toString(s.input_amount / pow(10, m1.decimals))),
         m1.symbol,
@@ -210,7 +238,7 @@ SELECT
         m2.symbol,
         arrayStringConcat(
             arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
-                     splitByChar('_', replaceAll(s.protocol, '-', '_'))),
+                     splitByChar('_', replaceAll(CAST(s.protocol AS String), '-', '_'))),
             ' '
         )
     ) AS summary,

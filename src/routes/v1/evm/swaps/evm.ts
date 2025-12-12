@@ -46,7 +46,9 @@ const querySchema = createQuerySchema({
         meta: { example: EVM_FACTORY_UNISWAP_V2_EXAMPLE },
     },
     pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
-    user: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    caller: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    sender: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    recipient: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     input_contract: {
         schema: evmContractSchema,
         batched: true,
@@ -82,7 +84,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
 
-            user: evmAddressSchema,
+            caller: evmAddressSchema,
+            sender: evmAddressSchema,
+            recipient: evmAddressSchema,
 
             input_amount: z.string(),
             input_value: z.number(),
