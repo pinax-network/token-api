@@ -10,3 +10,4 @@ GROUP BY
     p.program_id,
     p.amm
 ORDER BY transactions DESC, program_id, amm
+LIMIT 100

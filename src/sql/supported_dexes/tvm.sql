@@ -13,3 +13,4 @@ WITH all_dexes AS (
 )
 SELECT * FROM all_dexes
 ORDER BY transactions DESC, uaw DESC, protocol, factory
+LIMIT 100
