@@ -3,15 +3,15 @@ WITH
 active_filters AS
 (
     SELECT
-        toUInt8({transaction_id:Array(String)} != ['']) +
-        toUInt8({factory:Array(String)}        != ['']) +
-        toUInt8({pool:Array(String)}           != ['']) +
-        toUInt8({recipient:Array(String)}      != ['']) +
-        toUInt8({sender:Array(String)}         != ['']) +
-        toUInt8({caller:Array(String)}         != ['']) +
-        toUInt8({input_contract:Array(String)} != ['']) +
+        toUInt8({transaction_id:Array(String)}  != ['']) +
+        toUInt8({factory:Array(String)}         != ['']) +
+        toUInt8({pool:Array(String)}            != ['']) +
+        toUInt8({recipient:Array(String)}       != ['']) +
+        toUInt8({sender:Array(String)}          != ['']) +
+        toUInt8({caller:Array(String)}          != ['']) +
+        toUInt8({input_contract:Array(String)}  != ['']) +
         toUInt8({output_contract:Array(String)} != ['']) +
-        toUInt8({protocol:String}              != '')
+        toUInt8({protocol:String}               != '')
     AS n
 ),
 /* 2) Union minutes from only active filters */
@@ -102,135 +102,68 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
-/* Latest ingested timestamp in source table */
-latest_minute AS
-(
-    SELECT max(minute) AS minute FROM swaps
-),
-
 filtered_swaps AS
 (
-    SELECT
-        block_num,
-        timestamp,
-        tx_hash,
-        tx_index,
-        log_index,
-        factory,
-        pool,
-        protocol,
-        user,
-        input_contract,
-        output_contract,
-        input_amount,
-        output_amount
+    SELECT *
     FROM swaps
     PREWHERE
-        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+            minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+        AND ((SELECT n FROM active_filters) = 0 OR minute IN filtered_minutes)
+        AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND (
-            (
-                /* if no filters are active search only the last minute */
-                (SELECT n FROM active_filters) = 0
-                AND minute BETWEEN
-                    greatest( toRelativeMinuteNum(toDateTime({start_time:UInt64})), least(toRelativeMinuteNum(toDateTime({end_time:UInt64})), (SELECT minute FROM latest_minute)) - (1 + 1 * {offset:UInt64}))
-                    AND least(toRelativeMinuteNum(toDateTime({end_time:UInt64})), (SELECT minute FROM latest_minute))
-            )
-            /* if filters are active, search through the intersecting minute ranges */
-            OR minute IN (SELECT minute FROM filtered_minutes)
-        )
     WHERE
-        ({transaction_id:Array(String)} = ['']    OR tx_hash IN {transaction_id:Array(String)})
-        AND ({factory:Array(String)} = ['']       OR factory IN {factory:Array(String)})
-        AND ({pool:Array(String)} = ['']          OR pool IN {pool:Array(String)})
-        AND (
-            ({recipient:Array(String)} == [''] AND {sender:Array(String)} == [''] AND {caller:Array(String)} == [''])
-            OR
-            ({recipient:Array(String)} != [''] AND user IN {recipient:Array(String)})
-            OR
-            ({sender:Array(String)} != [''] AND user IN {sender:Array(String)})
-            OR
-            ({caller:Array(String)} != [''] AND user IN {caller:Array(String)})
-        )
-        AND ({input_contract:Array(String)} = [''] OR input_contract IN {input_contract:Array(String)})
-        AND ({output_contract:Array(String)} = [''] OR output_contract IN {output_contract:Array(String)})
-        AND ({protocol:String} = ''                OR protocol = replaceAll({protocol:String}, '_', '-'))
-    ORDER BY timestamp DESC, tx_hash, log_index
+            ({transaction_id:Array(String)} = ['']      OR tx_hash IN {transaction_id:Array(String)})
+        AND ({factory:Array(String)} = ['']             OR factory IN {factory:Array(String)})
+        AND ({pool:Array(String)} = ['']                OR pool IN {pool:Array(String)})
+        AND ({recipient:Array(String)} = ['']           OR user IN {recipient:Array(String)})
+        AND ({sender:Array(String)} = ['']              OR user IN {sender:Array(String)})
+        AND ({caller:Array(String)} = ['']              OR user IN {caller:Array(String)})
+        AND ({input_contract:Array(String)} = ['']      OR input_contract IN {input_contract:Array(String)})
+        AND ({output_contract:Array(String)} = ['']     OR output_contract IN {output_contract:Array(String)})
+        AND ({protocol:String} = ''                     OR protocol = {protocol:String})
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-
-unique_contracts AS (
-    SELECT input_contract AS contract FROM filtered_swaps
-    UNION DISTINCT
-    SELECT output_contract AS contract FROM filtered_swaps
-),
-
-metadata AS (
-    SELECT
-        contract,
-        CAST(
-            (contract, symbol, name, decimals)
-            AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))
-        ) AS token,
-        symbol,
-        decimals
-    FROM {db_evm_tokens:Identifier}.metadata_view
-    WHERE contract IN (SELECT contract FROM unique_contracts)
-    AND contract NOT IN ('0x0000000000000000000000000000000000000000', '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
-
-    UNION ALL
-
-    SELECT
-        contract,
-        CAST(
-            (contract, native_symbol, 'Native', 18)
-            AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))
-        ) AS token,
-        native_symbol AS symbol,
-        18 AS decimals
-    FROM (
-        SELECT
-            contract,
-            multiIf(
-                {network:String} = 'mainnet', 'ETH',
-                {network:String} = 'arbitrum-one', 'ETH',
-                {network:String} = 'avalanche', 'AVAX',
-                {network:String} = 'base', 'ETH',
-                {network:String} = 'bsc', 'BNB',
-                {network:String} = 'polygon', 'POL',
-                {network:String} = 'optimism', 'ETH',
-                {network:String} = 'unichain', 'ETH',
-                'ETH'
-            ) AS native_symbol
-        FROM (
-            SELECT '0x0000000000000000000000000000000000000000' AS contract
-            UNION ALL
-            SELECT '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AS contract
-        )
-    )
-    WHERE contract IN (SELECT contract FROM unique_contracts)
 )
-
 SELECT
+    /* block */
     s.block_num AS block_num,
     s.timestamp AS datetime,
     toUnixTimestamp(s.timestamp) AS timestamp,
+
+    /* transaction */
     s.tx_hash AS transaction_id,
+    s.log_ordinal AS ordinal,
+
+    /* swap */
     toString(s.factory) AS factory,
     s.pool AS pool,
-    s.user AS caller,
+    s.user AS caller, /* rename to `s.tx_from` once v0.2.6 is deployed */
     s.user AS sender,
     s.user AS recipient,
-    m1.token AS input_token,
-    m2.token AS output_token,
+
+    /* tokens */
+    CAST ((
+        s.input_contract,
+        m1.symbol,
+        m1.decimals
+    ) AS Tuple(address String, symbol String, decimals UInt8)) AS input_token,
+    CAST ((
+        s.output_contract,
+        m2.symbol,
+        m2.decimals
+    ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
+
+    /* amounts and prices */
     toString(s.input_amount) AS input_amount,
     s.input_amount / pow(10, m1.decimals) AS input_value,
     toString(s.output_amount) AS output_amount,
     s.output_amount / pow(10, m2.decimals) AS output_value,
     if(s.input_amount > 0, (s.output_amount / pow(10, m2.decimals)) / (s.input_amount / pow(10, m1.decimals)), 0) AS price,
     if(s.output_amount > 0, (s.input_amount / pow(10, m1.decimals)) / (s.output_amount / pow(10, m2.decimals)), 0) AS price_inv,
-    replaceAll(CAST(s.protocol AS String), '-', '_') AS protocol,
+    s.protocol AS protocol,
+
+    /* summary */
     format('Swap {} {} for {} {} on {}',
         if(s.input_amount / pow(10, m1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, m1.decimals)), toString(s.input_amount / pow(10, m1.decimals))),
         m1.symbol,
@@ -238,12 +171,14 @@ SELECT
         m2.symbol,
         arrayStringConcat(
             arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
-                     splitByChar('_', replaceAll(CAST(s.protocol AS String), '-', '_'))),
+                     splitByChar('_', toString(s.protocol))),
             ' '
         )
     ) AS summary,
+
+    /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
 LEFT JOIN metadata AS m1 ON s.input_contract = m1.contract
 LEFT JOIN metadata AS m2 ON s.output_contract = m2.contract
-ORDER BY s.timestamp DESC, s.tx_hash
+ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
