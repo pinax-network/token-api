@@ -257,8 +257,8 @@ describe('Protocol Schemas', () => {
 
     describe('tvmProtocolSchema', () => {
         it('should accept valid protocols', () => {
-            expect(tvmProtocolSchema.parse('justswap')).toBe('justswap');
-            expect(tvmProtocolSchema.parse('sunswap')).toBe('sunswap');
+            expect(tvmProtocolSchema.parse('uniswap_v2')).toBe('uniswap_v2');
+            expect(tvmProtocolSchema.parse('uniswap_v1')).toBe('uniswap_v1');
             expect(tvmProtocolSchema.parse('sunpump')).toBe('sunpump');
         });
 

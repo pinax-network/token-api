@@ -7,6 +7,9 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { sqlQueries } from '../../../../sql/index.js';
 import {
     EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_CONTRACT_USDC_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V2_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
     EVM_TRANSACTION_SWAP_EXAMPLE,
 } from '../../../../types/examples.js';
@@ -16,6 +19,7 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
+    evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
     evmPoolSchema,
@@ -35,10 +39,28 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: EVM_TRANSACTION_SWAP_EXAMPLE },
     },
+    factory: {
+        schema: evmFactorySchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_FACTORY_UNISWAP_V2_EXAMPLE },
+    },
     pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     caller: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     sender: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     recipient: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    input_contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
+    },
+    output_contract: {
+        schema: evmContractSchema,
+        batched: true,
+        default: '',
+        meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
+    },
     protocol: { schema: evmProtocolSchema, default: '' },
 
     start_time: { schema: timestampSchema, prefault: '2015-01-01' },
@@ -147,13 +169,20 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    const db_evm_tokens = config.tokenDatabases[params.network];
+
+    if (!dbConfig || !db_evm_tokens) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.swaps?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        { ...params, db_evm_tokens: db_evm_tokens.database },
+        { database: dbConfig.database }
+    );
     return handleUsageQueryError(c, response);
 });
 
