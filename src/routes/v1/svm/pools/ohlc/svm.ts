@@ -113,8 +113,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            high_quantile: 0.95,
-            low_quantile: 0.05,
             stablecoin_contracts: [...stables],
             db_svm_tokens: db_svm_tokens.database,
         },
