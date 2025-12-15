@@ -1,7 +1,12 @@
-WITH has_pools AS (
+WITH output_pools AS (
     SELECT DISTINCT pool
     FROM state_pools_aggregating_by_token
-    WHERE token IN {input_token:Array(String)} OR token IN {output_token:Array(String)}
+    WHERE token IN {output_token:Array(String)}
+),
+input_pools AS (
+    SELECT DISTINCT pool
+    FROM state_pools_aggregating_by_token
+    WHERE token IN {input_token:Array(String)}
 ),
 pools AS (
     SELECT
@@ -11,8 +16,8 @@ pools AS (
         sum(transactions) as transactions
     FROM state_pools_aggregating_by_pool
     WHERE
-        ({input_token:Array(String)} = [''] OR pool IN has_pools)
-    AND ({output_token:Array(String)} = [''] OR pool IN has_pools)
+        ({input_token:Array(String)} = [''] OR pool IN input_pools)
+    AND ({output_token:Array(String)} = [''] OR pool IN output_pools)
     AND ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
     AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
     AND ({protocol:String} = '' OR toString(protocol) = {protocol:String})
@@ -46,8 +51,6 @@ SELECT
     p.protocol AS protocol,
 
     /* tokens */
-    pt.tokens AS tokens,
-
     CAST ((
         pt.token0,
         m0.symbol,
