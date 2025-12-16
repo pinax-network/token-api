@@ -1,6 +1,7 @@
 SELECT
     protocol,
     factory,
+    /* count() as pools, */
     max(max_timestamp) as last_activity,
     sum(transactions) as transactions,
     uniqMerge(uniq_tx_from) as uaw

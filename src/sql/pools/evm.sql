@@ -45,7 +45,6 @@ SELECT
     p.pool AS pool,
     p.factory AS factory,
     p.protocol AS protocol,
-
     /* tokens */
     CAST ((
         pt.token0,
@@ -65,6 +64,6 @@ FROM pools AS p
 JOIN state_pools_initialize AS i ON p.pool = i.pool
 JOIN state_pools_fees AS f ON p.pool = f.pool
 JOIN pools_with_tokens AS pt ON p.pool = pt.pool
-JOIN metadata AS m0 ON pt.token0 = m0.contract
-JOIN metadata AS m1 ON pt.token1 = m1.contract
+LEFT JOIN metadata AS m0 ON pt.token0 = m0.contract
+LEFT JOIN metadata AS m1 ON pt.token1 = m1.contract
 ORDER BY p.transactions DESC

@@ -90,9 +90,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    const dbEvmTokens = config.tokenDatabases[params.network];
 
-    if (!dbConfig || !dbEvmTokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
@@ -103,9 +102,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            db_evm_tokens: dbEvmTokens.database,
-            high_quantile: 1 - config.ohlcQuantile,
-            low_quantile: config.ohlcQuantile,
             stablecoin_contracts: [...stables],
         },
         { database: dbConfig.database }

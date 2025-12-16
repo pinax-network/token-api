@@ -83,7 +83,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+        description: 'Returns DEX pool metadata including tokens, fees and protocol.',
 
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -130,20 +130,13 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    const db_evm_tokens = config.tokenDatabases[params.network];
-
-    if (!dbConfig || !db_evm_tokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.pools?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params, db_evm_tokens: db_evm_tokens.database },
-        { database: dbConfig.database }
-    );
+    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
     return handleUsageQueryError(c, response);
 });
 

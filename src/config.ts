@@ -5,6 +5,9 @@ import { z } from 'zod';
 
 import pkg from '../package.json' with { type: 'json' };
 
+// Set timezone to UTC
+process.env.TZ = "Etc/UTC";
+
 // defaults
 export const DEFAULT_PORT = '8000';
 export const DEFAULT_HOSTNAME = 'localhost';

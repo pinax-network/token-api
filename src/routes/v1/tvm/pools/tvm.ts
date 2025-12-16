@@ -75,7 +75,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+        description: 'Returns DEX pool metadata including tokens, fees and protocol.',
 
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
