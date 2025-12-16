@@ -20,14 +20,16 @@ import {
     evmPoolSchema,
     evmProtocolSchema,
     evmTokenResponseSchema,
+    tvmFactorySchema,
+    tvmNetworkIdSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
+    network: { schema: tvmNetworkIdSchema },
 
     factory: {
-        schema: evmFactorySchema,
+        schema: tvmFactorySchema,
         batched: true,
         default: '',
         meta: { example: EVM_FACTORY_UNISWAP_V3_EXAMPLE },
@@ -76,8 +78,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
         description: 'Returns DEX pool metadata including tokens, fees and protocol.',
-
-        tags: ['EVM DEXs'],
+        tags: ['TVM DEXs'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -90,22 +91,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
-                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
-                                            input_token: {
-                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                                                symbol: 'USDC',
-                                                decimals: 6,
-                                            },
-                                            output_token: {
-                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                                symbol: 'WETH',
-                                                decimals: 18,
-                                            },
-                                            fee: 500,
-                                            protocol: 'uniswap_v3',
-                                            network: 'mainnet',
+                                        "pool": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+                                        "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
+                                        "protocol": "uniswap_v1",
+                                        "input_token": {
+                                            "address": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
+                                            "symbol": "TRX",
+                                            "decimals": 6
                                         },
+                                        "output_token": {
+                                            "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                            "symbol": "USDT",
+                                            "decimals": 6
+                                        },
+                                        "fee": 3000
+                                        }
                                     ],
                                 },
                             },
