@@ -46,7 +46,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Pool OHLCV Data',
+        summary: 'Pool OHLCV',
         description:
             'Returns OHLCV price data for liquidity pools.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['TVM DEXs'],

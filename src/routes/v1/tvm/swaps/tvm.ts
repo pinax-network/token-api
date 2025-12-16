@@ -43,9 +43,11 @@ const querySchema = createQuerySchema({
     // swaps
     factory: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE } },
     pool: { schema: tvmPoolSchema, batched: true, default: '', meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
-    user: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
-    input_token: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_CONTRACT_USDT_EXAMPLE } },
-    output_token: {
+    caller: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    sender: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    recipient: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    input_contract: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_CONTRACT_USDT_EXAMPLE } },
+    output_contract: {
         schema: tvmAddressSchema,
         batched: true,
         default: '',
@@ -68,29 +70,29 @@ const responseSchema = apiUsageResponseSchema.extend({
             datetime: dateTimeSchema,
             timestamp: z.number(),
 
-            // -- transaction --
-            transaction_id: z.string(),
-            transaction_index: z.number(),
-
-            // -- log --
-            log_index: z.number(),
-            log_ordinal: z.number(),
-            log_address: tvmAddressSchema,
-            log_topic0: z.string(),
-
             // -- swap --
-            protocol: tvmProtocolSchema,
+            transaction_id: z.string(),
             factory: tvmFactorySchema,
             pool: tvmPoolSchema,
-            user: tvmAddressSchema,
+            input_token: tvmTokenResponseSchema,
+            output_token: tvmTokenResponseSchema,
 
-            // -- amounts --
+            caller: tvmAddressSchema,
+            sender: tvmAddressSchema,
+            recipient: tvmAddressSchema,
+
+            // -- log --
+            // ordinal: z.number(),
+
+            // -- price --
             input_amount: z.string(),
             input_value: z.number(),
-            input_token: tvmTokenResponseSchema,
             output_amount: z.string(),
             output_value: z.number(),
-            output_token: tvmTokenResponseSchema,
+            price: z.number(),
+            price_inv: z.number(),
+            protocol: tvmProtocolSchema,
+            summary: z.string(),
 
             // -- chain --
             network: tvmNetworkIdSchema,
@@ -101,7 +103,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description: 'Returns DEX swap transactions from Tron protocols with token amounts and prices.',
+        description: 'Returns DEX swaps events with input & output token amounts.',
 
         tags: ['TVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -116,39 +118,35 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 77233509,
-                                            datetime: '2025-11-05 16:55:03',
-                                            timestamp: 1762361703,
-                                            transaction_id:
-                                                'e74815245a8f1321ce5ede99cde8e021f75bf8e3d4f94cd8949d283eb56fee63',
-                                            transaction_index: 0,
-                                            log_index: 1,
-                                            log_ordinal: 662,
-                                            log_address: 'TFGDbUyP8xez44C76fin3bn3Ss6jugoUwJ',
-                                            log_topic0:
-                                                'd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
-                                            protocol: 'sunswap',
-                                            factory: 'TKWJdrQkqHisa1X8HUdHEfREvTzw4pMAaY',
-                                            pool: 'TFGDbUyP8xez44C76fin3bn3Ss6jugoUwJ',
-                                            user: 'TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR',
-                                            input_amount: '170000000',
-                                            input_value: 170,
-                                            input_token: {
-                                                address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-                                                symbol: 'USDT',
-                                                name: 'Tether USD',
-                                                decimals: 6,
+                                            "block_num": 28320009,
+                                            "datetime": "2021-03-10 04:43:33",
+                                            "timestamp": 1615351413,
+                                            "transaction_id": "0x3e0f39b48dae8c49d3f95bc6206a632af484059764487b0c7d3e3c97bb433130",
+                                            "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
+                                            "pool": "TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA",
+                                            "caller": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
+                                            "sender": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
+                                            "recipient": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
+                                            "input_token": {
+                                                "address": "TGc9XV7skLENAHPj4afCpBS8JSHv6box9C",
+                                                "symbol": "",
+                                                "decimals": 0
                                             },
-                                            output_amount: '590270510',
-                                            output_value: 590.27051,
-                                            output_token: {
-                                                address: 'TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR',
-                                                symbol: 'WTRX',
-                                                name: 'Wrapped TRX',
-                                                decimals: 6,
+                                            "output_token": {
+                                                "address": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
+                                                "symbol": "TRX",
+                                                "decimals": 6
                                             },
-                                            network: 'tron',
-                                        },
+                                            "input_amount": "20000000",
+                                            "input_value": 20000000,
+                                            "output_amount": "1258054968",
+                                            "output_value": 1258.054968,
+                                            "price": 0.0000629027484,
+                                            "price_inv": 15897.556552552798,
+                                            "protocol": "uniswap_v1",
+                                            "summary": "Swap 20.00 million  for 1.26 thousand TRX on Uniswap V1",
+                                            "network": "tron"
+                                        }
                                     ],
                                 },
                             },
@@ -166,10 +164,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    // this DB is used to fetch TRC-20 token metadata (name, symbol, decimals)
-    const db_tvm_tokens = config.tokenDatabases[params.network];
-
-    if (!dbConfig || !db_tvm_tokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
@@ -179,7 +174,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(
         c,
         [query],
-        { ...params, db_tvm_tokens: db_tvm_tokens.database },
+        { ...params },
         { database: dbConfig.database }
     );
     return handleUsageQueryError(c, response);

@@ -51,7 +51,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Pool OHLCV Data',
+        summary: 'Pool OHLCV',
         description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format for DEX pools.',
         tags: ['SVM DEXs'],
         security: [{ bearerAuth: [] }],
