@@ -133,12 +133,12 @@ SELECT
 
     /* transaction */
     s.tx_hash AS transaction_id,
-    s.log_ordinal AS ordinal,
+    /* s.log_ordinal AS ordinal, for `/v2` endpoint */
 
     /* swap */
     toString(s.factory) AS factory,
     s.pool AS pool,
-    s.user AS caller, /* rename to `s.tx_from` once v0.2.6 is deployed */
+    s.tx_from AS caller,
     s.user AS sender,
     s.user AS recipient,
 

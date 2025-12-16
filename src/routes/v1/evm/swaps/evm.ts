@@ -88,6 +88,10 @@ const responseSchema = apiUsageResponseSchema.extend({
             sender: evmAddressSchema,
             recipient: evmAddressSchema,
 
+            // -- log --
+            // ordinal: z.number(),
+
+            // -- price --
             input_amount: z.string(),
             input_value: z.number(),
             output_amount: z.string(),
@@ -169,9 +173,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    const db_evm_tokens = config.tokenDatabases[params.network];
 
-    if (!dbConfig || !db_evm_tokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.swaps?.[dbConfig.type];
@@ -180,7 +183,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(
         c,
         [query],
-        { ...params, db_evm_tokens: db_evm_tokens.database },
+        { ...params },
         { database: dbConfig.database }
     );
     return handleUsageQueryError(c, response);
