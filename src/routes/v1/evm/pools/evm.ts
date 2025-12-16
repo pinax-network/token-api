@@ -14,6 +14,7 @@ import {
 import {
     apiUsageResponseSchema,
     createQuerySchema,
+    dateTimeSchema,
     evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
@@ -52,19 +53,26 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             // -- block --
-            // block_num: z.number(),
-            // datetime: dateTimeSchema,
+            block_num: z.number(),
+            datetime: dateTimeSchema,
+            timestamp: z.number(),
 
             // -- transaction --
-            // transaction_id: z.string(),
+            transaction_id: z.string(),
 
             // -- pool --
             factory: evmFactorySchema,
             pool: evmPoolSchema,
+            protocol: evmProtocolSchema,
+
+            // -- tokens --
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
+
+            // -- stats --
+            transactions: z.number(),
+            uaw: z.number(),
             fee: z.number(),
-            protocol: evmProtocolSchema,
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -90,21 +98,26 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
-                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
-                                            input_token: {
-                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                                                symbol: 'USDC',
-                                                decimals: 6,
+                                            "block_num": 12376729,
+                                            "datetime": "2021-05-05 21:42:11",
+                                            "timestamp": 1620250931,
+                                            "transaction_id": "0x125e0b641d4a4b08806bf52c0c6757648c9963bcda8681e4f996f09e00d4c2cc",
+                                            "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+                                            "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+                                            "protocol": "uniswap_v3",
+                                            "input_token": {
+                                                "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                                "symbol": "USDC",
+                                                "decimals": 6
                                             },
-                                            output_token: {
-                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                                symbol: 'WETH',
-                                                decimals: 18,
+                                            "output_token": {
+                                                "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                                "symbol": "WETH",
+                                                "decimals": 18
                                             },
-                                            fee: 500,
-                                            protocol: 'uniswap_v3',
-                                            network: 'mainnet',
+                                            "transactions": 10151470,
+                                            "uaw": 1684027,
+                                            "fee": 500
                                         },
                                     ],
                                 },

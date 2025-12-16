@@ -13,7 +13,8 @@ pools AS (
         pool,
         factory,
         protocol,
-        sum(transactions) as transactions
+        sum(transactions) as transactions,
+        uniqMerge(uniq_tx_from) as uaw
     FROM state_pools_aggregating_by_pool
     WHERE
         ({input_token:Array(String)} = [''] OR pool IN input_pools)
@@ -42,8 +43,9 @@ pools_with_tokens AS (
 SELECT
     /* initialize */
     i.block_num AS block_num,
-    i.timestamp AS timestamp,
-    i.tx_hash AS tx_hash,
+    i.timestamp AS datetime,
+    toUnixTimestamp(i.timestamp) AS timestamp,
+    i.tx_hash AS transaction_id,
 
     /* DEX */
     p.pool AS pool,
@@ -65,6 +67,7 @@ SELECT
 
     /* stats */
     p.transactions AS transactions,
+    p.uaw AS uaw,
 
     /* Fees */
     f.fee AS fee

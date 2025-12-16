@@ -9,4 +9,5 @@ GROUP BY
     protocol,
     factory
 ORDER BY transactions DESC
-LIMIT 100
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}
