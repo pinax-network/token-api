@@ -52,27 +52,27 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            // -- block --
-            block_num: z.number(),
-            datetime: dateTimeSchema,
-            timestamp: z.number(),
+            // // -- block --
+            // block_num: z.number(),
+            // datetime: dateTimeSchema,
+            // timestamp: z.number(),
 
-            // -- transaction --
-            transaction_id: z.string(),
+            // // -- transaction --
+            // transaction_id: z.string(),
 
             // -- pool --
-            factory: evmFactorySchema,
             pool: evmPoolSchema,
+            factory: evmFactorySchema,
             protocol: evmProtocolSchema,
 
             // -- tokens --
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
 
-            // -- stats --
-            transactions: z.number(),
-            uaw: z.number(),
-            fee: z.number(),
+            // // -- stats --
+            // transactions: z.number(),
+            // uaw: z.number(),
+            // fee: z.number(),
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -98,10 +98,6 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "block_num": 12376729,
-                                            "datetime": "2021-05-05 21:42:11",
-                                            "timestamp": 1620250931,
-                                            "transaction_id": "0x125e0b641d4a4b08806bf52c0c6757648c9963bcda8681e4f996f09e00d4c2cc",
                                             "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
                                             "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
                                             "protocol": "uniswap_v3",
@@ -115,10 +111,8 @@ const openapi = describeRoute(
                                                 "symbol": "WETH",
                                                 "decimals": 18
                                             },
-                                            "transactions": 10151470,
-                                            "uaw": 1684027,
                                             "fee": 500
-                                        },
+                                        }
                                     ],
                                 },
                             },

@@ -1,4 +1,5 @@
-WITH output_pools AS (
+WITH
+output_pools AS (
     SELECT DISTINCT pool
     FROM state_pools_aggregating_by_token
     WHERE token IN {output_token:Array(String)}
@@ -13,8 +14,7 @@ pools AS (
         pool,
         factory,
         protocol,
-        sum(transactions) as transactions,
-        uniqMerge(uniq_tx_from) as uaw
+        transactions
     FROM state_pools_aggregating_by_pool
     WHERE
         ({input_token:Array(String)} = [''] OR pool IN input_pools)
@@ -22,7 +22,7 @@ pools AS (
     AND ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
     AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
     AND ({protocol:String} = '' OR toString(protocol) = {protocol:String})
-    GROUP BY pool, factory, protocol
+
     ORDER BY transactions DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
@@ -37,16 +37,10 @@ pools_with_tokens AS (
         arrayElement(tokens, 2) AS token1
 
     FROM pools AS p
-    JOIN state_pools_aggregating_by_token AS pt ON p.pool = pt.pool
+    JOIN state_pools_aggregating_by_token AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
     GROUP BY pool, factory, protocol
 )
 SELECT
-    /* initialize */
-    i.block_num AS block_num,
-    i.timestamp AS datetime,
-    toUnixTimestamp(i.timestamp) AS timestamp,
-    i.tx_hash AS transaction_id,
-
     /* DEX */
     p.pool AS pool,
     p.factory AS factory,
@@ -64,10 +58,6 @@ SELECT
         m1.symbol,
         m1.decimals
     ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
-
-    /* stats */
-    p.transactions AS transactions,
-    p.uaw AS uaw,
 
     /* Fees */
     f.fee AS fee
