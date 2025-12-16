@@ -31,12 +31,13 @@ WITH ohlc AS (
         /* extra fields */
         p.token0 IN {stablecoin_contracts: Array(String)} AS is_stablecoin
     FROM ohlc_prices p
-    JOIN metadata m0 ON p.token0 = m0.contract
-    JOIN metadata m1 ON p.token1 = m1.contract
+    LEFT JOIN metadata m0 ON p.token0 = m0.contract
+    LEFT JOIN metadata m1 ON p.token1 = m1.contract
     WHERE
             p.interval_min = {interval: UInt64}
         AND p.pool = {pool: String}
-        AND p.timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
+        AND ({start_time: UInt64} == 1763251200 OR timestamp >= toDateTime({start_time: UInt64}))
+        AND ({end_time: UInt64} == 2524608000 OR timestamp <= toDateTime({end_time: UInt64}))
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}

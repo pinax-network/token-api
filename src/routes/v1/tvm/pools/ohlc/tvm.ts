@@ -90,10 +90,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    // this DB is used to fetch token metadata (symbol, name, decimals)
-    const db_tvm_tokens = config.tokenDatabases[params.network];
 
-    if (!dbConfig || !db_tvm_tokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
@@ -105,10 +103,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            high_quantile: 1 - config.ohlcQuantile,
-            low_quantile: config.ohlcQuantile,
             stablecoin_contracts: [...stables],
-            db_tvm_tokens: db_tvm_tokens.database,
         },
         { database: dbConfig.database }
     );
