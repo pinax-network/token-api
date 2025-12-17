@@ -111,6 +111,7 @@ const openapi = describeRoute(
                                                 decimals: 18,
                                             },
                                             fee: 500,
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },

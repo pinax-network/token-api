@@ -107,6 +107,7 @@ const openapi = describeRoute(
                                                 decimals: 6,
                                             },
                                             fee: 3000,
+                                            network: 'tron',
                                         },
                                     ],
                                 },
