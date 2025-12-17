@@ -14,7 +14,6 @@ import {
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    dateTimeSchema,
     evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
@@ -98,21 +97,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
-                                            "factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
-                                            "protocol": "uniswap_v3",
-                                            "input_token": {
-                                                "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                                "symbol": "USDC",
-                                                "decimals": 6
+                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+                                            protocol: 'uniswap_v3',
+                                            input_token: {
+                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                                                symbol: 'USDC',
+                                                decimals: 6,
                                             },
-                                            "output_token": {
-                                                "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-                                                "symbol": "WETH",
-                                                "decimals": 18
+                                            output_token: {
+                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                                symbol: 'WETH',
+                                                decimals: 18,
                                             },
-                                            "fee": 500
-                                        }
+                                            fee: 500,
+                                        },
                                     ],
                                 },
                             },

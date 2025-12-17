@@ -73,7 +73,7 @@ const openapi = describeRoute(
                                             volume: 32956701.586648002,
                                             uaw: 1363,
                                             transactions: 3066,
-                                            network: 'mainnet'
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },

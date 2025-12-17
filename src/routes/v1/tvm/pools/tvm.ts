@@ -14,7 +14,6 @@ import {
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
     evmPoolSchema,
@@ -94,21 +93,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                        "pool": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
-                                        "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
-                                        "protocol": "uniswap_v1",
-                                        "input_token": {
-                                            "address": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
-                                            "symbol": "TRX",
-                                            "decimals": 6
+                                            pool: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
+                                            factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
+                                            protocol: 'uniswap_v1',
+                                            input_token: {
+                                                address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+                                                symbol: 'TRX',
+                                                decimals: 6,
+                                            },
+                                            output_token: {
+                                                address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                                                symbol: 'USDT',
+                                                decimals: 6,
+                                            },
+                                            fee: 3000,
                                         },
-                                        "output_token": {
-                                            "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-                                            "symbol": "USDT",
-                                            "decimals": 6
-                                        },
-                                        "fee": 3000
-                                        }
                                     ],
                                 },
                             },

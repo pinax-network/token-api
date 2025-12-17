@@ -180,12 +180,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const query = sqlQueries.swaps?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params },
-        { database: dbConfig.database }
-    );
+    const response = await makeUsageQueryJson(c, [query], { ...params }, { database: dbConfig.database });
     return handleUsageQueryError(c, response);
 });
 

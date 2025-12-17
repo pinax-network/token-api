@@ -14,11 +14,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: svmNetworkIdSchema },
-    }
-);
+const querySchema = createQuerySchema({
+    network: { schema: svmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(

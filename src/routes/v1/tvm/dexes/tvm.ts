@@ -15,11 +15,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: tvmNetworkIdSchema },
-    }
-);
+const querySchema = createQuerySchema({
+    network: { schema: tvmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -51,12 +49,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "protocol": "uniswap_v1",
-                                            "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
-                                            "last_activity": "2025-12-16 05:16:18",
-                                            "transactions": 48269088,
-                                            "uaw": 2848148,
-                                            "network": "tron"
+                                            protocol: 'uniswap_v1',
+                                            factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
+                                            last_activity: '2025-12-16 05:16:18',
+                                            transactions: 48269088,
+                                            uaw: 2848148,
+                                            network: 'tron',
                                         },
                                     ],
                                 },

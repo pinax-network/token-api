@@ -14,11 +14,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: evmNetworkIdSchema },
-    }
-);
+const querySchema = createQuerySchema({
+    network: { schema: evmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -55,7 +53,7 @@ const openapi = describeRoute(
                                             uaw: 10432787,
                                             transactions: 16029788,
                                             last_activity: '2025-11-06 16:00:00',
-                                            network: 'mainnet'
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },

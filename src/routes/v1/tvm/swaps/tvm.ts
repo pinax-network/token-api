@@ -46,7 +46,12 @@ const querySchema = createQuerySchema({
     caller: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     sender: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     recipient: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
-    input_contract: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_CONTRACT_USDT_EXAMPLE } },
+    input_contract: {
+        schema: tvmAddressSchema,
+        batched: true,
+        default: '',
+        meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
+    },
     output_contract: {
         schema: tvmAddressSchema,
         batched: true,
@@ -118,35 +123,36 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "block_num": 28320009,
-                                            "datetime": "2021-03-10 04:43:33",
-                                            "timestamp": 1615351413,
-                                            "transaction_id": "0x3e0f39b48dae8c49d3f95bc6206a632af484059764487b0c7d3e3c97bb433130",
-                                            "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
-                                            "pool": "TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA",
-                                            "caller": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
-                                            "sender": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
-                                            "recipient": "TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w",
-                                            "input_token": {
-                                                "address": "TGc9XV7skLENAHPj4afCpBS8JSHv6box9C",
-                                                "symbol": "",
-                                                "decimals": 0
+                                            block_num: 28320009,
+                                            datetime: '2021-03-10 04:43:33',
+                                            timestamp: 1615351413,
+                                            transaction_id:
+                                                '0x3e0f39b48dae8c49d3f95bc6206a632af484059764487b0c7d3e3c97bb433130',
+                                            factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
+                                            pool: 'TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA',
+                                            caller: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
+                                            sender: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
+                                            recipient: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
+                                            input_token: {
+                                                address: 'TGc9XV7skLENAHPj4afCpBS8JSHv6box9C',
+                                                symbol: '',
+                                                decimals: 0,
                                             },
-                                            "output_token": {
-                                                "address": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
-                                                "symbol": "TRX",
-                                                "decimals": 6
+                                            output_token: {
+                                                address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+                                                symbol: 'TRX',
+                                                decimals: 6,
                                             },
-                                            "input_amount": "20000000",
-                                            "input_value": 20000000,
-                                            "output_amount": "1258054968",
-                                            "output_value": 1258.054968,
-                                            "price": 0.0000629027484,
-                                            "price_inv": 15897.556552552798,
-                                            "protocol": "uniswap_v1",
-                                            "summary": "Swap 20.00 million  for 1.26 thousand TRX on Uniswap V1",
-                                            "network": "tron"
-                                        }
+                                            input_amount: '20000000',
+                                            input_value: 20000000,
+                                            output_amount: '1258054968',
+                                            output_value: 1258.054968,
+                                            price: 0.0000629027484,
+                                            price_inv: 15897.556552552798,
+                                            protocol: 'uniswap_v1',
+                                            summary: 'Swap 20.00 million  for 1.26 thousand TRX on Uniswap V1',
+                                            network: 'tron',
+                                        },
                                     ],
                                 },
                             },
@@ -171,12 +177,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const query = sqlQueries.swaps?.[dbConfig.type];
     if (!query) return c.json({ error: 'Query for swaps could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        { ...params },
-        { database: dbConfig.database }
-    );
+    const response = await makeUsageQueryJson(c, [query], { ...params }, { database: dbConfig.database });
     return handleUsageQueryError(c, response);
 });
 
