@@ -14,7 +14,7 @@ pools AS (
         pool,
         factory,
         protocol,
-        transactions
+        sum(transactions) as transactions
     FROM state_pools_aggregating_by_pool
     WHERE
         ({input_token:Array(String)} = [''] OR pool IN input_pools)
@@ -22,6 +22,8 @@ pools AS (
     AND ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
     AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
     AND ({protocol:String} = '' OR toString(protocol) = {protocol:String})
+
+    GROUP BY pool, factory, protocol
 
     ORDER BY transactions DESC
     LIMIT   {limit:UInt64}
@@ -36,8 +38,8 @@ pools_with_tokens AS (
         arrayElement(tokens, 1) AS token0,
         arrayElement(tokens, 2) AS token1
 
-    FROM pools AS p
-    JOIN state_pools_aggregating_by_token AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
+    FROM state_pools_aggregating_by_token AS pt
+    JOIN pools AS p ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
     GROUP BY pool, factory, protocol
 )
 SELECT
@@ -61,9 +63,8 @@ SELECT
     /* Fees */
     f.fee AS fee
 FROM pools AS p
-JOIN state_pools_initialize AS i ON p.pool = i.pool
-JOIN state_pools_fees AS f ON p.pool = f.pool
-JOIN pools_with_tokens AS pt ON p.pool = pt.pool
-LEFT JOIN metadata AS m0 ON pt.token0 = m0.contract
-LEFT JOIN metadata AS m1 ON pt.token1 = m1.contract
+LEFT JOIN state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
+JOIN pools_with_tokens AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
+LEFT JOIN metadata AS m0 ON {network: String} = m0.network AND pt.token0 = m0.contract
+LEFT JOIN metadata AS m1 ON {network: String} = m1.network AND pt.token1 = m1.contract
 ORDER BY p.transactions DESC
