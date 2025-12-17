@@ -1,10 +1,11 @@
 SELECT
-    protocol,
     factory,
+    protocol,
     /* count() as pools, */
     max(max_timestamp) as last_activity,
     sum(transactions) as transactions,
-    uniqMerge(uniq_tx_from) as uaw
+    uniqMerge(uniq_tx_from) as uaw,
+    {network: String} AS network
 FROM state_pools_aggregating_by_pool
 GROUP BY
     protocol,

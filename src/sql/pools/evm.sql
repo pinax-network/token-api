@@ -47,6 +47,7 @@ SELECT
     p.pool AS pool,
     p.factory AS factory,
     p.protocol AS protocol,
+
     /* tokens */
     CAST ((
         pt.token0,
@@ -61,7 +62,10 @@ SELECT
     ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
 
     /* Fees */
-    f.fee AS fee
+    f.fee AS fee,
+
+    /* Network */
+    {network: String} AS network
 FROM pools AS p
 LEFT JOIN state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
 JOIN pools_with_tokens AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol

@@ -29,6 +29,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             transactions: z.number(),
             uaw: z.number(),
             last_activity: dateTimeSchema,
+            network: tvmNetworkIdSchema,
         })
     ),
 });
@@ -54,7 +55,8 @@ const openapi = describeRoute(
                                             "factory": "TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF",
                                             "last_activity": "2025-12-16 05:16:18",
                                             "transactions": 48269088,
-                                            "uaw": 2848148
+                                            "uaw": 2848148,
+                                            "network": "tron"
                                         },
                                     ],
                                 },

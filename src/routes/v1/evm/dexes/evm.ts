@@ -28,6 +28,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             uaw: z.number(),
             transactions: z.number(),
             last_activity: z.string().describe('ISO 8601 datetime string'),
+            network: evmNetworkIdSchema,
         })
     ),
 });
@@ -54,6 +55,7 @@ const openapi = describeRoute(
                                             uaw: 10432787,
                                             transactions: 16029788,
                                             last_activity: '2025-11-06 16:00:00',
+                                            network: 'mainnet'
                                         },
                                     ],
                                 },

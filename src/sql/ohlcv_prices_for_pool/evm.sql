@@ -1,9 +1,10 @@
 WITH ohlc AS (
     SELECT
+        /* Time */
         timestamp AS datetime,
-        CONCAT(m0.symbol, m1.symbol) AS ticker,
 
         /* DEX identity */
+        CONCAT(m0.symbol, m1.symbol) AS ticker,
         pool,
 
         /* OHLC */
@@ -43,14 +44,22 @@ WITH ohlc AS (
     OFFSET  {offset:UInt64}
 )
 SELECT
+    /* Time */
     datetime,
+
+    /* DEX identity */
     ticker,
     pool,
+
+    /* OHLC */
     if(is_stablecoin, 1/open_raw, open_raw) AS open,
     if(is_stablecoin, 1/low_raw, high_raw) AS high,
     if(is_stablecoin, 1/high_raw, low_raw) AS low,
     if(is_stablecoin, 1/close_raw, close_raw) AS close,
     volume,
     uaw,
-    transactions
+    transactions,
+
+    /* Network */
+    {network: String} AS network,
 FROM ohlc

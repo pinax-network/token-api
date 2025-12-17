@@ -40,6 +40,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             volume: z.number(),
             uaw: z.number(),
             transactions: z.number(),
+            network: evmNetworkIdSchema,
         })
     ),
 });
@@ -72,6 +73,7 @@ const openapi = describeRoute(
                                             volume: 32956701.586648002,
                                             uaw: 1363,
                                             transactions: 3066,
+                                            network: 'mainnet'
                                         },
                                     ],
                                 },
