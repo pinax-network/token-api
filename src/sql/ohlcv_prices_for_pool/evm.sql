@@ -61,5 +61,5 @@ SELECT
     transactions,
 
     /* Network */
-    {network: String} AS network,
+    {network: String} AS network
 FROM ohlc
