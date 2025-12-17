@@ -179,6 +179,6 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
-LEFT JOIN metadata AS m1 ON s.input_contract = m1.contract
-LEFT JOIN metadata AS m2 ON s.output_contract = m2.contract
+LEFT JOIN metadata AS m1 ON {network: String} = m1.network AND s.input_contract = m1.contract
+LEFT JOIN metadata AS m2 ON {network: String} = m2.network AND s.output_contract = m2.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
