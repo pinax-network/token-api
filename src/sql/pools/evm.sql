@@ -67,8 +67,8 @@ SELECT
     /* Network */
     {network: String} AS network
 FROM pools AS p
-LEFT JOIN state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
+ANY LEFT JOIN state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
 JOIN pools_with_tokens AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
-LEFT JOIN metadata AS m0 ON {network: String} = m0.network AND pt.token0 = m0.contract
-LEFT JOIN metadata AS m1 ON {network: String} = m1.network AND pt.token1 = m1.contract
+ANY LEFT JOIN metadata AS m0 ON {network: String} = m0.network AND pt.token0 = m0.contract
+ANY LEFT JOIN metadata AS m1 ON {network: String} = m1.network AND pt.token1 = m1.contract
 ORDER BY p.transactions DESC
