@@ -6,10 +6,10 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
-    EVM_CONTRACT_USDC_EXAMPLE,
-    EVM_CONTRACT_WETH_EXAMPLE,
-    EVM_FACTORY_UNISWAP_V3_EXAMPLE,
-    EVM_POOL_USDC_WETH_EXAMPLE,
+    TVM_CONTRACT_USDT_EXAMPLE,
+    TVM_CONTRACT_WTRX_EXAMPLE,
+    TVM_FACTORY_SUNSWAP_EXAMPLE,
+    TVM_POOL_USDT_WTRX_EXAMPLE,
 } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -20,8 +20,11 @@ import {
     evmPoolSchema,
     evmProtocolSchema,
     evmTokenResponseSchema,
+    tvmContractSchema,
     tvmFactorySchema,
     tvmNetworkIdSchema,
+    tvmPoolSchema,
+    tvmProtocolSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
@@ -32,22 +35,22 @@ const querySchema = createQuerySchema({
         schema: tvmFactorySchema,
         batched: true,
         default: '',
-        meta: { example: EVM_FACTORY_UNISWAP_V3_EXAMPLE },
+        meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE },
     },
-    pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
+    pool: { schema: tvmPoolSchema, batched: true, default: '', meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
     input_token: {
-        schema: evmContractSchema,
+        schema: tvmContractSchema,
         batched: true,
         default: '',
-        meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
+        meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
     },
     output_token: {
-        schema: evmContractSchema,
+        schema: tvmContractSchema,
         batched: true,
         default: '',
-        meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
+        meta: { example: TVM_CONTRACT_WTRX_EXAMPLE },
     },
-    protocol: { schema: evmProtocolSchema, default: '' },
+    protocol: { schema: tvmProtocolSchema, default: '' },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
