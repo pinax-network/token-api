@@ -15,12 +15,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: tvmNetworkIdSchema },
-    },
-    false // Disable pagination for this endpoint, return all results in one go
-);
+const querySchema = createQuerySchema({
+    network: { schema: tvmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -30,6 +27,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             transactions: z.number(),
             uaw: z.number(),
             last_activity: dateTimeSchema,
+            network: tvmNetworkIdSchema,
         })
     ),
 });
@@ -51,11 +49,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
+                                            protocol: 'uniswap_v1',
                                             factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
-                                            protocol: 'justswap',
-                                            transactions: 47301451,
-                                            uaw: 2562671,
-                                            last_activity: '2025-11-03 00:00:00',
+                                            last_activity: '2025-12-16 05:16:18',
+                                            transactions: 48269088,
+                                            uaw: 2848148,
+                                            network: 'tron',
                                         },
                                     ],
                                 },

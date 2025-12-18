@@ -40,13 +40,14 @@ const responseSchema = apiUsageResponseSchema.extend({
             volume: z.number(),
             uaw: z.number(),
             transactions: z.number(),
+            network: tvmNetworkIdSchema,
         })
     ),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Pool OHLCV Data',
+        summary: 'Pool OHLCV',
         description:
             'Returns OHLCV price data for liquidity pools.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['TVM DEXs'],
@@ -72,6 +73,7 @@ const openapi = describeRoute(
                                             volume: 15584135805763,
                                             uaw: 10,
                                             transactions: 102081,
+                                            network: 'tron',
                                         },
                                     ],
                                 },
@@ -90,10 +92,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
-    // this DB is used to fetch token metadata (symbol, name, decimals)
-    const db_tvm_tokens = config.tokenDatabases[params.network];
 
-    if (!dbConfig || !db_tvm_tokens) {
+    if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
@@ -105,10 +105,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            high_quantile: 1 - config.ohlcQuantile,
-            low_quantile: config.ohlcQuantile,
             stablecoin_contracts: [...stables],
-            db_tvm_tokens: db_tvm_tokens.database,
         },
         { database: dbConfig.database }
     );

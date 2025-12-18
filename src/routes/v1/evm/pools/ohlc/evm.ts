@@ -40,13 +40,14 @@ const responseSchema = apiUsageResponseSchema.extend({
             volume: z.number(),
             uaw: z.number(),
             transactions: z.number(),
+            network: evmNetworkIdSchema,
         })
     ),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Pool OHLCV Data',
+        summary: 'Pool OHLCV',
         description:
             'Returns OHLCV price data for liquidity pools.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['EVM DEXs'],
@@ -72,6 +73,7 @@ const openapi = describeRoute(
                                             volume: 32956701.586648002,
                                             uaw: 1363,
                                             transactions: 3066,
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },
@@ -90,6 +92,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbConfig = config.uniswapDatabases[params.network];
+
     if (!dbConfig) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
@@ -101,8 +104,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            high_quantile: 1 - config.ohlcQuantile,
-            low_quantile: config.ohlcQuantile,
             stablecoin_contracts: [...stables],
         },
         { database: dbConfig.database }

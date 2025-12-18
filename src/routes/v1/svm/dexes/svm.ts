@@ -14,12 +14,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: svmNetworkIdSchema },
-    },
-    false // Disable pagination for this endpoint, return all results in one go
-);
+const querySchema = createQuerySchema({
+    network: { schema: svmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(

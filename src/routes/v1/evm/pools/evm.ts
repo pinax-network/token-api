@@ -51,20 +51,27 @@ const querySchema = createQuerySchema({
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
-            // -- block --
+            // // -- block --
             // block_num: z.number(),
             // datetime: dateTimeSchema,
+            // timestamp: z.number(),
 
-            // -- transaction --
+            // // -- transaction --
             // transaction_id: z.string(),
 
             // -- pool --
-            factory: evmFactorySchema,
             pool: evmPoolSchema,
+            factory: evmFactorySchema,
+            protocol: evmProtocolSchema,
+
+            // -- tokens --
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
-            fee: z.number(),
-            protocol: evmProtocolSchema,
+
+            // // -- stats --
+            // transactions: z.number(),
+            // uaw: z.number(),
+            // fee: z.number(),
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -75,7 +82,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
+        description: 'Returns DEX pool metadata including tokens, fees and protocol.',
 
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -90,8 +97,9 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
                                             pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+                                            protocol: 'uniswap_v3',
                                             input_token: {
                                                 address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
                                                 symbol: 'USDC',
@@ -103,7 +111,6 @@ const openapi = describeRoute(
                                                 decimals: 18,
                                             },
                                             fee: 500,
-                                            protocol: 'uniswap_v3',
                                             network: 'mainnet',
                                         },
                                     ],

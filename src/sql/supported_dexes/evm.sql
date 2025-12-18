@@ -1,10 +1,15 @@
 SELECT
-    toString(factory) AS factory,
+    factory,
     protocol,
-    sum(uaw) AS uaw,
-    sum(transactions) AS transactions,
-    max(timestamp) as last_activity
-FROM pool_activity_summary
+    /* count() as pools, */
+    max(max_timestamp) as last_activity,
+    sum(transactions) as transactions,
+    uniqMerge(uniq_tx_from) as uaw,
+    {network: String} AS network
+FROM state_pools_aggregating_by_pool
 GROUP BY
-    factory, protocol
-ORDER BY transactions DESC, uaw DESC, protocol, factory
+    protocol,
+    factory
+ORDER BY transactions DESC
+LIMIT   {limit:UInt64}
+OFFSET  {offset:UInt64}

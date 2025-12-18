@@ -51,7 +51,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Pool OHLCV Data',
+        summary: 'Pool OHLCV',
         description: 'Provides pricing data in the Open/High/Low/Close/Volume (OHCLV) format for DEX pools.',
         tags: ['SVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -113,8 +113,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         [query],
         {
             ...params,
-            high_quantile: 0.95,
-            low_quantile: 0.05,
             stablecoin_contracts: [...stables],
             db_svm_tokens: db_svm_tokens.database,
         },

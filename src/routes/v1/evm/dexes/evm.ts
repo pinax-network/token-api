@@ -14,12 +14,9 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: evmNetworkIdSchema },
-    },
-    false // Disable pagination for this endpoint, return all results in one go
-);
+const querySchema = createQuerySchema({
+    network: { schema: evmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -29,6 +26,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             uaw: z.number(),
             transactions: z.number(),
             last_activity: z.string().describe('ISO 8601 datetime string'),
+            network: evmNetworkIdSchema,
         })
     ),
 });
@@ -55,6 +53,7 @@ const openapi = describeRoute(
                                             uaw: 10432787,
                                             transactions: 16029788,
                                             last_activity: '2025-11-06 16:00:00',
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },

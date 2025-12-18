@@ -6,46 +6,50 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
-    EVM_CONTRACT_USDC_EXAMPLE,
-    EVM_CONTRACT_WETH_EXAMPLE,
-    EVM_FACTORY_UNISWAP_V3_EXAMPLE,
-    EVM_POOL_USDC_WETH_EXAMPLE,
+    TVM_CONTRACT_USDT_EXAMPLE,
+    TVM_CONTRACT_WTRX_EXAMPLE,
+    TVM_FACTORY_SUNSWAP_EXAMPLE,
+    TVM_POOL_USDT_WTRX_EXAMPLE,
 } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
-    evmContractSchema,
     evmFactorySchema,
     evmNetworkIdSchema,
     evmPoolSchema,
     evmProtocolSchema,
     evmTokenResponseSchema,
+    tvmContractSchema,
+    tvmFactorySchema,
+    tvmNetworkIdSchema,
+    tvmPoolSchema,
+    tvmProtocolSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
+    network: { schema: tvmNetworkIdSchema },
 
     factory: {
-        schema: evmFactorySchema,
+        schema: tvmFactorySchema,
         batched: true,
         default: '',
-        meta: { example: EVM_FACTORY_UNISWAP_V3_EXAMPLE },
+        meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE },
     },
-    pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
+    pool: { schema: tvmPoolSchema, batched: true, default: '', meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
     input_token: {
-        schema: evmContractSchema,
+        schema: tvmContractSchema,
         batched: true,
         default: '',
-        meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
+        meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
     },
     output_token: {
-        schema: evmContractSchema,
+        schema: tvmContractSchema,
         batched: true,
         default: '',
-        meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
+        meta: { example: TVM_CONTRACT_WTRX_EXAMPLE },
     },
-    protocol: { schema: evmProtocolSchema, default: '' },
+    protocol: { schema: tvmProtocolSchema, default: '' },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -75,9 +79,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Liquidity Pools',
-        description: 'Returns Uniswap liquidity pool metadata including token pairs, fees, and protocol versions.',
-
-        tags: ['EVM DEXs'],
+        description: 'Returns DEX pool metadata including tokens, fees and protocol.',
+        tags: ['TVM DEXs'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -90,21 +93,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
-                                            pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+                                            pool: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
+                                            factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
+                                            protocol: 'uniswap_v1',
                                             input_token: {
-                                                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                                                symbol: 'USDC',
+                                                address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+                                                symbol: 'TRX',
                                                 decimals: 6,
                                             },
                                             output_token: {
-                                                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                                symbol: 'WETH',
-                                                decimals: 18,
+                                                address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                                                symbol: 'USDT',
+                                                decimals: 6,
                                             },
-                                            fee: 500,
-                                            protocol: 'uniswap_v3',
-                                            network: 'mainnet',
+                                            fee: 3000,
+                                            network: 'tron',
                                         },
                                     ],
                                 },

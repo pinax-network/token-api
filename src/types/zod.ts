@@ -129,7 +129,7 @@ export const tvmNetworkIdSchema = z
 // ----------------------
 
 export const evmProtocolSchema = z
-    .enum(['uniswap_v2', 'uniswap_v3', 'uniswap_v4'])
+    .enum(['uniswap_v1', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4', 'bancor', 'curvefi', 'balancer'])
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 
 export const svmProtocolSchema = z
@@ -137,8 +137,8 @@ export const svmProtocolSchema = z
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const tvmProtocolSchema = z
-    .enum(['justswap', 'sunswap', 'sunpump'])
-    .meta({ description: 'Protocol name', example: 'sunswap' });
+    .enum(['uniswap_v1', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4', 'sunpump'])
+    .meta({ description: 'Protocol name', example: 'uniswap_v2' });
 
 // ----------------------
 // Common Query Parameter Schemas
