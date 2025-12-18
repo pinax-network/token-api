@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.0
+
+### Minor Changes
+
+- e81a1f7: Updated SQL queries for svm-tokens@v0.2.8, svm-dex@v0.3.1, tvm-tokens@v0.2.0, evm-dex@v0.2.5, evm-tokens@v1.17.4
+
 ## 3.6.3
 
 ### Patch Changes
