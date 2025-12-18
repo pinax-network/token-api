@@ -5,6 +5,8 @@
 ### Minor Changes
 
 - e81a1f7: Updated SQL queries for svm-tokens@v0.2.8, svm-dex@v0.3.1, tvm-tokens@v0.2.0, evm-dex@v0.2.5, evm-tokens@v1.17.4
+- e81a1f7: Added new EVM protocols: `curve`, `balancer`, `bancor`, `uniswap_v1`
+- e81a1f7: Added `/tvm/pools` endpoint
 
 ## 3.6.3
 
