@@ -4,12 +4,10 @@ WITH
 arrayFilter(x -> x != '', {transaction_id:Array(String)}) AS tx_ids,
 arrayFilter(x -> x != '', {from_address:Array(String)}) AS from_addresses,
 arrayFilter(x -> x != '', {to_address:Array(String)}) AS to_addresses,
-arrayFilter(x -> x != '', {contract:Array(String)}) AS contracts,
 
 (length(tx_ids) > 0) AS has_tx_hash,
 (length(from_addresses) > 0) AS has_from,
 (length(to_addresses) > 0) AS has_to,
-(length(contracts) > 0) AS has_contract,
 
 toRelativeMinuteNum(toDateTime({start_time:UInt64})) AS start_minute,
 toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
@@ -21,20 +19,19 @@ toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
 /* timestamp filter */
 tx_hash_timestamps AS (
     SELECT (minute, timestamp)
-    FROM erc20_transfers
+    FROM transactions
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY minute, timestamp
 ),
 /* minute filters */
 minutes AS (
     SELECT minute
-    FROM erc20_transfers
+    FROM transactions
     WHERE
             (no_start_time OR minute >= start_minute)
         AND (no_end_time OR minute <= end_minute)
-        AND (NOT has_from OR `from` IN {from_address:Array(String)} )
-        AND (NOT has_to OR `to` IN {to_address:Array(String)} )
-        AND (NOT has_contract OR log_address IN {contract:Array(String)} )
+        AND (NOT has_from OR `tx_from` IN {from_address:Array(String)} )
+        AND (NOT has_to OR `tx_to` IN {to_address:Array(String)} )
 
     GROUP BY minute
     /* TO-DO only do LIMIT if no_start_block and no_end_block */
@@ -44,7 +41,7 @@ minutes AS (
 
 filtered_transfers AS (
     SELECT *
-    FROM erc20_transfers
+    FROM transactions
     WHERE
         /* direct minutes */
         /* PRIMARY KEY */
@@ -57,7 +54,7 @@ filtered_transfers AS (
 
         /* minute filters */
         /* PRIMARY KEY */
-        AND ( NOT (has_from OR has_to OR has_contract) OR minute IN minutes )
+        AND ( NOT (has_from OR has_to) OR minute IN minutes )
 
         /* timestamp and block_num filters */
         /* SECONDARY PRIMARY KEY */
@@ -68,11 +65,10 @@ filtered_transfers AS (
 
         /* direct filters */
         /* NON-PRIMARY KEY */
-        AND ( NOT has_from OR `from` IN {from_address:Array(String)} )
-        AND ( NOT has_to OR `to` IN {to_address:Array(String)} )
-        AND ( NOT has_contract OR log_address IN {contract:Array(String)} )
+        AND ( NOT has_from OR `tx_from` IN {from_address:Array(String)} )
+        AND ( NOT has_to OR `tx_to` IN {to_address:Array(String)} )
 
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -86,18 +82,16 @@ SELECT
     toString(t.tx_hash) as transaction_id,
     tx_index AS transaction_index,
 
-    /* log */
-    log_index,
-    log_ordinal,
-    log_address AS contract,
+    /* call */
+    /* call_index AS call_index, */
 
     /* transfer */
-    `from`,
-    `to`,
-    toString(t.amount) AS amount,
+    `tx_from` as `from`,
+    `tx_to` as `to`,
+    toString(t.tx_value) AS amount,
 
     /* token metadata */
-    t.amount / pow(10, decimals) AS value,
+    t.tx_value / pow(10, decimals) AS value,
     name,
     symbol,
     decimals,
@@ -105,5 +99,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata m ON m.network = {network:String} AND m.contract = t.log_address
-ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
+LEFT JOIN metadata m ON m.network = {network:String} AND m.contract = ''
+ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC;
