@@ -157,11 +157,19 @@ export const pageSchema = z.coerce
     .optional()
     .meta({ description: 'Page number to fetch.<br>Empty `data` array signifies end of results.' });
 
-const intervals = ['1h', '4h', '1d', '1w'] as const;
+const intervals = ['1m', '5m', '10m', '30m', '1h', '4h', '1d', '1w'] as const;
 export const intervalSchema = z
     .enum(intervals)
     .transform((interval: string, ctx) => {
         switch (interval) {
+            case '1m':
+                return 1;
+            case '5m':
+                return 5;
+            case '10m':
+                return 10;
+            case '30m':
+                return 30;
             case '1h':
                 return 60;
             case '4h':
