@@ -139,7 +139,7 @@ SELECT
     toString(s.factory) AS factory,
     s.pool AS pool,
     s.tx_from AS caller,
-    s.user AS sender,
+    s.tx_from AS sender,
     s.user AS recipient,
 
     /* tokens */
