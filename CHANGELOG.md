@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.2
+
+### Patch Changes
+
+- 830834f: Fix wrong `sender` field value for swaps
+
 ## 3.7.0
 
 ### Minor Changes
