@@ -89,9 +89,11 @@ async function validateNetworks() {
         if (
             !dbs.find(
                 (db) =>
-                    db.name === config.tokenDatabases[network]?.database ||
+                    db.name === config.balancesDatabases[network]?.database ||
+                    db.name === config.transfersDatabases[network]?.database ||
+                    db.name === config.metadataDatabases[network]?.database ||
                     db.name === config.nftDatabases[network]?.database ||
-                    db.name === config.uniswapDatabases[network]?.database
+                    db.name === config.dexDatabases[network]?.database
             )
         ) {
             throw new Error(`Databases for ${network} not found`);

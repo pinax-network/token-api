@@ -79,9 +79,11 @@ The Token API provides access to onchain NFT and fungible token data, including 
    MAX_LIMIT=10000
 
    # Database Sources (Substreams packages)
-   DBS_TOKEN=mainnet:evm-tokens@v1.14.0
+   DBS_BALANCES=mainnet:evm-balances@v1.14.0
+   DBS_TRANSFERS=mainnet:evm-transfers@v1.14.0
+   DBS_METADATA=mainnet:evm-metadata@v1.14.0
    DBS_NFT=mainnet:evm-nft-tokens@v0.5.1
-   DBS_UNISWAP=mainnet:evm-uniswaps@v0.1.5
+   DBS_DEX=mainnet:evm-uniswaps@v0.1.5
 
    # OpenAPI Configuration
    DISABLE_OPENAPI_SERVERS=false
@@ -113,9 +115,11 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `USERNAME` | ClickHouse username | `default` | Yes |
 | `PASSWORD` | ClickHouse password | | No |
 | `MAX_LIMIT` | Maximum query result limit | `10000` | No |
-| `DBS_TOKEN` | Token data source | | Yes |
+| `DBS_BALANCES` | Balances data source | | Yes |
+| `DBS_TRANSFERS` | Transfers data source | | Yes |
+| `DBS_METADATA` | Token metadata data source | | Yes |
 | `DBS_NFT` | NFT data source | | Yes |
-| `DBS_UNISWAP` | DEX data source | | Yes |
+| `DBS_DEX` | DEX data source | | Yes |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
 | `PRETTY_LOGGING` | Enable pretty console logging | `true` | No |
 | `VERBOSE` | Enable verbose logging | `true` | No |
