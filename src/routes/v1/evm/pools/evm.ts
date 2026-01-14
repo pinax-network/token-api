@@ -129,14 +129,20 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.dexDatabases[params.network];
-    if (!dbConfig) {
+    const dbDex = config.dexDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
+
+    if (!dbDex || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.pools?.[dbConfig.type];
+    const query = sqlQueries.pools?.[dbDex.type];
     if (!query) return c.json({ error: 'Query for pools could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_dex: dbDex.database,
+        db_metadata: dbMetadata.database,
+    });
     return handleUsageQueryError(c, response);
 });
 

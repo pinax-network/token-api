@@ -14,35 +14,35 @@ active_filters AS
 minutes_union AS
 (
     SELECT minute
-    FROM transfers_by_signature
+    FROM {db_transfers:Identifier}.transfers_by_signature
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_source
+    FROM {db_transfers:Identifier}.transfers_by_source
     WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_destination
+    FROM {db_transfers:Identifier}.transfers_by_destination
     WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_authority
+    FROM {db_transfers:Identifier}.transfers_by_authority
     WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_mint
+    FROM {db_transfers:Identifier}.transfers_by_mint
     WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
     ORDER BY minute DESC
 ),
@@ -64,7 +64,7 @@ filtered_minutes AS
 /* Latest ingested timestamp in source table */
 latest_ts AS
 (
-    SELECT max(timestamp) AS ts FROM transfers
+    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.transfers
 ),
 filtered_transfers AS
 (
@@ -86,7 +86,7 @@ filtered_transfers AS
             WHEN decimals IS NOT NULL THEN pow(10, decimals)
             ELSE 1
         END AS value
-    FROM transfers t
+    FROM {db_transfers:Identifier}.transfers t
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
@@ -128,10 +128,10 @@ spl_metadata AS
         if(empty(uri), NULL, uri) AS uri
     FROM (
         SELECT mint, name, symbol, uri
-        FROM metadata_view
+        FROM {db_metadata:Identifier}.metadata_view
         WHERE metadata IN (
             SELECT metadata
-            FROM metadata_mint_state
+            FROM {db_metadata:Identifier}.metadata_mint_state
             WHERE mint IN (SELECT mint FROM spl_mints)
             GROUP BY metadata
         )

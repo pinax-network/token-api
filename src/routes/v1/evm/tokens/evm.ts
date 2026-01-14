@@ -104,17 +104,27 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.metadataDatabases[params.network];
-    if (!dbConfig) {
+    const dbBalances = config.balancesDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
+
+    if (!dbBalances || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbConfig.type];
+    const query = sqlQueries.tokens_for_contract?.[dbMetadata.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, {
-        database: dbConfig.database,
-        clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
-    });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        {
+            ...params,
+            db_balances: dbBalances.database,
+            db_metadata: dbMetadata.database,
+        },
+        {
+            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
+        }
+    );
     injectSymbol(response, params.network, true);
     injectIcons(response);
     return handleUsageQueryError(c, response);

@@ -1,7 +1,7 @@
 WITH erc721 AS (
     WITH (
         SELECT count()
-        FROM erc721_owners FINAL
+        FROM {db_nft:Identifier}.erc721_owners FINAL
         WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
@@ -12,14 +12,14 @@ WITH erc721 AS (
         uniq(token_id) AS unique_tokens,
         100 * quantity / total_supply AS percentage,
         {network:String} AS network
-    FROM erc721_owners AS o FINAL
+    FROM {db_nft:Identifier}.erc721_owners AS o FINAL
     WHERE o.contract = {contract:String}
     GROUP BY owner
 ),
 erc1155 AS (
     WITH (
         SELECT sum(balance) AS supply
-        FROM erc1155_balances FINAL
+        FROM {db_nft:Identifier}.erc1155_balances FINAL
         WHERE contract = {contract:String}
     ) AS total_supply
     SELECT
@@ -30,7 +30,7 @@ erc1155 AS (
         uniq(token_id) AS unique_tokens,
         100 * quantity / total_supply AS percentage,
         {network:String} AS network
-    FROM erc1155_balances AS b FINAL
+    FROM {db_nft:Identifier}.erc1155_balances AS b FINAL
     WHERE b.contract = {contract:String}
     GROUP BY owner
 ),

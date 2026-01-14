@@ -18,7 +18,7 @@ WITH ohlc AS
         uniqMerge(uaw) AS uaw,
         sum(transactions) AS transactions,
         token0 IN {stablecoin_contracts:Array(String)} AS is_stablecoin
-    FROM ohlc_prices AS o
+    FROM {db_dex:Identifier}.ohlc_prices AS o
     WHERE amm_pool = {amm_pool:String}
     AND timestamp >= today() - toIntervalMinute(({offset:UInt64} + {limit:UInt64} - 1) * {interval:UInt64})
     AND timestamp <= today() - toIntervalMinute({offset:UInt64} * {interval:UInt64})
@@ -30,12 +30,12 @@ SELECT
     amm_pool,
     token0,
     coalesce(
-        (SELECT decimals FROM {db_svm_tokens:Identifier}.decimals_state WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
+        (SELECT decimals FROM {db_metadata:Identifier}.decimals_state WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
         9
     ) AS token0_decimals,
     token1,
     coalesce(
-        (SELECT decimals FROM {db_svm_tokens:Identifier}.decimals_state WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
+        (SELECT decimals FROM {db_metadata:Identifier}.decimals_state WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
         9
     ) AS token1_decimals,
     pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/open_raw, open_raw) AS open,

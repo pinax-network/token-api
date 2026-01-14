@@ -91,23 +91,22 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.dexDatabases[params.network];
+    const dbDex = config.dexDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbConfig) {
+    if (!dbDex || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.ohlcv_prices_for_pool?.[dbConfig.type];
+
+    const query = sqlQueries.ohlcv_prices_for_pool?.[dbDex.type];
     if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        {
-            ...params,
-            stablecoin_contracts: [...stables],
-        },
-        { database: dbConfig.database }
-    );
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        stablecoin_contracts: [...stables],
+        db_dex: dbDex.database,
+        db_metadata: dbMetadata.database,
+    });
     return handleUsageQueryError(c, response);
 });
 

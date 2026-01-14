@@ -13,10 +13,10 @@ WITH erc721 AS (
             'ERC721' AS token_standard,
             contract,
             owner,
-        FROM erc721_owners
+        FROM {db_nft:Identifier}.erc721_owners
         WHERE owner IN {address:Array(String)} AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
     ) AS o
-    LEFT JOIN erc721_metadata_by_contract AS m USING (contract)
+    LEFT JOIN {db_nft:Identifier}.erc721_metadata_by_contract AS m USING (contract)
 ),
 erc1155 AS (
     SELECT DISTINCT
@@ -33,12 +33,12 @@ erc1155 AS (
             'ERC1155' AS token_standard,
             contract,
             owner,
-        FROM erc1155_balances
+        FROM {db_nft:Identifier}.erc1155_balances
         WHERE owner IN {address:Array(String)}
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
         AND (balance > 0 OR {include_null_balances:Bool})
     ) AS o
-    LEFT JOIN erc1155_metadata_by_contract AS m USING (contract)
+    LEFT JOIN {db_nft:Identifier}.erc1155_metadata_by_contract AS m USING (contract)
 ),
 combined AS (
     SELECT * FROM erc721

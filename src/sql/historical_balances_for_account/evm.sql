@@ -11,7 +11,7 @@ ohlc AS (
         max(high) AS high_raw,
         min(low) AS low_raw,
         argMax(close, timestamp) AS close_raw
-    FROM historical_balances
+    FROM {db_balances:Identifier}.historical_balances
     WHERE
         address = {address:String}
         AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
@@ -42,7 +42,7 @@ metadata AS
             mv.symbol
         ) AS symbol,
         decimals
-    FROM metadata_view AS mv
+    FROM {db_metadata:Identifier}.metadata_view AS mv
     WHERE contract IN (
         SELECT contract
         FROM ohlc

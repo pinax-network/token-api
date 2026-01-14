@@ -1,12 +1,12 @@
 WITH
 output_pools AS (
     SELECT DISTINCT pool
-    FROM state_pools_aggregating_by_token
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_token
     WHERE token IN {output_token:Array(String)}
 ),
 input_pools AS (
     SELECT DISTINCT pool
-    FROM state_pools_aggregating_by_token
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_token
     WHERE token IN {input_token:Array(String)}
 ),
 pools AS (
@@ -15,7 +15,7 @@ pools AS (
         factory,
         protocol,
         sum(transactions) as transactions
-    FROM state_pools_aggregating_by_pool
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
     WHERE
         ({input_token:Array(String)} = [''] OR pool IN input_pools)
     AND ({output_token:Array(String)} = [''] OR pool IN output_pools)
@@ -38,7 +38,7 @@ pools_with_tokens AS (
         arrayElement(tokens, 1) AS token0,
         arrayElement(tokens, 2) AS token1
 
-    FROM state_pools_aggregating_by_token AS pt
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_token AS pt
     JOIN pools AS p ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
     GROUP BY pool, factory, protocol
 )
@@ -67,8 +67,8 @@ SELECT
     /* Network */
     {network: String} AS network
 FROM pools AS p
-ANY LEFT JOIN state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
+ANY LEFT JOIN {db_dex:Identifier}.state_pools_fees AS f ON p.pool = f.pool AND p.factory = f.factory AND p.protocol = f.protocol
 JOIN pools_with_tokens AS pt ON p.pool = pt.pool AND p.factory = pt.factory AND p.protocol = pt.protocol
-ANY LEFT JOIN metadata AS m0 ON {network: String} = m0.network AND pt.token0 = m0.contract
-ANY LEFT JOIN metadata AS m1 ON {network: String} = m1.network AND pt.token1 = m1.contract
+ANY LEFT JOIN {db_metadata:Identifier}.metadata AS m0 ON {network: String} = m0.network AND pt.token0 = m0.contract
+ANY LEFT JOIN {db_metadata:Identifier}.metadata AS m1 ON {network: String} = m1.network AND pt.token1 = m1.contract
 ORDER BY p.transactions DESC

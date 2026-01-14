@@ -18,20 +18,20 @@ toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
 
 tx_hash_timestamps AS (
     SELECT (minute, timestamp)
-    FROM native_transfer
+    FROM {db_transfers:Identifier}.native_transfer
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY minute, timestamp
 ),
 /* minute filters */
 from_minutes AS (
     SELECT minute
-    FROM native_transfer
+    FROM {db_transfers:Identifier}.native_transfer
     WHERE has_from AND `from` IN {from_address:Array(String)}
     GROUP BY minute
 ),
 to_minutes AS (
     SELECT minute
-    FROM native_transfer
+    FROM {db_transfers:Identifier}.native_transfer
     WHERE has_to AND `to` IN {to_address:Array(String)}
     GROUP BY minute
 )
@@ -58,7 +58,7 @@ SELECT
 
     /* network */
     {network:String} AS network
-FROM native_transfer AS t
+FROM {db_transfers:Identifier}.native_transfer AS t
 WHERE
     /* direct minutes */
         (no_start_time OR minute >= start_minute)

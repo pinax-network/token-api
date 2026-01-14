@@ -16,49 +16,49 @@ active_filters AS
 minutes_union AS
 (
     SELECT minute
-    FROM swaps_by_signature
+    FROM {db_dex:Identifier}.swaps_by_signature
     WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_amm
+    FROM {db_dex:Identifier}.swaps_by_amm
     WHERE ({amm:Array(String)} != [''] AND amm IN {amm:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_amm_pool
+    FROM {db_dex:Identifier}.swaps_by_amm_pool
     WHERE ({amm_pool:Array(String)} != [''] AND amm_pool IN {amm_pool:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_user
+    FROM {db_dex:Identifier}.swaps_by_user
     WHERE ({user:Array(String)} != [''] AND user IN {user:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_input_mint
+    FROM {db_dex:Identifier}.swaps_by_input_mint
     WHERE ({input_mint:Array(String)} != [''] AND input_mint IN {input_mint:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_output_mint
+    FROM {db_dex:Identifier}.swaps_by_output_mint
     WHERE ({output_mint:Array(String)} != [''] AND output_mint IN {output_mint:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM swaps_by_program_id
+    FROM {db_dex:Identifier}.swaps_by_program_id
     WHERE ({program_id:Array(String)} != [''] AND program_id IN {program_id:Array(String)})
     ORDER BY minute DESC
 ),
@@ -80,7 +80,7 @@ filtered_minutes AS
 /* Latest ingested timestamp in source table */
 latest_ts AS
 (
-    SELECT max(timestamp) AS ts FROM swaps
+    SELECT max(timestamp) AS ts FROM {db_dex:Identifier}.swaps
 ),
 filtered_swaps AS
 (
@@ -99,7 +99,7 @@ filtered_swaps AS
         input_amount,
         output_mint,
         output_amount
-    FROM swaps s
+    FROM {db_dex:Identifier}.swaps s
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}

@@ -2,7 +2,7 @@ WITH accounts AS (
     SELECT DISTINCT
         owner,
         argMax(account, o.block_num) AS account
-    FROM owner_state AS o
+    FROM {db_balances:Identifier}.owner_state AS o
     WHERE ({token_account:Array(String)} = [''] or o.account IN {token_account:Array(String)})
       AND owner IN {owner:Array(String)}
     GROUP BY owner, o.account
@@ -18,7 +18,7 @@ filtered_balances AS
         argMax(amount, b.block_num) AS amount,
         mint,
         any(decimals) AS decimals
-    FROM balances AS b
+    FROM {db_balances:Identifier}.balances AS b
     LEFT JOIN accounts USING account
     WHERE ({mint:Array(String)} == [''] OR mint IN {mint:Array(String)})
         AND account IN (SELECT account FROM accounts)
@@ -36,10 +36,10 @@ metadata AS
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state
+        FROM {db_metadata:Identifier}.metadata_mint_state
         WHERE mint IN (SELECT mint FROM filtered_balances)
         GROUP BY metadata
     )

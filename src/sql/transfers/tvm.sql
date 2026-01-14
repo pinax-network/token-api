@@ -20,14 +20,14 @@ toRelativeMinuteNum(toDateTime({end_time:UInt64})) AS end_minute,
 
 tx_hash_timestamps AS (
     SELECT (minute, timestamp)
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE has_tx_hash AND tx_hash IN {transaction_id:Array(String)}
     GROUP BY minute, timestamp
 ),
 /* minute filters */
 from_minutes AS (
     SELECT minute
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE has_from AND NOT has_contract
         AND (no_start_time OR minute >= start_minute)
         AND (no_end_time OR minute <= end_minute)
@@ -37,7 +37,7 @@ from_minutes AS (
 ),
 to_minutes AS (
     SELECT minute
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE has_to AND NOT has_contract
         AND (no_start_time OR minute >= start_minute)
         AND (no_end_time OR minute <= end_minute)
@@ -47,7 +47,7 @@ to_minutes AS (
 ),
 contract_minutes AS (
     SELECT minute
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE has_contract AND NOT has_from AND NOT has_to
         AND (no_start_time OR minute >= start_minute)
         AND (no_end_time OR minute <= end_minute)
@@ -58,7 +58,7 @@ contract_minutes AS (
 contract_from_minutes AS (
     SELECT * FROM (
         SELECT minute
-        FROM trc20_transfer
+        FROM {db_transfers:Identifier}.trc20_transfer
         WHERE has_contract AND has_from
             AND (no_start_time OR minute >= start_minute)
             AND (no_end_time OR minute <= end_minute)
@@ -68,7 +68,7 @@ contract_from_minutes AS (
         INTERSECT ALL
 
         SELECT minute
-        FROM trc20_transfer
+        FROM {db_transfers:Identifier}.trc20_transfer
         WHERE has_contract AND has_from
             AND (no_start_time OR minute >= start_minute)
             AND (no_end_time OR minute <= end_minute)
@@ -80,7 +80,7 @@ contract_from_minutes AS (
 contract_to_minutes AS (
     SELECT * FROM (
         SELECT minute
-        FROM trc20_transfer
+        FROM {db_transfers:Identifier}.trc20_transfer
         WHERE has_contract AND has_to
             AND (no_start_time OR minute >= start_minute)
             AND (no_end_time OR minute <= end_minute)
@@ -90,7 +90,7 @@ contract_to_minutes AS (
         INTERSECT ALL
 
         SELECT minute
-        FROM trc20_transfer
+        FROM {db_transfers:Identifier}.trc20_transfer
         WHERE has_contract AND has_to
             AND (no_start_time OR minute >= start_minute)
             AND (no_end_time OR minute <= end_minute)
@@ -101,7 +101,7 @@ contract_to_minutes AS (
 ),
 transfers AS (
     SELECT *
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE
         /* direct minutes */
             (no_start_time OR minute >= start_minute)
@@ -161,5 +161,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM transfers AS t
-LEFT JOIN metadata m ON t.log_address = m.contract
+LEFT JOIN {db_metadata:Identifier}.metadata m ON t.log_address = m.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC, log_index DESC;
