@@ -8,7 +8,7 @@ WITH filtered_balances AS
         argMax(lamports, b.block_num) AS amount,
         'So11111111111111111111111111111111111111111' AS mint,
         9 AS decimals
-    FROM balances_native AS b
+    FROM {db_balances:Identifier}.balances_native AS b
     WHERE account IN {address:Array(String)}
     AND (lamports > 0 OR {include_null_balances:Bool})
     GROUP BY account

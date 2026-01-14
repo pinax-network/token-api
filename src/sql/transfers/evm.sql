@@ -13,28 +13,28 @@ active_filters AS
 minutes_union AS
 (
     SELECT minute
-    FROM transfers_by_from
+    FROM {db_transfers:Identifier}.transfers_by_from
     WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_to
+    FROM {db_transfers:Identifier}.transfers_by_to
     WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_contract
+    FROM {db_transfers:Identifier}.transfers_by_contract
     WHERE ({contract:Array(String)} != [''] AND contract IN {contract:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_tx_hash
+    FROM {db_transfers:Identifier}.transfers_by_tx_hash
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
     ORDER BY minute DESC
 ),
@@ -56,7 +56,7 @@ filtered_minutes AS
 /* Latest ingested timestamp in source table */
 latest_ts AS
 (
-    SELECT max(timestamp) AS ts FROM transfers
+    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.transfers
 ),
 filtered_transfers AS
 (
@@ -69,7 +69,7 @@ filtered_transfers AS
         `from`,
         `to`,
         value AS amount
-    FROM transfers t
+    FROM {db_transfers:Identifier}.transfers t
     PREWHERE
         timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
@@ -100,7 +100,7 @@ metadata AS
         name,
         symbol,
         decimals
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE contract IN (
         SELECT contract
         FROM filtered_transfers

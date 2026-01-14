@@ -5,7 +5,7 @@ WITH filtered_balances AS (
         address,
         contract,
         argMax(balance, b.timestamp) AS amount
-    FROM balances AS b
+    FROM {db_balances:Identifier}.balances AS b
     WHERE
         address IN {address:Array(String)}
         AND contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'

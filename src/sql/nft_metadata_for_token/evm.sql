@@ -9,10 +9,10 @@ WITH erc721 AS (
         '' AS description,
         '' AS image,
         [] AS attributes
-    FROM erc721_metadata_by_token AS t
+    FROM {db_nft:Identifier}.erc721_metadata_by_token AS t
     FINAL
-    JOIN erc721_owners AS o USING (contract, token_id)
-    WHERE contract = {contract: String} 
+    JOIN {db_nft:Identifier}.erc721_owners AS o USING (contract, token_id)
+    WHERE contract = {contract: String}
     AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 ),
 erc1155 AS (
@@ -26,9 +26,9 @@ erc1155 AS (
         '' AS description,
         '' AS image,
         [] AS attributes
-    FROM erc1155_metadata_by_token AS t
+    FROM {db_nft:Identifier}.erc1155_metadata_by_token AS t
     FINAL
-    LEFT JOIN erc1155_balances AS o USING (contract, token_id)
+    LEFT JOIN {db_nft:Identifier}.erc1155_balances AS o USING (contract, token_id)
     WHERE contract = {contract: String}
     AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
     AND balance > 0
@@ -46,7 +46,7 @@ filtered_nft_metadata AS (
         description,
         media_uri AS image,
         attributes
-    FROM nft_metadata
+    FROM {db_nft:Identifier}.nft_metadata
     WHERE contract = {contract: String}
     AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
 )

@@ -71,17 +71,24 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.uniswapDatabases[params.network];
-    if (!dbConfig) {
+    const dbDex = config.dexDatabases[params.network];
+    if (!dbDex) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.supported_dexes?.[dbConfig.type];
+    const query = sqlQueries.supported_dexes?.[dbDex.type];
     if (!query) return c.json({ error: 'Query for dexes could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, {
-        database: dbConfig.database,
-        clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
-    });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        {
+            ...params,
+            db_dex: dbDex.database,
+        },
+        {
+            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
+        }
+    );
     return handleUsageQueryError(c, response);
 });
 

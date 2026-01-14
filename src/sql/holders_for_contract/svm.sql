@@ -22,11 +22,11 @@ metadata AS (
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
       AND metadata IN (
         SELECT metadata
-        FROM metadata_mint_state
+        FROM {db_metadata:Identifier}.metadata_mint_state
         WHERE mint = {mint:String}
         GROUP BY metadata
     )
@@ -43,7 +43,7 @@ top_native AS (
         toUInt8(9) AS dec,
         'Native' AS prog_id,
         {mint:String} AS mnt
-    FROM balances_native
+    FROM {db_balances:Identifier}.balances_native
     WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
       AND lamports > 100000 * pow(10, 9)
     GROUP BY account
@@ -60,7 +60,7 @@ top_wrapped AS (
         any(decimals) AS dec,
         any(program_id) AS prog_id,
         any(mint) AS mnt
-    FROM balances
+    FROM {db_balances:Identifier}.balances
     WHERE {mint:String} = 'So11111111111111111111111111111111111111112'
       AND mint = {mint:String}
       AND amount > 4000 * pow(10, 9)
@@ -76,7 +76,7 @@ top_spl AS (
         any(decimals) AS dec,
         any(program_id) AS prog_id,
         any(mint) AS mnt
-    FROM balances
+    FROM {db_balances:Identifier}.balances
     WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
       AND mint = {mint:String}
       AND amount > 0

@@ -6,7 +6,7 @@ SELECT
     sum(transactions) as transactions,
     uniqMerge(uniq_tx_from) as uaw,
     {network: String} AS network
-FROM state_pools_aggregating_by_pool
+FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
 GROUP BY
     protocol,
     factory

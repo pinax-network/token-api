@@ -9,7 +9,7 @@ WITH filtered_orders AS (
         recipient,
         consideration_amount / pow(10, 18) AS sale_amount,
         {sale_currency:String} AS sale_currency
-    FROM seaport_orders
+    FROM {db_nft:Identifier}.seaport_orders
     WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND toString(consideration_token) IN {nativeContracts: Array(String)}
@@ -25,14 +25,14 @@ metadata_by_contract AS (
         contract,
         symbol,
         name
-    FROM erc721_metadata_by_contract
+    FROM {db_nft:Identifier}.erc721_metadata_by_contract
     WHERE contract IN {contract:Array(String)}
     UNION DISTINCT
     SELECT
         contract,
         symbol,
         name
-    FROM erc1155_metadata_by_contract
+    FROM {db_nft:Identifier}.erc1155_metadata_by_contract
     WHERE contract IN {contract:Array(String)}
 )
 SELECT

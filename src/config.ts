@@ -40,9 +40,14 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
 
-export const DEFAULT_DBS_TOKEN = 'mainnet:evm-tokens@v1.17.2;solana:solana-tokens@v0.2.8;tron:tvm-tokens@v0.1.1';
+export const DEFAULT_DBS_BALANCES =
+    'mainnet:evm-balances@v1.17.2;solana:solana-balances@v0.2.8;tron:tvm-balances@v0.1.1';
+export const DEFAULT_DBS_TRANSFERS =
+    'mainnet:evm-transfers@v1.17.2;solana:solana-transfers@v0.2.8;tron:tvm-transfers@v0.1.1';
+export const DEFAULT_DBS_METADATA =
+    'mainnet:evm-metadata@v1.17.2;solana:solana-metadata@v0.2.8;tron:tvm-metadata@v0.1.1';
 export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
-export const DEFAULT_DBS_UNISWAP = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0;tron:tvm-dex@v0.1.5';
+export const DEFAULT_DBS_DEX = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0;tron:tvm-dex@v0.1.5';
 export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
 
 // GitHub metadata
@@ -103,17 +108,25 @@ const opts = program
             .default(DEFAULT_DEFAULT_TVM_NETWORK)
     )
     .addOption(
-        new Option('--token-databases <string>', 'Token Clickhouse databases')
-            .env('DBS_TOKEN')
-            .default(DEFAULT_DBS_TOKEN)
+        new Option('--balances-databases <string>', 'Balances Clickhouse databases')
+            .env('DBS_BALANCES')
+            .default(DEFAULT_DBS_BALANCES)
+    )
+    .addOption(
+        new Option('--transfers-databases <string>', 'Transfers Clickhouse databases')
+            .env('DBS_TRANSFERS')
+            .default(DEFAULT_DBS_TRANSFERS)
+    )
+    .addOption(
+        new Option('--metadata-databases <string>', 'Metadata Clickhouse databases')
+            .env('DBS_METADATA')
+            .default(DEFAULT_DBS_METADATA)
     )
     .addOption(
         new Option('--nft-databases <string>', 'NFT Clickhouse databases').env('DBS_NFT').default(DEFAULT_DBS_NFT)
     )
     .addOption(
-        new Option('--uniswap-databases <string>', 'Uniswap Clickhouse databases')
-            .env('DBS_UNISWAP')
-            .default(DEFAULT_DBS_UNISWAP)
+        new Option('--dex-databases <string>', 'DEX Clickhouse databases').env('DBS_DEX').default(DEFAULT_DBS_DEX)
     )
     .addOption(
         new Option('--contract-databases <string>', 'Contract Clickhouse databases')
@@ -246,12 +259,20 @@ const config = z
         defaultEvmNetwork: z.string().min(1, 'Default EVM network cannot be empty'),
         defaultSvmNetwork: z.string().min(1, 'Default SVM network cannot be empty'),
         defaultTvmNetwork: z.string().min(1, 'Default TVM network cannot be empty'),
-        tokenDatabases: z.string().min(1, 'Token databases configuration cannot be empty').transform(parseDatabases),
-        nftDatabases: z.string().min(1, 'NFT databases configuration cannot be empty').transform(parseDatabases),
-        uniswapDatabases: z
+        balancesDatabases: z
             .string()
-            .min(1, 'Uniswap databases configuration cannot be empty')
+            .min(1, 'Balances databases configuration cannot be empty')
             .transform(parseDatabases),
+        transfersDatabases: z
+            .string()
+            .min(1, 'Transfers databases configuration cannot be empty')
+            .transform(parseDatabases),
+        metadataDatabases: z
+            .string()
+            .min(1, 'Metadata databases configuration cannot be empty')
+            .transform(parseDatabases),
+        nftDatabases: z.string().min(1, 'NFT databases configuration cannot be empty').transform(parseDatabases),
+        dexDatabases: z.string().min(1, 'DEX databases configuration cannot be empty').transform(parseDatabases),
         contractDatabases: z
             .string()
             .min(1, 'Contract databases configuration cannot be empty')
@@ -350,51 +371,63 @@ const config = z
     .transform((data) => ({
         ...data,
         evmNetworks: Object.keys({
-            ...data.tokenDatabases,
+            ...data.balancesDatabases,
+            ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.nftDatabases,
-            ...data.uniswapDatabases,
+            ...data.dexDatabases,
             ...data.contractDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
-                        ...data.tokenDatabases,
+                        ...data.balancesDatabases,
+                        ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.nftDatabases,
-                        ...data.uniswapDatabases,
+                        ...data.dexDatabases,
                         ...data.contractDatabases,
                     }[networkId]?.type === 'evm'
                 );
             })
             .sort(),
         svmNetworks: Object.keys({
-            ...data.tokenDatabases,
+            ...data.balancesDatabases,
+            ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.nftDatabases,
-            ...data.uniswapDatabases,
+            ...data.dexDatabases,
             ...data.contractDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
-                        ...data.tokenDatabases,
+                        ...data.balancesDatabases,
+                        ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.nftDatabases,
-                        ...data.uniswapDatabases,
+                        ...data.dexDatabases,
                         ...data.contractDatabases,
                     }[networkId]?.type === 'svm'
                 );
             })
             .sort(),
         tvmNetworks: Object.keys({
-            ...data.tokenDatabases,
+            ...data.balancesDatabases,
+            ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.nftDatabases,
-            ...data.uniswapDatabases,
+            ...data.dexDatabases,
             ...data.contractDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
-                        ...data.tokenDatabases,
+                        ...data.balancesDatabases,
+                        ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.nftDatabases,
-                        ...data.uniswapDatabases,
+                        ...data.dexDatabases,
                         ...data.contractDatabases,
                     }[networkId]?.type === 'tvm'
                 );

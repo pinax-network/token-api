@@ -22,7 +22,7 @@ WITH erc721 AS (
         amount,
         transfer_type,
         token_standard
-    FROM erc721_transfers AS t
+    FROM {db_nft:Identifier}.erc721_transfers AS t
     WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND ({type:String} = '' OR `@type` = {type:String})
@@ -57,7 +57,7 @@ erc1155 AS (
         amount,
         transfer_type,
         token_standard
-    FROM erc1155_transfers AS t
+    FROM {db_nft:Identifier}.erc1155_transfers AS t
     WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
@@ -84,7 +84,7 @@ erc721_metadata_by_contract AS (
         contract,
         name,
         symbol
-    FROM erc721_metadata_by_contract
+    FROM {db_nft:Identifier}.erc721_metadata_by_contract
     WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
 ),
 erc1155_metadata_by_contract AS (
@@ -92,7 +92,7 @@ erc1155_metadata_by_contract AS (
         contract,
         name,
         symbol
-    FROM erc721_metadata_by_contract
+    FROM {db_nft:Identifier}.erc1155_metadata_by_contract
     WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
 )
 SELECT

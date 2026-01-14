@@ -77,14 +77,17 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.nftDatabases[params.network];
-    if (!dbConfig) {
+    const dbNft = config.nftDatabases[params.network];
+    if (!dbNft) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.nft_holders?.[dbConfig.type];
+    const query = sqlQueries.nft_holders?.[dbNft.type];
     if (!query) return c.json({ error: 'Query for NFT holders could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_nft: dbNft.database,
+    });
     return handleUsageQueryError(c, response);
 });
 

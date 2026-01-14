@@ -6,7 +6,7 @@ metadata AS (
          decimals,
          name,
          symbol
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE contract = {contract: String}
 ),
 /* 1) Get the cutoff for native token - 100 by default, pick optimal number by chain based token value and activity */
@@ -34,7 +34,7 @@ top_native AS (
         max(timestamp) AS ts,
         max(block_num) AS bn,
         any(contract) AS cnt
-    FROM balances
+    FROM {db_balances:Identifier}.balances
     WHERE {contract: String} = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND contract = {contract: String}
       AND balance > (SELECT eth_cut FROM cutoff) * pow(10,18)
     GROUP BY address
@@ -47,7 +47,7 @@ top_erc20 AS (
         max(timestamp) AS ts,
         max(block_num) AS bn,
         any(contract) AS cnt
-    FROM balances
+    FROM {db_balances:Identifier}.balances
     WHERE {contract: String} != '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' AND contract = {contract: String}
       AND balance > 0
     GROUP BY address

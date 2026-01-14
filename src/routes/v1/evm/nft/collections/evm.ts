@@ -93,26 +93,22 @@ const route = new Hono<{ Variables: { validatedData: ValidatedData } }>();
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.nftDatabases[params.network];
-    // this DB is used to fetch contract metadata (creator, creation date)
-    const db_evm_contracts = config.contractDatabases[params.network];
-
-    if (!dbConfig || !db_evm_contracts) {
+    const dbContracts = config.contractDatabases[params.network];
+    const dbNft = config.nftDatabases[params.network];
+    if (!dbContracts || !dbNft) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-
-    const query = sqlQueries.nft_metadata_for_collection?.[dbConfig.type];
+    const query = sqlQueries.nft_metadata_for_collection?.[dbNft.type];
     if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
     const contractAddress = params.contract.toLowerCase();
 
     const [response, spamScore] = await Promise.all([
-        makeUsageQueryJson(
-            c,
-            [query],
-            { ...params, db_evm_contracts: db_evm_contracts.database },
-            { database: dbConfig.database }
-        ),
+        makeUsageQueryJson(c, [query], {
+            ...params,
+            db_nft: dbNft.database,
+            db_contracts: dbContracts.database,
+        }),
         querySpamScore(contractAddress, params.network),
     ]);
 

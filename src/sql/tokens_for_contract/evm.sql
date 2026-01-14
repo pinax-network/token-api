@@ -3,13 +3,13 @@ WITH metadata AS (
         symbol,
         name,
         decimals
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE contract = {contract: String}
 ),
 total_supply AS (
     SELECT
         argMax(total_supply, block_num) AS total_supply
-    FROM total_supply
+    FROM {db_metadata:Identifier}.total_supply
     WHERE contract = {contract: String}
     GROUP BY contract
 ),
@@ -26,7 +26,7 @@ circulating AS (
             max(block_num) AS block_num,
             max(timestamp) AS timestamp,
             argMax(balance, t.block_num) AS balance
-        FROM balances AS t
+        FROM {db_balances:Identifier}.balances AS t
         WHERE contract = {contract: String}
         GROUP BY contract, address
         HAVING balance > 0

@@ -3,7 +3,7 @@ WITH filtered_contract AS (
         timestamp AS last_update,
         block_num AS last_update_block_num,
         log_address AS contract
-    FROM trc20_transfer
+    FROM {db_transfers:Identifier}.trc20_transfer
     WHERE log_address = {contract:String}
     ORDER BY minute DESC
     LIMIT 1
@@ -15,7 +15,7 @@ metadata AS
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         decimals
-    FROM metadata
+    FROM {db_metadata:Identifier}.metadata
     WHERE contract = {contract:String}
 )
 SELECT
