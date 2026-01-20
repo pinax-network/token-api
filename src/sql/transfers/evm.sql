@@ -53,43 +53,51 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
-/* Latest ingested timestamp in source table */
-latest_ts AS
-(
-    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.transfers
-),
 filtered_transfers AS
 (
     SELECT *
     FROM {db_transfers:Identifier}.transfers t
     WHERE
-            ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
+            (SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']    OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = ['']      OR contract IN {contract:Array(String)})
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
 SELECT
+    /* block */
     t.block_num as block_num,
     t.timestamp as datetime,
     toUnixTimestamp(t.timestamp) as timestamp,
+
+    /* transaction */
     toString(t.tx_hash) as transaction_id,
-    log_ordinal,
+
+    /* log */
     log_index,
+    /* log_ordinal, will replace log_index in the /v2 */
     log_address as contract,
+
+    /* transfer */
     `from`,
     `to`,
+
+    /* metadata */
     m.name AS name,
     m.symbol AS symbol,
     m.decimals AS decimals,
+
+    /* amounts */
     toString(t.amount) AS amount,
     t.amount / pow(10, m.decimals) AS value,
+
+    /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND t.log_address = m.contract
-ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+ORDER BY minute DESC, timestamp DESC, block_num DESC, log_index DESC
