@@ -40,12 +40,13 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
 
-export const DEFAULT_DBS_BALANCES = '';
-export const DEFAULT_DBS_TRANSFERS = '';
-export const DEFAULT_DBS_METADATA = '';
-export const DEFAULT_DBS_NFT = '';
-export const DEFAULT_DBS_DEX = '';
-export const DEFAULT_DBS_CONTRACT = '';
+export const DEFAULT_DBS_BALANCES = 'mainnet:evm-balances@v0.2.2';
+export const DEFAULT_DBS_TRANSFERS = 'mainnet:evm-transfers@v0.2.2';
+export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
+export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.6.2';
+export const DEFAULT_DBS_DEX = 'mainnet:evm-dex@v0.2.7';
+export const DEFAULT_DBS_METADATA = 'mainnet:metadata@v0.1.0';
+
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? (await $`git rev-parse HEAD`.text())).replace(/\n/, '').slice(0, 7);
