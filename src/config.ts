@@ -40,15 +40,12 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
 
-export const DEFAULT_DBS_BALANCES =
-    'mainnet:evm-balances@v1.17.2;solana:solana-balances@v0.2.8;tron:tvm-balances@v0.1.1';
-export const DEFAULT_DBS_TRANSFERS =
-    'mainnet:evm-transfers@v1.17.2;solana:solana-transfers@v0.2.8;tron:tvm-transfers@v0.1.1';
-export const DEFAULT_DBS_METADATA =
-    'mainnet:evm-metadata@v1.17.2;solana:solana-metadata@v0.2.8;tron:tvm-metadata@v0.1.1';
-export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.5.1';
-export const DEFAULT_DBS_DEX = 'mainnet:evm-uniswaps@v0.1.5;solana:solana-dex@v0.3.0;tron:tvm-dex@v0.1.5';
-export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
+export const DEFAULT_DBS_BALANCES = '';
+export const DEFAULT_DBS_TRANSFERS = '';
+export const DEFAULT_DBS_METADATA = '';
+export const DEFAULT_DBS_NFT = '';
+export const DEFAULT_DBS_DEX = '';
+export const DEFAULT_DBS_CONTRACT = '';
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? (await $`git rev-parse HEAD`.text())).replace(/\n/, '').slice(0, 7);
