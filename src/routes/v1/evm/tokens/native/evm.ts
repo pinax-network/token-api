@@ -2,23 +2,22 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { injectIcons } from '../../../../inject/icon.js';
-import { injectSymbol } from '../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { config } from '../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
+import { injectIcons } from '../../../../../inject/icon.js';
+import { injectSymbol } from '../../../../../inject/symbol.js';
+import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
     evmContractSchema,
     evmNetworkIdSchema,
-} from '../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../utils.js';
+} from '../../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -28,9 +27,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update: dateTimeSchema,
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
-
-            // -- contract --
-            contract: evmContractSchema,
 
             // -- contract --
             name: z.string().nullable(),
@@ -57,8 +53,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Metadata (ERC-20)',
-        description: 'Returns ERC-20 token metadata including supply and holder count.',
+        summary: 'Token Metadata (Native)',
+        description: 'Returns Native token metadata including supply and holder count.',
 
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],
@@ -76,7 +72,6 @@ const openapi = describeRoute(
                                             last_update: '2025-10-16 09:24:47',
                                             last_update_block_num: 23589316,
                                             last_update_timestamp: 1760606687,
-                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
                                             name: 'Wrapped Ether',
                                             symbol: 'WETH',
                                             decimals: 18,
@@ -109,7 +104,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbBalances.type];
+    const query = sqlQueries.tokens_for_contract_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(

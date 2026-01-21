@@ -1,22 +1,7 @@
-WITH metadata AS (
-    SELECT
-        symbol,
-        name,
-        decimals
-    FROM {db_metadata:Identifier}.metadata_view
-    WHERE contract = {contract: String}
-),
-total_supply AS (
-    SELECT
-        argMax(total_supply, block_num) AS total_supply
-    FROM {db_metadata:Identifier}.total_supply
-    WHERE contract = {contract: String}
-    GROUP BY contract
-),
-circulating AS (
+WITH circulating AS (
     SELECT
         count() AS holders,
-        sum(balance) AS raw_circulating_supply,
+        sum(balance) AS circulating_supply,
         max(block_num) AS block_num,
         max(timestamp) AS timestamp
     FROM (
@@ -25,25 +10,32 @@ circulating AS (
             contract,
             max(block_num) AS block_num,
             max(timestamp) AS timestamp,
-            argMax(balance, t.block_num) AS balance
-        FROM {db_balances:Identifier}.balances AS t
+            argMax(balance, b.block_num) AS balance
+        FROM {db_balances:Identifier}.erc20_balances AS b
         WHERE contract = {contract: String}
-        GROUP BY contract, address
+        GROUP BY address
         HAVING balance > 0
     )
 )
 SELECT
+    /* timestamps */
     circulating.timestamp AS last_update,
     circulating.block_num AS last_update_block_num,
     toUnixTimestamp(circulating.timestamp) AS last_update_timestamp,
+
+    /* identifiers */
     {contract: String} AS contract,
+
+    /* amounts */
+    circulating.circulating_supply / pow(10, decimals) AS circulating_supply,
+    circulating.holders AS holders,
+
+    /* token metadata */
     name,
     symbol,
     decimals,
-    circulating.raw_circulating_supply / pow(10, decimals) AS circulating_supply,
-    total_supply.total_supply / pow(10, decimals) AS total_supply,
-    circulating.holders AS holders,
+
+    /* network */
     {network: String} AS network
 FROM circulating
-LEFT JOIN metadata ON 1 = 1
-LEFT JOIN total_supply ON 1 = 1
+JOIN metadata.metadata AS m ON m.network = {network:String} AND m.contract = {contract: String}
