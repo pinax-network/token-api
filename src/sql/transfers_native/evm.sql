@@ -5,36 +5,28 @@ active_filters AS
     SELECT
         toUInt8({transaction_id:Array(String)} != ['']) +
         toUInt8({from_address:Array(String)}   != ['']) +
-        toUInt8({to_address:Array(String)}     != ['']) +
-        toUInt8({contract:Array(String)}       != [''])
+        toUInt8({to_address:Array(String)}     != [''])
     AS n
 ),
 /* 2) Union minutes from only active filters */
 minutes_union AS
 (
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers
-    WHERE ({contract:Array(String)} != [''] AND log_address IN {contract:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_transfers:Identifier}.transfers
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
     ORDER BY minute DESC
 ),
@@ -56,7 +48,7 @@ filtered_minutes AS
 filtered_transfers AS
 (
     SELECT *
-    FROM {db_transfers:Identifier}.transfers t
+    FROM {db_transfers:Identifier}.native_transfers t
     WHERE
             (SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
@@ -64,8 +56,7 @@ filtered_transfers AS
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']    OR `to` IN {to_address:Array(String)})
-        AND ({contract:Array(String)} = ['']      OR contract IN {contract:Array(String)})
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -77,11 +68,8 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
-
-    /* log */
-    log_index,
-    /* log_ordinal AS ordinal, for `/v2` endpoint */
-    log_address as contract,
+    tx_index,
+    call_index,
 
     /* transfer */
     transfer_type as type,
@@ -100,5 +88,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND t.log_address = m.contract
-ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
+ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC

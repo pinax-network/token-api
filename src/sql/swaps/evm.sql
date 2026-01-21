@@ -106,13 +106,12 @@ filtered_swaps AS
 (
     SELECT *
     FROM {db_dex:Identifier}.swaps
-    PREWHERE
-            minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
-        AND ((SELECT n FROM active_filters) = 0 OR minute IN filtered_minutes)
+
+    WHERE
+            (SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
         AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-    WHERE
-            ({transaction_id:Array(String)} = ['']      OR tx_hash IN {transaction_id:Array(String)})
+        AND ({transaction_id:Array(String)} = ['']      OR tx_hash IN {transaction_id:Array(String)})
         AND ({factory:Array(String)} = ['']             OR factory IN {factory:Array(String)})
         AND ({pool:Array(String)} = ['']                OR pool IN {pool:Array(String)})
         AND ({recipient:Array(String)} = ['']           OR user IN {recipient:Array(String)})

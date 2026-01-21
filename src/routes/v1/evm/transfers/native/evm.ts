@@ -2,27 +2,25 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { injectSymbol } from '../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { config } from '../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
+import { injectSymbol } from '../../../../../inject/symbol.js';
+import { sqlQueries } from '../../../../../sql/index.js';
 import {
     EVM_ADDRESS_TO_EXAMPLE,
-    EVM_CONTRACT_NATIVE_EXAMPLE,
     EVM_TRANSACTION_TRANSFER_EXAMPLE,
-} from '../../../../types/examples.js';
+} from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
     evmTransactionSchema,
     timestampSchema,
-} from '../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../utils.js';
+} from '../../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -33,7 +31,6 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, default: '' },
     to_address: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
@@ -56,7 +53,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             transaction_id: evmTransactionSchema,
 
             // -- transfer --
-            contract: evmContractSchema,
             from: evmAddressSchema,
             to: evmAddressSchema,
 
@@ -76,8 +72,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers',
-        description: 'Returns ERC-20 transfers with transaction and block data.',
+        summary: 'Native Transfers',
+        description: 'Returns Native token transfers with transaction and block data.',
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -91,22 +87,22 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "block_num": 24278225,
-                                            "datetime": "2026-01-20 19:57:11",
-                                            "timestamp": 1768939031,
-                                            "transaction_id": "0x589cbe12efa0cca5a29b17bf7ee49c99566f0e05e937d54104134a2d916ab265",
-                                            "log_index": 24,
-                                            "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                            "type": "transfer",
-                                            "from": "0x2393d38400cad1d0ffae85b37d76de05bb7eddc6",
-                                            "to": "0xd4f1171683f1bc07b77d0307a01b64dba5369cf8",
-                                            "name": "USD Coin",
-                                            "symbol": "USDC",
-                                            "decimals": 6,
-                                            "amount": "2686",
-                                            "value": 0.002686,
+                                            "block_num": 24280071,
+                                            "datetime": "2026-01-21 02:07:35",
+                                            "timestamp": 1768961255,
+                                            "transaction_id": "0x73d346e1d286b893a3a0bb6b022845dc84cded73757b9ad89ae2c958fe266edf",
+                                            "tx_index": 251,
+                                            "call_index": 3,
+                                            "type": "call",
+                                            "from": "0xd2b37ade14708bf18904047b1e31f8166d39612b",
+                                            "to": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                            "name": "Ethereum",
+                                            "symbol": "ETH",
+                                            "decimals": 18,
+                                            "amount": "25000000000000",
+                                            "value": 0.000025,
                                             "network": "mainnet"
-                                        }
+                                        },
                                     ],
                                 },
                             },
@@ -129,7 +125,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbTransfers || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.transfers?.[dbTransfers.type];
+    const query = sqlQueries.transfers_native?.[dbTransfers.type];
     if (!query) return c.json({ error: 'Query for transfers could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
