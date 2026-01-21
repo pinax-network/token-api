@@ -2,9 +2,9 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { config } from '../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
+import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -12,12 +12,11 @@ import {
     evmAddressSchema,
     evmContractSchema,
     evmNetworkIdSchema,
-} from '../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../utils.js';
+} from '../../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -30,7 +29,6 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- contract --
             address: evmAddressSchema,
-            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
@@ -47,8 +45,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Holders (ERC-20)',
-        description: 'Returns top token holders ranked by ERC-20 balance.',
+        summary: 'Token Holders (Native)',
+        description: 'Returns top token holders ranked by Native balance.',
 
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],
@@ -96,7 +94,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.holders_for_contract?.[dbBalances.type];
+    const query = sqlQueries.holders_for_contract_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for holders could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(

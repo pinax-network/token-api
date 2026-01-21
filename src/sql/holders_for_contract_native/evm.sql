@@ -1,15 +1,13 @@
 WITH balances AS (
     SELECT
         address,
-        contract,
         max(timestamp) AS timestamp,
         max(b.block_num) AS block_num,
         argMax(b.balance, b.block_num) AS balance
-    FROM {db_balances:Identifier}.erc20_balances AS b
-    PREWHERE contract IN {contract:String}
-    GROUP BY contract, address
+    FROM {db_balances:Identifier}.native_balances AS b
+    GROUP BY address
     /* drop small holders here (also drops 0 if min_balance > 0) */
-    HAVING balance > 0
+    HAVING balance > 1
 )
 SELECT
     /* timestamps */
@@ -19,7 +17,6 @@ SELECT
 
     /* identifiers */
     b.address AS address,
-    b.contract AS contract,
 
     /* amounts */
     toString(b.balance) AS amount,
@@ -33,7 +30,7 @@ SELECT
     /* network */
     {network:String} as network
 FROM balances AS b
-LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND b.contract = m.contract
+LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
 ORDER BY b.balance DESC
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}
