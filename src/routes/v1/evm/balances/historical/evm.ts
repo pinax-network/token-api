@@ -49,10 +49,10 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Historical Balances (ERC-20)',
+        summary: 'Historical Balances',
         description:
-            'Returns wallet token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
-        tags: ['EVM Tokens'],
+            'Returns wallet ERC-20 token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
+        tags: ['EVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

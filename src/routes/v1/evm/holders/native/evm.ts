@@ -45,10 +45,10 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Holders (Native)',
+        summary: 'Token Holders',
         description: 'Returns top token holders ranked by Native balance.',
 
-        tags: ['EVM Tokens'],
+        tags: ['EVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

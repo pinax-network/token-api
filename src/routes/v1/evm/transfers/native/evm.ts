@@ -69,9 +69,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers (Native)',
+        summary: 'Token Transfers',
         description: 'Returns Native token transfers with transaction and block data.',
-        tags: ['EVM Tokens'],
+        tags: ['EVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
