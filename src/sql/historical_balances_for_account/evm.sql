@@ -11,7 +11,7 @@ ohlc AS (
         max(high) AS high_raw,
         min(low) AS low_raw,
         argMax(close, timestamp) AS close_raw
-    FROM {db_balances:Identifier}.historical_balances
+    FROM {db_balances:Identifier}.historical_erc20_balances_state
     WHERE
         address = {address:String}
         AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
@@ -20,33 +20,6 @@ ohlc AS (
     ORDER BY datetime DESC, contract
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
-),
-metadata AS
-(
-    SELECT
-        contract,
-        name,
-        if(
-            contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-            multiIf(
-                {network:String} = 'mainnet', 'ETH',
-                {network:String} = 'arbitrum-one', 'ETH',
-                {network:String} = 'avalanche', 'AVAX',
-                {network:String} = 'base', 'ETH',
-                {network:String} = 'bsc', 'BNB',
-                {network:String} = 'polygon', 'POL',
-                {network:String} = 'optimism', 'ETH',
-                {network:String} = 'unichain', 'ETH',
-                ''
-            ),
-            mv.symbol
-        ) AS symbol,
-        decimals
-    FROM {db_metadata:Identifier}.metadata_view AS mv
-    WHERE contract IN (
-        SELECT contract
-        FROM ohlc
-    )
 )
 SELECT
     datetime,
@@ -61,5 +34,5 @@ SELECT
     decimals,
     {network:String} AS network
 FROM ohlc AS o
-LEFT JOIN metadata AS c USING contract
+LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND o.contract = m.contract
 ORDER BY datetime DESC, contract
