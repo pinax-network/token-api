@@ -6,10 +6,7 @@ import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { injectSymbol } from '../../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../../sql/index.js';
-import {
-    EVM_ADDRESS_TO_EXAMPLE,
-    EVM_TRANSACTION_TRANSFER_EXAMPLE,
-} from '../../../../../types/examples.js';
+import { EVM_ADDRESS_TO_EXAMPLE, EVM_TRANSACTION_TRANSFER_EXAMPLE } from '../../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -87,21 +84,22 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            "block_num": 24280071,
-                                            "datetime": "2026-01-21 02:07:35",
-                                            "timestamp": 1768961255,
-                                            "transaction_id": "0x73d346e1d286b893a3a0bb6b022845dc84cded73757b9ad89ae2c958fe266edf",
-                                            "transaction_index": 251,
-                                            "call_index": 3,
-                                            "type": "call",
-                                            "from": "0xd2b37ade14708bf18904047b1e31f8166d39612b",
-                                            "to": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-                                            "name": "Ethereum",
-                                            "symbol": "ETH",
-                                            "decimals": 18,
-                                            "amount": "25000000000000",
-                                            "value": 0.000025,
-                                            "network": "mainnet"
+                                            block_num: 24280071,
+                                            datetime: '2026-01-21 02:07:35',
+                                            timestamp: 1768961255,
+                                            transaction_id:
+                                                '0x73d346e1d286b893a3a0bb6b022845dc84cded73757b9ad89ae2c958fe266edf',
+                                            transaction_index: 251,
+                                            call_index: 3,
+                                            type: 'call',
+                                            from: '0xd2b37ade14708bf18904047b1e31f8166d39612b',
+                                            to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                                            name: 'Ethereum',
+                                            symbol: 'ETH',
+                                            decimals: 18,
+                                            amount: '25000000000000',
+                                            value: 0.000025,
+                                            network: 'mainnet',
                                         },
                                     ],
                                 },

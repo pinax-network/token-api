@@ -47,7 +47,6 @@ export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.6.2';
 export const DEFAULT_DBS_DEX = 'mainnet:evm-dex@v0.2.7';
 export const DEFAULT_DBS_METADATA = 'mainnet:metadata@v0.1.0';
 
-
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? (await $`git rev-parse HEAD`.text())).replace(/\n/, '').slice(0, 7);
 const GIT_DATE = (process.env.GIT_DATE ?? (await $`git log -1 --format=%cd --date=short`.text())).replace(/\n/, '');
