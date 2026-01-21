@@ -2,7 +2,6 @@ SELECT
     /* primary */
     timestamp as datetime,
     address,
-    contract,
 
     /* OHLC */
     b.open / pow(10, decimals) AS open,
@@ -17,14 +16,13 @@ SELECT
 
     /* network */
     {network:String} AS network
-FROM {db_balances:Identifier}.historical_erc20_balances as b
-JOIN metadata.metadata AS m ON m.network = {network:String} AND contract = m.contract
+FROM {db_balances:Identifier}.historical_native_balances as b
+JOIN metadata.metadata AS m ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
 WHERE
     /* required */
     interval_min = {interval:UInt32}
     AND address = {address:String}
     /* optional */
-    AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
     AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
 ORDER BY timestamp DESC
 LIMIT {limit:UInt64}

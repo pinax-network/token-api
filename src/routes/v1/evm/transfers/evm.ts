@@ -76,7 +76,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers',
+        summary: 'Token Transfers (ERC-20)',
         description: 'Returns ERC-20 transfers with transaction and block data.',
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],

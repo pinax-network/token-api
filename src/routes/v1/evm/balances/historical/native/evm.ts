@@ -2,11 +2,10 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
-import { injectSymbol } from '../../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../../sql/index.js';
-import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../../types/examples.js';
+import { config } from '../../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../../handleQuery.js';
+import { injectSymbol } from '../../../../../../inject/symbol.js';
+import { sqlQueries } from '../../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -16,13 +15,12 @@ import {
     evmNetworkIdSchema,
     intervalSchema,
     timestampSchema,
-} from '../../../../../types/zod.js';
-import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
+} from '../../../../../../types/zod.js';
+import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1w' } },
     start_time: { schema: timestampSchema, prefault: getDateMinusMonths(1) },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
@@ -49,7 +47,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Historical Balances (ERC-20)',
+        summary: 'Historical Balances (Native)',
         description:
             'Returns wallet token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['EVM Tokens'],
@@ -65,16 +63,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2026-01-09 00:00:00',
+                                            datetime: '2026-01-21 00:00:00',
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-                                            open: 269.18034,
-                                            high: 269.18034,
-                                            low: 269.18034,
-                                            close: 269.18034,
-                                            name: 'Tether USD',
-                                            symbol: 'USDT',
-                                            decimals: 6,
+                                            open: 33.11251005136684,
+                                            high: 33.11251115136684,
+                                            low: 32.11250812040242,
+                                            close: 32.112509521402416,
+                                            name: 'Ethereum',
+                                            symbol: 'ETH',
+                                            decimals: 18,
                                             network: 'mainnet',
                                         },
                                     ],
@@ -94,18 +91,16 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbBalances || !dbMetadata) {
+    if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.historical_balances_for_account?.[dbBalances.type];
+    const query = sqlQueries.historical_balances_for_account_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for historical balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
-        db_metadata: dbMetadata.database,
     });
     injectSymbol(response, params.network, true);
 

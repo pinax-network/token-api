@@ -56,7 +56,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Balances',
+        summary: 'Token Balances (ERC-20)',
         description: 'Returns ERC-20 token balances for a wallet address.',
         tags: ['EVM Tokens'],
         security: [{ bearerAuth: [] }],
