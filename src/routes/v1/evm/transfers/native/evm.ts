@@ -91,7 +91,7 @@ const openapi = describeRoute(
                                             "datetime": "2026-01-21 02:07:35",
                                             "timestamp": 1768961255,
                                             "transaction_id": "0x73d346e1d286b893a3a0bb6b022845dc84cded73757b9ad89ae2c958fe266edf",
-                                            "tx_index": 251,
+                                            "transaction_index": 251,
                                             "call_index": 3,
                                             "type": "call",
                                             "from": "0xd2b37ade14708bf18904047b1e31f8166d39612b",
@@ -120,9 +120,9 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
+    // const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbTransfers || !dbMetadata) {
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.transfers_native?.[dbTransfers.type];
@@ -131,7 +131,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        db_metadata: dbMetadata.database,
+        // db_metadata: dbMetadata.database,
     });
     injectSymbol(response, params.network, false);
 

@@ -68,7 +68,7 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
-    tx_index,
+    tx_index as transaction_index,
     call_index,
 
     /* transfer */

@@ -97,23 +97,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 77231165,
-                                            datetime: '2025-11-05 14:57:51',
-                                            timestamp: 1762354671,
-                                            transaction_id:
-                                                '46c608cd66c873753f7d86a3dc6b46453052505730cc5f6e951533083b1d40ab',
-                                            transaction_index: 273,
-                                            log_index: 0,
-                                            log_ordinal: 1020,
-                                            contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-                                            from: 'TAYtGZzxZf1GhPfGwZKskWQnz7Qj3rwLDh',
-                                            to: 'THWuviP5wEiPBLZ1g1iPPiH4kV7FRXWFP1',
-                                            amount: '19600000000',
-                                            value: 19600,
-                                            name: 'Tether USD',
-                                            symbol: 'USDT',
-                                            decimals: 6,
-                                            network: 'tron',
+                                            "block_num": 79432623,
+                                            "datetime": "2026-01-21 02:15:27",
+                                            "timestamp": 1768961727,
+                                            "transaction_id": "0xe21add16a0f09f5ec3384b5a75beca8ff1ba4c9b4037abde572479e492dc7548",
+                                            "log_index": 0,
+                                            "contract": "0xa614f803b6fd780986a42c78ec9c7f77e6ded13c",
+                                            "type": "transfer",
+                                            "from": "0x9886a267acdfbb178f2b97198f35a44dd79b4a7e",
+                                            "to": "0xcfa39c818bb677da464590ca642d389b1074f655",
+                                            "name": "Tether USD",
+                                            "symbol": "USDT",
+                                            "decimals": 6,
+                                            "amount": "17493538765",
+                                            "value": 17493.538765,
+                                            "network": "tron"
                                         },
                                     ],
                                 },
@@ -132,9 +130,9 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
+    // const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbTransfers || !dbMetadata) {
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.transfers?.[dbTransfers.type];
@@ -143,7 +141,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        db_metadata: dbMetadata.database,
+        // db_metadata: dbMetadata.database,
     });
     injectSymbol(response, params.network, false);
 
