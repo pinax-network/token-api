@@ -2,27 +2,24 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
-import { injectSymbol } from '../../../../../inject/symbol.js';
-import { sqlQueries } from '../../../../../sql/index.js';
-import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../../../../../types/examples.js';
+import { config } from '../../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../../handleQuery.js';
+import { injectSymbol } from '../../../../../../inject/symbol.js';
+import { sqlQueries } from '../../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
     intervalSchema,
     timestampSchema,
-} from '../../../../../types/zod.js';
-import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
+} from '../../../../../../types/zod.js';
+import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1d' } },
     start_time: { schema: timestampSchema, prefault: getDateMinusMonths(1) },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
@@ -33,7 +30,6 @@ const responseSchema = apiUsageResponseSchema.extend({
         z.object({
             datetime: dateTimeSchema,
             address: evmAddressSchema,
-            contract: evmContractSchema,
             decimals: z.number(),
             open: z.number(),
             high: z.number(),
@@ -51,7 +47,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Historical Balances',
         description:
-            'Returns wallet ERC-20 token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
+            'Returns wallet Native token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['TVM Tokens'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -98,7 +94,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.historical_balances_for_account?.[dbBalances.type];
+    const query = sqlQueries.historical_balances_for_account_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for historical balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {

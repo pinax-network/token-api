@@ -1,17 +1,12 @@
 WITH filtered_balances AS (
     SELECT
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp,
+        block_num,
+        timestamp,
         address,
-        argMax(balance, b.timestamp) AS amount
-    FROM {db_balances:Identifier}.erc20_balances AS b
-    WHERE
-        address IN {address:Array(String)}
-        AND (balance > 0 OR {include_null_balances:Bool})
-    GROUP BY address
+        balance
+    FROM {db_balances:Identifier}.native_balances AS b FINAL
+    WHERE address IN {address:Array(String)}
     ORDER BY block_num DESC
-    LIMIT   {limit:UInt64}
-    OFFSET  {offset:UInt64}
 )
 SELECT
     /* block */
@@ -23,8 +18,8 @@ SELECT
     address AS address,
 
     /* amounts */
-    toString(amount) AS amount,
-    a.amount / pow(10, decimals) AS value,
+    toString(balance) AS amount,
+    a.balance / pow(10, decimals) AS value,
 
     /* metadata */
     name,

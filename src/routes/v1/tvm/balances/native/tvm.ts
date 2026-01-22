@@ -10,17 +10,16 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
-    includeNullBalancesSchema,
+    // includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema, batched: true },
-    include_null_balances: { schema: includeNullBalancesSchema, default: false },
-});
+    // include_null_balances: { schema: includeNullBalancesSchema, default: false },
+}, false);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -32,7 +31,6 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- balance --
             address: evmAddressSchema,
-            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
@@ -69,7 +67,6 @@ const openapi = describeRoute(
                                             last_update_block_num: 23586308,
                                             last_update_timestamp: 1760570183,
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
                                             amount: '784155102524588711',
                                             value: 0.7841551025245886,
                                             name: 'Native',

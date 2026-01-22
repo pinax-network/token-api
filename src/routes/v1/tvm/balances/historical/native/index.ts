@@ -1,10 +1,8 @@
 import { Hono } from 'hono';
 import tvm from './tvm.js';
-import native from './native/index.js';
 
 const router = new Hono();
 
 router.route('/', tvm);
-router.route('/native', native);
 
 export default router;
