@@ -15,11 +15,14 @@ import {
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    address: { schema: evmAddressSchema, batched: true },
-    // include_null_balances: { schema: includeNullBalancesSchema, default: false },
-}, false);
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+        address: { schema: evmAddressSchema, batched: true },
+        // include_null_balances: { schema: includeNullBalancesSchema, default: false },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -48,9 +51,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Native Balances',
-        description: 'Returns EVM native balances for wallet addresses.',
+        description: 'Returns TVM Native balances for wallet addresses.',
 
-        tags: ['EVM Tokens'],
+        tags: ['TVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

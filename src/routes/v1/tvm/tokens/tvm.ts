@@ -40,9 +40,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Metadata',
-        description: 'Provides TVM token contract metadata.',
+        description: 'Provides ERC-20 token contract metadata.',
 
-        tags: ['TVM Tokens'],
+        tags: ['TVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -81,18 +81,16 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbTransfers || !dbMetadata) {
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbMetadata.type];
+    const query = sqlQueries.tokens_for_contract?.[dbTransfers.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });

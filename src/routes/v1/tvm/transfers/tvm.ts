@@ -82,9 +82,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers (ERC-20)',
+        summary: 'Token Transfers',
         description: 'Returns ERC-20 transfers with transaction and block data.',
-        tags: ['TVM Tokens'],
+        tags: ['TVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -129,9 +129,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
-
     const dbTransfers = config.transfersDatabases[params.network];
-    // const dbMetadata = config.metadataDatabases[params.network];
 
     if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
@@ -142,7 +140,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        // db_metadata: dbMetadata.database,
     });
     injectSymbol(response, params.network, false);
 

@@ -11,15 +11,16 @@ import {
     dateTimeSchema,
     evmAddressSchema,
     evmNetworkIdSchema,
-    includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    address: { schema: evmAddressSchema, batched: true },
-    include_null_balances: { schema: includeNullBalancesSchema, default: false },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+        address: { schema: evmAddressSchema, batched: true },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -63,12 +64,12 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-01-22 14:15:35',
-                                            last_update_block_num: 24290856,
-                                            last_update_timestamp: 1769091335,
+                                            last_update: '2026-01-22 11:00:11',
+                                            last_update_block_num: 24289888,
+                                            last_update_timestamp: 1769079611,
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            amount: '3500000000000000',
-                                            value: 0.0035,
+                                            amount: '32112523848657725248',
+                                            value: 32.11252384865772,
                                             name: 'Ethereum',
                                             symbol: 'ETH',
                                             decimals: 18,
