@@ -370,7 +370,6 @@ const config = z
         evmNetworks: Object.keys({
             ...data.balancesDatabases,
             ...data.transfersDatabases,
-            ...data.metadataDatabases,
             ...data.nftDatabases,
             ...data.dexDatabases,
             ...data.contractDatabases,
@@ -380,7 +379,6 @@ const config = z
                     {
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
-                        ...data.metadataDatabases,
                         ...data.nftDatabases,
                         ...data.dexDatabases,
                         ...data.contractDatabases,
@@ -391,7 +389,6 @@ const config = z
         svmNetworks: Object.keys({
             ...data.balancesDatabases,
             ...data.transfersDatabases,
-            ...data.metadataDatabases,
             ...data.nftDatabases,
             ...data.dexDatabases,
             ...data.contractDatabases,
@@ -401,7 +398,6 @@ const config = z
                     {
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
-                        ...data.metadataDatabases,
                         ...data.nftDatabases,
                         ...data.dexDatabases,
                         ...data.contractDatabases,
@@ -410,22 +406,14 @@ const config = z
             })
             .sort(),
         tvmNetworks: Object.keys({
-            ...data.balancesDatabases,
             ...data.transfersDatabases,
-            ...data.metadataDatabases,
-            ...data.nftDatabases,
             ...data.dexDatabases,
-            ...data.contractDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
-                        ...data.balancesDatabases,
                         ...data.transfersDatabases,
-                        ...data.metadataDatabases,
-                        ...data.nftDatabases,
                         ...data.dexDatabases,
-                        ...data.contractDatabases,
                     }[networkId]?.type === 'tvm'
                 );
             })

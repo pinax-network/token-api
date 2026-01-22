@@ -3,7 +3,7 @@
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/token-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/token-api/actions/workflows/bun-test.yml)
 ![license](https://img.shields.io/github/license/pinax-network/token-api)
 
-### https://thegraph.com/token-api/
+### <https://thegraph.com/token-api/>
 
 > Power your apps & AI agents with real-time token data.
 
@@ -20,23 +20,27 @@ The Token API provides access to onchain NFT and fungible token data, including 
 ## Features
 
 ### Token Data
+
 - **Real-time Balances**: Current token holdings for any wallet address
 - **Token Transfers**: Historical transfer events with full transaction details
 - **Token Metadata**: Symbol, name, decimals, supply, and holder information
 - **Price Data**: OHLCV candlestick data and current USD prices
 
 ### NFT Support
+
 - **NFT Ownership**: Complete NFT holdings by wallet address
 - **Collection Data**: Collection metadata, supply statistics, and holder counts
 - **NFT Transfers**: Full NFT transfer history and marketplace activity
 - **Sales Data**: NFT marketplace sales with price and transaction details
 
 ### DeFi Integration
+
 - **DEX Swaps**: Uniswap and Solana DEX swap events with token amounts
 - **Liquidity Pools**: Pool information, token pairs, and trading fees
 - **Historical Data**: Time-series data for portfolio tracking and analytics
 
 ### Multi-Chain Support
+
 - **EVM Networks**: Ethereum, Base, Arbitrum, BSC, Polygon, Optimism, Avalanche, Unichain
 - **SVM Networks**: Solana with full SPL token and DEX swap support
 - **Real-time Sync**: Sub-second data latency across all supported networks
@@ -52,12 +56,14 @@ The Token API provides access to onchain NFT and fungible token data, including 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/pinax-network/token-api.git
    cd token-api
    ```
 
 2. **Install dependencies**
+
    ```bash
    bun install
    ```
@@ -81,7 +87,6 @@ The Token API provides access to onchain NFT and fungible token data, including 
    # Database Sources (Substreams packages)
    DBS_BALANCES=mainnet:evm-balances@v1.14.0
    DBS_TRANSFERS=mainnet:evm-transfers@v1.14.0
-   DBS_METADATA=mainnet:evm-metadata@v1.14.0
    DBS_NFT=mainnet:evm-nft-tokens@v0.5.1
    DBS_DEX=mainnet:evm-uniswaps@v0.1.5
 
@@ -94,6 +99,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
    ```
 
 4. **Start the development server**
+
    ```bash
    bun dev
    ```
@@ -117,7 +123,6 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `MAX_LIMIT` | Maximum query result limit | `10000` | No |
 | `DBS_BALANCES` | Balances data source | | Yes |
 | `DBS_TRANSFERS` | Transfers data source | | Yes |
-| `DBS_METADATA` | Token metadata data source | | Yes |
 | `DBS_NFT` | NFT data source | | Yes |
 | `DBS_DEX` | DEX data source | | Yes |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
@@ -140,13 +145,14 @@ The Token API requires a ClickHouse database instance with the following charact
 The API relies on Substreams data pipelines to populate the ClickHouse database.
 
 **Required Substreams packages:**
+
 - **EVM Tokens**: [substreams-evm-tokens](https://github.com/pinax-network/substreams-evm-tokens) - ERC-20 token data, transfers, and NFT information
 - **Solana Tokens**: [substreams-solana](https://github.com/pinax-network/substreams-solana) - SPL token data, transfers, and DEX swap events
 
 ## Authentication
 
 The API uses Bearer token authentication. For the live endpoint (token-api.thegraph.com), you can get your API token at [The Graph Market](https://thegraph.market).
-Head over https://thegraph.com/docs/en/token-api/quick-start/#authentication for more information.
+Head over <https://thegraph.com/docs/en/token-api/quick-start/#authentication> for more information.
 
 ```bash
 curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
@@ -160,6 +166,7 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 > Checkout the [`networks-registry`](https://github.com/graphprotocol/networks-registry) repository for reference.
 
 ### EVM Networks
+
 - **Ethereum Mainnet** (`mainnet`)
 - **Arbitrum One** (`arbitrum-one`)
 - **Avalanche C-Chain** (`avalanche`)
@@ -170,6 +177,7 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 - **Unichain** (`unichain`)
 
 ### SVM Networks
+
 - **Solana Mainnet** (`solana`)
 
 ## Docker Deployment
@@ -177,12 +185,14 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 ### Using Pre-built Images
 
 **Latest stable release:**
+
 ```bash
 docker pull ghcr.io/pinax-network/token-api:latest
 docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api:latest
 ```
 
 **Development build:**
+
 ```bash
 docker pull ghcr.io/pinax-network/token-api:develop
 docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api:develop
