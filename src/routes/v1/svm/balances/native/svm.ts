@@ -107,7 +107,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.native_balances_for_account?.[dbBalances.type];
+    const query = sqlQueries.balances_for_account_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
