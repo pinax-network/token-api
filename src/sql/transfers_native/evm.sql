@@ -88,5 +88,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = '0x0000000000000000000000000000000000000000'
 ORDER BY minute DESC, timestamp DESC, block_num DESC, tx_index DESC
