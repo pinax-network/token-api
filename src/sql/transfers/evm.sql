@@ -100,5 +100,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND t.log_address = m.contract
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND t.log_address = m.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC

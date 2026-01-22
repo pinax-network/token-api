@@ -11,7 +11,7 @@ WITH filtered_balances AS (
         AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
         AND (balance > 0 OR {include_null_balances:Bool})
     GROUP BY address, contract
-    ORDER BY block_num DESC, address, contract
+    ORDER BY block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -37,5 +37,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_balances AS a
-LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND a.contract = m.contract
-ORDER BY block_num DESC, address, contract
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND a.contract = m.contract
+ORDER BY block_num DESC

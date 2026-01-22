@@ -10,7 +10,6 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';

@@ -10,7 +10,6 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
     includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
@@ -32,7 +31,6 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- balance --
             address: evmAddressSchema,
-            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
@@ -65,14 +63,13 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-15 23:16:23',
-                                            last_update_block_num: 23586308,
-                                            last_update_timestamp: 1760570183,
+                                            last_update: '2026-01-22 14:15:35',
+                                            last_update_block_num: 24290856,
+                                            last_update_timestamp: 1769091335,
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                            amount: '784155102524588711',
-                                            value: 0.7841551025245886,
-                                            name: 'Native',
+                                            amount: '3500000000000000',
+                                            value: 0.0035,
+                                            name: 'Ethereum',
                                             symbol: 'ETH',
                                             decimals: 18,
                                             network: 'mainnet',

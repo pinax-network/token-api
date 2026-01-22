@@ -3,39 +3,36 @@ WITH filtered_balances AS (
         max(block_num) AS block_num,
         max(timestamp) AS timestamp,
         address,
-        contract,
         argMax(balance, b.timestamp) AS amount
-    FROM {db_balances:Identifier}.balances AS b
+    FROM {db_balances:Identifier}.erc20_balances AS b
     WHERE
         address IN {address:Array(String)}
-        AND contract = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
         AND (balance > 0 OR {include_null_balances:Bool})
-    GROUP BY address, contract
-    ORDER BY timestamp DESC, address, contract
+    GROUP BY address
+    ORDER BY block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
 SELECT
+    /* block */
     timestamp AS last_update,
     block_num AS last_update_block_num,
     toUnixTimestamp(a.timestamp) AS last_update_timestamp,
-    toString(address) AS address,
-    toString(contract) AS contract,
+
+    /* identity */
+    address AS address,
+
+    /* amounts */
     toString(amount) AS amount,
     a.amount / pow(10, decimals) AS value,
-    'Native' AS name,
-    multiIf(
-        {network:String} = 'mainnet', 'ETH',
-        {network:String} = 'arbitrum-one', 'ETH',
-        {network:String} = 'avalanche', 'AVAX',
-        {network:String} = 'base', 'ETH',
-        {network:String} = 'bsc', 'BNB',
-        {network:String} = 'polygon', 'POL',
-        {network:String} = 'optimism', 'ETH',
-        {network:String} = 'unichain', 'ETH',
-        ''
-    ) AS symbol,
-    18 AS decimals,
+
+    /* metadata */
+    name,
+    symbol,
+    decimals,
+
+    /* network */
     {network:String} AS network
 FROM filtered_balances AS a
-ORDER BY timestamp DESC, address, contract
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = '0x0000000000000000000000000000000000000000'
+ORDER BY block_num DESC

@@ -11,7 +11,6 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';

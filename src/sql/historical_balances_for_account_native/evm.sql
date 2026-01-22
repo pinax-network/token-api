@@ -17,7 +17,7 @@ SELECT
     /* network */
     {network:String} AS network
 FROM {db_balances:Identifier}.historical_native_balances as b
-JOIN metadata.metadata AS m ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
+JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
 WHERE
     /* required */
     interval_min = {interval:UInt32}

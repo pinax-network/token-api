@@ -18,7 +18,7 @@ SELECT
     /* network */
     {network:String} AS network
 FROM {db_balances:Identifier}.historical_erc20_balances as b
-JOIN metadata.metadata AS m ON m.network = {network:String} AND contract = m.contract
+JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND contract = m.contract
 WHERE
     /* required */
     interval_min = {interval:UInt32}

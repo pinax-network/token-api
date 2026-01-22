@@ -38,4 +38,4 @@ SELECT
     /* network */
     {network: String} AS network
 FROM circulating
-JOIN metadata.metadata AS m ON m.network = {network:String} AND m.contract = {contract: String}
+JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = {contract: String}

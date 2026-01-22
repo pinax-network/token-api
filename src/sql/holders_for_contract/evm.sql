@@ -33,7 +33,7 @@ SELECT
     /* network */
     {network:String} as network
 FROM balances AS b
-LEFT JOIN metadata.metadata AS m ON m.network = {network:String} AND b.contract = m.contract
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND b.contract = m.contract
 ORDER BY b.balance DESC
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}
