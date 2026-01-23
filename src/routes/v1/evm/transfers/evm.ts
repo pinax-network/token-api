@@ -33,7 +33,7 @@ const querySchema = createQuerySchema({
         default: '',
         meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
+    contract: { schema: evmContractSchema, batched: true, default: '' },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, default: '' },
     to_address: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
