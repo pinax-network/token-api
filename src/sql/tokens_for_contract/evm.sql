@@ -13,7 +13,7 @@ WITH circulating AS (
             argMax(balance, b.block_num) AS balance
         FROM {db_balances:Identifier}.erc20_balances AS b
         WHERE contract = {contract: String}
-        GROUP BY address
+        GROUP BY contract, address
         HAVING balance > 0
     )
 )
