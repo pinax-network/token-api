@@ -15,34 +15,35 @@ minutes_union AS
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
     WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
     WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
     WHERE ({contract:Array(String)} != [''] AND log_address IN {contract:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    WHERE ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+      AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -58,9 +59,15 @@ filtered_transfers AS
     SELECT *
     FROM {db_transfers:Identifier}.transfers t
     WHERE
-            (SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
-        AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+            (SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes)
+
+        AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+        AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
+        AND ({start_time: UInt64} = 1420070400 OR timestamp >= {start_time: UInt64})
+        AND ({end_time: UInt64} = 2524608000 OR timestamp <= {end_time: UInt64})
+        AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})
+        AND ({end_block: UInt64} = 9999999999 OR block_num <= {end_block: UInt64})
+
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']    OR `to` IN {to_address:Array(String)})
