@@ -125,7 +125,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    // const dbMetadata = config.metadataDatabases[params.network];
 
     if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
@@ -136,7 +135,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        // db_metadata: dbMetadata.database,
     });
     injectSymbol(response, params.network, false);
 

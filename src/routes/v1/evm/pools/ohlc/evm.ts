@@ -92,9 +92,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbDex || !dbMetadata) {
+    if (!dbDex) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
@@ -105,7 +104,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         stablecoin_contracts: [...stables],
         db_dex: dbDex.database,
-        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });

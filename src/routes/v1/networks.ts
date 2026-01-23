@@ -87,7 +87,7 @@ async function validateNetworks() {
     const dbs = await result.json<{ name: string }>();
     const dbs_networks = new Set(dbs.map((db) => db.name.split(':')[0]));
     for (const network of config.networks) {
-        if ( !dbs_networks.has(network) ) {
+        if (!dbs_networks.has(network)) {
             throw new Error(`Databases for ${network} not found`);
         }
     }
