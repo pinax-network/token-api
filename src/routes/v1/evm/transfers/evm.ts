@@ -6,11 +6,7 @@ import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { injectSymbol } from '../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../sql/index.js';
-import {
-    EVM_ADDRESS_TO_EXAMPLE,
-    EVM_CONTRACT_NATIVE_EXAMPLE,
-    EVM_TRANSACTION_TRANSFER_EXAMPLE,
-} from '../../../../types/examples.js';
+import { EVM_ADDRESS_TO_EXAMPLE, EVM_TRANSACTION_TRANSFER_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
