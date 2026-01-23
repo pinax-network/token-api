@@ -15,10 +15,11 @@ import {
     evmNetworkIdSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
+import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
+    contract: { schema: evmContractSchema, meta: {example: EVM_CONTRACT_USDT_EXAMPLE }},
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
