@@ -21,7 +21,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -29,7 +28,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({factory:Array(String)} != [''] AND factory IN {factory:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -37,7 +35,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({pool:Array(String)} != [''] AND pool IN {pool:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -45,7 +42,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({recipient:Array(String)} != [''] AND user IN {recipient:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -53,7 +49,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({sender:Array(String)} != [''] AND user IN {sender:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -61,7 +56,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({caller:Array(String)} != [''] AND user IN {caller:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -69,7 +63,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({input_contract:Array(String)} != [''] AND input_contract IN {input_contract:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -77,7 +70,6 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({output_contract:Array(String)} != [''] AND output_contract IN {output_contract:Array(String)})
     GROUP BY minute
-    ORDER BY minute DESC
 
     UNION ALL
 
@@ -85,13 +77,13 @@ minutes_union AS
     FROM {db_dex:Identifier}.swaps
     WHERE ({protocol:String} != '' AND protocol = replaceAll({protocol:String}, '_', '-'))
     GROUP BY minute
-    ORDER BY minute DESC
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    WHERE ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+      AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -108,9 +100,15 @@ filtered_swaps AS
     FROM {db_dex:Identifier}.swaps
 
     WHERE
-            (SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
-        AND timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+            (SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes)
+
+        AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+        AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
+        AND ({start_time: UInt64} = 1420070400 OR timestamp >= {start_time: UInt64})
+        AND ({end_time: UInt64} = 2524608000 OR timestamp <= {end_time: UInt64})
+        AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})
+        AND ({end_block: UInt64} = 9999999999 OR block_num <= {end_block: UInt64})
+
         AND ({transaction_id:Array(String)} = ['']      OR tx_hash IN {transaction_id:Array(String)})
         AND ({factory:Array(String)} = ['']             OR factory IN {factory:Array(String)})
         AND ({pool:Array(String)} = ['']                OR pool IN {pool:Array(String)})
