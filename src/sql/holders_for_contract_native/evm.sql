@@ -1,13 +1,14 @@
 WITH balances AS (
     SELECT
         address,
-        max(timestamp) AS timestamp,
-        max(b.block_num) AS block_num,
-        argMax(b.balance, b.block_num) AS balance
-    FROM {db_balances:Identifier}.native_balances AS b
-    GROUP BY address
-    /* drop small holders here (also drops 0 if min_balance > 0) */
-    HAVING balance > 1
+        timestamp,
+        block_num,
+        balance
+    FROM {db_balances:Identifier}.native_balances FINAL
+    WHERE balance != 0
+    ORDER BY balance DESC
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
 )
 SELECT
     /* timestamps */
@@ -16,21 +17,18 @@ SELECT
     toUnixTimestamp(b.timestamp) AS last_update_timestamp,
 
     /* identifiers */
-    b.address AS address,
+    address,
 
     /* amounts */
-    toString(b.balance) AS amount,
-    b.balance / pow(10, decimals) AS value,
+    toString(balance) AS amount,
+    balance / pow(10, m.decimals) AS value,
 
-    /* metadata */
-    name,
-    symbol,
-    decimals,
+    /* decimals and metadata */
+    m.name AS name,
+    m.symbol AS symbol,
+    m.decimals AS decimals,
 
     /* network */
     {network:String} as network
 FROM balances AS b
-LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = '0x0000000000000000000000000000000000000000'
-ORDER BY b.balance DESC
-LIMIT {limit:UInt64}
-OFFSET {offset:UInt64}
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
