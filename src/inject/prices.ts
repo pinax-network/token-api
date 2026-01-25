@@ -48,7 +48,7 @@ export async function injectPrices(
             const address = contract ?? row.contract ?? row.address;
             if (!address || !row.symbol) return;
 
-            // // Must be native token
+            // // Must be Native
             // // Note: Optimism has two native assets `OP` & `WETH`
             // if ( !symbols.natives.get(row.symbol)) {
             //     return;

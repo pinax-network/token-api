@@ -15,9 +15,12 @@ import {
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -52,8 +55,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Metadata',
-        description: 'Returns Native token metadata including supply and holder count.',
+        summary: 'Native Metadata',
+        description: 'Returns Native metadata including supply and holder count.',
 
         tags: ['EVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
@@ -68,15 +71,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 09:24:47',
-                                            last_update_block_num: 23589316,
-                                            last_update_timestamp: 1760606687,
-                                            name: 'Wrapped Ether',
-                                            symbol: 'WETH',
+                                            last_update: '2026-01-25 14:19:11',
+                                            last_update_block_num: 24312379,
+                                            last_update_timestamp: 1769350751,
+                                            circulating_supply: 161355003.5024305,
+                                            holders: 176087418,
+                                            name: 'Ethereum',
+                                            symbol: 'ETH',
                                             decimals: 18,
-                                            circulating_supply: 2335108.0877502915,
-                                            total_supply: 2335107.8841477665,
-                                            holders: 3014993,
                                             network: 'mainnet',
                                             icon: {
                                                 web3icon: 'ETH',

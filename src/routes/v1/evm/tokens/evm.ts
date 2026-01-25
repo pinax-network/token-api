@@ -7,6 +7,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { injectIcons } from '../../../../inject/icon.js';
 import { injectSymbol } from '../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -15,12 +16,14 @@ import {
     evmNetworkIdSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
-import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema, meta: {example: EVM_CONTRACT_USDT_EXAMPLE }},
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+        contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -74,19 +77,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 09:24:47',
-                                            last_update_block_num: 23589316,
-                                            last_update_timestamp: 1760606687,
-                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                            name: 'Wrapped Ether',
-                                            symbol: 'WETH',
-                                            decimals: 18,
-                                            circulating_supply: 2335108.0877502915,
-                                            total_supply: 2335107.8841477665,
-                                            holders: 3014993,
+                                            last_update: '2026-01-25 14:26:59',
+                                            last_update_block_num: 24312418,
+                                            last_update_timestamp: 1769351219,
+                                            contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+                                            circulating_supply: 103302123410.98102,
+                                            holders: 11573781,
+                                            name: 'Tether USD',
+                                            symbol: 'USDT',
+                                            decimals: 6,
                                             network: 'mainnet',
                                             icon: {
-                                                web3icon: 'ETH',
+                                                web3icon: 'USDT',
                                             },
                                         },
                                     ],

@@ -44,7 +44,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Holders',
+        summary: 'Native Holders',
         description: 'Returns top token holders ranked by Native balance.',
 
         tags: ['EVM Tokens (Native)'],
@@ -60,15 +60,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 09:08:11',
-                                            last_update_block_num: 23589233,
-                                            last_update_timestamp: 1760605691,
-                                            address: '0x59cd1c87501baa753d0b5b5ab5d8416a45cd71db',
-                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                            amount: '97590855599990900949144',
-                                            value: 97590.85559999091,
-                                            name: 'Wrapped Ether',
-                                            symbol: 'WETH',
+                                            last_update: '2026-01-23 20:25:35',
+                                            last_update_block_num: 24299860,
+                                            last_update_timestamp: 1769199935,
+                                            address: '0x00000000219ab540356cbb839cbe05303d7705fa',
+                                            amount: '78761803578844096172899779',
+                                            value: 78761803.5788441,
+                                            name: 'Ethereum',
+                                            symbol: 'ETH',
                                             decimals: 18,
                                             network: 'mainnet',
                                         },

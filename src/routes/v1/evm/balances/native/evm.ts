@@ -48,7 +48,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Balances',
+        summary: 'Native Balances',
         description: 'Returns EVM native balances for wallet addresses.',
 
         tags: ['EVM Tokens (Native)'],

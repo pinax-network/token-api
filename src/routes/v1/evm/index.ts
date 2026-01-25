@@ -18,7 +18,7 @@ router.route('/nft', nft);
 router.route('/pools', pools);
 // router.route('/prices', prices);
 router.route('/swaps', swaps);
-router.route('/tokens', tokens);
 router.route('/transfers', transfers);
+router.route('/tokens', tokens);
 
 export default router;

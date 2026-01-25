@@ -47,7 +47,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Historical Balances',
         description:
-            'Returns wallet Native token balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
+            'Returns wallet Native balance changes over time in OHLCV format.\n\nOHLCV historical depth is subject to plan restrictions.',
         tags: ['TVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
