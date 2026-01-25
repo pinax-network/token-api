@@ -11,14 +11,14 @@ import transfers from './transfers/index.js';
 
 const router = new Hono();
 
+router.route('/transfers', transfers);
 router.route('/balances', balances);
+router.route('/swaps', swaps);
 router.route('/dexes', dexes);
 router.route('/holders', holders);
 router.route('/nft', nft);
 router.route('/pools', pools);
 // router.route('/prices', prices);
-router.route('/swaps', swaps);
-router.route('/transfers', transfers);
 router.route('/tokens', tokens);
 
 export default router;

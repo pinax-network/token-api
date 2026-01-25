@@ -2,22 +2,20 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import { config } from '../../../../config.js';
-import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { sqlQueries } from '../../../../sql/index.js';
+import { config } from '../../../../../config.js';
+import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
+import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
-    tvmContractSchema,
     tvmNetworkIdSchema,
-} from '../../../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../../../utils.js';
+} from '../../../../../types/zod.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema(
     {
         network: { schema: tvmNetworkIdSchema },
-        contract: { schema: tvmContractSchema },
     },
     false
 );
@@ -28,8 +26,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update: dateTimeSchema,
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
-
-            contract: tvmContractSchema,
 
             decimals: z.number().nullable(),
             name: z.string().nullable(),
@@ -42,10 +38,10 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Metadata',
-        description: 'Provides ERC-20 token contract metadata.',
+        summary: 'Native Metadata',
+        description: 'Provides Native metadata.',
 
-        tags: ['TVM Tokens (ERC-20)'],
+        tags: ['TVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -58,12 +54,11 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-01-25 14:47:15',
-                                            last_update_block_num: 79562822,
-                                            last_update_timestamp: 1769352435,
-                                            contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-                                            name: 'Tether USD',
-                                            symbol: 'USDT',
+                                            last_update: '2026-01-25 14:51:18',
+                                            last_update_block_num: 79562903,
+                                            last_update_timestamp: 1769352678,
+                                            name: 'Tron',
+                                            symbol: 'TRX',
                                             decimals: 6,
                                             network: 'tron',
                                         },
@@ -88,7 +83,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbTransfers.type];
+    const query = sqlQueries.tokens_for_contract_native?.[dbTransfers.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
