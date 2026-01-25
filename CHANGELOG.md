@@ -125,7 +125,7 @@
 
 ### Added
 
-- Added SOL native token metadata to `/svm/transfers`
+- Added SOL Native metadata to `/svm/transfers`
 
 ## [3.3.2] - 2024-10-27
 

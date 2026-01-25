@@ -10,11 +10,11 @@ import transfers from './transfers/index.js';
 const router = new Hono();
 
 // router.route('/balances', balances);
+router.route('/transfers', transfers);
+router.route('/tokens', tokens);
+router.route('/swaps', swaps);
 router.route('/dexes', dexes);
 // router.route('/holders', holders);
 router.route('/pools', pools);
-router.route('/swaps', swaps);
-router.route('/tokens', tokens);
-router.route('/transfers', transfers);
 
 export default router;

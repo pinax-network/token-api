@@ -5,7 +5,7 @@ WITH filtered_balances AS (
         any(program_id) AS program_id,
         mint,
         any(decimals) AS decimals
-    FROM balances
+    FROM {db_balances:Identifier}.balances
     WHERE mint = {mint:String} AND amount > 0
     GROUP BY mint
 ),
@@ -16,10 +16,10 @@ metadata AS
         if(empty(name), NULL, name) AS name,
         if(empty(symbol), NULL, symbol) AS symbol,
         if(empty(uri), NULL, uri) AS uri
-    FROM metadata_view
+    FROM {db_metadata:Identifier}.metadata_view
     WHERE metadata IN (
         SELECT metadata
-        FROM metadata_mint_state
+        FROM {db_metadata:Identifier}.metadata_mint_state
         WHERE mint = {mint:String}
         GROUP BY metadata
     )

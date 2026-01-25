@@ -1,5 +1,5 @@
 import client from '../clickhouse/client.js';
-import { config, DEFAULT_LOW_LIQUIDITY_CHECK } from '../config.js';
+import { DEFAULT_LOW_LIQUIDITY_CHECK } from '../config.js';
 import type { ApiErrorResponse, ApiUsageResponse } from '../types/zod.js';
 import { natives, stables } from './prices.tokens.js';
 
@@ -38,10 +38,7 @@ export async function injectPrices(
     network_id: string,
     contract?: string
 ) {
-    if (!config.tokenDatabases[network_id]) throw new Error(`Could not find database for network_id: ${network_id}`);
-
-    const database = config.tokenDatabases[network_id].database;
-    const prices = await getPrices(database);
+    const prices = await getPrices('metadata.metadata');
 
     // Native price
     const native_price = computeNativePrice(prices, network_id);
@@ -51,7 +48,7 @@ export async function injectPrices(
             const address = contract ?? row.contract ?? row.address;
             if (!address || !row.symbol) return;
 
-            // // Must be native token
+            // // Must be Native
             // // Note: Optimism has two native assets `OP` & `WETH`
             // if ( !symbols.natives.get(row.symbol)) {
             //     return;

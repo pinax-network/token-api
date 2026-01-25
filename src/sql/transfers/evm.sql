@@ -13,36 +13,37 @@ active_filters AS
 minutes_union AS
 (
     SELECT minute
-    FROM transfers_by_from
+    FROM {db_transfers:Identifier}.transfers
     WHERE ({from_address:Array(String)} != [''] AND `from` IN {from_address:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_to
+    FROM {db_transfers:Identifier}.transfers
     WHERE ({to_address:Array(String)} != [''] AND `to` IN {to_address:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_contract
-    WHERE ({contract:Array(String)} != [''] AND contract IN {contract:Array(String)})
-    ORDER BY minute DESC
+    FROM {db_transfers:Identifier}.transfers
+    WHERE ({contract:Array(String)} != [''] AND log_address IN {contract:Array(String)})
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM transfers_by_tx_hash
+    FROM {db_transfers:Identifier}.transfers
     WHERE ({transaction_id:Array(String)} != [''] AND tx_hash IN {transaction_id:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    WHERE ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+      AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -53,74 +54,58 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
-/* Latest ingested timestamp in source table */
-latest_ts AS
-(
-    SELECT max(timestamp) AS ts FROM transfers
-),
 filtered_transfers AS
 (
-    SELECT
-        block_num,
-        timestamp,
-        tx_hash,
-        log_index,
-        contract,
-        `from`,
-        `to`,
-        value AS amount
-    FROM transfers t
-    PREWHERE
-        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND (
-            (
-                /* if no filters are active search only the last minute */
-                (SELECT n FROM active_filters) = 0
-                AND timestamp BETWEEN
-                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
-                    AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
-            )
-            /* if filters are active, search through the intersecting minute ranges */
-            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
-        )
+    SELECT *
+    FROM {db_transfers:Identifier}.transfers t
     WHERE
-        ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
+            (SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes)
+
+        AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+        AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
+        AND ({start_time: UInt64} = 1420070400 OR timestamp >= {start_time: UInt64})
+        AND ({end_time: UInt64} = 2524608000 OR timestamp <= {end_time: UInt64})
+        AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})
+        AND ({end_block: UInt64} = 9999999999 OR block_num <= {end_block: UInt64})
+
+        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']    OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = ['']      OR contract IN {contract:Array(String)})
-    ORDER BY timestamp DESC, tx_hash, log_index
+    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-metadata AS
-(
-    SELECT
-        contract,
-        name,
-        symbol,
-        decimals
-    FROM metadata_view
-    WHERE contract IN (
-        SELECT contract
-        FROM filtered_transfers
-    )
 )
 SELECT
+    /* block */
     t.block_num as block_num,
     t.timestamp as datetime,
     toUnixTimestamp(t.timestamp) as timestamp,
+
+    /* transaction */
     toString(t.tx_hash) as transaction_id,
+
+    /* log */
     log_index,
-    contract,
+    /* log_ordinal AS ordinal, for `/v2` endpoint */
+    log_address as contract,
+
+    /* transfer */
+    transfer_type as type,
     `from`,
     `to`,
-    name,
-    symbol,
-    decimals,
-    toString(amount) AS amount,
-    t.amount / pow(10, decimals) AS value,
+
+    /* metadata */
+    m.name AS name,
+    m.symbol AS symbol,
+    m.decimals AS decimals,
+
+    /* amounts */
+    toString(t.amount) AS amount,
+    t.amount / pow(10, m.decimals) AS value,
+
+    /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata AS c USING contract
-ORDER BY timestamp DESC, tx_hash, log_index
+LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND t.log_address = m.contract
+ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC

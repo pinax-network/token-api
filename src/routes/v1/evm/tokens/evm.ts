@@ -7,6 +7,7 @@ import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQue
 import { injectIcons } from '../../../../inject/icon.js';
 import { injectSymbol } from '../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -16,10 +17,13 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+        contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -60,7 +64,7 @@ const openapi = describeRoute(
         summary: 'Token Metadata',
         description: 'Returns ERC-20 token metadata including supply and holder count.',
 
-        tags: ['EVM Tokens'],
+        tags: ['EVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -73,19 +77,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 09:24:47',
-                                            last_update_block_num: 23589316,
-                                            last_update_timestamp: 1760606687,
-                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                            name: 'Wrapped Ether',
-                                            symbol: 'WETH',
-                                            decimals: 18,
-                                            circulating_supply: 2335108.0877502915,
-                                            total_supply: 2335107.8841477665,
-                                            holders: 3014993,
+                                            last_update: '2026-01-25 14:26:59',
+                                            last_update_block_num: 24312418,
+                                            last_update_timestamp: 1769351219,
+                                            contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+                                            circulating_supply: 103302123410.98102,
+                                            holders: 11573781,
+                                            name: 'Tether USD',
+                                            symbol: 'USDT',
+                                            decimals: 6,
                                             network: 'mainnet',
                                             icon: {
-                                                web3icon: 'ETH',
+                                                web3icon: 'USDT',
                                             },
                                         },
                                     ],
@@ -104,17 +107,25 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
+    const dbBalances = config.balancesDatabases[params.network];
+
+    if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbConfig.type];
+    const query = sqlQueries.tokens_for_contract?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, {
-        database: dbConfig.database,
-        clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
-    });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        {
+            ...params,
+            db_balances: dbBalances.database,
+        },
+        {
+            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
+        }
+    );
     injectSymbol(response, params.network, true);
     injectIcons(response);
     return handleUsageQueryError(c, response);

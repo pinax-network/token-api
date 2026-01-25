@@ -8,7 +8,7 @@ WITH filtered_pools AS (
         mint0,
         mint1,
         transactions
-    FROM pool_activity_summary
+    FROM {db_dex:Identifier}.pool_activity_summary
     WHERE ({amm:Array(String)} = [''] OR amm IN {amm:Array(String)})
         AND ({amm_pool:Array(String)} = [''] OR amm_pool IN {amm_pool:Array(String)})
         AND ({input_mint:Array(String)} = [''] OR mint1 IN {input_mint:Array(String)})

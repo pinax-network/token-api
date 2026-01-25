@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { sqlQueries } from '../../../../sql/index.js';
+import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -17,7 +18,7 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
-    contract: { schema: evmContractSchema },
+    contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -48,9 +49,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Holders',
-        description: 'Returns top token holders ranked by balance.',
+        description: 'Returns top token holders ranked by ERC-20 balance.',
 
-        tags: ['EVM Tokens'],
+        tags: ['EVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -63,16 +64,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 09:08:11',
-                                            last_update_block_num: 23589233,
-                                            last_update_timestamp: 1760605691,
-                                            address: '0x59cd1c87501baa753d0b5b5ab5d8416a45cd71db',
-                                            contract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                                            amount: '97590855599990900949144',
-                                            value: 97590.85559999091,
-                                            name: 'Wrapped Ether',
-                                            symbol: 'WETH',
-                                            decimals: 18,
+                                            last_update: '2026-01-23 06:37:11',
+                                            last_update_block_num: 24295739,
+                                            last_update_timestamp: 1769150231,
+                                            address: '0xf977814e90da44bfa03b6295a0616a897441acec',
+                                            contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+                                            amount: '20000000000000000',
+                                            value: 20000000000,
+                                            name: 'Tether USD',
+                                            symbol: 'USDT',
+                                            decimals: 6,
                                             network: 'mainnet',
                                         },
                                     ],
@@ -91,17 +92,25 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
+    const dbBalances = config.balancesDatabases[params.network];
+
+    if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.holders_for_contract?.[dbConfig.type];
+    const query = sqlQueries.holders_for_contract?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for holders could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, {
-        database: dbConfig.database,
-        clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
-    });
+    const response = await makeUsageQueryJson(
+        c,
+        [query],
+        {
+            ...params,
+            db_balances: dbBalances.database,
+        },
+        {
+            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
+        }
+    );
     return handleUsageQueryError(c, response);
 });
 

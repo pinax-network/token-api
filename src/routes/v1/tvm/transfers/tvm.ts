@@ -82,9 +82,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'TRC-20 Transfers',
-        description: 'Returns TRC-20 transfers with transaction and block data.',
-        tags: ['TVM Tokens'],
+        summary: 'Token Transfers',
+        description: 'Returns ERC-20 transfers with transaction and block data.',
+        tags: ['TVM Tokens (ERC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -97,22 +97,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 77231165,
-                                            datetime: '2025-11-05 14:57:51',
-                                            timestamp: 1762354671,
+                                            block_num: 49014118,
+                                            datetime: '2023-03-01 06:55:06',
+                                            timestamp: 1677653706,
                                             transaction_id:
-                                                '46c608cd66c873753f7d86a3dc6b46453052505730cc5f6e951533083b1d40ab',
-                                            transaction_index: 273,
+                                                '0xa85ee0572469b128690c00a80f03a328c882b7339496faf64a1ad0707b537329',
                                             log_index: 0,
-                                            log_ordinal: 1020,
                                             contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-                                            from: 'TAYtGZzxZf1GhPfGwZKskWQnz7Qj3rwLDh',
-                                            to: 'THWuviP5wEiPBLZ1g1iPPiH4kV7FRXWFP1',
-                                            amount: '19600000000',
-                                            value: 19600,
+                                            type: 'transfer',
+                                            from: 'THx5jmvnQkRjDpYEpkaLn7yCvgafXzxiAF',
+                                            to: 'TCc3eBTbWXcUwfmgWP58VnyVGS6HE3gGe3',
                                             name: 'Tether USD',
                                             symbol: 'USDT',
                                             decimals: 6,
+                                            amount: '10000000000',
+                                            value: 10000,
                                             network: 'tron',
                                         },
                                     ],
@@ -130,15 +129,18 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
+    const dbTransfers = config.transfersDatabases[params.network];
 
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.transfers?.[dbConfig.type];
+    const query = sqlQueries.transfers?.[dbTransfers.type];
     if (!query) return c.json({ error: 'Query for transfers could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_transfers: dbTransfers.database,
+    });
     injectSymbol(response, params.network, false);
 
     return handleUsageQueryError(c, response);

@@ -10,17 +10,17 @@ import {
     createQuerySchema,
     dateTimeSchema,
     evmAddressSchema,
-    evmContractSchema,
     evmNetworkIdSchema,
-    includeNullBalancesSchema,
 } from '../../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: evmNetworkIdSchema },
-    address: { schema: evmAddressSchema, batched: true },
-    include_null_balances: { schema: includeNullBalancesSchema, default: false },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: evmNetworkIdSchema },
+        address: { schema: evmAddressSchema, batched: true },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -32,7 +32,6 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- balance --
             address: evmAddressSchema,
-            contract: evmContractSchema,
             amount: z.string(),
             value: z.number(),
 
@@ -52,7 +51,7 @@ const openapi = describeRoute(
         summary: 'Native Balances',
         description: 'Returns EVM native balances for wallet addresses.',
 
-        tags: ['EVM Tokens'],
+        tags: ['EVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -65,14 +64,13 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-15 23:16:23',
-                                            last_update_block_num: 23586308,
-                                            last_update_timestamp: 1760570183,
+                                            last_update: '2026-01-22 11:00:11',
+                                            last_update_block_num: 24289888,
+                                            last_update_timestamp: 1769079611,
                                             address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                                            contract: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                                            amount: '784155102524588711',
-                                            value: 0.7841551025245886,
-                                            name: 'Native',
+                                            amount: '32112523848657725248',
+                                            value: 32.11252384865772,
+                                            name: 'Ethereum',
                                             symbol: 'ETH',
                                             decimals: 18,
                                             network: 'mainnet',
@@ -93,14 +91,17 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
+    const dbBalances = config.balancesDatabases[params.network];
+    if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.native_balances_for_account?.[dbConfig.type];
+    const query = sqlQueries.balances_for_account_native?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for balances could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_balances: dbBalances.database,
+    });
     return handleUsageQueryError(c, response);
 });
 

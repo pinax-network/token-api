@@ -1,31 +1,25 @@
-WITH filtered_contract AS (
+WITH circulating AS (
     SELECT
-        timestamp AS last_update,
-        block_num AS last_update_block_num,
-        log_address AS contract
-    FROM trc20_transfer
-    WHERE log_address = {contract:String}
-    ORDER BY minute DESC
-    LIMIT 1
-),
-metadata AS
-(
-    SELECT
-        contract,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        decimals
-    FROM metadata
-    WHERE contract = {contract:String}
+        max(block_num) AS block_num,
+        max(timestamp) AS timestamp
+    FROM {db_transfers:Identifier}.transfers
+    WHERE log_address = {contract: String}
 )
 SELECT
-    last_update,
-    last_update_block_num,
-    toUnixTimestamp(last_update) AS last_update_timestamp,
-    toString(fc.contract) AS contract,
-    decimals,
+    /* timestamps */
+    circulating.timestamp AS last_update,
+    circulating.block_num AS last_update_block_num,
+    toUnixTimestamp(circulating.timestamp) AS last_update_timestamp,
+
+    /* identifiers */
+    {contract: String} AS contract,
+
+    /* token metadata */
     name,
     symbol,
-    {network:String} AS network
-FROM filtered_contract AS fc
-LEFT JOIN metadata USING contract
+    decimals,
+
+    /* network */
+    {network: String} AS network
+FROM circulating
+JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = {contract: String}

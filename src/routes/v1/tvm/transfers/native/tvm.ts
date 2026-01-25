@@ -80,7 +80,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Native Transfers',
         description: 'Returns Native transfers with transaction and block data.',
-        tags: ['TVM Tokens'],
+        tags: ['TVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -93,19 +93,21 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 77231160,
-                                            datetime: '2025-11-05 14:57:36',
-                                            timestamp: 1762354656,
+                                            block_num: 79432572,
+                                            datetime: '2026-01-21 02:12:54',
+                                            timestamp: 1768961574,
                                             transaction_id:
-                                                '7504152368a31f51dc0128f07b01815a4f1033c8247a7c2f415a55d59cfe4351',
-                                            transaction_index: 260,
-                                            from: 'TAYtGZzxZf1GhPfGwZKskWQnz7Qj3rwLDh',
-                                            to: 'TMXZAySpsog7WtaeKb8WotoHepNsD1jjTc',
-                                            amount: '4821375',
-                                            value: 4.821375,
+                                                '0x0909857e613151f23c51d30829de6a7ba5307cbf74de1fd67dcf67aadfbaa55a',
+                                            transaction_index: 131,
+                                            call_index: null,
+                                            type: 'transaction',
+                                            from: '0x177b7305b003d1e61941c5eec3737e482a1fe947',
+                                            to: '0xb41393b990cb28881458313d77910c6164772036',
                                             name: 'Tron',
                                             symbol: 'TRX',
                                             decimals: 6,
+                                            amount: '5000000',
+                                            value: 5,
                                             network: 'tron',
                                         },
                                     ],
@@ -124,14 +126,18 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbConfig = config.tokenDatabases[params.network];
-    if (!dbConfig) {
+    const dbTransfers = config.transfersDatabases[params.network];
+
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.transfers_native?.[dbConfig.type];
+    const query = sqlQueries.transfers_native?.[dbTransfers.type];
     if (!query) return c.json({ error: 'Query for transfers could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(c, [query], params, { database: dbConfig.database });
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_transfers: dbTransfers.database,
+    });
     injectSymbol(response, params.network, false);
 
     return handleUsageQueryError(c, response);

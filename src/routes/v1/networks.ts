@@ -85,15 +85,9 @@ async function validateNetworks() {
     const query = 'SHOW DATABASES';
     const result = await client({ database: config.database }).query({ query, format: 'JSONEachRow' });
     const dbs = await result.json<{ name: string }>();
+    const dbs_networks = new Set(dbs.map((db) => db.name.split(':')[0]));
     for (const network of config.networks) {
-        if (
-            !dbs.find(
-                (db) =>
-                    db.name === config.tokenDatabases[network]?.database ||
-                    db.name === config.nftDatabases[network]?.database ||
-                    db.name === config.uniswapDatabases[network]?.database
-            )
-        ) {
+        if (!dbs_networks.has(network)) {
             throw new Error(`Databases for ${network} not found`);
         }
     }
