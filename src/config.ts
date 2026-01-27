@@ -298,24 +298,18 @@ const config = z
         }),
     })
     .transform((data) => {
-        // Load YAML config (required)
+        // Load YAML config (required - loadDbsConfig throws if path is invalid or file not found)
         const yamlConfig = loadDbsConfig(data.dbsConfigPath);
-
-        if (!yamlConfig) {
-            throw new Error(
-                'Database configuration file could not be loaded. Please provide a valid DBS_CONFIG_PATH pointing to your dbs-config.yaml file.'
-            );
-        }
 
         // Use YAML config as the authoritative source
         return {
             ...data,
-            clusters: yamlConfig.clusters,
-            balancesDatabases: yamlConfig.balancesDatabases ?? {},
-            transfersDatabases: yamlConfig.transfersDatabases ?? {},
-            nftDatabases: yamlConfig.nftDatabases ?? {},
-            dexDatabases: yamlConfig.dexDatabases ?? {},
-            contractDatabases: yamlConfig.contractDatabases ?? {},
+            clusters: yamlConfig?.clusters ?? {},
+            balancesDatabases: yamlConfig?.balancesDatabases ?? {},
+            transfersDatabases: yamlConfig?.transfersDatabases ?? {},
+            nftDatabases: yamlConfig?.nftDatabases ?? {},
+            dexDatabases: yamlConfig?.dexDatabases ?? {},
+            contractDatabases: yamlConfig?.contractDatabases ?? {},
         };
     })
     .transform((data) => ({

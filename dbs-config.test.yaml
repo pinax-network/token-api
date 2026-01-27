@@ -10,7 +10,7 @@ networks:
     type: evm
     cluster: default
     transfers: mainnet:evm-transfers@v0.2.2
-    balances: mainnet:evm-balances@v0.2.3
+    balances: mainnet:evm-balances@v0.2.2
     nfts: mainnet:evm-nft-tokens@v0.6.2
     dexes: mainnet:evm-dex@v0.2.6
     contracts: mainnet:evm-contracts@v0.3.0
