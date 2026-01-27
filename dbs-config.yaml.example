@@ -1,0 +1,34 @@
+# Token API Database Configuration
+# This file defines the database mappings for each network and data type
+# Note: USERNAME and PASSWORD are configured in .env file
+clusters:
+  a:
+    url: http://127.0.0.1:8123
+  b:
+    url: http://127.0.0.1:8124
+
+networks:
+  # EVM Networks
+  mainnet:
+    type: evm
+    cluster: a
+    transfers: mainnet:evm-transfers@v0.2.2
+    balances: mainnet:evm-balances@v0.2.3
+    nfts: mainnet:evm-nft-tokens@v0.6.2
+    dexes: mainnet:evm-dex@v0.2.6
+    contracts: mainnet:evm-contracts@v0.3.0
+
+  # SVM Networks
+  solana:
+    type: svm
+    cluster: b
+    transfers: solana:solana-tokens@v0.2.8
+    balances: solana:solana-tokens@v0.2.8
+    dexes: solana:svm-dex@v0.3.1
+
+  # TVM Networks
+  tron:
+    type: tvm
+    cluster: b
+    transfers: tron:evm-transfers@v0.2.3
+    dexes: tron:evm-dex@v0.2.6

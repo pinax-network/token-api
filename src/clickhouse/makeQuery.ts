@@ -13,7 +13,11 @@ export async function makeQuery<T = unknown>(
     const query_id = crypto.randomUUID();
     logger.trace({ query_id, overwrite_config, query, query_params });
 
-    const response = await client(overwrite_config).query({
+    // Extract network from query_params for cluster routing
+    const network = typeof query_params?.network === 'string' ? query_params.network : undefined;
+    const clientConfig = network ? { ...overwrite_config, network } : overwrite_config;
+
+    const response = await client(clientConfig).query({
         query,
         query_params,
         format: 'JSONEachRowWithProgress',

@@ -2,14 +2,57 @@ import { createClient } from '@clickhouse/client-web';
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
 import { APP_NAME, config } from '../config.js';
 
-// TODO: Check how to abort previous queries if haven't returned yet
-const client = (custom_config?: WebClickHouseClientConfigOptions) => {
+interface ClientOptions extends WebClickHouseClientConfigOptions {
+    network?: string;
+}
+
+function getClusterForNetwork(network: string): { url: string; username?: string; password?: string } | null {
+    // Try to find cluster from any database type for this network
+    const networkDb =
+        config.balancesDatabases[network] ||
+        config.transfersDatabases[network] ||
+        config.nftDatabases[network] ||
+        config.dexDatabases[network] ||
+        config.contractDatabases[network];
+
+    if (!networkDb || !networkDb.cluster) {
+        return null;
+    }
+
+    const cluster = config.clusters[networkDb.cluster];
+    if (!cluster) {
+        return null;
+    }
+
+    return {
+        url: cluster.url,
+        username: cluster.username,
+        password: cluster.password,
+    };
+}
+
+const client = (custom_config?: ClientOptions) => {
+    let url = config.url;
+    let username = config.username;
+    let password = config.password;
+
+    // If network is provided and we have cluster config, use cluster-specific credentials
+    if (custom_config?.network) {
+        const clusterConfig = getClusterForNetwork(custom_config.network);
+        if (clusterConfig) {
+            url = clusterConfig.url;
+            // Use cluster credentials if provided, otherwise fall back to env credentials
+            username = clusterConfig.username ?? config.username;
+            password = clusterConfig.password ?? config.password;
+        }
+    }
+
     const clientConfig: WebClickHouseClientConfigOptions = {
         application: APP_NAME,
-        url: config.url,
+        url,
         database: config.database,
-        username: config.username,
-        password: config.password,
+        username,
+        password,
         keep_alive: {
             enabled: false, // disable HTTP keep alive for immediate return
         },

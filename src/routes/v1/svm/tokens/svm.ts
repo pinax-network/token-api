@@ -89,12 +89,11 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbBalances || !dbMetadata) {
+    if (!dbBalances) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    const query = sqlQueries.tokens_for_contract?.[dbMetadata.type];
+    const query = sqlQueries.tokens_for_contract?.[dbBalances.type];
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(
@@ -103,7 +102,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         {
             ...params,
             db_balances: dbBalances.database,
-            db_metadata: dbMetadata.database,
+            db_metadata: dbBalances.database,
         },
         {
             clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
