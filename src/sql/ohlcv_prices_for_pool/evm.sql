@@ -1,7 +1,7 @@
 WITH ohlc AS (
     SELECT
         /* Time */
-        timestamp AS datetime,
+        p.timestamp AS datetime,
 
         /* DEX identity */
         CONCAT(m0.symbol, m1.symbol) AS ticker,
@@ -37,8 +37,8 @@ WITH ohlc AS (
     WHERE
             p.interval_min = {interval: UInt64}
         AND p.pool = {pool: String}
-        AND ({start_time: UInt64} == 1763251200 OR timestamp >= toDateTime({start_time: UInt64}))
-        AND ({end_time: UInt64} == 2524608000 OR timestamp <= toDateTime({end_time: UInt64}))
+        AND ({start_time: UInt64} == 1763251200 OR p.timestamp >= toDateTime({start_time: UInt64}))
+        AND ({end_time: UInt64} == 2524608000 OR p.timestamp <= toDateTime({end_time: UInt64}))
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
