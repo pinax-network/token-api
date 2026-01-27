@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { nativeContractRedirect } from '../../../../middleware/nativeContractRedirect.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
 import {
@@ -88,6 +89,10 @@ const openapi = describeRoute(
 );
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
+
+// TEMPORARY: Redirect native contract requests to /native endpoint
+// TODO: Remove this middleware once migration is complete
+route.use('/', nativeContractRedirect);
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
