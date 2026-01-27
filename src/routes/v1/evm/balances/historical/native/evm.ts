@@ -22,7 +22,7 @@ const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
     interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1d' } },
-    start_time: { schema: timestampSchema, prefault: getDateMinusMonths(1) },
+    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
 });
 

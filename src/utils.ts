@@ -59,7 +59,8 @@ export function now() {
     return Math.floor(Date.now() / 1000);
 }
 
-export function getDateMinusMonths(months: number): string {
+// DEPRECATE IN FAVOR OF STATIC DATE (or NULL date handling in SQL QUERIES)
+export function _getDateMinusMonths(months: number): string {
     const date = new Date();
     date.setMonth(date.getMonth() - months);
     return date.toISOString().substring(0, 10);
