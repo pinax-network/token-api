@@ -98,9 +98,13 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexDatabases[params.network];
+    const dbBalances = config.balancesDatabases[params.network];
 
     if (!dbDex) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
+        return c.json({ error: `Network not found: ${params.network} dbDex` }, 400);
+    }
+    if (!dbBalances) {
+        return c.json({ error: `Network not found: ${params.network} dbBalances` }, 400);
     }
 
     const query = sqlQueries.ohlcv_prices_for_pool?.[dbDex.type];
@@ -110,7 +114,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         stablecoin_contracts: [...stables],
         db_dex: dbDex.database,
-        db_metadata: dbDex.database,
+        db_metadata: dbBalances.database,
     });
     return handleUsageQueryError(c, response);
 });
