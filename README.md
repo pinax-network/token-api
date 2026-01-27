@@ -68,34 +68,57 @@ The Token API provides access to onchain NFT and fungible token data, including 
    bun install
    ```
 
-3. **Configure environment variables**
+3. **Configure the database**
 
-   Create a `.env` file in the root directory:
+   Create a `dbs-config.yaml` file in the root directory:
+
+   ```yaml
+   # Token API Database Configuration
+   # This file defines the database mappings for each network and data type
+   clusters:
+     default:
+       url: http://127.0.0.1:8123
+       username: default
+       password: ""
+
+   networks:
+     # EVM Networks
+     mainnet:
+       type: evm
+       cluster: default
+       transfers: mainnet:evm-transfers@v0.2.2
+       balances: mainnet:evm-balances@v0.2.3
+       nfts: mainnet:evm-nft-tokens@v0.6.2
+       dexes: mainnet:evm-dex@v0.2.6
+       contracts: mainnet:evm-contracts@v0.3.0
+
+     # SVM Networks
+     solana:
+       type: svm
+       cluster: default
+       transfers: solana:solana-tokens@v0.2.8
+       balances: solana:solana-tokens@v0.2.8
+       dexes: solana:svm-dex@v0.3.1
+   ```
+
+   Then set the path to your config file:
+
+   ```bash
+   export DBS_CONFIG_PATH=dbs-config.yaml
+   ```
+
+   Or create a `.env` file with optional settings:
 
    ```env
-   # API Server Configuration
-   PORT=8000
-   HOSTNAME=localhost
-   IDLE_TIMEOUT=60
+   # Database Configuration (required)
+   DBS_CONFIG_PATH=dbs-config.yaml
 
-   # ClickHouse Database
-   URL=http://127.0.0.1:8123
-   USERNAME=default
-   PASSWORD=
-   MAX_LIMIT=10000
-
-   # Database Sources (Substreams packages)
-   DBS_BALANCES=mainnet:evm-balances@v1.14.0
-   DBS_TRANSFERS=mainnet:evm-transfers@v1.14.0
-   DBS_NFT=mainnet:evm-nft-tokens@v0.5.1
-   DBS_DEX=mainnet:evm-uniswaps@v0.1.5
-
-   # OpenAPI Configuration
-   DISABLE_OPENAPI_SERVERS=false
-
-   # Logging
+   # Logging (optional)
    PRETTY_LOGGING=true
    VERBOSE=true
+
+   # OpenAPI Configuration (optional)
+   DISABLE_OPENAPI_SERVERS=false
    ```
 
 4. **Start the development server**
@@ -114,20 +137,14 @@ The Token API provides access to onchain NFT and fungible token data, including 
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
+| `DBS_CONFIG_PATH` | Path to database configuration YAML file | | Yes |
 | `PORT` | HTTP server port | `8000` | No |
 | `HOSTNAME` | Server hostname | `localhost` | No |
 | `IDLE_TIMEOUT` | Connection idle timeout (seconds) | `60` | No |
-| `URL` | ClickHouse database URL | `http://127.0.0.1:8123` | Yes |
-| `USERNAME` | ClickHouse username | `default` | Yes |
-| `PASSWORD` | ClickHouse password | | No |
-| `MAX_LIMIT` | Maximum query result limit | `10000` | No |
-| `DBS_BALANCES` | Balances data source | | Yes |
-| `DBS_TRANSFERS` | Transfers data source | | Yes |
-| `DBS_NFT` | NFT data source | | Yes |
-| `DBS_DEX` | DEX data source | | Yes |
+| `MAX_LIMIT` | Maximum query result limit | `1000` | No |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
-| `PRETTY_LOGGING` | Enable pretty console logging | `true` | No |
-| `VERBOSE` | Enable verbose logging | `true` | No |
+| `PRETTY_LOGGING` | Enable pretty console logging | `false` | No |
+| `VERBOSE` | Enable verbose logging | `false` | No |
 
 ## Backend Requirements
 
@@ -188,21 +205,33 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 
 ```bash
 docker pull ghcr.io/pinax-network/token-api:latest
-docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api:latest
+docker run -it --rm \
+  -v $(pwd)/dbs-config.yaml:/dbs-config.yaml \
+  -e DBS_CONFIG_PATH=/dbs-config.yaml \
+  -p 8000:8000 \
+  ghcr.io/pinax-network/token-api:latest
 ```
 
 **Development build:**
 
 ```bash
 docker pull ghcr.io/pinax-network/token-api:develop
-docker run -it --rm --env-file .env -p 8000:8000 ghcr.io/pinax-network/token-api:develop
+docker run -it --rm \
+  -v $(pwd)/dbs-config.yaml:/dbs-config.yaml \
+  -e DBS_CONFIG_PATH=/dbs-config.yaml \
+  -p 8000:8000 \
+  ghcr.io/pinax-network/token-api:develop
 ```
 
 ### Building from Source
 
 ```bash
 docker build -t token-api .
-docker run -it --rm --env-file .env -p 8000:8000 token-api
+docker run -it --rm \
+  -v $(pwd)/dbs-config.yaml:/dbs-config.yaml \
+  -e DBS_CONFIG_PATH=/dbs-config.yaml \
+  -p 8000:8000 \
+  token-api
 ```
 
 ## Development

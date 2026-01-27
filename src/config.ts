@@ -4,7 +4,7 @@ import { Option, program } from 'commander';
 import { z } from 'zod';
 
 import pkg from '../package.json' with { type: 'json' };
-import { loadDbsConfig, type NetworkDatabaseMapping } from './config/dbsConfig.js';
+import { loadDbsConfig } from './config/dbsConfig.js';
 
 // Set timezone to UTC
 process.env.TZ = 'Etc/UTC';
@@ -40,12 +40,6 @@ export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 // Make cache duration minimum to be same as max SQL execution time
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
-
-export const DEFAULT_DBS_BALANCES = 'mainnet:evm-balances@v0.2.2';
-export const DEFAULT_DBS_TRANSFERS = 'mainnet:evm-transfers@v0.2.2';
-export const DEFAULT_DBS_CONTRACT = 'mainnet:evm-contracts@v0.3.0';
-export const DEFAULT_DBS_NFT = 'mainnet:evm-nft-tokens@v0.6.2';
-export const DEFAULT_DBS_DEX = 'mainnet:evm-dex@v0.2.6';
 
 // GitHub metadata
 const GIT_COMMIT = (process.env.GIT_COMMIT ?? (await $`git rev-parse HEAD`.text())).replace(/\n/, '').slice(0, 7);
@@ -103,27 +97,6 @@ const opts = program
         new Option('--default-tvm-network <string>', 'Default TVM Network ID')
             .env('DEFAULT_TVM_NETWORK')
             .default(DEFAULT_DEFAULT_TVM_NETWORK)
-    )
-    .addOption(
-        new Option('--balances-databases <string>', 'Balances Clickhouse databases')
-            .env('DBS_BALANCES')
-            .default(DEFAULT_DBS_BALANCES)
-    )
-    .addOption(
-        new Option('--transfers-databases <string>', 'Transfers Clickhouse databases')
-            .env('DBS_TRANSFERS')
-            .default(DEFAULT_DBS_TRANSFERS)
-    )
-    .addOption(
-        new Option('--nft-databases <string>', 'NFT Clickhouse databases').env('DBS_NFT').default(DEFAULT_DBS_NFT)
-    )
-    .addOption(
-        new Option('--dex-databases <string>', 'DEX Clickhouse databases').env('DBS_DEX').default(DEFAULT_DBS_DEX)
-    )
-    .addOption(
-        new Option('--contract-databases <string>', 'Contract Clickhouse databases')
-            .env('DBS_CONTRACT')
-            .default(DEFAULT_DBS_CONTRACT)
     )
     .addOption(
         new Option('--ohlc-quantile <number>', 'High and low quantiles for OHLC aggregations')
@@ -214,31 +187,6 @@ const opts = program
     .parse()
     .opts();
 
-function parseDatabases(dbs: string): Record<string, NetworkDatabaseMapping> {
-    return Object.assign(
-        {},
-        ...dbs
-            .split(';')
-            .map((db) => {
-                const [network_id, ...rest] = db.split(':');
-                const db_suffix = rest.join(':');
-
-                if (!network_id || !db_suffix) throw new Error(`Invalid config: Malformed database entry: "${db}".`);
-
-                return {
-                    // Temporary hardcoding rename of `matic` to `polygon`
-                    [network_id === 'matic' ? 'polygon' : network_id]: {
-                        database: `${network_id}:${db_suffix}`,
-                        // TODO: Get type from registry
-                        type: network_id === 'solana' ? 'svm' : network_id === 'tron' ? 'tvm' : 'evm',
-                        cluster: '', // Empty cluster for env-based config (uses default connection)
-                    },
-                };
-            })
-            .filter(Boolean)
-    );
-}
-
 const config = z
     .object({
         port: z
@@ -255,26 +203,6 @@ const config = z
         defaultEvmNetwork: z.string().min(1, 'Default EVM network cannot be empty'),
         defaultSvmNetwork: z.string().min(1, 'Default SVM network cannot be empty'),
         defaultTvmNetwork: z.string().min(1, 'Default TVM network cannot be empty'),
-        balancesDatabases: z
-            .string()
-            .optional()
-            .transform((val) => (val ? parseDatabases(val) : {})),
-        transfersDatabases: z
-            .string()
-            .optional()
-            .transform((val) => (val ? parseDatabases(val) : {})),
-        nftDatabases: z
-            .string()
-            .optional()
-            .transform((val) => (val ? parseDatabases(val) : {})),
-        dexDatabases: z
-            .string()
-            .optional()
-            .transform((val) => (val ? parseDatabases(val) : {})),
-        contractDatabases: z
-            .string()
-            .optional()
-            .transform((val) => (val ? parseDatabases(val) : {})),
         ohlcQuantile: z.coerce.number().positive('OHLC quantile must be positive'),
         maxLimit: z.coerce.number().positive('Max limit must be positive'),
         maxQueryExecutionTime: z.coerce.number().positive('Max query execution time must be positive'),
@@ -288,7 +216,9 @@ const config = z
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         redisUrl: z.string().url({ message: 'Invalid Redis URL' }),
-        dbsConfigPath: z.string().optional(),
+        dbsConfigPath: z.string({
+            message: 'DBS_CONFIG_PATH is required. Please provide a path to the database configuration YAML file.',
+        }),
         spamApiUrl: z.string().url({ message: 'Invalid Spam API URL' }),
         cacheDurations: z
             .string()
@@ -368,33 +298,18 @@ const config = z
         }),
     })
     .transform((data) => {
-        // Load YAML config if provided
-        const yamlConfig = data.dbsConfigPath ? loadDbsConfig(data.dbsConfigPath) : null;
+        // Load YAML config (required - loadDbsConfig throws if path is invalid or file not found)
+        const yamlConfig = loadDbsConfig(data.dbsConfigPath);
 
-        if (yamlConfig) {
-            // Use YAML config as the authoritative source when provided
-            return {
-                ...data,
-                clusters: yamlConfig.clusters,
-                balancesDatabases: yamlConfig.balancesDatabases ?? {},
-                transfersDatabases: yamlConfig.transfersDatabases ?? {},
-                nftDatabases: yamlConfig.nftDatabases ?? {},
-                dexDatabases: yamlConfig.dexDatabases ?? {},
-                contractDatabases: yamlConfig.contractDatabases ?? {},
-            };
-        }
-
-        // Fallback: no YAML config, validate env-based config
-        if (Object.keys(data.balancesDatabases).length === 0 && Object.keys(data.transfersDatabases).length === 0) {
-            throw new Error(
-                'No database configuration found. Either provide DBS_CONFIG_PATH or set DBS_BALANCES/DBS_TRANSFERS environment variables.'
-            );
-        }
-
-        // No clusters in env-based mode, use default cluster
+        // Use YAML config as the authoritative source
         return {
             ...data,
-            clusters: {},
+            clusters: yamlConfig?.clusters ?? {},
+            balancesDatabases: yamlConfig?.balancesDatabases ?? {},
+            transfersDatabases: yamlConfig?.transfersDatabases ?? {},
+            nftDatabases: yamlConfig?.nftDatabases ?? {},
+            dexDatabases: yamlConfig?.dexDatabases ?? {},
+            contractDatabases: yamlConfig?.contractDatabases ?? {},
         };
     })
     .transform((data) => ({

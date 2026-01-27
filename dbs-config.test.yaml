@@ -1,38 +1,29 @@
-# Token API Database Configuration
-# This file defines the database mappings for each network and data type
-# Set DBS_CONFIG_PATH environment variable to point to this file
+# Test configuration for Token API
 clusters:
-  a:
+  default:
     url: http://127.0.0.1:8123
-    username: default
-    password: ""
-  b:
-    url: http://127.0.0.1:8124
     username: default
     password: ""
 
 networks:
-  # EVM Networks
   mainnet:
     type: evm
-    cluster: a
+    cluster: default
     transfers: mainnet:evm-transfers@v0.2.2
-    balances: mainnet:evm-balances@v0.2.3
+    balances: mainnet:evm-balances@v0.2.2
     nfts: mainnet:evm-nft-tokens@v0.6.2
     dexes: mainnet:evm-dex@v0.2.6
     contracts: mainnet:evm-contracts@v0.3.0
 
-  # SVM Networks
   solana:
     type: svm
-    cluster: b
+    cluster: default
     transfers: solana:solana-tokens@v0.2.8
     balances: solana:solana-tokens@v0.2.8
     dexes: solana:svm-dex@v0.3.1
 
-  # TVM Networks
   tron:
     type: tvm
-    cluster: b
+    cluster: default
     transfers: tron:evm-transfers@v0.2.3
     dexes: tron:evm-dex@v0.2.6
