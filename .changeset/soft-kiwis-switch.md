@@ -2,4 +2,4 @@
 "token-api": patch
 ---
 
-Fix Scalar UI visual issues
+Fixed Scalar UI visual issues
