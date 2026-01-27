@@ -16,7 +16,7 @@ import {
     intervalSchema,
     timestampSchema,
 } from '../../../../../../types/zod.js';
-import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
