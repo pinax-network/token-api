@@ -15,7 +15,7 @@ networks:
   # EVM Networks
   mainnet:
     type: evm
-    cluster: a
+    cluster: b
     transfers: mainnet:evm-transfers@v0.2.2
     balances: mainnet:evm-balances@v0.2.3
     nfts: mainnet:evm-nft-tokens@v0.6.2
@@ -25,7 +25,7 @@ networks:
   # SVM Networks
   solana:
     type: svm
-    cluster: b
+    cluster: a
     transfers: solana:solana-tokens@v0.2.8
     balances: solana:solana-tokens@v0.2.8
     dexes: solana:svm-dex@v0.3.1
