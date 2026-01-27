@@ -68,6 +68,9 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
     };
 
     for (const [networkId, networkConfig] of Object.entries(config.networks)) {
+        if (!config.clusters[networkConfig.cluster]) {
+            throw new Error(`Cluster ${networkConfig.cluster} not found`);
+        }
         const mapping = {
             type: networkConfig.type,
             cluster: networkConfig.cluster,
