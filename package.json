@@ -32,7 +32,7 @@
         "dev": "bun --watch index.ts",
         "start": "bun index.ts",
         "build": "bun build --compile index.ts --outfile token-api",
-        "test": "bun test --coverage",
+        "test": "bun test --env-file .env.test --coverage",
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
