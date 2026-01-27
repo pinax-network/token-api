@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 import type { Context } from 'hono';
 import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../types/examples.js';
 import { nativeContractRedirect } from './nativeContractRedirect.js';
@@ -86,7 +86,8 @@ describe('nativeContractRedirect middleware', () => {
 
     describe('when contract parameter is NOT native address', () => {
         it('should continue normal processing for different contract address', async () => {
-            const url = 'https://api.example.com/v1/evm/transfers?network=mainnet&contract=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+            const url =
+                'https://api.example.com/v1/evm/transfers?network=mainnet&contract=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
             const ctx = createMockContext(url);
             const next = createMockNext();
 
