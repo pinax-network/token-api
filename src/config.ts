@@ -372,15 +372,15 @@ const config = z
         const yamlConfig = data.dbsConfigPath ? loadDbsConfig(data.dbsConfigPath) : null;
 
         if (yamlConfig) {
-            // Use YAML config and merge with env-based config (YAML takes precedence)
+            // Use YAML config as the authoritative source when provided
             return {
                 ...data,
                 clusters: yamlConfig.clusters,
-                balancesDatabases: { ...data.balancesDatabases, ...yamlConfig.balancesDatabases },
-                transfersDatabases: { ...data.transfersDatabases, ...yamlConfig.transfersDatabases },
-                nftDatabases: { ...data.nftDatabases, ...yamlConfig.nftDatabases },
-                dexDatabases: { ...data.dexDatabases, ...yamlConfig.dexDatabases },
-                contractDatabases: { ...data.contractDatabases, ...yamlConfig.contractDatabases },
+                balancesDatabases: yamlConfig.balancesDatabases ?? {},
+                transfersDatabases: yamlConfig.transfersDatabases ?? {},
+                nftDatabases: yamlConfig.nftDatabases ?? {},
+                dexDatabases: yamlConfig.dexDatabases ?? {},
+                contractDatabases: yamlConfig.contractDatabases ?? {},
             };
         }
 
