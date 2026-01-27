@@ -51,7 +51,10 @@ describe('nativeContractRedirect middleware', () => {
         });
 
         it('should handle mixed case native address', async () => {
-            const mixedCaseNative = '0xEeeeEeeeEeEeEeEeEeEeEeEeEeEeEeEeEeEeEeEe';
+            // Create mixed-case version by capitalizing every other 'e'
+            const mixedCaseNative = EVM_CONTRACT_NATIVE_EXAMPLE.split('')
+                .map((char, idx) => (char === 'e' && idx % 2 === 0 ? 'E' : char))
+                .join('');
             const url = `https://api.example.com/v1/evm/transfers?network=mainnet&contract=${mixedCaseNative}`;
             const ctx = createMockContext(url);
             const next = createMockNext();

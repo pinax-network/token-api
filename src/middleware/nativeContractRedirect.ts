@@ -20,6 +20,9 @@ export async function nativeContractRedirect(c: Context, next: Next) {
     const contractParam = url.searchParams.get('contract');
     
     // Check if contract param is a single value (not comma-separated) matching native address
+    // Note: The comma check is intentional - the createQuerySchema batching feature uses comma
+    // as the separator for multiple values (see zod.ts line 621). This ensures we only redirect
+    // single-value requests, not batched requests with multiple contracts.
     if (contractParam && 
         contractParam.toLowerCase() === EVM_CONTRACT_NATIVE_EXAMPLE.toLowerCase() &&
         !contractParam.includes(',')) {
