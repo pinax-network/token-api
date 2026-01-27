@@ -82,13 +82,38 @@ async function validateNetworks() {
         throw new Error('Default network for EVM, SVM or TVM not found');
     }
 
-    const query = 'SHOW DATABASES';
-    const result = await client({ database: config.database }).query({ query, format: 'JSONEachRow' });
-    const dbs = await result.json<{ name: string }>();
-    const dbs_networks = new Set(dbs.map((db) => db.name.split(':')[0]));
+    // Group networks by their cluster
+    const networksByCluster = new Map<string, string[]>();
     for (const network of config.networks) {
-        if (!dbs_networks.has(network)) {
-            throw new Error(`Databases for ${network} not found`);
+        const networkDb =
+            config.balancesDatabases[network] ||
+            config.transfersDatabases[network] ||
+            config.nftDatabases[network] ||
+            config.dexDatabases[network] ||
+            config.contractDatabases[network];
+
+        if (!networkDb) {
+            throw new Error(`No database configuration found for network: ${network}`);
+        }
+
+        const clusterName = networkDb.cluster;
+        if (!networksByCluster.has(clusterName)) {
+            networksByCluster.set(clusterName, []);
+        }
+        networksByCluster.get(clusterName)?.push(network);
+    }
+
+    // Validate each network against its cluster
+    const query = 'SHOW DATABASES';
+    for (const [clusterName, networks] of networksByCluster) {
+        const result = await client({ network: networks[0] }).query({ query, format: 'JSONEachRow' });
+        const dbs = await result.json<{ name: string }>();
+        const dbs_networks = new Set(dbs.map((db) => db.name.split(':')[0]));
+
+        for (const network of networks) {
+            if (!dbs_networks.has(network)) {
+                throw new Error(`Databases for ${network} not found in cluster ${clusterName}`);
+            }
         }
     }
 }
