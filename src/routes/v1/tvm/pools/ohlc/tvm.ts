@@ -16,14 +16,14 @@ import {
     tvmNetworkIdSchema,
     tvmPoolSchema,
 } from '../../../../../types/zod.js';
-import { getDateMinusMonths, validatorHook, withErrorResponses } from '../../../../../utils.js';
+import { validatorHook, withErrorResponses } from '../../../../../utils.js';
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
 
     pool: { schema: tvmPoolSchema, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, prefault: getDateMinusMonths(1) },
+    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
     end_time: { schema: timestampSchema, prefault: '2050-01-01' },
 });
 
@@ -96,6 +96,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     if (!dbDex) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
+    console.log(params);
 
     const query = sqlQueries.ohlcv_prices_for_pool?.[dbDex.type];
     if (!query) return c.json({ error: 'Query for OHLC pool data could not be loaded' }, 500);
