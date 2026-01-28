@@ -31,6 +31,6 @@ SELECT
 FROM balances AS b
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND {contract:String} = m.contract
 GROUP BY address, contract, m.name, m.symbol, m.decimals
-ORDER BY value DESC
+ORDER BY value DESC, address
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

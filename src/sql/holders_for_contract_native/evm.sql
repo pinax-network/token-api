@@ -6,9 +6,6 @@ WITH balances AS (
         balance
     FROM {db_balances:Identifier}.native_balances FINAL
     WHERE balance != 0
-    ORDER BY balance DESC
-    LIMIT {limit:UInt64}
-    OFFSET {offset:UInt64}
 )
 SELECT
     /* timestamps */
@@ -32,3 +29,6 @@ SELECT
     {network:String} as network
 FROM balances AS b
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
+ORDER BY value DESC, address
+LIMIT {limit:UInt64}
+OFFSET {offset:UInt64}
