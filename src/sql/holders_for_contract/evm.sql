@@ -1,25 +1,27 @@
-WITH balances AS (
+WITH
+
+balances AS (
     SELECT
         address,
-        timestamp,
-        block_num,
-        balance
-    FROM {db_balances:Identifier}.erc20_balances AS b
-    WHERE contract = {contract:String} AND balance != 0
+        argMax(balance, timestamp) AS amt,
+        max(timestamp) AS ts,
+        max(block_num) AS bn
+    FROM {db_balances:Identifier}.erc20_balances
+    WHERE contract = {contract:String} AND balance > 0
+    GROUP BY address
 )
 SELECT
     /* timestamps */
-    max(b.timestamp) AS last_update,
-    max(b.block_num) AS last_update_block_num,
-    toUnixTimestamp(max(b.timestamp)) AS last_update_timestamp,
+    max(b.ts) AS last_update,
+    max(b.bn) AS last_update_block_num,
+    toUnixTimestamp(max(b.ts)) AS last_update_timestamp,
 
     /* identifiers */
     b.address AS address,
     {contract:String} AS contract,
 
-    /* amounts */
-    toString(argMax(balance, b.block_num)) AS amount,
-    argMax(balance, b.block_num) / pow(10, m.decimals) AS value,
+    toString(any(b.amt)) AS amount,
+    any(b.amt) / pow(10, m.decimals) AS value,
 
     /* decimals and metadata */
     m.name AS name,
