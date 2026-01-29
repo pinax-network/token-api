@@ -9,6 +9,9 @@ balances AS (
     FROM {db_balances:Identifier}.erc20_balances
     WHERE contract = {contract:String} AND balance > 0
     GROUP BY contract, address
+    ORDER BY amt DESC
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
 )
 SELECT
     /* timestamps */
@@ -32,6 +35,3 @@ SELECT
     {network:String} as network
 FROM balances AS b
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND {contract:String} = m.contract
-ORDER BY amt DESC, address
-LIMIT {limit:UInt64}
-OFFSET {offset:UInt64}
