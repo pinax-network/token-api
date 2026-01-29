@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.8.0
+
+### Minor Changes
+
+- 9b6a5e7: Refactored database configuration to allow splitting token database into balances and transfers databases
+- 19b31a7: Added support for multi-cluster database configuration via YAML file
+
+### Patch Changes
+
+- 538b32b: Fixed Scalar UI visual issues
+
 ## 3.7.2
 
 ### Patch Changes
