@@ -60,7 +60,7 @@ const openapi = describeRoute(
         summary: 'Native Balances',
         description: 'Returns SOL native balances for wallet addresses.',
 
-        tags: ['SVM Tokens'],
+        tags: ['SVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
