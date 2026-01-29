@@ -52,3 +52,4 @@ SELECT
     {network:String} as network
 FROM top_native
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
+ORDER BY value DESC, address
