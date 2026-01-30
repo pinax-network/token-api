@@ -72,6 +72,16 @@ filtered_transfers AS
     ORDER BY minute DESC, timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+contracts AS (
+    SELECT DISTINCT log_address AS contract FROM filtered_transfers
+),
+contracts_metadata AS (
+    SELECT network, contract, name, symbol, decimals
+    FROM metadata.metadata
+    WHERE network = {network:String} AND contract IN (SELECT contract FROM contracts)
+    ORDER BY block_num DESC
+    LIMIT 1 BY network, contract
 )
 SELECT
     /* block */
@@ -104,5 +114,5 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND t.log_address = m.contract
+LEFT JOIN contracts_metadata AS m ON t.log_address = m.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC
