@@ -61,6 +61,11 @@ filtered_transfers AS
     WHERE
             ((SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes))
 
+        /* Always apply minute bounds for partition pruning */
+        AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
+        AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
+
+        /* Fine-grained timestamp filter */
         AND ({start_time: UInt64} = 1420070400 OR (minute, timestamp) >= (toRelativeMinuteNum(toDateTime({start_time: UInt64})), {start_time: UInt64}))
         AND ({end_time: UInt64} = 2524608000 OR (minute, timestamp) <= (toRelativeMinuteNum(toDateTime({end_time: UInt64})), {end_time: UInt64}))
         AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})

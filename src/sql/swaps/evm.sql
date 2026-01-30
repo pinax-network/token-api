@@ -100,12 +100,15 @@ filtered_swaps AS
     FROM {db_dex:Identifier}.swaps
 
     WHERE
-            (SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes)
+            ((SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes))
 
+        /* Always apply minute bounds for partition pruning */
         AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
         AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
-        AND ({start_time: UInt64} = 1420070400 OR timestamp >= {start_time: UInt64})
-        AND ({end_time: UInt64} = 2524608000 OR timestamp <= {end_time: UInt64})
+
+        /* Fine-grained timestamp filter */
+        AND ({start_time: UInt64} = 1420070400 OR (minute, timestamp) >= (toRelativeMinuteNum(toDateTime({start_time: UInt64})), {start_time: UInt64}))
+        AND ({end_time: UInt64} = 2524608000 OR (minute, timestamp) <= (toRelativeMinuteNum(toDateTime({end_time: UInt64})), {end_time: UInt64}))
         AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})
         AND ({end_block: UInt64} = 9999999999 OR block_num <= {end_block: UInt64})
 
@@ -118,7 +121,7 @@ filtered_swaps AS
         AND ({input_contract:Array(String)} = ['']      OR input_contract IN {input_contract:Array(String)})
         AND ({output_contract:Array(String)} = ['']     OR output_contract IN {output_contract:Array(String)})
         AND ({protocol:String} = ''                     OR protocol = {protocol:String})
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -178,4 +181,4 @@ SELECT
 FROM filtered_swaps AS s
 LEFT JOIN metadata.metadata AS m1 ON {network: String} = m1.network AND s.input_contract = m1.contract
 LEFT JOIN metadata.metadata AS m2 ON {network: String} = m2.network AND s.output_contract = m2.contract
-ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+ORDER BY minute DESC, timestamp DESC, block_num DESC

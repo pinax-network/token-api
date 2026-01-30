@@ -11,6 +11,7 @@ bun changeset
 ```
 
 This will prompt you to:
+
 1. Select the type of change (major, minor, patch)
 2. Write a summary of your changes
 
@@ -23,16 +24,19 @@ This will create a changeset file in `.changeset` directory to be committed with
 ### Steps
 
 1. Check what version you need to publish (locally):
+
    ```bash
    bun changeset:status
    ```
+
    This shows you what version changesets will bump to based on pending changesets.
-2. Go to GitHub Releases: https://github.com/pinax-network/token-api/releases/new
+2. Go to GitHub Releases: <https://github.com/pinax-network/token-api/releases/new>
 3. Create a new tag matching the version from step 1: e.g., `v3.6.0`
 4. Write release notes: Summarize the changes (or use "Generate release notes" button)
 5. Publish the release
 
 💥 That's it! New release will trigger GitHub action that will:
+
 1. Consume the changeset files and update [CHANGELOG.md](CHANGELOG.md),
 2. Bump the version in [package.json](package.json),
 3. Commit the changes to `main`,
@@ -41,11 +45,11 @@ This will create a changeset file in `.changeset` directory to be committed with
 ### Pre-releases
 
 If you want to create a pre-release (e.g., for testing), you can:
+
 - Mark it as "pre-release" in GitHub UI, OR
 - Use a tag with a hyphen suffix: `v3.6.0-pre1`, `v3.6.0-alpha1`, `v3.6.0-beta1`
 
 The release workflow will automatically skip these and won't update the changelog or version.
-
 
 ## Semantic Versioning
 
