@@ -59,20 +59,17 @@ filtered_transfers AS
     SELECT *
     FROM {db_transfers:Identifier}.transfers t
     WHERE
-            (SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes)
+            ((SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes))
 
-        AND ({start_time: UInt64} = 1420070400 OR minute >= toRelativeMinuteNum(toDateTime({start_time: UInt64})))
-        AND ({end_time: UInt64} = 2524608000 OR minute <= toRelativeMinuteNum(toDateTime({end_time: UInt64})))
-        AND ({start_time: UInt64} = 1420070400 OR timestamp >= {start_time: UInt64})
-        AND ({end_time: UInt64} = 2524608000 OR timestamp <= {end_time: UInt64})
+        AND ({start_time: UInt64} = 1420070400 OR (minute, timestamp) >= (toRelativeMinuteNum(toDateTime({start_time: UInt64})), {start_time: UInt64}))
+        AND ({end_time: UInt64} = 2524608000 OR (minute, timestamp) <= (toRelativeMinuteNum(toDateTime({end_time: UInt64})), {end_time: UInt64}))
         AND ({start_block: UInt64} = 0 OR block_num >= {start_block: UInt64})
         AND ({end_block: UInt64} = 9999999999 OR block_num <= {end_block: UInt64})
-
         AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
         AND ({from_address:Array(String)} = ['']  OR `from` IN {from_address:Array(String)})
         AND ({to_address:Array(String)} = ['']    OR `to` IN {to_address:Array(String)})
         AND ({contract:Array(String)} = ['']      OR contract IN {contract:Array(String)})
-    ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+    ORDER BY minute DESC, timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -108,4 +105,4 @@ SELECT
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND t.log_address = m.contract
-ORDER BY minute DESC, timestamp DESC, block_num DESC, log_ordinal DESC
+ORDER BY minute DESC, timestamp DESC, block_num DESC
