@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.8.1
+
+### Patch Changes
+
+- ac5bfd4: - Filter by minute as the very first filter
+  - Filter by minute,timestamp afterwards
+  - Remove ORDER BY \*, log_ordinal DESC since it's not in the ORDER BY table (when it's not optimized, causes issues to have no-ORDER BY fields in the ORDER BY)
+- 02ae871: Update metadata contracts
+
 ## 3.8.0
 
 ### Minor Changes
