@@ -82,11 +82,15 @@ contracts AS (
     SELECT DISTINCT log_address AS contract FROM filtered_transfers
 ),
 contracts_metadata AS (
-    SELECT network, contract, name, symbol, decimals
+    SELECT
+        network,
+        contract,
+        argMax(name, block_num) as name,
+        argMax(symbol, block_num) as symbol,
+        argMax(decimals, block_num) as decimals
     FROM metadata.metadata
     WHERE network = {network:String} AND contract IN (SELECT contract FROM contracts)
-    ORDER BY block_num DESC
-    LIMIT 1 BY network, contract
+    GROUP BY network, contract
 )
 SELECT
     /* block */
