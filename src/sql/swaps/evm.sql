@@ -124,6 +124,18 @@ filtered_swaps AS
     ORDER BY minute DESC, timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+contracts AS (
+    SELECT DISTINCT input_contract AS contract FROM filtered_swaps
+    UNION DISTINCT
+    SELECT DISTINCT output_contract AS contract FROM filtered_swaps
+),
+contracts_metadata AS (
+    SELECT network, contract, name, symbol, decimals
+    FROM metadata.metadata
+    WHERE network = {network:String} AND contract IN (SELECT contract FROM contracts)
+    ORDER BY block_num DESC
+    LIMIT 1 BY network, contract
 )
 SELECT
     /* block */
@@ -179,6 +191,6 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
-LEFT JOIN metadata.metadata AS m1 ON {network: String} = m1.network AND s.input_contract = m1.contract
-LEFT JOIN metadata.metadata AS m2 ON {network: String} = m2.network AND s.output_contract = m2.contract
+LEFT JOIN contracts_metadata AS m1 ON s.input_contract = m1.contract
+LEFT JOIN contracts_metadata AS m2 ON s.output_contract = m2.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC
