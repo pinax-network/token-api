@@ -1,3 +1,11 @@
+WITH circulating AS (
+    SELECT
+        count() AS holders,
+        sum(balance) AS circulating_supply,
+        max(block_num) AS block_num,
+        max(timestamp) AS timestamp
+    FROM {db_balances:Identifier}.native_balances_final
+)
 SELECT
     /* timestamps */
     circulating.timestamp AS last_update,
@@ -15,13 +23,5 @@ SELECT
 
     /* network */
     {network: String} AS network
-FROM (
-    SELECT
-        count() AS holders,
-        sum(balance) AS circulating_supply,
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp
-    FROM {db_balances:Identifier}.native_balances FINAL
-    WHERE balance > 0
-) AS circulating
+FROM circulating
 JOIN metadata.metadata AS m FINAL ON {network:String} = m.network AND '0x0000000000000000000000000000000000000000' = m.contract;
