@@ -4,18 +4,8 @@ WITH circulating AS (
         sum(balance) AS circulating_supply,
         max(block_num) AS block_num,
         max(timestamp) AS timestamp
-    FROM (
-        SELECT
-            address,
-            contract,
-            max(block_num) AS block_num,
-            max(timestamp) AS timestamp,
-            argMax(balance, b.block_num) AS balance
-        FROM {db_balances:Identifier}.erc20_balances AS b
-        WHERE contract = {contract: String}
-        GROUP BY contract, address
-        HAVING balance > 0
-    )
+    FROM {db_balances:Identifier}.erc20_balances_final
+    WHERE contract = {contract: String}
 )
 SELECT
     /* timestamps */
@@ -26,7 +16,6 @@ SELECT
     /* identifiers */
     {contract: String} AS contract,
 
-    /* amounts */
     circulating.circulating_supply / pow(10, decimals) AS circulating_supply,
     circulating.holders AS holders,
 
