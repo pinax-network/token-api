@@ -47,14 +47,14 @@ minutes_union AS
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE ({sender:Array(String)} != [''] AND user IN {sender:Array(String)})
+    WHERE ({sender:Array(String)} != [''] AND tx_from IN {sender:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE ({caller:Array(String)} != [''] AND user IN {caller:Array(String)})
+    WHERE ({caller:Array(String)} != [''] AND tx_from IN {caller:Array(String)})
     GROUP BY minute
 
     UNION ALL
@@ -116,8 +116,8 @@ filtered_swaps AS
         AND ({factory:Array(String)} = ['']             OR factory IN {factory:Array(String)})
         AND ({pool:Array(String)} = ['']                OR pool IN {pool:Array(String)})
         AND ({recipient:Array(String)} = ['']           OR user IN {recipient:Array(String)})
-        AND ({sender:Array(String)} = ['']              OR user IN {sender:Array(String)})
-        AND ({caller:Array(String)} = ['']              OR user IN {caller:Array(String)})
+        AND ({sender:Array(String)} = ['']              OR tx_from IN {sender:Array(String)})
+        AND ({caller:Array(String)} = ['']              OR tx_from IN {caller:Array(String)})
         AND ({input_contract:Array(String)} = ['']      OR input_contract IN {input_contract:Array(String)})
         AND ({output_contract:Array(String)} = ['']     OR output_contract IN {output_contract:Array(String)})
         AND ({protocol:String} = ''                     OR protocol = {protocol:String})
