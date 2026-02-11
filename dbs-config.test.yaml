@@ -1,0 +1,26 @@
+clusters:
+  test-cluster:
+    url: http://localhost:8123
+    username: default
+    password: ""
+
+networks:
+  mainnet:
+    type: evm
+    cluster: test-cluster
+    transfers: default
+    balances: default
+    dexes: default
+    contracts: default
+  solana:
+    type: svm
+    cluster: test-cluster
+    transfers: default
+    balances: default
+    dexes: default
+  tron:
+    type: tvm
+    cluster: test-cluster
+    transfers: default
+    balances: default
+    dexes: default
