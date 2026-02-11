@@ -1,4 +1,4 @@
-# Token API — Skills
+# Token API - Skills
 
 Power your apps & AI agents with real-time token data across EVM (Ethereum, Base, BSC...), SVM (Solana), and TVM (TRON) blockchains.
 
