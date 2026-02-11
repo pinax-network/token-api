@@ -2,7 +2,6 @@
  * Service for retrieving spam scores for contracts
  */
 
-import { config } from '../config.js';
 import { withTimeout } from '../utils.js';
 import { getFromCache, getSpamScoreKey, setInCache } from './redis.js';
 
@@ -136,7 +135,7 @@ async function fetchAndCacheSpamScore(contractAddress: string, chainId: number, 
         console.log(`Background fetch of spam score for ${contractAddress} on ${chainId}`);
 
         const response = await withTimeout<SpamApiContractResponse>(
-            fetch(`${config.spamApiUrl}/v1/contract/status`, {
+            fetch('/v1/contract/status', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
