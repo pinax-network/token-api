@@ -35,6 +35,10 @@ app.get('/', () => new Response(Bun.file('./public/index.html')));
 app.get('/favicon.svg', () => new Response(Bun.file('./public/favicon.svg')));
 app.get('/banner.jpg', () => new Response(Bun.file('./public/banner.jpg')));
 app.get(
+    '/skills.md',
+    () => new Response(Bun.file('./public/skills.md'), { headers: { 'Content-Type': 'text/markdown' } })
+);
+app.get(
     '/openapi',
     openAPIRouteHandler(app, {
         documentation: {
