@@ -79,7 +79,7 @@ web_modules/
 !.env.test
 
 # config
-dbs-config.yaml
+dbs-config*.yaml
 !dbs-config.test.yaml
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -124,7 +124,6 @@ dist
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-# .vscode
 
 # yarn v2
 .yarn/cache
@@ -151,7 +150,6 @@ token-api
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
-!.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 

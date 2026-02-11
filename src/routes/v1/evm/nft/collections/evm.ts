@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
-import { CHAIN_ID_MAP, querySpamScore } from '../../../../../services/spamScoring.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE } from '../../../../../types/examples.js';
 import {
@@ -35,7 +34,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             total_unique_supply: z.number(),
             total_transfers: z.number(),
             network: evmNetworkIdSchema,
-            spam_status: z.enum(['spam', 'not_spam', 'pending', 'not_supported', 'error']),
         })
     ),
 });
@@ -43,11 +41,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'NFT Collection',
-        description:
-            'Returns NFT collection metadata, supply stats, owner count, and transfer history.\n\nThe `spam_status` flag indicates if the NFT is likely spam. If status shows `pending`, retry in a few seconds.\n\nSpam detection is supported for:\n\n' +
-            Object.keys(CHAIN_ID_MAP)
-                .map((chain) => `* ${chain}`)
-                .join('\n'),
+        description: 'Returns NFT collection metadata, supply stats, owner count, and transfer history.',
         tags: ['EVM NFTs'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -72,7 +66,6 @@ const openapi = describeRoute(
                                             total_unique_supply: 8888,
                                             total_transfers: 193641,
                                             network: 'mainnet',
-                                            spam_status: 'pending',
                                         },
                                     ],
                                 },
@@ -101,38 +94,11 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const query = sqlQueries.nft_metadata_for_collection?.[dbNft.type];
     if (!query) return c.json({ error: 'Query for NFT collections could not be loaded' }, 500);
 
-    const contractAddress = params.contract.toLowerCase();
-
-    const [response, spamScore] = await Promise.all([
-        makeUsageQueryJson(c, [query], {
-            ...params,
-            db_nft: dbNft.database,
-            db_contracts: dbContracts.database,
-        }),
-        querySpamScore(contractAddress, params.network),
-    ]);
-
-    // inject spam score into result
-    if (!('status' in response) && Array.isArray(response.data)) {
-        let spamStatus: 'spam' | 'not_spam' | 'pending' | 'not_supported' | 'error' = 'pending';
-
-        if (spamScore.result === 'success') {
-            if (spamScore.contract_spam_status === 'spam') {
-                spamStatus = 'spam';
-            } else {
-                spamStatus = 'not_spam';
-            }
-        } else if (spamScore.result === 'error') {
-            spamStatus = 'error';
-        } else if (spamScore.result === 'not_supported') {
-            spamStatus = 'not_supported';
-        }
-
-        response.data = response.data.map((item) => ({
-            ...item,
-            spam_status: spamStatus,
-        }));
-    }
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_nft: dbNft.database,
+        db_contracts: dbContracts.database,
+    });
 
     return handleUsageQueryError(c, response);
 });

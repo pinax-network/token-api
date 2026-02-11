@@ -35,8 +35,6 @@ export const DEFAULT_DEFAULT_TVM_NETWORK = 'tron';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
-export const DEFAULT_REDIS_URL = 'redis://localhost:6379';
-export const DEFAULT_SPAM_API_URL = 'http://localhost:3000';
 // Make cache duration minimum to be same as max SQL execution time
 export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
 export const DEFAULT_PLANS = '';
@@ -165,14 +163,8 @@ const opts = program
             .env('VERBOSE')
             .default(DEFAULT_VERBOSE)
     )
-    .addOption(new Option('--redis-url <string>', 'Redis connection URL').env('REDIS_URL').default(DEFAULT_REDIS_URL))
     .addOption(
         new Option('--dbs-config-path <string>', 'Path to database configuration YAML file').env('DBS_CONFIG_PATH')
-    )
-    .addOption(
-        new Option('--spam-api-url <string>', 'URL for the spam scoring API')
-            .env('SPAM_API_URL')
-            .default(DEFAULT_SPAM_API_URL)
     )
     .addOption(
         new Option('--cache-durations <numbers>', 'Default cache durations in seconds (comma-separated)')
@@ -215,11 +207,9 @@ const config = z
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
-        redisUrl: z.string().url({ message: 'Invalid Redis URL' }),
         dbsConfigPath: z.string({
             message: 'DBS_CONFIG_PATH is required. Please provide a path to the database configuration YAML file.',
         }),
-        spamApiUrl: z.string().url({ message: 'Invalid Spam API URL' }),
         cacheDurations: z
             .string()
             .transform((val) => {
