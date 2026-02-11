@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.9.0
+
+### Minor Changes
+
+- 0bc5652: Removed spam scoring functionality
+
+### Patch Changes
+
+- 0382494: Fix caller/sender filter column mismatch in swaps query
+
 ## 3.8.1
 
 ### Patch Changes
