@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { injectIcons } from '../../../../inject/icon.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
@@ -14,7 +15,6 @@ import {
     svmSPLTokenProgramIdSchema,
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
-import { injectIcons } from '../../../../inject/icon.js';
 
 const querySchema = createQuerySchema(
     {
