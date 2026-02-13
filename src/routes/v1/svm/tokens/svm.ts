@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { injectIcons } from '../../../../inject/icon.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
@@ -15,10 +16,13 @@ import {
 } from '../../../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../../../utils.js';
 
-const querySchema = createQuerySchema({
-    network: { schema: svmNetworkIdSchema },
-    mint: { schema: svmMintSchema },
-});
+const querySchema = createQuerySchema(
+    {
+        network: { schema: svmNetworkIdSchema },
+        mint: { schema: svmMintSchema, batched: true },
+    },
+    false
+);
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -31,13 +35,13 @@ const responseSchema = apiUsageResponseSchema.extend({
             mint: svmMintSchema,
             decimals: z.number().nullable(),
 
+            circulating_supply: z.number(),
+            // total_supply: z.number(),
+            holders: z.number(),
+
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),
-
-            // circulating_supply: z.number(),
-            // total_supply: z.number(),
-            // holders: z.number(),
 
             network: z.string(),
         })
@@ -61,11 +65,13 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 10:34:46',
-                                            last_update_block_num: 373731565,
-                                            last_update_timestamp: 1760610886,
+                                            last_update: '2026-02-13 19:51:23',
+                                            last_update_block_num: 400052757,
+                                            last_update_timestamp: 1771012283,
                                             program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
                                             mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            circulating_supply: 1008838089998.1345,
+                                            holders: 139755,
                                             decimals: 6,
                                             name: 'Pump',
                                             symbol: 'PUMP',
@@ -108,6 +114,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
             clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
         }
     );
+    injectIcons(response);
     return handleUsageQueryError(c, response);
 });
 

@@ -24,7 +24,12 @@ export function injectIcons(response: ApiUsageResponse | ApiErrorResponse) {
 function findIcon(symbol?: string) {
     if (!symbol) return null;
     for (const token in web3icons.svgs.tokens.mono) {
-        if (token === symbol) {
+        if (token.toLocaleLowerCase() === symbol.toLocaleLowerCase()) {
+            return token;
+        }
+    }
+    for (const token in web3icons.svgs.tokens.branded) {
+        if (token.toLocaleLowerCase() === symbol.toLocaleLowerCase()) {
             return token;
         }
     }

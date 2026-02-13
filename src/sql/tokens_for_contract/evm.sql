@@ -1,5 +1,15 @@
-WITH circulating AS (
+WITH transfers AS (
     SELECT
+        log_address as contract,
+        count() as total_transfers
+    FROM {db_transfers:Identifier}.transfers
+    WHERE contract IN {contract:Array(String)}
+    GROUP BY log_address
+    ORDER BY total_transfers DESC
+),
+circulating AS (
+    SELECT
+        contract,
         count() AS holders,
         sum(balance) AS circulating_supply,
         max(block_num) AS block_num,
@@ -12,23 +22,25 @@ WITH circulating AS (
             max(timestamp) AS timestamp,
             argMax(balance, b.block_num) AS balance
         FROM {db_balances:Identifier}.erc20_balances AS b
-        WHERE contract = {contract: String}
+        WHERE contract IN {contract:Array(String)}
         GROUP BY contract, address
         HAVING balance > 0
     )
+    GROUP BY contract
 )
 SELECT
     /* timestamps */
-    circulating.timestamp AS last_update,
-    circulating.block_num AS last_update_block_num,
-    toUnixTimestamp(circulating.timestamp) AS last_update_timestamp,
+    c.timestamp AS last_update,
+    c.block_num AS last_update_block_num,
+    toUnixTimestamp(c.timestamp) AS last_update_timestamp,
 
     /* identifiers */
-    {contract: String} AS contract,
+    c.contract AS contract,
 
     /* amounts */
-    circulating.circulating_supply / pow(10, decimals) AS circulating_supply,
-    circulating.holders AS holders,
+    c.circulating_supply / pow(10, decimals) AS circulating_supply,
+    c.holders AS holders,
+    t.total_transfers AS total_transfers,
 
     /* token metadata */
     name,
@@ -37,5 +49,7 @@ SELECT
 
     /* network */
     {network: String} AS network
-FROM circulating
-JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = {contract: String}
+FROM circulating AS c
+JOIN transfers AS t ON t.contract = c.contract
+JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = c.contract
+ORDER BY c.total_transfers DESC
