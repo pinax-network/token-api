@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
 import { injectIcons } from '../../../../inject/icon.js';
-import { injectSymbol } from '../../../../inject/symbol.js';
 import { nativeContractRedirect } from '../../../../middleware/nativeContractRedirect.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import { EVM_CONTRACT_USDT_EXAMPLE } from '../../../../types/examples.js';
@@ -21,7 +20,11 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema(
     {
         network: { schema: evmNetworkIdSchema },
-        contract: { schema: evmContractSchema, meta: { example: EVM_CONTRACT_USDT_EXAMPLE } },
+        contract: {
+            schema: evmContractSchema,
+            batched: true,
+            meta: { example: EVM_CONTRACT_USDT_EXAMPLE },
+        },
     },
     false
 );
@@ -46,6 +49,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             circulating_supply: z.number(),
             total_supply: z.number(),
             holders: z.number(),
+            total_transfers: z.number(),
 
             // -- chain --
             network: evmNetworkIdSchema,
@@ -78,18 +82,19 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-01-25 14:26:59',
-                                            last_update_block_num: 24312418,
-                                            last_update_timestamp: 1769351219,
+                                            last_update: '2026-02-13 20:22:47',
+                                            last_update_block_num: 24450218,
+                                            last_update_timestamp: 1771014167,
                                             contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-                                            circulating_supply: 103302123410.98102,
-                                            holders: 11573781,
+                                            circulating_supply: 96130932922.42769,
+                                            holders: 12473360,
+                                            total_transfers: 430131249,
                                             name: 'Tether USD',
                                             symbol: 'USDT',
                                             decimals: 6,
                                             network: 'mainnet',
                                             icon: {
-                                                web3icon: 'USDT',
+                                                web3icon: 'usdt',
                                             },
                                         },
                                     ],
@@ -113,8 +118,9 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
+    const dbTransfers = config.transfersDatabases[params.network];
 
-    if (!dbBalances) {
+    if (!dbBalances || !dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
     const query = sqlQueries.tokens_for_contract?.[dbBalances.type];
@@ -126,12 +132,12 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         {
             ...params,
             db_balances: dbBalances.database,
+            db_transfers: dbTransfers.database,
         },
         {
             clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
         }
     );
-    injectSymbol(response, params.network, true);
     injectIcons(response);
     return handleUsageQueryError(c, response);
 });

@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
+import { injectIcons } from '../../../../inject/icon.js';
 import { nativeContractRedirect } from '../../../../middleware/nativeContractRedirect.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
@@ -18,7 +19,7 @@ import { validatorHook, withErrorResponses } from '../../../../utils.js';
 const querySchema = createQuerySchema(
     {
         network: { schema: tvmNetworkIdSchema },
-        contract: { schema: tvmContractSchema },
+        contract: { schema: tvmContractSchema, batched: true },
     },
     false
 );
@@ -30,13 +31,24 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
+            // -- identifiers --
             contract: tvmContractSchema,
+            total_transfers: z.number(),
 
+            // -- token metadata --
             decimals: z.number().nullable(),
             name: z.string().nullable(),
             symbol: z.string().nullable(),
 
-            network: z.string(),
+            // -- chain --
+            network: tvmNetworkIdSchema,
+
+            // -- icon --
+            icon: z
+                .object({
+                    web3icon: z.string(),
+                })
+                .optional(),
         })
     ),
 });
@@ -59,14 +71,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-01-25 14:47:15',
-                                            last_update_block_num: 79562822,
-                                            last_update_timestamp: 1769352435,
+                                            last_update: '2026-02-13 20:52:42',
+                                            last_update_block_num: 80117031,
+                                            last_update_timestamp: 1771015962,
                                             contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                                            total_transfers: 3051378972,
                                             name: 'Tether USD',
                                             symbol: 'USDT',
                                             decimals: 6,
                                             network: 'tron',
+                                            icon: {
+                                                web3icon: 'usdt',
+                                            },
                                         },
                                     ],
                                 },
@@ -100,6 +116,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_transfers: dbTransfers.database,
     });
+
+    injectIcons(response);
     return handleUsageQueryError(c, response);
 });
 
