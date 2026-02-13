@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { injectIcons } from '../../../../../inject/icon.js';
-import { injectSymbol } from '../../../../../inject/symbol.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import {
     apiUsageResponseSchema,
@@ -122,7 +121,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
             },
         }
     );
-    injectSymbol(response, params.network, true);
     injectIcons(response);
     return handleUsageQueryError(c, response);
 });

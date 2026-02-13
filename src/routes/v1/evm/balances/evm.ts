@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../handleQuery.js';
-import { injectSymbol } from '../../../../inject/symbol.js';
 import { nativeContractRedirect } from '../../../../middleware/nativeContractRedirect.js';
 import { sqlQueries } from '../../../../sql/index.js';
 import {
@@ -116,7 +115,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_balances: dbBalances.database,
     });
-    injectSymbol(response, params.network, true);
 
     return handleUsageQueryError(c, response);
 });
