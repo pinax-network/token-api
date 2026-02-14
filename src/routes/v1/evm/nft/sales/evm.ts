@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../../../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../../../../handleQuery.js';
 import { natives as nativeContracts } from '../../../../../inject/prices.tokens.js';
-import { natives as nativeSymbols } from '../../../../../inject/symbol.tokens.js';
 import { sqlQueries } from '../../../../../sql/index.js';
 import {
     EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
@@ -144,6 +143,19 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
+const nativeSymbols = new Map([
+    ['mainnet', 'ETH'],
+    ['bsc', 'BNB'],
+    ['base', 'ETH'],
+    ['arbitrum-one', 'ETH'],
+    ['optimism', 'ETH'],
+    ['matic', 'POL'],
+    ['polygon', 'POL'],
+    ['unichain', 'ETH'],
+    ['avalanche', 'AVAX'],
+    ['solana', 'SOL'],
+]);
+
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
@@ -154,7 +166,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const query = sqlQueries.nft_sales?.[dbNft.type];
     if (!query) return c.json({ error: 'Query for NFT sales could not be loaded' }, 500);
 
-    const sale_currency = nativeSymbols.get(params.network)?.symbol ?? 'Native';
+    const sale_currency = nativeSymbols.get(params.network) ?? 'Native';
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
