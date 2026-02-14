@@ -172,7 +172,7 @@ const opts = program
             .default(DEFAULT_CACHE_DURATIONS)
     )
     .addOption(
-        new Option('--plans <string>', 'Plan configurations (name:limit,batched,bars,intervals)')
+        new Option('--plans <string>', 'Plan configurations (name:limit,batched,intervals)')
             .env('PLANS')
             .default(DEFAULT_PLANS)
     )
@@ -240,7 +240,6 @@ const config = z
                 {
                     maxLimit: number;
                     maxBatched: number;
-                    maxBars: number;
                     allowedIntervals: string[];
                 }
             >();
@@ -251,26 +250,24 @@ const config = z
                     throw new Error(`Malformed plan entry: "${planDef}". Skipping.`);
                 }
 
-                // Format: name:limit,batched,bars,intervals
+                // Format: name:limit,batched,intervals
                 const parts = limits.split(',');
-                if (parts.length !== 4) {
-                    throw new Error(`Invalid limits format for plan "${name}". Expected 4 values.`);
+                if (parts.length !== 3) {
+                    throw new Error(`Invalid limits format for plan "${name}". Expected 3 values.`);
                 }
 
-                const [limit, batched, bars, intervals] = parts;
+                const [limit, batched, intervals] = parts;
                 const maxLimit = Number(limit);
                 const maxBatched = Number(batched);
-                const maxBars = Number(bars);
                 const allowedIntervals = intervals ? intervals.split('|').filter((s) => s.length > 0) : [];
 
-                if (Number.isNaN(maxLimit) || Number.isNaN(maxBatched) || Number.isNaN(maxBars)) {
+                if (Number.isNaN(maxLimit) || Number.isNaN(maxBatched)) {
                     throw new Error(`Invalid numeric limits for plan "${name}".`);
                 }
 
                 plans.set(name, {
                     maxLimit,
                     maxBatched,
-                    maxBars,
                     allowedIntervals,
                 });
 
@@ -278,7 +275,6 @@ const config = z
                     plans.set(`tgm-${name.toUpperCase()}`, {
                         maxLimit,
                         maxBatched,
-                        maxBars,
                         allowedIntervals,
                     });
                 }
