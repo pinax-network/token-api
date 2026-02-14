@@ -103,7 +103,6 @@ export function validatorHook(
 
         const max_limit: number = planConfig.maxLimit;
         const max_batched: number = planConfig.maxBatched;
-        const max_bars: number = planConfig.maxBars;
         const allowed_intervals: string[] = planConfig.allowedIntervals;
         const data = parseResult.data;
 
@@ -126,7 +125,7 @@ export function validatorHook(
             );
         }
 
-        // OHLCV bars and interval restrictions
+        // OHLCV interval restrictions
         const is_ohlcv_endpoint = ctx.req.path.endsWith('/ohlc') || ctx.req.path.endsWith('/historical');
         if (is_ohlcv_endpoint && data.interval) {
             // Check interval restrictions
@@ -146,26 +145,6 @@ export function validatorHook(
                         403,
                         'forbidden',
                         `Parameter 'interval' must be one of: ${allowed_intervals.join(', ')}.`
-                    );
-                }
-            }
-
-            // Check bars limit (time range / interval)
-            if (max_bars !== 0 && data.start_time && data.end_time) {
-                if (data.end_time < data.start_time)
-                    return APIErrorResponse(ctx, 400, 'bad_query_input', `Set 'start_time' to precede 'end_time'.`);
-
-                const clamped_end_time = Math.min(data.end_time, now());
-                const time_range_seconds = clamped_end_time - data.start_time;
-                const interval_seconds = data.interval * 60;
-                const requested_bars = Math.ceil(time_range_seconds / interval_seconds);
-
-                if (requested_bars > max_bars) {
-                    return APIErrorResponse(
-                        ctx,
-                        403,
-                        'forbidden',
-                        `Requested time range would return ${requested_bars} bars, exceeding maximum of ${max_bars} bars.`
                     );
                 }
             }
