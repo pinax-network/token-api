@@ -52,4 +52,4 @@ SELECT
 FROM circulating AS c
 JOIN transfers AS t ON t.contract = c.contract
 JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND m.contract = c.contract
-ORDER BY c.total_transfers DESC
+ORDER BY t.total_transfers DESC
