@@ -350,6 +350,14 @@ describe('Common Query Parameter Schemas', () => {
         it('should handle numeric strings with whitespace', () => {
             expect(timestampSchema.parse('  1735689600  ')).toBe(1735689600);
         });
+
+        it('should reject date strings that result in negative timestamps', () => {
+            expect(() => timestampSchema.parse('1800-01-01T00:00:00Z')).toThrow();
+        });
+
+        it('should reject numeric timestamps that produce invalid dates', () => {
+            expect(() => timestampSchema.parse('Infinity')).toThrow();
+        });
     });
 
     describe('blockNumberSchema', () => {
@@ -848,6 +856,19 @@ describe('createQuerySchema', () => {
 
             expect(() => schema.parse({ owner: 'invalid' })).toThrow('Invalid SVM address');
         });
+
+        it('should reject array values for non-batched required fields', () => {
+            const schema = createQuerySchema(
+                {
+                    network: { schema: svmNetworkIdSchema },
+                },
+                false
+            );
+
+            expect(() => schema.parse({ network: ['solana', 'solana'] })).toThrow(
+                'multiple values are not supported'
+            );
+        });
     });
 
     describe('description length validation', () => {
@@ -917,6 +938,72 @@ describe('createQuerySchema', () => {
             expect(() => createQuerySchema(definitions)).toThrow(
                 "'field' description field has more than 300 characters."
             );
+        });
+    });
+
+    describe('optional batched fields', () => {
+        it('should default to empty array when optional batched field is omitted', () => {
+            const schema = createQuerySchema(
+                {
+                    network: { schema: svmNetworkIdSchema },
+                    mint: { schema: svmMintSchema, batched: true, optional: true },
+                },
+                false
+            );
+
+            const result = schema.parse({ network: 'solana' });
+            expect(result.mint).toEqual([]);
+        });
+
+        it('should default to null when optional scalar field is omitted', () => {
+            const schema = createQuerySchema(
+                {
+                    network: { schema: svmNetworkIdSchema },
+                    start_time: { schema: timestampSchema, optional: true },
+                },
+                false
+            );
+
+            const result = schema.parse({ network: 'solana' });
+            expect(result.start_time).toBeNull();
+        });
+    });
+
+    describe('prefault fields', () => {
+        it('should use prefault value when field is omitted', () => {
+            const schema = createQuerySchema(
+                {
+                    network: { schema: svmNetworkIdSchema, prefault: 'solana' },
+                },
+                false
+            );
+
+            const result = schema.parse({});
+            expect(result.network).toBe('solana');
+        });
+
+        it('should parse the prefault value through the schema', () => {
+            const schema = createQuerySchema(
+                {
+                    owner: { schema: svmOwnerSchema, prefault: 'So11111111111111111111111111111111111111112' },
+                },
+                false
+            );
+
+            const result = schema.parse({});
+            expect(result.owner).toBe('So11111111111111111111111111111111111111112');
+        });
+
+        it('should allow overriding the prefault value', () => {
+            const schema = createQuerySchema(
+                {
+                    network: { schema: svmNetworkIdSchema, prefault: 'solana' },
+                },
+                false
+            );
+
+            const result = schema.parse({ network: 'solana' });
+            expect(result.network).toBe('solana');
         });
     });
 });
