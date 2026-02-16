@@ -269,11 +269,8 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 3. Make your changes
 4. Add tests for new functionality
 5. Run the test suite
-6. Add a changeset: `bun changeset`
-7. Lint `bun lint` and fix if needed `bun fix`
-8. Submit a pull request
-
-See [Release Process](RELEASING.md) for details on changesets, versioning and release process.
+6. Lint `bun lint` and fix if needed `bun fix`
+7. Submit a pull request
 
 ## License
 
