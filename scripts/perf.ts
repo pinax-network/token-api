@@ -19,230 +19,158 @@ import {
 const app = new Hono();
 app.route('/', routes);
 
-const evmNetwork = config.defaultEvmNetwork;
-const svmNetwork = config.defaultSvmNetwork;
-const tvmNetwork = config.defaultTvmNetwork;
+type DbCategory = 'balances' | 'transfers' | 'dex' | 'nft' | 'contracts';
+type ChainType = 'evm' | 'svm' | 'tvm';
 
-// Route definitions with query parameters matching the test suite
-const PERF_ROUTES: { path: string; query: string; requires: () => boolean }[] = [
+interface PerfRoute {
+    path: string;
+    chain: ChainType;
+    params: string;
+    requires: DbCategory[];
+}
+
+// Route definitions with query parameters (excluding network) matching the test suite
+const PERF_ROUTES: PerfRoute[] = [
     // EVM Tokens
     {
         path: '/v1/evm/tokens',
-        query: `network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances') && hasDatabase(config, evmNetwork, 'transfers'),
+        chain: 'evm',
+        params: `contract=${EVM_CONTRACT_USDT_EXAMPLE}`,
+        requires: ['balances', 'transfers'],
     },
-    {
-        path: '/v1/evm/tokens/native',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
-    },
+    { path: '/v1/evm/tokens/native', chain: 'evm', params: '', requires: ['balances'] },
     // SVM Tokens
-    {
-        path: '/v1/svm/tokens',
-        query: `network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'balances'),
-    },
+    { path: '/v1/svm/tokens', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // TVM Tokens
-    {
-        path: '/v1/tvm/tokens',
-        query: `network=${tvmNetwork}&contract=${TVM_CONTRACT_USDT_EXAMPLE}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'transfers'),
-    },
-    {
-        path: '/v1/tvm/tokens/native',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'transfers'),
-    },
+    { path: '/v1/tvm/tokens', chain: 'tvm', params: `contract=${TVM_CONTRACT_USDT_EXAMPLE}`, requires: ['transfers'] },
+    { path: '/v1/tvm/tokens/native', chain: 'tvm', params: '', requires: ['transfers'] },
     // EVM Balances
     {
         path: '/v1/evm/balances',
-        query: `network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
+        chain: 'evm',
+        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        requires: ['balances'],
     },
     {
         path: '/v1/evm/balances/native',
-        query: `network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
+        chain: 'evm',
+        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        requires: ['balances'],
     },
     {
         path: '/v1/evm/balances/historical',
-        query: `network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
+        chain: 'evm',
+        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        requires: ['balances'],
     },
     {
         path: '/v1/evm/balances/historical/native',
-        query: `network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
+        chain: 'evm',
+        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        requires: ['balances'],
     },
     // SVM Balances
-    {
-        path: '/v1/svm/balances',
-        query: `network=${svmNetwork}&owner=${SVM_OWNER_USER_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'balances'),
-    },
+    { path: '/v1/svm/balances', chain: 'svm', params: `owner=${SVM_OWNER_USER_EXAMPLE}`, requires: ['balances'] },
     {
         path: '/v1/svm/balances/native',
-        query: `network=${svmNetwork}&address=${SVM_ADDRESS_OWNER_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'balances'),
+        chain: 'svm',
+        params: `address=${SVM_ADDRESS_OWNER_EXAMPLE}`,
+        requires: ['balances'],
     },
     // EVM Transfers
-    {
-        path: '/v1/evm/transfers',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'transfers'),
-    },
-    {
-        path: '/v1/evm/transfers/native',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'transfers'),
-    },
+    { path: '/v1/evm/transfers', chain: 'evm', params: '', requires: ['transfers'] },
+    { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
-    {
-        path: '/v1/svm/transfers',
-        query: `network=${svmNetwork}`,
-        requires: () => hasDatabase(config, svmNetwork, 'transfers'),
-    },
+    { path: '/v1/svm/transfers', chain: 'svm', params: '', requires: ['transfers'] },
     // TVM Transfers
-    {
-        path: '/v1/tvm/transfers',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'transfers'),
-    },
-    {
-        path: '/v1/tvm/transfers/native',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'transfers'),
-    },
+    { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
+    { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
     // EVM Holders
-    {
-        path: '/v1/evm/holders',
-        query: `network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
-    },
-    {
-        path: '/v1/evm/holders/native',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'balances'),
-    },
+    { path: '/v1/evm/holders', chain: 'evm', params: `contract=${EVM_CONTRACT_USDT_EXAMPLE}`, requires: ['balances'] },
+    { path: '/v1/evm/holders/native', chain: 'evm', params: '', requires: ['balances'] },
     // SVM Holders
-    {
-        path: '/v1/svm/holders',
-        query: `network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'balances'),
-    },
+    { path: '/v1/svm/holders', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // EVM Swaps
-    {
-        path: '/v1/evm/swaps',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'dex'),
-    },
+    { path: '/v1/evm/swaps', chain: 'evm', params: '', requires: ['dex'] },
     // SVM Swaps
-    {
-        path: '/v1/svm/swaps',
-        query: `network=${svmNetwork}`,
-        requires: () => hasDatabase(config, svmNetwork, 'dex'),
-    },
+    { path: '/v1/svm/swaps', chain: 'svm', params: '', requires: ['dex'] },
     // TVM Swaps
-    {
-        path: '/v1/tvm/swaps',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'dex'),
-    },
+    { path: '/v1/tvm/swaps', chain: 'tvm', params: '', requires: ['dex'] },
     // EVM DEXes
-    {
-        path: '/v1/evm/dexes',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'dex'),
-    },
+    { path: '/v1/evm/dexes', chain: 'evm', params: '', requires: ['dex'] },
     // SVM DEXes
-    {
-        path: '/v1/svm/dexes',
-        query: `network=${svmNetwork}`,
-        requires: () => hasDatabase(config, svmNetwork, 'dex'),
-    },
+    { path: '/v1/svm/dexes', chain: 'svm', params: '', requires: ['dex'] },
     // TVM DEXes
-    {
-        path: '/v1/tvm/dexes',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'dex'),
-    },
+    { path: '/v1/tvm/dexes', chain: 'tvm', params: '', requires: ['dex'] },
     // EVM Pools
-    {
-        path: '/v1/evm/pools',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'dex'),
-    },
+    { path: '/v1/evm/pools', chain: 'evm', params: '', requires: ['dex'] },
     // SVM Pools
-    {
-        path: '/v1/svm/pools',
-        query: `network=${svmNetwork}`,
-        requires: () => hasDatabase(config, svmNetwork, 'dex'),
-    },
+    { path: '/v1/svm/pools', chain: 'svm', params: '', requires: ['dex'] },
     // TVM Pools
-    {
-        path: '/v1/tvm/pools',
-        query: `network=${tvmNetwork}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'dex'),
-    },
+    { path: '/v1/tvm/pools', chain: 'tvm', params: '', requires: ['dex'] },
     // EVM OHLCV
-    {
-        path: '/v1/evm/pools/ohlc',
-        query: `network=${evmNetwork}&pool=${EVM_POOL_USDC_WETH_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'dex'),
-    },
+    { path: '/v1/evm/pools/ohlc', chain: 'evm', params: `pool=${EVM_POOL_USDC_WETH_EXAMPLE}`, requires: ['dex'] },
     // SVM OHLCV
     {
         path: '/v1/svm/pools/ohlc',
-        query: `network=${svmNetwork}&amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'dex') && hasDatabase(config, svmNetwork, 'balances'),
+        chain: 'svm',
+        params: `amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`,
+        requires: ['dex', 'balances'],
     },
     // TVM OHLCV
-    {
-        path: '/v1/tvm/pools/ohlc',
-        query: `network=${tvmNetwork}&pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`,
-        requires: () => hasDatabase(config, tvmNetwork, 'dex'),
-    },
+    { path: '/v1/tvm/pools/ohlc', chain: 'tvm', params: `pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`, requires: ['dex'] },
     // SVM Owner
     {
         path: '/v1/svm/owner',
-        query: `network=${svmNetwork}&account=${SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE}`,
-        requires: () => hasDatabase(config, svmNetwork, 'balances'),
+        chain: 'svm',
+        params: `account=${SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE}`,
+        requires: ['balances'],
     },
     // EVM NFT
     {
         path: '/v1/evm/nft/collections',
-        query: `network=${evmNetwork}&contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'contracts') && hasDatabase(config, evmNetwork, 'nft'),
+        chain: 'evm',
+        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        requires: ['contracts', 'nft'],
     },
     {
         path: '/v1/evm/nft/holders',
-        query: `network=${evmNetwork}&contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'nft'),
+        chain: 'evm',
+        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        requires: ['nft'],
     },
     {
         path: '/v1/evm/nft/items',
-        query: `network=${evmNetwork}&contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'nft'),
+        chain: 'evm',
+        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        requires: ['nft'],
     },
     {
         path: '/v1/evm/nft/ownerships',
-        query: `network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
-        requires: () => hasDatabase(config, evmNetwork, 'nft'),
+        chain: 'evm',
+        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        requires: ['nft'],
     },
-    {
-        path: '/v1/evm/nft/sales',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'nft'),
-    },
-    {
-        path: '/v1/evm/nft/transfers',
-        query: `network=${evmNetwork}`,
-        requires: () => hasDatabase(config, evmNetwork, 'nft'),
-    },
+    { path: '/v1/evm/nft/sales', chain: 'evm', params: '', requires: ['nft'] },
+    { path: '/v1/evm/nft/transfers', chain: 'evm', params: '', requires: ['nft'] },
 ];
+
+function getNetworksForChain(chain: ChainType): string[] {
+    switch (chain) {
+        case 'evm':
+            return config.evmNetworks;
+        case 'svm':
+            return config.svmNetworks;
+        case 'tvm':
+            return config.tvmNetworks;
+        default:
+            throw new Error(`Unknown chain type: ${chain}`);
+    }
+}
 
 interface PerfResult {
     route: string;
+    network: string;
     status: number;
     duration_ms: number;
     rows: number;
@@ -257,42 +185,57 @@ function getStatusEmoji(status: number, duration_ms: number): string {
 
 async function runPerf() {
     const results: PerfResult[] = [];
-    const skipped: string[] = [];
+    const skipped: { path: string; network: string }[] = [];
 
-    // Find the longest route path for alignment
-    const maxPathLen = Math.max(...PERF_ROUTES.map((r) => r.path.length));
+    // Build the list of (route, network) pairs for alignment
+    const routeNetworkLabels: { path: string; network: string }[] = [];
+    for (const route of PERF_ROUTES) {
+        for (const network of getNetworksForChain(route.chain)) {
+            routeNetworkLabels.push({ path: route.path, network });
+        }
+    }
+    const maxPathLen = Math.max(...routeNetworkLabels.map((r) => r.path.length));
+    const maxNetworkLen = Math.max(...routeNetworkLabels.map((r) => r.network.length));
 
     for (const route of PERF_ROUTES) {
-        if (!route.requires()) {
-            skipped.push(route.path);
-            continue;
-        }
+        const networks = getNetworksForChain(route.chain);
 
-        const url = route.query ? `${route.path}?${route.query}` : route.path;
-        const start = performance.now();
-        try {
-            const response = await app.request(url, { headers: { 'X-Plan': 'free' } });
-            const body = await response.json();
-            const duration_ms = Math.round((performance.now() - start) * 100) / 100;
-            const rows = Array.isArray(body?.data) ? body.data.length : 0;
+        for (const network of networks) {
+            const hasAllDbs = route.requires.every((category) => hasDatabase(config, network, category));
+            if (!hasAllDbs) {
+                skipped.push({ path: route.path, network });
+                continue;
+            }
 
-            results.push({ route: route.path, status: response.status, duration_ms, rows });
-            const emoji = getStatusEmoji(response.status, duration_ms);
-            const paddedPath = route.path.padEnd(maxPathLen);
-            const paddedTime = `${duration_ms}ms`.padStart(12);
-            console.log(`${emoji} ${paddedPath}  ${paddedTime}  (${rows} rows)`);
-        } catch (err) {
-            const duration_ms = Math.round((performance.now() - start) * 100) / 100;
-            results.push({ route: route.path, status: 0, duration_ms, rows: 0 });
-            const paddedPath = route.path.padEnd(maxPathLen);
-            const paddedTime = `${duration_ms}ms`.padStart(12);
-            console.log(`❌ ${paddedPath}  ${paddedTime}  (error: ${err})`);
+            const query = route.params ? `network=${network}&${route.params}` : `network=${network}`;
+            const url = `${route.path}?${query}`;
+            const start = performance.now();
+            try {
+                const response = await app.request(url, { headers: { 'X-Plan': 'free' } });
+                const body = await response.json();
+                const duration_ms = Math.round((performance.now() - start) * 100) / 100;
+                const rows = Array.isArray(body?.data) ? body.data.length : 0;
+
+                results.push({ route: route.path, network, status: response.status, duration_ms, rows });
+                const emoji = getStatusEmoji(response.status, duration_ms);
+                const paddedPath = route.path.padEnd(maxPathLen);
+                const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
+                const paddedTime = `${duration_ms}ms`.padStart(12);
+                console.log(`${emoji} ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (${rows} rows)`);
+            } catch (err) {
+                const duration_ms = Math.round((performance.now() - start) * 100) / 100;
+                results.push({ route: route.path, network, status: 0, duration_ms, rows: 0 });
+                const paddedPath = route.path.padEnd(maxPathLen);
+                const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
+                const paddedTime = `${duration_ms}ms`.padStart(12);
+                console.log(`❌ ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (error: ${err})`);
+            }
         }
     }
 
     // Summary
     console.log('\n--- Summary ---');
-    console.log(`Total: ${results.length} routes tested, ${skipped.length} skipped`);
+    console.log(`Total: ${results.length} queries tested, ${skipped.length} skipped`);
 
     if (results.length > 0) {
         const totalTime = results.reduce((sum, r) => sum + r.duration_ms, 0);
@@ -309,26 +252,26 @@ async function runPerf() {
 
         console.log('\n🏎️  Top 3 Fastest:');
         for (const r of top3Fastest) {
-            console.log(`  ${r.route} — ${r.duration_ms}ms`);
+            console.log(`  ${r.route} [${r.network}] — ${r.duration_ms}ms`);
         }
 
         console.log('\n🐢 Top 3 Slowest:');
         for (const r of top3Slowest) {
-            console.log(`  ${r.route} — ${r.duration_ms}ms`);
+            console.log(`  ${r.route} [${r.network}] — ${r.duration_ms}ms`);
         }
 
         if (failed.length > 0) {
-            console.log(`\n❌ Failed routes (${failed.length}):`);
+            console.log(`\n❌ Failed queries (${failed.length}):`);
             for (const f of failed) {
-                console.log(`  ${f.route} — HTTP ${f.status}`);
+                console.log(`  ${f.route} [${f.network}] — HTTP ${f.status}`);
             }
         }
     }
 
     if (skipped.length > 0) {
-        console.log(`\nSkipped routes (no DB configured):`);
+        console.log(`\nSkipped queries (no DB configured):`);
         for (const s of skipped) {
-            console.log(`  ${s}`);
+            console.log(`  ${s.path} [${s.network}]`);
         }
     }
 }
