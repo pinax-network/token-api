@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { stables } from '../../registry/stables.js';
-import { readSQL } from '../../sql/index.js';
 import { TVM_POOL_USDT_WTRX_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -18,7 +17,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/ohlcv/tvm.sql');
+import query from './tvm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },

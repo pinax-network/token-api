@@ -6,7 +6,6 @@ import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { injectIcons } from '../../inject/icon.js';
 import { nativeContractRedirect } from '../../middleware/nativeContractRedirect.js';
-import { readSQL } from '../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -16,7 +15,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/tokens/tvm.sql');
+import query from './tvm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema(
     {

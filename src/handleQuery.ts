@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { ZodError } from 'zod';
 import { makeQuery } from './clickhouse/makeQuery.js';
 import { config, DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { normalizeSQL } from './sql/index.js';
 import {
     type ApiErrorResponse,
     type ApiUsageResponse,
@@ -59,7 +60,7 @@ export async function makeUsageQueryJson<T = unknown>(
     };
 
     try {
-        const result = await makeQuery<T>(query.join(' '), params, overwrite_config);
+        const result = await makeQuery<T>(normalizeSQL(query.join(' ')), params, overwrite_config);
 
         // Sometimes the timings will not make ClickHouse return a timeout error even though the data is empty
         if (

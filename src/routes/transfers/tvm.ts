@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { nativeContractRedirect } from '../../middleware/nativeContractRedirect.js';
-import { readSQL } from '../../sql/index.js';
 import {
     TVM_ADDRESS_FROM_EXAMPLE,
     TVM_ADDRESS_TO_EXAMPLE,
@@ -25,7 +24,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/transfers/tvm.sql');
+import query from './tvm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },

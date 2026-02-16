@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { readSQL } from '../../sql/index.js';
 import {
     EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_WETH_EXAMPLE,
@@ -23,7 +22,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/pools/evm.sql');
+import query from './evm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },

@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { readSQL } from '../../sql/index.js';
 import { EVM_CONTRACT_BAYC_EXAMPLE, EVM_TOKEN_ID_BAYC_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -18,7 +17,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/nft/ownerships_evm.sql');
+import query from './ownerships_evm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
