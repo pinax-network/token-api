@@ -17,7 +17,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-import query from './tvm.sql' with { type: 'text' };
+import query from './evm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
