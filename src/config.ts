@@ -56,6 +56,65 @@ export const APP_NAME = pkg.name;
 export const APP_DESCRIPTION = pkg.description;
 export const APP_VERSION = `${GIT_APP.version}+${GIT_APP.commit} (${GIT_APP.date})`;
 
+/**
+ * Parse plan configuration string into a Map.
+ * Format: "name:limit,batched,intervals;name2:limit,batched,intervals"
+ * Intervals are pipe-separated: "1m|5m|15m"
+ * Returns null if input is empty (bypasses plan limits for local development).
+ */
+export function parsePlans(val: string) {
+    if (!val || val.trim() === '') {
+        return null;
+    }
+
+    const plans = new Map<
+        string,
+        {
+            maxLimit: number;
+            maxBatched: number;
+            allowedIntervals: string[];
+        }
+    >();
+
+    val.split(';').forEach((planDef) => {
+        const [name, limits] = planDef.split(':');
+        if (!name || !limits) {
+            throw new Error(`Malformed plan entry: "${planDef}". Skipping.`);
+        }
+
+        // Format: name:limit,batched,intervals
+        const parts = limits.split(',');
+        if (parts.length !== 3) {
+            throw new Error(`Invalid limits format for plan "${name}". Expected 3 values.`);
+        }
+
+        const [limit, batched, intervals] = parts;
+        const maxLimit = Number(limit);
+        const maxBatched = Number(batched);
+        const allowedIntervals = intervals ? intervals.split('|').filter((s) => s.length > 0) : [];
+
+        if (Number.isNaN(maxLimit) || Number.isNaN(maxBatched)) {
+            throw new Error(`Invalid numeric limits for plan "${name}".`);
+        }
+
+        plans.set(name, {
+            maxLimit,
+            maxBatched,
+            allowedIntervals,
+        });
+
+        if (!name.startsWith('tgm-')) {
+            plans.set(`tgm-${name.toUpperCase()}`, {
+                maxLimit,
+                maxBatched,
+                allowedIntervals,
+            });
+        }
+    });
+
+    return plans;
+}
+
 // parse command line options
 const opts = program
     .name(pkg.name)
@@ -229,59 +288,7 @@ const config = z
                     .array(z.number().nonnegative('Cache duration must be non-negative'))
                     .min(2, { message: 'At least two cache durations are required' })
             ),
-        plans: z.string().transform((val) => {
-            // Empty config means bypass plan limits (for local development)
-            if (!val || val.trim() === '') {
-                return null;
-            }
-
-            const plans = new Map<
-                string,
-                {
-                    maxLimit: number;
-                    maxBatched: number;
-                    allowedIntervals: string[];
-                }
-            >();
-
-            val.split(';').forEach((planDef) => {
-                const [name, limits] = planDef.split(':');
-                if (!name || !limits) {
-                    throw new Error(`Malformed plan entry: "${planDef}". Skipping.`);
-                }
-
-                // Format: name:limit,batched,intervals
-                const parts = limits.split(',');
-                if (parts.length !== 3) {
-                    throw new Error(`Invalid limits format for plan "${name}". Expected 3 values.`);
-                }
-
-                const [limit, batched, intervals] = parts;
-                const maxLimit = Number(limit);
-                const maxBatched = Number(batched);
-                const allowedIntervals = intervals ? intervals.split('|').filter((s) => s.length > 0) : [];
-
-                if (Number.isNaN(maxLimit) || Number.isNaN(maxBatched)) {
-                    throw new Error(`Invalid numeric limits for plan "${name}".`);
-                }
-
-                plans.set(name, {
-                    maxLimit,
-                    maxBatched,
-                    allowedIntervals,
-                });
-
-                if (!name.startsWith('tgm-')) {
-                    plans.set(`tgm-${name.toUpperCase()}`, {
-                        maxLimit,
-                        maxBatched,
-                        allowedIntervals,
-                    });
-                }
-            });
-
-            return plans;
-        }),
+        plans: z.string().transform(parsePlans),
     })
     .transform((data) => {
         // Load YAML config (required - loadDbsConfig throws if path is invalid or file not found)

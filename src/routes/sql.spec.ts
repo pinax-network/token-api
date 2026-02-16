@@ -67,6 +67,42 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         tvmNetwork = config.defaultTvmNetwork;
     });
 
+    // --- Monitoring ---
+    it('GET /v1/health', async () => {
+        const { response, body } = await fetchRoute('/v1/health');
+        expect(response.status).toBe(200);
+        expect(body).toHaveProperty('status');
+        expect(body).toHaveProperty('checks');
+        expect(body).toHaveProperty('duration_ms');
+        expect(['healthy', 'degraded', 'unhealthy']).toContain(body.status);
+    });
+
+    it('GET /v1/health?skip_endpoints=false', async () => {
+        const { response, body } = await fetchRoute('/v1/health?skip_endpoints=false');
+        expect([200, 503]).toContain(response.status);
+        expect(body).toHaveProperty('status');
+        expect(body).toHaveProperty('checks');
+        expect(body.checks).toHaveProperty('database');
+        expect(body.checks).toHaveProperty('api_endpoints');
+    });
+
+    it('GET /v1/version', async () => {
+        const { response, body } = await fetchRoute('/v1/version');
+        expect(response.status).toBe(200);
+        expect(body).toHaveProperty('version');
+        expect(body).toHaveProperty('date');
+        expect(body).toHaveProperty('commit');
+        expect(typeof body.version).toBe('string');
+    });
+
+    it('GET /v1/networks', async () => {
+        const { response, body } = await fetchRoute('/v1/networks');
+        expect(response.status).toBe(200);
+        expect(body).toHaveProperty('networks');
+        expect(body.networks).toBeArray();
+        expect(body.networks.length).toBeGreaterThan(0);
+    });
+
     // --- EVM Tokens ---
     it('GET /v1/evm/tokens', async () => {
         if (!hasEvmBalances || !hasEvmTransfers) return;
