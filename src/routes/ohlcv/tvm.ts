@@ -4,7 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { stables } from '../../inject/prices.tokens.js';
+import { stables } from '../../registry/stables.js';
 import { readSQL } from '../../sql/index.js';
 import { TVM_POOL_USDT_WTRX_EXAMPLE } from '../../types/examples.js';
 import {
