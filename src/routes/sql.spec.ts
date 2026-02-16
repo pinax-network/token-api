@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
+import {
+    EVM_ADDRESS_VITALIK_EXAMPLE,
+    EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
+    EVM_CONTRACT_USDT_EXAMPLE,
+    EVM_POOL_USDC_WETH_EXAMPLE,
+    SVM_ADDRESS_OWNER_EXAMPLE,
+    SVM_AMM_POOL_PUMP_EXAMPLE,
+    SVM_MINT_WSOL_EXAMPLE,
+    SVM_OWNER_USER_EXAMPLE,
+    SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
+    TVM_POOL_USDT_WTRX_EXAMPLE,
+} from '../types/examples.js';
 
 const DB_TESTS = !!process.env.DB_TESTS;
 
@@ -19,7 +31,7 @@ async function fetchRoute(path: string) {
 describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- EVM Tokens ---
     it('GET /v1/evm/tokens', async () => {
-        const { response, body } = await fetchRoute('/v1/evm/tokens');
+        const { response, body } = await fetchRoute(`/v1/evm/tokens?contract=${EVM_CONTRACT_USDT_EXAMPLE}`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
     });
@@ -46,6 +58,48 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
 
     it('GET /v1/tvm/tokens/native', async () => {
         const { response, body } = await fetchRoute('/v1/tvm/tokens/native');
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- EVM Balances ---
+    it('GET /v1/evm/balances', async () => {
+        const { response, body } = await fetchRoute(`/v1/evm/balances?address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/balances/native', async () => {
+        const { response, body } = await fetchRoute(`/v1/evm/balances/native?address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/balances/historical', async () => {
+        const { response, body } = await fetchRoute(
+            `/v1/evm/balances/historical?address=${EVM_ADDRESS_VITALIK_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/balances/historical/native', async () => {
+        const { response, body } = await fetchRoute(
+            `/v1/evm/balances/historical/native?address=${EVM_ADDRESS_VITALIK_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- SVM Balances ---
+    it('GET /v1/svm/balances', async () => {
+        const { response, body } = await fetchRoute(`/v1/svm/balances?owner=${SVM_OWNER_USER_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/svm/balances/native', async () => {
+        const { response, body } = await fetchRoute(`/v1/svm/balances/native?address=${SVM_ADDRESS_OWNER_EXAMPLE}`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
     });
@@ -84,8 +138,21 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     });
 
     // --- EVM Holders ---
+    it('GET /v1/evm/holders', async () => {
+        const { response, body } = await fetchRoute(`/v1/evm/holders?contract=${EVM_CONTRACT_USDT_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
     it('GET /v1/evm/holders/native', async () => {
         const { response, body } = await fetchRoute('/v1/evm/holders/native');
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- SVM Holders ---
+    it('GET /v1/svm/holders', async () => {
+        const { response, body } = await fetchRoute(`/v1/svm/holders?mint=${SVM_MINT_WSOL_EXAMPLE}`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
     });
@@ -153,7 +220,65 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data).toBeArray();
     });
 
+    // --- EVM OHLCV ---
+    it('GET /v1/evm/pools/ohlc', async () => {
+        const { response, body } = await fetchRoute(`/v1/evm/pools/ohlc?pool=${EVM_POOL_USDC_WETH_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- SVM OHLCV ---
+    it('GET /v1/svm/pools/ohlc', async () => {
+        const { response, body } = await fetchRoute(`/v1/svm/pools/ohlc?amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- TVM OHLCV ---
+    it('GET /v1/tvm/pools/ohlc', async () => {
+        const { response, body } = await fetchRoute(`/v1/tvm/pools/ohlc?pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    // --- SVM Owner ---
+    it('GET /v1/svm/owner', async () => {
+        const { response, body } = await fetchRoute(`/v1/svm/owner?account=${SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
     // --- EVM NFT ---
+    it('GET /v1/evm/nft/collections', async () => {
+        const { response, body } = await fetchRoute(
+            `/v1/evm/nft/collections?contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/nft/holders', async () => {
+        const { response, body } = await fetchRoute(
+            `/v1/evm/nft/holders?contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/nft/items', async () => {
+        const { response, body } = await fetchRoute(
+            `/v1/evm/nft/items?contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
+    it('GET /v1/evm/nft/ownerships', async () => {
+        const { response, body } = await fetchRoute(`/v1/evm/nft/ownerships?address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+    });
+
     it('GET /v1/evm/nft/sales', async () => {
         const { response, body } = await fetchRoute('/v1/evm/nft/sales');
         expect(response.status).toBe(200);
