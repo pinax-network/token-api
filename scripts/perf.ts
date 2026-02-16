@@ -176,9 +176,10 @@ interface PerfResult {
     rows: number;
 }
 
-function getStatusEmoji(status: number, duration_ms: number): string {
+function getStatusEmoji(status: number, duration_ms: number, rows: number): string {
     if (status !== 200) return '❌';
     if (duration_ms > 2000) return '❌';
+    if (rows === 0) return '💀';
     if (duration_ms > 500) return '⚠️ ';
     return '✅';
 }
@@ -217,7 +218,7 @@ async function runPerf() {
                 const rows = Array.isArray(body?.data) ? body.data.length : 0;
 
                 results.push({ route: route.path, network, status: response.status, duration_ms, rows });
-                const emoji = getStatusEmoji(response.status, duration_ms);
+                const emoji = getStatusEmoji(response.status, duration_ms, rows);
                 const paddedPath = route.path.padEnd(maxPathLen);
                 const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
                 const paddedTime = `${duration_ms}ms`.padStart(12);
@@ -264,6 +265,14 @@ async function runPerf() {
             console.log(`\n❌ Failed queries (${failed.length}):`);
             for (const f of failed) {
                 console.log(`  ${f.route} [${f.network}] — HTTP ${f.status}`);
+            }
+        }
+
+        const dead = results.filter((r) => r.status === 200 && r.rows === 0);
+        if (dead.length > 0) {
+            console.log(`\n💀 No rows returned (${dead.length}):`);
+            for (const d of dead) {
+                console.log(`  ${d.route} [${d.network}] — ${d.duration_ms}ms`);
             }
         }
     }
