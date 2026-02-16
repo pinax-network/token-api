@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { ZodError } from 'zod';
 import { makeQuery } from './clickhouse/makeQuery.js';
 import { config, DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { getIndexedTip } from './services/indexed-tip.js';
 import { normalizeSQL } from './sql/index.js';
 import {
     type ApiErrorResponse,
@@ -17,6 +18,12 @@ import { APIErrorResponse } from './utils.js';
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result) {
         return APIErrorResponse(ctx, result.status, result.code, result.message);
+    }
+
+    // Set indexed tip HTTP headers if available
+    if (result.meta?.indexed_to) {
+        ctx.header('X-Indexed-Block', String(result.meta.indexed_to.block_num));
+        ctx.header('X-Indexed-Timestamp', result.meta.indexed_to.block_timestamp);
     }
 
     return ctx.json(result);
@@ -75,7 +82,12 @@ export async function makeUsageQueryJson<T = unknown>(
             };
         }
 
+        // Fetch indexed tip for the network (non-blocking: does not fail the request)
+        const network = typeof params.network === 'string' ? params.network : undefined;
+        const indexedTip = await getIndexedTip(network);
+
         return {
+            meta: indexedTip ? { indexed_to: indexedTip } : undefined,
             data: result.data,
             statistics: result.statistics ?? {},
             pagination: {
