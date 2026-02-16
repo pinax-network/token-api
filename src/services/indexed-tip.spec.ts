@@ -63,7 +63,7 @@ describe('getIndexedTip', () => {
     it('should return null when block_num is null/zero', async () => {
         mockQuery.mockImplementationOnce(() =>
             Promise.resolve({
-                json: () => Promise.resolve([{ block_num: 0, timestamp: null }]),
+                json: () => Promise.resolve([{ block_num: 0, timestamp: null as unknown as string }]),
             })
         );
 

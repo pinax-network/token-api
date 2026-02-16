@@ -69,13 +69,18 @@ export async function makeUsageQueryJson<T = unknown>(
     try {
         // Extract database name from query params (db_balances, db_transfers, db_dex, etc.)
         const database =
-            (typeof params.db_balances === 'string' && params.db_balances) ||
-            (typeof params.db_transfers === 'string' && params.db_transfers) ||
-            (typeof params.db_dex === 'string' && params.db_dex) ||
-            (typeof params.db_nft === 'string' && params.db_nft) ||
-            (typeof params.db_contracts === 'string' && params.db_contracts) ||
+            (typeof query_params.db_balances === 'string' && query_params.db_balances) ||
+            (typeof query_params.db_transfers === 'string' && query_params.db_transfers) ||
+            (typeof query_params.db_dex === 'string' && query_params.db_dex) ||
+            (typeof query_params.db_nft === 'string' && query_params.db_nft) ||
+            (typeof query_params.db_contracts === 'string' && query_params.db_contracts) ||
             undefined;
-        const network = typeof params.network === 'string' ? params.network : undefined;
+        const network =
+            typeof query_params.network === 'string'
+                ? query_params.network
+                : typeof ctx.req.query('network') === 'string'
+                  ? ctx.req.query('network')
+                  : undefined;
 
         // Fetch main query and indexed tip in parallel
         const [result, indexedTip] = await Promise.all([

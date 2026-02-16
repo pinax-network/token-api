@@ -43,9 +43,9 @@ async function fetchIndexedTip(network: string, database?: string): Promise<Inde
         });
 
         const rows = await response.json<{ block_num: number; timestamp: string }>();
-        if (!rows.length || !rows[0].block_num) return null;
-
         const row = rows[0];
+        if (!row || !row.block_num) return null;
+
         const blockTimestamp = new Date(row.timestamp);
         return {
             block_num: Number(row.block_num),
