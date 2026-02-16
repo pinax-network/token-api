@@ -37,7 +37,12 @@ const querySchema = createQuerySchema({
     },
     contract: { schema: tvmContractSchema, batched: true, default: null, meta: { example: TVM_CONTRACT_USDT_EXAMPLE } },
     // address: { schema: tvmAddressSchema, batched: true, default: '' },
-    from_address: { schema: tvmAddressSchema, batched: true, default: null, meta: { example: TVM_ADDRESS_FROM_EXAMPLE } },
+    from_address: {
+        schema: tvmAddressSchema,
+        batched: true,
+        default: null,
+        meta: { example: TVM_ADDRESS_FROM_EXAMPLE },
+    },
     to_address: { schema: tvmAddressSchema, batched: true, default: null, meta: { example: TVM_ADDRESS_TO_EXAMPLE } },
 
     start_time: { schema: timestampSchema, default: null },

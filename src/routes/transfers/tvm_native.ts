@@ -32,7 +32,12 @@ const querySchema = createQuerySchema({
         default: null,
         meta: { example: TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE },
     },
-    from_address: { schema: tvmAddressSchema, batched: true, default: null, meta: { example: TVM_ADDRESS_FROM_EXAMPLE } },
+    from_address: {
+        schema: tvmAddressSchema,
+        batched: true,
+        default: null,
+        meta: { example: TVM_ADDRESS_FROM_EXAMPLE },
+    },
     to_address: {
         schema: tvmAddressSchema,
         batched: true,
