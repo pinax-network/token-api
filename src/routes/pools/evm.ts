@@ -30,23 +30,23 @@ const querySchema = createQuerySchema({
     factory: {
         schema: evmFactorySchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: EVM_FACTORY_UNISWAP_V3_EXAMPLE },
     },
-    pool: { schema: evmPoolSchema, batched: true, default: '', meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
+    pool: { schema: evmPoolSchema, batched: true, default: null, meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     input_token: {
         schema: evmContractSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: EVM_CONTRACT_USDC_EXAMPLE },
     },
     output_token: {
         schema: evmContractSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: EVM_CONTRACT_WETH_EXAMPLE },
     },
-    protocol: { schema: evmProtocolSchema, default: '' },
+    protocol: { schema: evmProtocolSchema, default: null },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

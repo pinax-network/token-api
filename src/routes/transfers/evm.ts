@@ -27,18 +27,18 @@ const querySchema = createQuerySchema({
     transaction_id: {
         schema: evmTransactionSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
-    contract: { schema: evmContractSchema, batched: true, default: '' },
+    contract: { schema: evmContractSchema, batched: true, default: null },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
-    from_address: { schema: evmAddressSchema, batched: true, default: '' },
-    to_address: { schema: evmAddressSchema, batched: true, default: '', meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
+    from_address: { schema: evmAddressSchema, batched: true, default: null },
+    to_address: { schema: evmAddressSchema, batched: true, default: null, meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
 
-    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
-    end_time: { schema: timestampSchema, prefault: '2050-01-01' },
-    start_block: { schema: blockNumberSchema, default: 0 },
-    end_block: { schema: blockNumberSchema, default: 9999999999 },
+    start_time: { schema: timestampSchema, default: null },
+    end_time: { schema: timestampSchema, default: null },
+    start_block: { schema: blockNumberSchema, default: null },
+    end_block: { schema: blockNumberSchema, default: null },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

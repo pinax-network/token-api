@@ -689,8 +689,9 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         .meta({ ...resultSchema.meta() });
                 } else if (defaultValue !== undefined) {
                     // Apply default (output-level) if provided - takes precedence over prefault
+                    // For batched fields with null default, use empty array instead of [null]
                     resultSchema = resultSchema
-                        .default(batched ? [defaultValue] : defaultValue)
+                        .default(batched ? (defaultValue === null ? [] : [defaultValue]) : defaultValue)
                         .optional()
                         .meta({ ...resultSchema.meta(), default: defaultValue });
                 } else if (prefaultValue !== undefined) {

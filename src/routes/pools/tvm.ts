@@ -34,23 +34,23 @@ const querySchema = createQuerySchema({
     factory: {
         schema: tvmFactorySchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE },
     },
-    pool: { schema: tvmPoolSchema, batched: true, default: '', meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
+    pool: { schema: tvmPoolSchema, batched: true, default: null, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
     input_token: {
         schema: tvmContractSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
     },
     output_token: {
         schema: tvmContractSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: TVM_CONTRACT_WTRX_EXAMPLE },
     },
-    protocol: { schema: tvmProtocolSchema, default: '' },
+    protocol: { schema: tvmProtocolSchema, default: null },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

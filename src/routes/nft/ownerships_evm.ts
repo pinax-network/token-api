@@ -22,9 +22,9 @@ import query from './ownerships_evm.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema, batched: true },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_BAYC_EXAMPLE } },
-    token_id: { schema: nftTokenIdSchema, batched: true, default: '', meta: { example: EVM_TOKEN_ID_BAYC_EXAMPLE } },
-    token_standard: { schema: nftTokenStandardSchema, default: '' },
+    contract: { schema: evmContractSchema, batched: true, default: null, meta: { example: EVM_CONTRACT_BAYC_EXAMPLE } },
+    token_id: { schema: nftTokenIdSchema, batched: true, default: null, meta: { example: EVM_TOKEN_ID_BAYC_EXAMPLE } },
+    token_standard: { schema: nftTokenStandardSchema, default: null },
     include_null_balances: { schema: includeNullBalancesSchema, default: false },
 });
 

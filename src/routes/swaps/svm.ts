@@ -26,23 +26,23 @@ import query from './svm.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
 
-    signature: { schema: svmTransactionSchema, batched: true, default: '' },
-    amm: { schema: svmAmmSchema, batched: true, default: '' },
-    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: '', meta: { example: '' } },
-    user: { schema: svmAddressSchema, batched: true, default: '', meta: { example: SVM_ADDRESS_USER_EXAMPLE } },
+    signature: { schema: svmTransactionSchema, batched: true, default: null },
+    amm: { schema: svmAmmSchema, batched: true, default: null },
+    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: null, meta: { example: '' } },
+    user: { schema: svmAddressSchema, batched: true, default: null, meta: { example: SVM_ADDRESS_USER_EXAMPLE } },
     input_mint: {
         schema: svmMintSchema,
         batched: true,
-        default: '',
+        default: null,
         meta: { example: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw' },
     },
-    output_mint: { schema: svmMintSchema, batched: true, default: '', meta: { example: SVM_MINT_USDC_EXAMPLE } },
-    program_id: { schema: svmProgramIdSchema, batched: true, default: '' },
+    output_mint: { schema: svmMintSchema, batched: true, default: null, meta: { example: SVM_MINT_USDC_EXAMPLE } },
+    program_id: { schema: svmProgramIdSchema, batched: true, default: null },
 
-    start_time: { schema: timestampSchema, prefault: '2020-01-01' },
-    end_time: { schema: timestampSchema, prefault: '2050-01-01' },
-    start_block: { schema: blockNumberSchema, default: 0 },
-    end_block: { schema: blockNumberSchema, default: 9999999999 },
+    start_time: { schema: timestampSchema, default: null },
+    end_time: { schema: timestampSchema, default: null },
+    start_block: { schema: blockNumberSchema, default: null },
+    end_block: { schema: blockNumberSchema, default: null },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
