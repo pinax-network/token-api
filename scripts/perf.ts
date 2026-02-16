@@ -211,7 +211,7 @@ async function runPerf() {
             const url = `${route.path}?${query}`;
             const start = performance.now();
             try {
-                const response = await app.request(url, { headers: { 'X-Plan': 'free' } });
+                const response = await app.request(url, { headers: { 'X-Plan': 'free', 'Cache-Control': 'no-cache' } });
                 const body = await response.json();
                 const duration_ms = Math.round((performance.now() - start) * 100) / 100;
                 const rows = Array.isArray(body?.data) ? body.data.length : 0;
