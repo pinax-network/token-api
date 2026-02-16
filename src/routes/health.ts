@@ -2,11 +2,11 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
-import client from '../../clickhouse/client.js';
-import { config } from '../../config.js';
-import { logger } from '../../logger.js';
-import { booleanFromString, dateTimeSchema } from '../../types/zod.js';
-import { validatorHook, withErrorResponses } from '../../utils.js';
+import client from '../clickhouse/client.js';
+import { config } from '../config.js';
+import { logger } from '../logger.js';
+import { booleanFromString, dateTimeSchema } from '../types/zod.js';
+import { validatorHook, withErrorResponses } from '../utils.js';
 
 const querySchema = z.object({
     skip_endpoints: booleanFromString.default(true).optional(),

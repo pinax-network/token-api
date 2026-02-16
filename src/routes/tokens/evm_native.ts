@@ -6,12 +6,7 @@ import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { injectIcons } from '../../inject/icon.js';
 import { readSQL } from '../../sql/index.js';
-import {
-    apiUsageResponseSchema,
-    createQuerySchema,
-    dateTimeSchema,
-    evmNetworkIdSchema,
-} from '../../types/zod.js';
+import { apiUsageResponseSchema, createQuerySchema, dateTimeSchema, evmNetworkIdSchema } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 const query = await readSQL('./src/routes/tokens/evm_native.sql');

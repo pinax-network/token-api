@@ -5,10 +5,7 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { readSQL } from '../../sql/index.js';
-import {
-    EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
-    EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
-} from '../../types/examples.js';
+import { EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE, EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,

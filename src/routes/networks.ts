@@ -2,10 +2,10 @@ import { NetworksRegistry } from '@pinax/graph-networks-registry';
 import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
-import client from '../../clickhouse/client.js';
-import { config } from '../../config.js';
-import { logger } from '../../logger.js';
-import { withErrorResponses } from '../../utils.js';
+import client from '../clickhouse/client.js';
+import { config } from '../config.js';
+import { logger } from '../logger.js';
+import { withErrorResponses } from '../utils.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 

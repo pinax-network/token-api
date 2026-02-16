@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
-import { GIT_APP } from '../../config.js';
-import { withErrorResponses } from '../../utils.js';
+import { GIT_APP } from '../config.js';
+import { withErrorResponses } from '../utils.js';
 
 const route = new Hono();
 
