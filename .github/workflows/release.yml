@@ -31,38 +31,31 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Version packages and update changelog
+      - name: Update version from release tag
         run: |
-          # Run changeset version to consume changesets and update CHANGELOG.md
-          bun run changeset:version
-
-          # Get the new version from package.json
-          NEW_VERSION=$(node -p "require('./package.json').version")
           RELEASE_TAG="${{ github.event.release.tag_name }}"
           RELEASE_VERSION="${RELEASE_TAG#v}"
 
           echo "Release tag: $RELEASE_TAG"
           echo "Release version: $RELEASE_VERSION"
-          echo "Changesets bumped to: $NEW_VERSION"
 
-          # Check if versions match
-          if [ "$NEW_VERSION" != "$RELEASE_VERSION" ]; then
-            echo "❌ Error: Version mismatch!"
-            echo "Release tag is $RELEASE_TAG but changesets bumped version to $NEW_VERSION"
-            echo ""
-            echo "Please delete $RELEASE_TAG release and create a new one with tag v$NEW_VERSION instead."
-            echo ""
-            echo "Tip: Run 'bun changeset:status' locally to see what version will be created."
-            exit 1
-          fi
+          # Update version in package.json
+          RELEASE_VERSION="$RELEASE_VERSION" node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = process.env.RELEASE_VERSION;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 4) + '\n');
+          "
+
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "Updated package.json version to: $NEW_VERSION"
 
           # Check if there are changes to commit
           if [[ -n $(git status --porcelain) ]]; then
             git add .
-            git commit -m "chore: version packages for ${{ github.event.release.tag_name }} [skip ci]"
+            git commit -m "chore: version ${{ github.event.release.tag_name }} [skip ci]"
             git push origin main
-            echo "✅ Version and changelog updated"
+            echo "✅ Version updated"
           else
-            echo "❌ No changes to commit. Add at least one changeset with `bun changeset` and try again."
-            exit 1
+            echo "ℹ️ Version already up to date"
           fi
