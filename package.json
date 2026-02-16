@@ -33,6 +33,7 @@
         "start": "bun index.ts",
         "build": "bun build --compile index.ts --outfile token-api",
         "test": "bun test --env-file .env.test --coverage",
+        "test:db": "DB_TESTS=true bun test --env-file .env.test --coverage",
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
