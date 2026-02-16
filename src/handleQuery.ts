@@ -83,8 +83,17 @@ export async function makeUsageQueryJson<T = unknown>(
         }
 
         // Fetch indexed tip for the network (non-blocking: does not fail the request)
+        // Extract database name from query params (db_balances, db_transfers, db_dex, etc.)
+        const database =
+            (typeof params.db_balances === 'string' && params.db_balances) ||
+            (typeof params.db_transfers === 'string' && params.db_transfers) ||
+            (typeof params.db_dex === 'string' && params.db_dex) ||
+            (typeof params.db_nft === 'string' && params.db_nft) ||
+            (typeof params.db_contracts === 'string' && params.db_contracts) ||
+            undefined;
         const network = typeof params.network === 'string' ? params.network : undefined;
-        const indexedTip = await getIndexedTip(network);
+        const indexedTipConfig = network && database ? { ...overwrite_config, network, database } : overwrite_config;
+        const indexedTip = await getIndexedTip(indexedTipConfig);
 
         return {
             meta: indexedTip ? { indexed_to: indexedTip } : undefined,
