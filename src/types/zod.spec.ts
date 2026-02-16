@@ -605,6 +605,13 @@ describe('Response Schemas', () => {
     describe('apiUsageResponseSchema', () => {
         it('should validate complete API response objects', () => {
             const response = {
+                meta: {
+                    indexed_to: {
+                        block_num: 19876543,
+                        block_timestamp: '2026-02-15T14:03:21.000Z',
+                        block_timestamp_unix: 1739628201,
+                    },
+                },
                 data: [{ id: 1 }],
                 statistics: { rows_read: 1, bytes_read: 1, elapsed: 0.1 },
                 pagination: { previous_page: 1, current_page: 1 },
@@ -615,6 +622,7 @@ describe('Response Schemas', () => {
             const result = apiUsageResponseSchema.parse(response);
             expect(result.results).toBe(1);
             expect(result.duration_ms).toBe(100);
+            expect(result.meta.indexed_to.block_num).toBe(19876543);
         });
     });
 });

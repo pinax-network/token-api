@@ -447,11 +447,11 @@ export const indexedTipResponseSchema = z.object({
 });
 
 export const metaResponseSchema = z.object({
-    indexed_to: indexedTipResponseSchema.optional(),
+    indexed_to: indexedTipResponseSchema,
 });
 
 export const apiUsageResponseSchema = z.object({
-    meta: metaResponseSchema.optional(),
+    meta: metaResponseSchema,
     data: z.array(z.any()),
     statistics: statisticsResponseSchema,
     pagination: paginationResponseSchema,

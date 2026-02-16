@@ -12,7 +12,7 @@ interface CacheEntry {
     expiry: number;
 }
 
-const CACHE_TTL_MS = 5000; // 5 seconds cache TTL
+const CACHE_TTL_MS = 1000; // 1 second cache TTL
 const MAX_CACHE_SIZE = 500;
 const cache = new Map<string, CacheEntry>();
 // In-flight deduplication: prevent thundering herd on cache miss

@@ -20,11 +20,9 @@ export async function handleUsageQueryError(ctx: Context, result: ApiUsageRespon
         return APIErrorResponse(ctx, result.status, result.code, result.message);
     }
 
-    // Set indexed tip HTTP headers if available
-    if (result.meta?.indexed_to) {
-        ctx.header('X-Indexed-Block', String(result.meta.indexed_to.block_num));
-        ctx.header('X-Indexed-Timestamp', result.meta.indexed_to.block_timestamp);
-    }
+    // Set indexed tip HTTP headers
+    ctx.header('X-Indexed-Block', String(result.meta.indexed_to.block_num));
+    ctx.header('X-Indexed-Timestamp', result.meta.indexed_to.block_timestamp);
 
     return ctx.json(result);
 }
@@ -102,7 +100,7 @@ export async function makeUsageQueryJson<T = unknown>(
         }
 
         return {
-            meta: indexedTip ? { indexed_to: indexedTip } : undefined,
+            meta: { indexed_to: indexedTip ?? { block_num: 0, block_timestamp: '', block_timestamp_unix: 0 } },
             data: result.data,
             statistics: result.statistics ?? {},
             pagination: {
