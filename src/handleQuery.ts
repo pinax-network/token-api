@@ -80,7 +80,7 @@ export async function makeUsageQueryJson<T = unknown>(
         // Fetch main query and indexed tip in parallel
         const [result, indexedTip] = await Promise.all([
             makeQuery<T>(normalizeSQL(query.join(' ')), params, overwrite_config),
-            getIndexedTip(network, database || overwrite_config?.database),
+            getIndexedTip(network, database ?? overwrite_config?.database),
         ]);
 
         // Sometimes the timings will not make ClickHouse return a timeout error even though the data is empty
