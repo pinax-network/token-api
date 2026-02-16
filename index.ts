@@ -71,7 +71,7 @@ app.notFound((c: Context) =>
     APIErrorResponse(c, 404, 'route_not_found', `Path not found: ${c.req.method} ${c.req.path}`)
 );
 
-logServerInit(app.routes);
+logServerInit();
 
 export default {
     ...app,
