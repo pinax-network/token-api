@@ -34,6 +34,7 @@
         "build": "bun build --compile index.ts --outfile token-api",
         "test": "bun test --coverage",
         "test:db": "DB_TESTS=true bun test --timeout 30000 --coverage",
+        "perf": "bun run scripts/perf.ts",
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
