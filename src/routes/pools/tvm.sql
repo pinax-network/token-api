@@ -17,11 +17,11 @@ pools AS (
         sum(transactions) as transactions
     FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
     WHERE
-        ({input_token:Array(String)} = [''] OR pool IN input_pools)
-    AND ({output_token:Array(String)} = [''] OR pool IN output_pools)
-    AND ({pool:Array(String)} = [''] OR pool IN {pool:Array(String)})
-    AND ({factory:Array(String)} = [''] OR factory IN {factory:Array(String)})
-    AND ({protocol:String} = '' OR toString(protocol) = {protocol:String})
+        (empty({input_token:Array(String)}) OR pool IN input_pools)
+    AND (empty({output_token:Array(String)}) OR pool IN output_pools)
+    AND (empty({pool:Array(String)}) OR pool IN {pool:Array(String)})
+    AND (empty({factory:Array(String)}) OR factory IN {factory:Array(String)})
+    AND (isNull({protocol:Nullable(String)}) OR toString(protocol) = {protocol:Nullable(String)})
 
     GROUP BY pool, factory, protocol
 

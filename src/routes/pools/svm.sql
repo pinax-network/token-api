@@ -9,11 +9,11 @@ WITH filtered_pools AS (
         mint1,
         transactions
     FROM {db_dex:Identifier}.pool_activity_summary
-    WHERE ({amm:Array(String)} = [''] OR amm IN {amm:Array(String)})
-        AND ({amm_pool:Array(String)} = [''] OR amm_pool IN {amm_pool:Array(String)})
-        AND ({input_mint:Array(String)} = [''] OR mint1 IN {input_mint:Array(String)})
-        AND ({output_mint:Array(String)} = [''] OR mint0 IN {output_mint:Array(String)})
-        AND ({program_id:Array(String)} = [''] OR program_id IN {program_id:Array(String)})
+    WHERE (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
+        AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
+        AND (empty({input_mint:Array(String)}) OR mint1 IN {input_mint:Array(String)})
+        AND (empty({output_mint:Array(String)}) OR mint0 IN {output_mint:Array(String)})
+        AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
 )
 SELECT
     toString(program_id) AS program_id,
