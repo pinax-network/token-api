@@ -1,5 +1,5 @@
 import pkg from '../package.json' with { type: 'json' };
-import { APP_VERSION } from './config.js';
+import { APP_VERSION, config } from './config.js';
 
 export function banner() {
     let text = `
@@ -18,3 +18,58 @@ export function banner() {
 }
 
 console.log(banner());
+
+// Log server init details
+export function logServerInit(routes: { path: string; method: string }[]) {
+    // Clusters
+    const clusterEntries = Object.entries(config.clusters);
+    if (clusterEntries.length > 0) {
+        console.log('Clusters:');
+        for (const [name, cluster] of clusterEntries) {
+            console.log(`  ${name}: ${cluster.url}`);
+        }
+    }
+
+    // Networks grouped by type
+    const networkTypes = [
+        { label: 'EVM', networks: config.evmNetworks },
+        { label: 'SVM', networks: config.svmNetworks },
+        { label: 'TVM', networks: config.tvmNetworks },
+    ];
+    console.log('Networks:');
+    for (const { label, networks } of networkTypes) {
+        if (networks.length > 0) {
+            console.log(`  ${label}: ${networks.join(', ')}`);
+        }
+    }
+
+    // Database mappings per network
+    const dbTypes = [
+        { label: 'balances', mapping: config.balancesDatabases },
+        { label: 'transfers', mapping: config.transfersDatabases },
+        { label: 'nfts', mapping: config.nftDatabases },
+        { label: 'dexes', mapping: config.dexDatabases },
+        { label: 'contracts', mapping: config.contractDatabases },
+    ];
+    console.log('Databases:');
+    for (const networkId of config.networks) {
+        const dbs: string[] = [];
+        for (const { label, mapping } of dbTypes) {
+            if (mapping[networkId]) {
+                dbs.push(`${label}=${mapping[networkId].database}`);
+            }
+        }
+        if (dbs.length > 0) {
+            console.log(`  ${networkId}: ${dbs.join(', ')}`);
+        }
+    }
+
+    // Supported API routes (deduplicated, sorted, excluding middleware)
+    const uniqueRoutes = [
+        ...new Set(routes.filter((r) => r.method !== 'ALL').map((r) => `${r.method} ${r.path}`)),
+    ].sort();
+    console.log('Routes:');
+    for (const route of uniqueRoutes) {
+        console.log(`  ${route}`);
+    }
+}
