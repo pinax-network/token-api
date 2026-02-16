@@ -10,6 +10,7 @@ import {
     SVM_MINT_WSOL_EXAMPLE,
     SVM_OWNER_USER_EXAMPLE,
     SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
+    TVM_CONTRACT_USDT_EXAMPLE,
     TVM_POOL_USDT_WTRX_EXAMPLE,
 } from '../types/examples.js';
 
@@ -86,7 +87,7 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM Tokens ---
     it('GET /v1/svm/tokens', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/tokens?network=${svmNetwork}`);
+        const { response, body } = await fetchRoute(`/v1/svm/tokens?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -95,7 +96,7 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- TVM Tokens ---
     it('GET /v1/tvm/tokens', async () => {
         if (!hasTvmTransfers) return;
-        const { response, body } = await fetchRoute(`/v1/tvm/tokens?network=${tvmNetwork}`);
+        const { response, body } = await fetchRoute(`/v1/tvm/tokens?network=${tvmNetwork}&contract=${TVM_CONTRACT_USDT_EXAMPLE}`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
