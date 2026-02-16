@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
 import { config } from '../config.js';
+import { hasDatabase } from '../supported-routes.js';
 import {
     EVM_ADDRESS_VITALIK_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
@@ -24,16 +25,16 @@ if (DB_TESTS) {
 }
 
 // Check which DB categories are connected for each network
-const hasEvmBalances = DB_TESTS && !!config.balancesDatabases[config.defaultEvmNetwork];
-const hasEvmTransfers = DB_TESTS && !!config.transfersDatabases[config.defaultEvmNetwork];
-const hasEvmDex = DB_TESTS && !!config.dexDatabases[config.defaultEvmNetwork];
-const hasEvmNft = DB_TESTS && !!config.nftDatabases[config.defaultEvmNetwork];
-const hasEvmContracts = DB_TESTS && !!config.contractDatabases[config.defaultEvmNetwork];
-const hasSvmBalances = DB_TESTS && !!config.balancesDatabases[config.defaultSvmNetwork];
-const hasSvmTransfers = DB_TESTS && !!config.transfersDatabases[config.defaultSvmNetwork];
-const hasSvmDex = DB_TESTS && !!config.dexDatabases[config.defaultSvmNetwork];
-const hasTvmTransfers = DB_TESTS && !!config.transfersDatabases[config.defaultTvmNetwork];
-const hasTvmDex = DB_TESTS && !!config.dexDatabases[config.defaultTvmNetwork];
+const hasEvmBalances = DB_TESTS && hasDatabase(config, config.defaultEvmNetwork, 'balances');
+const hasEvmTransfers = DB_TESTS && hasDatabase(config, config.defaultEvmNetwork, 'transfers');
+const hasEvmDex = DB_TESTS && hasDatabase(config, config.defaultEvmNetwork, 'dex');
+const hasEvmNft = DB_TESTS && hasDatabase(config, config.defaultEvmNetwork, 'nft');
+const hasEvmContracts = DB_TESTS && hasDatabase(config, config.defaultEvmNetwork, 'contracts');
+const hasSvmBalances = DB_TESTS && hasDatabase(config, config.defaultSvmNetwork, 'balances');
+const hasSvmTransfers = DB_TESTS && hasDatabase(config, config.defaultSvmNetwork, 'transfers');
+const hasSvmDex = DB_TESTS && hasDatabase(config, config.defaultSvmNetwork, 'dex');
+const hasTvmTransfers = DB_TESTS && hasDatabase(config, config.defaultTvmNetwork, 'transfers');
+const hasTvmDex = DB_TESTS && hasDatabase(config, config.defaultTvmNetwork, 'dex');
 
 async function fetchRoute(path: string) {
     const response = await app.request(path);

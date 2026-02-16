@@ -1,5 +1,6 @@
 import pkg from '../package.json' with { type: 'json' };
 import { APP_VERSION, config } from './config.js';
+import { getSupportedRoutes } from './supported-routes.js';
 
 export function banner() {
     let text = `
@@ -20,7 +21,7 @@ export function banner() {
 console.log(banner());
 
 // Log server init details
-export function logServerInit(routes: { path: string; method: string }[]) {
+export function logServerInit() {
     // Clusters
     const clusterEntries = Object.entries(config.clusters);
     if (clusterEntries.length > 0) {
@@ -64,12 +65,16 @@ export function logServerInit(routes: { path: string; method: string }[]) {
         }
     }
 
-    // Supported API routes (deduplicated, sorted, excluding middleware)
-    const uniqueRoutes = [
-        ...new Set(routes.filter((r) => r.method !== 'ALL').map((r) => `${r.method} ${r.path}`)),
-    ].sort();
-    console.log('Routes:');
-    for (const route of uniqueRoutes) {
-        console.log(`  ${route}`);
+    // Supported & unsupported API routes based on configured databases
+    const { supported, unsupported } = getSupportedRoutes(config);
+    console.log(`Supported Routes (${supported.length}):`);
+    for (const route of supported) {
+        console.log(`  ✓ GET ${route}`);
+    }
+    if (unsupported.length > 0) {
+        console.log(`Unsupported Routes (${unsupported.length}):`);
+        for (const route of unsupported) {
+            console.log(`  ✗ GET ${route}`);
+        }
     }
 }
