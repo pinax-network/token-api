@@ -8,7 +8,7 @@ WITH filtered_balances AS (
     FROM {db_balances:Identifier}.erc20_balances AS b
     WHERE
         address IN {address:Array(String)}
-        AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
+        AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
         AND (balance > 0 OR {include_null_balances:Bool})
     GROUP BY address, contract
     ORDER BY block_num DESC, address, contract

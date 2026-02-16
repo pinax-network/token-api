@@ -3,7 +3,7 @@ WITH accounts AS (
         owner,
         argMax(account, o.block_num) AS account
     FROM {db_balances:Identifier}.owner_state AS o
-    WHERE ({token_account:Array(String)} = [''] or o.account IN {token_account:Array(String)})
+    WHERE (empty({token_account:Array(String)}) or o.account IN {token_account:Array(String)})
       AND owner IN {owner:Array(String)}
     GROUP BY owner, o.account
 ),
@@ -20,9 +20,9 @@ filtered_balances AS
         any(decimals) AS decimals
     FROM {db_balances:Identifier}.balances AS b
     LEFT JOIN accounts USING account
-    WHERE ({mint:Array(String)} == [''] OR mint IN {mint:Array(String)})
+    WHERE (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
         AND account IN (SELECT account FROM accounts)
-        AND ({program_id:String} = '' OR program_id = {program_id:String})
+        AND (isNull({program_id:Nullable(String)}) OR program_id = {program_id:Nullable(String)})
         AND (b.amount > 0 OR {include_null_balances:Bool})
     GROUP BY program_id, owner, account, mint
     ORDER BY timestamp DESC, owner, account, mint
