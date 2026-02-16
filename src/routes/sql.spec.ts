@@ -3,11 +3,10 @@ import { Hono } from 'hono';
 
 const DB_TESTS = !!process.env.DB_TESTS;
 
-let app: Hono;
+const app: Hono = new Hono();
 
 if (DB_TESTS) {
     const routes = await import('./index.js');
-    app = new Hono();
     app.route('/', routes.default);
 }
 
