@@ -84,6 +84,7 @@ export async function makeUsageQueryJson<T = unknown>(
 
         // Fetch indexed tip for the network (non-blocking: does not fail the request)
         // Extract database name from query params (db_balances, db_transfers, db_dex, etc.)
+        // Note: Each route should only pass one database parameter
         const database =
             (typeof params.db_balances === 'string' && params.db_balances) ||
             (typeof params.db_transfers === 'string' && params.db_transfers) ||
@@ -92,7 +93,12 @@ export async function makeUsageQueryJson<T = unknown>(
             (typeof params.db_contracts === 'string' && params.db_contracts) ||
             undefined;
         const network = typeof params.network === 'string' ? params.network : undefined;
-        const indexedTipConfig = network && database ? { ...overwrite_config, network, database } : overwrite_config;
+
+        // Build config for indexed tip query - include network for cluster routing
+        // and database to query the correct blocks table
+        const indexedTipConfig = network
+            ? { ...overwrite_config, network, ...(database && { database }) }
+            : overwrite_config;
         const indexedTip = await getIndexedTip(indexedTipConfig);
 
         return {
