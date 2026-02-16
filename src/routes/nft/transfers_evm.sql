@@ -23,15 +23,15 @@ WITH erc721 AS (
         transfer_type,
         token_standard
     FROM {db_nft:Identifier}.erc721_transfers AS t
-    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND ({type:String} = '' OR `@type` = {type:String})
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
-        AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
-        AND ({address:Array(String)} = [''] OR (from IN {address:Array(String)} OR to IN {address:Array(String)}))
-        AND ({from_address:Array(String)} = [''] OR from IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR to IN {to_address:Array(String)})
+    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+        AND (isNull({type:Nullable(String)}) OR `@type` = {type:Nullable(String)})
+        AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
+        AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+        AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+        AND (empty({address:Array(String)}) OR (from IN {address:Array(String)} OR to IN {address:Array(String)}))
+        AND (empty({from_address:Array(String)}) OR from IN {from_address:Array(String)})
+        AND (empty({to_address:Array(String)}) OR to IN {to_address:Array(String)})
 ),
 erc1155 AS (
     SELECT
@@ -58,14 +58,14 @@ erc1155 AS (
         transfer_type,
         token_standard
     FROM {db_nft:Identifier}.erc1155_transfers AS t
-    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
-        AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
-        AND ({address:Array(String)} = [''] OR (from IN {address:Array(String)} OR to IN {address:Array(String)}))
-        AND ({from_address:Array(String)} = [''] OR from IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR to IN {to_address:Array(String)})
+    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+        AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
+        AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+        AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+        AND (empty({address:Array(String)}) OR (from IN {address:Array(String)} OR to IN {address:Array(String)}))
+        AND (empty({from_address:Array(String)}) OR from IN {from_address:Array(String)})
+        AND (empty({to_address:Array(String)}) OR to IN {to_address:Array(String)})
 ),
 combined AS (
     SELECT * FROM erc721
@@ -85,7 +85,7 @@ erc721_metadata_by_contract AS (
         name,
         symbol
     FROM {db_nft:Identifier}.erc721_metadata_by_contract
-    WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
+    WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
 ),
 erc1155_metadata_by_contract AS (
     SELECT DISTINCT
@@ -93,7 +93,7 @@ erc1155_metadata_by_contract AS (
         name,
         symbol
     FROM {db_nft:Identifier}.erc1155_metadata_by_contract
-    WHERE ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
+    WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
 )
 SELECT
     c.block_num,

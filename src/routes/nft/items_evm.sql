@@ -13,7 +13,7 @@ WITH erc721 AS (
     FINAL
     JOIN {db_nft:Identifier}.erc721_owners AS o USING (contract, token_id)
     WHERE contract = {contract: String}
-    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
 ),
 erc1155 AS (
     SELECT
@@ -30,7 +30,7 @@ erc1155 AS (
     FINAL
     LEFT JOIN {db_nft:Identifier}.erc1155_balances AS o USING (contract, token_id)
     WHERE contract = {contract: String}
-    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
     AND balance > 0
 ),
 combined AS (
@@ -48,7 +48,7 @@ filtered_nft_metadata AS (
         attributes
     FROM {db_nft:Identifier}.nft_metadata
     WHERE contract = {contract: String}
-    AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
 )
 SELECT
     owner AS address,
