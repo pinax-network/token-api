@@ -1,6 +1,7 @@
 import { type Context, Hono } from 'hono';
 import './src/banner.js';
 import { openAPIRouteHandler } from 'hono-openapi';
+import { logServerInit } from './src/banner.js';
 import { APP_DESCRIPTION, APP_VERSION, config } from './src/config.js';
 import { logger } from './src/logger.js';
 import routes from './src/routes/index.js';
@@ -69,6 +70,8 @@ app.get(
 app.notFound((c: Context) =>
     APIErrorResponse(c, 404, 'route_not_found', `Path not found: ${c.req.method} ${c.req.path}`)
 );
+
+logServerInit(app.routes);
 
 export default {
     ...app,
