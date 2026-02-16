@@ -25,10 +25,6 @@ const tvmNetwork = config.defaultTvmNetwork;
 
 // Route definitions with query parameters matching the test suite
 const PERF_ROUTES: { path: string; query: string; requires: () => boolean }[] = [
-    // Monitoring
-    { path: '/v1/health', query: '', requires: () => true },
-    { path: '/v1/version', query: '', requires: () => true },
-    { path: '/v1/networks', query: '', requires: () => true },
     // EVM Tokens
     {
         path: '/v1/evm/tokens',
@@ -252,9 +248,19 @@ interface PerfResult {
     rows: number;
 }
 
+function getStatusEmoji(status: number, duration_ms: number): string {
+    if (status !== 200) return '❌';
+    if (duration_ms > 1000) return '❌';
+    if (duration_ms > 500) return '⚠️';
+    return '✅';
+}
+
 async function runPerf() {
     const results: PerfResult[] = [];
     const skipped: string[] = [];
+
+    // Find the longest route path for alignment
+    const maxPathLen = Math.max(...PERF_ROUTES.map((r) => r.path.length));
 
     for (const route of PERF_ROUTES) {
         if (!route.requires()) {
@@ -271,11 +277,16 @@ async function runPerf() {
             const rows = Array.isArray(body?.data) ? body.data.length : 0;
 
             results.push({ route: route.path, status: response.status, duration_ms, rows });
-            console.log(`${response.status === 200 ? '✅' : '❌'} ${route.path} — ${duration_ms}ms (${rows} rows)`);
+            const emoji = getStatusEmoji(response.status, duration_ms);
+            const paddedPath = route.path.padEnd(maxPathLen);
+            const paddedTime = `${duration_ms}ms`.padStart(12);
+            console.log(`${emoji} ${paddedPath}  ${paddedTime}  (${rows} rows)`);
         } catch (err) {
             const duration_ms = Math.round((performance.now() - start) * 100) / 100;
             results.push({ route: route.path, status: 0, duration_ms, rows: 0 });
-            console.log(`❌ ${route.path} — ${duration_ms}ms (error: ${err})`);
+            const paddedPath = route.path.padEnd(maxPathLen);
+            const paddedTime = `${duration_ms}ms`.padStart(12);
+            console.log(`❌ ${paddedPath}  ${paddedTime}  (error: ${err})`);
         }
     }
 
@@ -286,14 +297,25 @@ async function runPerf() {
     if (results.length > 0) {
         const totalTime = results.reduce((sum, r) => sum + r.duration_ms, 0);
         const avgTime = Math.round((totalTime / results.length) * 100) / 100;
-        const slowest = results.reduce((a, b) => (a.duration_ms > b.duration_ms ? a : b));
-        const fastest = results.reduce((a, b) => (a.duration_ms < b.duration_ms ? a : b));
         const failed = results.filter((r) => r.status !== 200);
 
         console.log(`Total time: ${Math.round(totalTime * 100) / 100}ms`);
         console.log(`Average: ${avgTime}ms`);
-        console.log(`Fastest: ${fastest.route} — ${fastest.duration_ms}ms`);
-        console.log(`Slowest: ${slowest.route} — ${slowest.duration_ms}ms`);
+
+        // Top 3 fastest & slowest
+        const sorted = [...results].sort((a, b) => a.duration_ms - b.duration_ms);
+        const top3Fastest = sorted.slice(0, 3);
+        const top3Slowest = sorted.slice(-3).reverse();
+
+        console.log('\n🏎️  Top 3 Fastest:');
+        for (const r of top3Fastest) {
+            console.log(`  ${r.route} — ${r.duration_ms}ms`);
+        }
+
+        console.log('\n🐢 Top 3 Slowest:');
+        for (const r of top3Slowest) {
+            console.log(`  ${r.route} — ${r.duration_ms}ms`);
+        }
 
         if (failed.length > 0) {
             console.log(`\n❌ Failed routes (${failed.length}):`);
