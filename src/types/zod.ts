@@ -440,7 +440,18 @@ export const paginationResponseSchema = z.object({
 
 export type PaginationSchema = z.infer<typeof paginationResponseSchema>;
 
+export const indexedTipResponseSchema = z.object({
+    block_num: z.number(),
+    block_timestamp: z.string().describe('ISO 8601 datetime string'),
+    block_timestamp_unix: z.number(),
+});
+
+export const metaResponseSchema = z.object({
+    indexed_to: indexedTipResponseSchema.optional(),
+});
+
 export const apiUsageResponseSchema = z.object({
+    meta: metaResponseSchema.optional(),
     data: z.array(z.any()),
     statistics: statisticsResponseSchema,
     pagination: paginationResponseSchema,

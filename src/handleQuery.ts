@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { ZodError } from 'zod';
 import { makeQuery } from './clickhouse/makeQuery.js';
 import { config, DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { getIndexedTip } from './services/indexed-tip.js';
 import { normalizeSQL } from './sql/index.js';
 import {
     type ApiErrorResponse,
@@ -17,6 +18,12 @@ import { APIErrorResponse } from './utils.js';
 export async function handleUsageQueryError(ctx: Context, result: ApiUsageResponse | ApiErrorResponse) {
     if ('status' in result) {
         return APIErrorResponse(ctx, result.status, result.code, result.message);
+    }
+
+    // Set indexed tip HTTP headers if available
+    if (result.meta?.indexed_to) {
+        ctx.header('X-Indexed-Block', String(result.meta.indexed_to.block_num));
+        ctx.header('X-Indexed-Timestamp', result.meta.indexed_to.block_timestamp);
     }
 
     return ctx.json(result);
@@ -60,7 +67,21 @@ export async function makeUsageQueryJson<T = unknown>(
     };
 
     try {
-        const result = await makeQuery<T>(normalizeSQL(query.join(' ')), params, overwrite_config);
+        // Extract database name from query params (db_balances, db_transfers, db_dex, etc.)
+        const database =
+            (typeof params.db_balances === 'string' && params.db_balances) ||
+            (typeof params.db_transfers === 'string' && params.db_transfers) ||
+            (typeof params.db_dex === 'string' && params.db_dex) ||
+            (typeof params.db_nft === 'string' && params.db_nft) ||
+            (typeof params.db_contracts === 'string' && params.db_contracts) ||
+            undefined;
+        const network = typeof params.network === 'string' ? params.network : undefined;
+
+        // Fetch main query and indexed tip in parallel
+        const [result, indexedTip] = await Promise.all([
+            makeQuery<T>(normalizeSQL(query.join(' ')), params, overwrite_config),
+            getIndexedTip(network, database || overwrite_config?.database),
+        ]);
 
         // Sometimes the timings will not make ClickHouse return a timeout error even though the data is empty
         if (
@@ -76,6 +97,7 @@ export async function makeUsageQueryJson<T = unknown>(
         }
 
         return {
+            meta: indexedTip ? { indexed_to: indexedTip } : undefined,
             data: result.data,
             statistics: result.statistics ?? {},
             pagination: {
