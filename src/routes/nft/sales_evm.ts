@@ -4,7 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { natives as nativeContracts } from '../../inject/prices.tokens.js';
+import { natives as nativeContracts } from '../../registry/natives.js';
 import { readSQL } from '../../sql/index.js';
 import {
     EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
