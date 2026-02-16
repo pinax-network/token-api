@@ -24,8 +24,8 @@ const querySchema = createQuerySchema({
 
     pool: { schema: tvmPoolSchema, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: null },
-    end_time: { schema: timestampSchema, default: null },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

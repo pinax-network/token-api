@@ -24,8 +24,8 @@ const querySchema = createQuerySchema({
 
     pool: { schema: evmPoolSchema, meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: null },
-    end_time: { schema: timestampSchema, default: null },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

@@ -33,30 +33,30 @@ const querySchema = createQuerySchema({
     signature: {
         schema: svmTransactionSchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: SVM_TRANSACTION_TRANSFER_EXAMPLE },
     },
     // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    source: { schema: svmTokenAccountSchema, batched: true, default: null },
+    source: { schema: svmTokenAccountSchema, batched: true, optional: true },
     destination: {
         schema: svmTokenAccountSchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: SVM_ADDRESS_DESTINATION_EXAMPLE },
     },
     authority: {
         schema: svmAuthoritySchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: SVM_AUTHORITY_USER_EXAMPLE },
     },
-    mint: { schema: svmMintSchema, batched: true, default: null },
-    program_id: { schema: svmSPLTokenProgramIdSchema, default: null },
+    mint: { schema: svmMintSchema, batched: true, optional: true },
+    program_id: { schema: svmSPLTokenProgramIdSchema, optional: true },
 
-    start_time: { schema: timestampSchema, default: null },
-    end_time: { schema: timestampSchema, default: null },
-    start_block: { schema: blockNumberSchema, default: null },
-    end_block: { schema: blockNumberSchema, default: null },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
+    start_block: { schema: blockNumberSchema, optional: true },
+    end_block: { schema: blockNumberSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

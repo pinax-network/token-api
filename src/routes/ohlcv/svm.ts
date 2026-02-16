@@ -25,8 +25,8 @@ const querySchema = createQuerySchema({
     amm_pool: { schema: svmAmmPoolSchema },
 
     interval: { schema: intervalSchema, prefault: '1d' },
-    start_time: { schema: timestampSchema, default: null },
-    end_time: { schema: timestampSchema, default: null },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

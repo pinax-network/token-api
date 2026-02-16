@@ -24,7 +24,7 @@ const querySchema = createQuerySchema({
     token_id: {
         schema: nftTokenIdSchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE },
     },
 });

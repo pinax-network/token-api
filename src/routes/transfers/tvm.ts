@@ -32,23 +32,28 @@ const querySchema = createQuerySchema({
     transaction_id: {
         schema: tvmTransactionSchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: TVM_TRANSACTION_TRC20_TRANSFER_EXAMPLE },
     },
-    contract: { schema: tvmContractSchema, batched: true, default: null, meta: { example: TVM_CONTRACT_USDT_EXAMPLE } },
+    contract: {
+        schema: tvmContractSchema,
+        batched: true,
+        optional: true,
+        meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
+    },
     // address: { schema: tvmAddressSchema, batched: true, default: '' },
     from_address: {
         schema: tvmAddressSchema,
         batched: true,
-        default: null,
+        optional: true,
         meta: { example: TVM_ADDRESS_FROM_EXAMPLE },
     },
-    to_address: { schema: tvmAddressSchema, batched: true, default: null, meta: { example: TVM_ADDRESS_TO_EXAMPLE } },
+    to_address: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_TO_EXAMPLE } },
 
-    start_time: { schema: timestampSchema, default: null },
-    end_time: { schema: timestampSchema, default: null },
-    start_block: { schema: blockNumberSchema, default: null },
-    end_block: { schema: blockNumberSchema, default: null },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
+    start_block: { schema: blockNumberSchema, optional: true },
+    end_block: { schema: blockNumberSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

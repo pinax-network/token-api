@@ -21,11 +21,11 @@ import query from './svm.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
 
-    amm: { schema: svmAmmSchema, batched: true, default: null },
-    amm_pool: { schema: svmAmmPoolSchema, batched: true, default: null, meta: { example: '' } },
-    input_mint: { schema: svmMintSchema, batched: true, default: null, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
-    output_mint: { schema: svmMintSchema, batched: true, default: null, meta: { example: SVM_MINT_USDC_EXAMPLE } },
-    program_id: { schema: svmProgramIdSchema, batched: true, default: null },
+    amm: { schema: svmAmmSchema, batched: true, optional: true },
+    amm_pool: { schema: svmAmmPoolSchema, batched: true, optional: true, meta: { example: '' } },
+    input_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
+    output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
+    program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
