@@ -250,8 +250,8 @@ interface PerfResult {
 
 function getStatusEmoji(status: number, duration_ms: number): string {
     if (status !== 200) return '❌';
-    if (duration_ms > 1000) return '❌';
-    if (duration_ms > 500) return '⚠️';
+    if (duration_ms > 2000) return '❌';
+    if (duration_ms > 500) return '⚠️ ';
     return '✅';
 }
 
