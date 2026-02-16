@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { nativeContractRedirect } from '../../middleware/nativeContractRedirect.js';
-import { readSQL } from '../../sql/index.js';
 import { EVM_CONTRACT_USDT_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -17,7 +16,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/holders/evm.sql');
+import query from './evm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },

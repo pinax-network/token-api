@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { natives as nativeContracts } from '../../registry/natives.js';
-import { readSQL } from '../../sql/index.js';
 import {
     EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
     EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
@@ -27,7 +26,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/nft/sales_evm.sql');
+import query from './sales_evm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },

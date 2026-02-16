@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { readSQL } from '../../sql/index.js';
 import {
     TVM_CONTRACT_USDT_EXAMPLE,
     TVM_CONTRACT_WTRX_EXAMPLE,
@@ -27,7 +26,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/pools/tvm.sql');
+import query from './tvm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },

@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { stables } from '../../registry/stables.js';
-import { readSQL } from '../../sql/index.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -19,7 +18,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-const query = await readSQL('./src/routes/ohlcv/svm.sql');
+import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
