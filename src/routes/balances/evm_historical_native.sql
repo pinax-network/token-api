@@ -23,7 +23,7 @@ WHERE
     interval_min = {interval:UInt32}
     AND address = {address:String}
     /* optional */
-    AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
+    AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
 ORDER BY timestamp DESC
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

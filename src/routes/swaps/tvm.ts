@@ -37,35 +37,40 @@ const querySchema = createQuerySchema({
     transaction_id: {
         schema: tvmTransactionSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: TVM_TRANSACTION_SWAP_EXAMPLE },
     },
 
     // swaps
-    factory: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE } },
-    pool: { schema: tvmPoolSchema, batched: true, default: '', meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
-    caller: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
-    sender: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
-    recipient: { schema: tvmAddressSchema, batched: true, default: '', meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    factory: {
+        schema: tvmAddressSchema,
+        batched: true,
+        optional: true,
+        meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE },
+    },
+    pool: { schema: tvmPoolSchema, batched: true, optional: true, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
+    caller: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    sender: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
+    recipient: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     input_contract: {
         schema: tvmAddressSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
     },
     output_contract: {
         schema: tvmAddressSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: TVM_CONTRACT_WTRX_EXAMPLE },
     },
-    protocol: { schema: tvmProtocolSchema, default: '' },
+    protocol: { schema: tvmProtocolSchema, optional: true },
 
     // time and block range
-    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
-    end_time: { schema: timestampSchema, prefault: '2050-01-01' },
-    start_block: { schema: blockNumberSchema, default: 0 },
-    end_block: { schema: blockNumberSchema, default: 9999999999 },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
+    start_block: { schema: blockNumberSchema, optional: true },
+    end_block: { schema: blockNumberSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

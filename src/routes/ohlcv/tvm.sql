@@ -37,8 +37,8 @@ WITH ohlc AS (
     WHERE
             p.interval_min = {interval: UInt64}
         AND p.pool = {pool: String}
-        AND ({start_time: UInt64} == 1763251200 OR p.timestamp >= toDateTime({start_time: UInt64}))
-        AND ({end_time: UInt64} == 2524608000 OR p.timestamp <= toDateTime({end_time: UInt64}))
+        AND (isNull({start_time:Nullable(UInt64)}) OR p.timestamp >= toDateTime({start_time:Nullable(UInt64)}))
+        AND (isNull({end_time:Nullable(UInt64)}) OR p.timestamp <= toDateTime({end_time:Nullable(UInt64)}))
     ORDER BY datetime DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}

@@ -34,49 +34,49 @@ const querySchema = createQuerySchema({
 
     type: {
         schema: nftTransferTypeSchema,
-        default: '',
+        optional: true,
     },
     transaction_id: {
         schema: evmTransactionSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_TRANSACTION_NFT_SALE_EXAMPLE },
     },
     contract: {
         schema: evmContractSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE },
     },
     token_id: {
         schema: nftTokenIdSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE },
     },
     address: {
         schema: evmAddressSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
     },
     from_address: {
         schema: evmAddressSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_ADDRESS_NFT_OFFERER_EXAMPLE },
     },
     to_address: {
         schema: evmAddressSchema,
         batched: true,
-        default: '',
+        optional: true,
         meta: { example: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE },
     },
 
-    start_time: { schema: timestampSchema, prefault: '2025-01-01' },
-    end_time: { schema: timestampSchema, prefault: '2050-01-01' },
-    start_block: { schema: blockNumberSchema, default: 0 },
-    end_block: { schema: blockNumberSchema, default: 9999999999 },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
+    start_block: { schema: blockNumberSchema, optional: true },
+    end_block: { schema: blockNumberSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

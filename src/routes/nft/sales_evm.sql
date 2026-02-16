@@ -10,15 +10,15 @@ WITH filtered_orders AS (
         consideration_amount / pow(10, 18) AS sale_amount,
         {sale_currency:String} AS sale_currency
     FROM {db_nft:Identifier}.seaport_orders
-    WHERE timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND toString(consideration_token) IN {nativeContracts: Array(String)}
-        AND ({contract:Array(String)} = [''] OR offer_token IN {contract:Array(String)})
-        AND ({transaction_id:Array(String)} = [''] OR tx_hash IN {transaction_id:Array(String)})
-        AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
-        AND ({address:Array(String)} = [''] OR (offerer IN {address:Array(String)} OR recipient IN {address:Array(String)}))
-        AND ({from_address:Array(String)} = [''] OR offerer IN {from_address:Array(String)})
-        AND ({to_address:Array(String)} = [''] OR recipient IN {to_address:Array(String)})
+        AND (empty({contract:Array(String)}) OR offer_token IN {contract:Array(String)})
+        AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
+        AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+        AND (empty({address:Array(String)}) OR (offerer IN {address:Array(String)} OR recipient IN {address:Array(String)}))
+        AND (empty({from_address:Array(String)}) OR offerer IN {from_address:Array(String)})
+        AND (empty({to_address:Array(String)}) OR recipient IN {to_address:Array(String)})
 ),
 metadata_by_contract AS (
     SELECT

@@ -244,18 +244,50 @@ bun lint        # Run linting
 bun fix         # Fix linting and formatting issues
 ```
 
+### Query Schema Conventions
+
+Route query parameters are defined using `createQuerySchema()` with `FieldConfig` objects. Each field can be:
+
+- **Required** — no flag, user must provide a value (e.g. `network`, `contract` in holders)
+- **Optional** — `optional: true`, field defaults to `null` (scalar) or `[]` (batched array). No filter applied when absent.
+- **Default** — `default: <value>`, field uses a specific default value (e.g. `default: false` for `include_null_balances`)
+- **Prefault** — `prefault: <value>`, default applied at input level before parsing (e.g. `prefault: '1d'` for `interval`)
+
+```ts
+const querySchema = createQuerySchema({
+    // Required field — user must provide
+    network: { schema: evmNetworkIdSchema },
+    // Optional batched field — defaults to [] (no filter)
+    contract: { schema: evmContractSchema, batched: true, optional: true },
+    // Optional scalar field — defaults to null (no filter)
+    start_time: { schema: timestampSchema, optional: true },
+});
+```
+
+**SQL conventions for optional parameters:**
+
+- **Array params**: Use `empty()` / `notEmpty()` to check if filter is active
+- **Scalar params**: Use `Nullable()` type with `isNull()` guard
+
+```sql
+-- Array: skip filter when empty
+AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+-- Scalar: skip filter when null
+AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)})
+```
+
 ### Project Structure
 
 ```
 token-api/
 ├── src/
-│   ├── routes/          # API route handlers
-│   ├── sql/            # ClickHouse query definitions
-│   ├── schemas/        # OpenAPI response schemas
-│   └── utils/          # Utility functions
-├── tests/              # Test files
-├── public/             # Static assets
-└── docs/              # Documentation
+│   ├── routes/          # API route handlers (colocated .ts + .sql)
+│   ├── types/           # Zod schemas and TypeScript types
+│   ├── clickhouse/      # ClickHouse client configuration
+│   ├── services/        # Shared services (indexed tip, etc.)
+│   └── sql/             # SQL utilities
+├── public/              # Static assets
+└── index.ts             # Application entry point
 ```
 
 ## Contributing

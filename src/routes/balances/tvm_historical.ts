@@ -23,10 +23,15 @@ import query from './tvm_historical.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
     address: { schema: evmAddressSchema },
-    contract: { schema: evmContractSchema, batched: true, default: '', meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE } },
+    contract: {
+        schema: evmContractSchema,
+        batched: true,
+        optional: true,
+        meta: { example: EVM_CONTRACT_NATIVE_EXAMPLE },
+    },
     interval: { schema: intervalSchema, prefault: '1d', meta: { example: '1d' } },
-    start_time: { schema: timestampSchema, prefault: '2015-01-01' },
-    end_time: { schema: timestampSchema, prefault: '2050-01-01' },
+    start_time: { schema: timestampSchema, optional: true },
+    end_time: { schema: timestampSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

@@ -22,9 +22,9 @@ import query from './svm.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
     owner: { schema: svmOwnerSchema, batched: true },
-    token_account: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    mint: { schema: svmMintSchema, batched: true, default: '' },
-    program_id: { schema: svmSPLTokenProgramIdSchema, default: '' },
+    token_account: { schema: svmTokenAccountSchema, batched: true, optional: true },
+    mint: { schema: svmMintSchema, batched: true, optional: true },
+    program_id: { schema: svmSPLTokenProgramIdSchema, optional: true },
     include_null_balances: { schema: includeNullBalancesSchema, default: false },
 });
 

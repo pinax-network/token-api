@@ -24,8 +24,8 @@ WHERE
     interval_min = {interval:UInt32}
     AND address = {address:String}
     /* optional */
-    AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
-    AND timestamp BETWEEN {start_time:UInt64} AND {end_time:UInt64}
+    AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
 ORDER BY timestamp DESC
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

@@ -504,12 +504,13 @@ export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
  *
  * @property schema - The base Zod schema to validate the field
  * @property batched - If true, accepts single value, comma-separated string, or array. Output is always an array.
+ * @property optional - If true, field becomes optional with null (scalar) or empty array (batched) default. No filter applied when absent.
  * @property default - Default value set at schema output (short-circuits parsing). Field becomes optional.
  * @property prefault - Pre-parse default value set at schema input (does not short-circuit). Field becomes optional.
  * @property separator - Separator for parsing comma-separated strings in batched fields (default: ',')
  * @property meta - Additional metadata to attach to the schema (e.g., description, custom fields)
  *
- * @note Only one of `default` or `prefault` can be set. This is enforced at the type level.
+ * @note Only one of `default`, `prefault`, or `optional` can be set. This is enforced at the type level.
  */
 type FieldConfig = {
     schema: z.ZodTypeAny;
@@ -517,31 +518,36 @@ type FieldConfig = {
     separator?: string;
     meta?: Record<string, unknown>;
 } & (
-    | { default: unknown; prefault?: never }
-    | { prefault: unknown; default?: never }
-    | { default?: never; prefault?: never }
+    | { default: unknown; prefault?: never; optional?: never }
+    | { prefault: unknown; default?: never; optional?: never }
+    | { optional: true; default?: never; prefault?: never }
+    | { default?: never; prefault?: never; optional?: never }
 );
 
 /**
  * Infers the processed Zod schema type based on field configuration.
  *
  * Type inference rules:
- * - batched + no default/prefault = z.ZodType<Array<T>> (required array)
- * - batched + has default/prefault = z.ZodDefault<z.ZodType<Array<T>>> (optional array)
- * - not batched + no default/prefault = original schema (required single value)
- * - not batched + has default/prefault = z.ZodDefault<schema> (optional single value)
+ * - batched + no default/prefault/optional = z.ZodType<Array<T>> (required array)
+ * - batched + has default/prefault/optional = z.ZodDefault<z.ZodType<Array<T>>> (optional array)
+ * - not batched + no default/prefault/optional = original schema (required single value)
+ * - not batched + has default/prefault/optional = z.ZodDefault<schema> (optional single value)
  *
  * @template T - The field configuration to process
  */
 type InferProcessedSchema<T extends FieldConfig> = T['batched'] extends true
     ? T['default'] extends undefined
         ? T['prefault'] extends undefined
-            ? z.ZodType<Array<z.infer<T['schema']>>>
+            ? T['optional'] extends true
+                ? z.ZodDefault<z.ZodType<Array<z.infer<T['schema']>>>>
+                : z.ZodType<Array<z.infer<T['schema']>>>
             : z.ZodDefault<z.ZodType<Array<z.infer<T['schema']>>>>
         : z.ZodDefault<z.ZodType<Array<z.infer<T['schema']>>>>
     : T['default'] extends undefined
       ? T['prefault'] extends undefined
-          ? T['schema']
+          ? T['optional'] extends true
+              ? z.ZodDefault<T['schema']>
+              : T['schema']
           : z.ZodDefault<T['schema']>
       : z.ZodDefault<T['schema']>;
 
@@ -572,13 +578,14 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
  *
  * This helper function processes field definitions and automatically:
  * - Injects field names into validation error messages
- * - Marks fields as required (no default/prefault) or optional (has default/prefault)
+ * - Marks fields as required (no default/prefault/optional) or optional (has default/prefault/optional)
  * - Enables batched input (single value, comma-separated string, or array)
  * - Provides consistent error messages for missing required fields
  *
  * @param definitions - Object mapping field names to config objects with:
  *   - `schema`: The Zod schema to use
  *   - `batched`: Optional boolean, enables array/comma-separated input (default: false)
+ *   - `optional`: Optional boolean, makes field optional with null (scalar) or empty array (batched) default
  *   - `default`: Optional default value at output (short-circuits parsing), makes field optional
  *   - `prefault`: Optional default value at input (does not short-circuit), makes field optional
  *   - `separator`: Optional string separator for batched fields (default: ',')
@@ -599,8 +606,10 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
  *     batched: true,
  *     meta: { description: 'Owner address(es)', customField: 'value' }
  *   },
- *   // Using default (output-level, short-circuits)
- *   mint: { schema: svmMintSchema, batched: true, default: [''] },
+ *   // Optional batched field (defaults to empty array)
+ *   mint: { schema: svmMintSchema, batched: true, optional: true },
+ *   // Optional scalar field (defaults to null)
+ *   start_time: { schema: timestampSchema, optional: true },
  *   // Using prefault (input-level, goes through parsing)
  *   program_id: { schema: svmProgramIdSchema.trim(), prefault: '  default  ' },
  * });
@@ -621,6 +630,7 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                     separator = ',',
                     meta,
                 } = config;
+                const isOptional = 'optional' in config && config.optional === true;
 
                 let resultSchema = schema;
 
@@ -661,8 +671,8 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         });
                 }
 
-                // If no default or prefault, make it required with proper error message
-                if (defaultValue === undefined && prefaultValue === undefined) {
+                // If no default, prefault, or optional flag, make it required with proper error message
+                if (defaultValue === undefined && prefaultValue === undefined && !isOptional) {
                     resultSchema = z
                         .preprocess((val, ctx) => {
                             if (val === undefined || val === '') {
@@ -687,10 +697,14 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                             return val;
                         }, resultSchema)
                         .meta({ ...resultSchema.meta() });
+                } else if (isOptional) {
+                    // Optional field: use empty array for batched, null for scalar
+                    resultSchema = resultSchema.default(batched ? [] : null).meta({ ...resultSchema.meta() });
                 } else if (defaultValue !== undefined) {
                     // Apply default (output-level) if provided - takes precedence over prefault
+                    // For batched fields with null default, use empty array instead of [null]
                     resultSchema = resultSchema
-                        .default(batched ? [defaultValue] : defaultValue)
+                        .default(batched ? (defaultValue === null ? [] : [defaultValue]) : defaultValue)
                         .optional()
                         .meta({ ...resultSchema.meta(), default: defaultValue });
                 } else if (prefaultValue !== undefined) {

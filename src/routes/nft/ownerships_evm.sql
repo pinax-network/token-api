@@ -14,7 +14,7 @@ WITH erc721 AS (
             contract,
             owner,
         FROM {db_nft:Identifier}.erc721_owners
-        WHERE owner IN {address:Array(String)} AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
+        WHERE owner IN {address:Array(String)} AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
     ) AS o
     LEFT JOIN {db_nft:Identifier}.erc721_metadata_by_contract AS m USING (contract)
 ),
@@ -35,7 +35,7 @@ erc1155 AS (
             owner,
         FROM {db_nft:Identifier}.erc1155_balances
         WHERE owner IN {address:Array(String)}
-        AND ({contract:Array(String)} = [''] OR contract IN {contract:Array(String)})
+        AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
         AND (balance > 0 OR {include_null_balances:Bool})
     ) AS o
     LEFT JOIN {db_nft:Identifier}.erc1155_metadata_by_contract AS m USING (contract)
@@ -46,8 +46,8 @@ combined AS (
     SELECT * FROM erc1155
 )
 SELECT * FROM combined
-WHERE ({token_standard:String} = '' OR token_standard = {token_standard:String})
-AND ({token_id:Array(String)} = [''] OR token_id IN {token_id:Array(String)})
+WHERE (isNull({token_standard:Nullable(String)}) OR token_standard = {token_standard:Nullable(String)})
+AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
 ORDER BY token_standard, contract, token_id
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

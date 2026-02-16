@@ -3,11 +3,11 @@ WITH
 active_filters AS
 (
     SELECT
-        toUInt8({signature:Array(String)}   != ['']) +
-        toUInt8({source:Array(String)}      != ['']) +
-        toUInt8({destination:Array(String)} != ['']) +
-        toUInt8({authority:Array(String)}   != ['']) +
-        toUInt8({mint:Array(String)}        != [''])
+        toUInt8(notEmpty({signature:Array(String)}))   +
+        toUInt8(notEmpty({source:Array(String)}))      +
+        toUInt8(notEmpty({destination:Array(String)})) +
+        toUInt8(notEmpty({authority:Array(String)}))   +
+        toUInt8(notEmpty({mint:Array(String)}))
     AS n
 ),
 /* 2) Union buckets from only active filters */
@@ -15,42 +15,42 @@ minutes_union AS
 (
     SELECT minute
     FROM {db_transfers:Identifier}.transfers_by_signature
-    WHERE ({signature:Array(String)} != [''] AND signature IN {signature:Array(String)})
+    WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers_by_source
-    WHERE ({source:Array(String)} != [''] AND source IN {source:Array(String)})
+    WHERE (notEmpty({source:Array(String)}) AND source IN {source:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers_by_destination
-    WHERE ({destination:Array(String)} != [''] AND destination IN {destination:Array(String)})
+    WHERE (notEmpty({destination:Array(String)}) AND destination IN {destination:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers_by_authority
-    WHERE ({authority:Array(String)} != [''] AND authority IN {authority:Array(String)})
+    WHERE (notEmpty({authority:Array(String)}) AND authority IN {authority:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers_by_mint
-    WHERE ({mint:Array(String)} != [''] AND mint IN {mint:Array(String)})
+    WHERE (notEmpty({mint:Array(String)}) AND mint IN {mint:Array(String)})
     ORDER BY minute DESC
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, i.e. if we filter by source & dest we'll have 2 minute ranges where they intersect - keep them*/
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE minute BETWEEN toRelativeMinuteNum(toDateTime({start_time: UInt64})) AND toRelativeMinuteNum(toDateTime({end_time: UInt64}))
+    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)}))) AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -88,27 +88,27 @@ filtered_transfers AS
         END AS value
     FROM {db_transfers:Identifier}.transfers t
     PREWHERE
-        timestamp BETWEEN {start_time: UInt64} AND {end_time: UInt64}
-        AND block_num BETWEEN {start_block: UInt64} AND {end_block: UInt64}
+        (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND (
             (
                 /* if no filters are active, search through the last minute only */
                 (SELECT n FROM active_filters) = 0
                 AND timestamp BETWEEN
-                    greatest( toDateTime({start_time:UInt64}), least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
-                    AND least(toDateTime({end_time:UInt64}), (SELECT ts FROM latest_ts))
+                    greatest( toDateTime(coalesce({start_time:Nullable(UInt64)}, 0)), least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
+                    AND least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts))
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
         )
     WHERE
         /* filter the trimmed down minute ranges by the active filters */
-        ({signature:Array(String)} = [''] OR signature IN {signature:Array(String)})
-        AND ({source:Array(String)} = [''] OR source IN {source:Array(String)})
-        AND ({destination:Array(String)} = [''] OR destination IN {destination:Array(String)})
-        AND ({authority:Array(String)} = [''] OR authority IN {authority:Array(String)})
-        AND ({mint:Array(String)} = [''] OR mint IN {mint:Array(String)})
-        AND ({program_id:String} = '' OR program_id = {program_id:String})
+        (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
+        AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
+        AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
+        AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
+        AND (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
+        AND (isNull({program_id:Nullable(String)}) OR program_id = {program_id:Nullable(String)})
     ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
