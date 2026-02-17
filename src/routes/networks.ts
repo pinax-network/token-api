@@ -26,17 +26,13 @@ const networksSchema = z.object({
     aliases: z.array(z.string()),
 });
 
-const indexedToSchema = z.object({
-    block_num: z.number(),
-    datetime: z.string(),
-    timestamp: z.number(),
-});
-
 const categoryIndexedToSchema = z.record(
     z.string(),
     z.object({
         version: z.string(),
-        indexed_to: indexedToSchema,
+        block_num: z.number(),
+        datetime: z.string(),
+        timestamp: z.number(),
     })
 );
 
@@ -65,11 +61,9 @@ const openapi = describeRoute(
                                         transfers: {
                                             mainnet: {
                                                 version: '0.2.2',
-                                                indexed_to: {
-                                                    block_num: 24278225,
-                                                    datetime: '2026-01-20 19:57:11',
-                                                    timestamp: 1768939031,
-                                                },
+                                                block_num: 24278225,
+                                                datetime: '2026-01-20 19:57:11',
+                                                timestamp: 1768939031,
                                             },
                                         },
                                     },
@@ -120,11 +114,9 @@ interface IndexedToRow {
 
 interface CategoryEntry {
     version: string;
-    indexed_to: {
-        block_num: number;
-        datetime: string;
-        timestamp: number;
-    };
+    block_num: number;
+    datetime: string;
+    timestamp: number;
 }
 
 type IndexedToResponse = Record<string, Record<string, CategoryEntry>>;
@@ -161,11 +153,9 @@ function buildIndexedToResponse(rows: IndexedToRow[]): IndexedToResponse {
         if (!result[row.category]) result[row.category] = {};
         result[row.category][row.network] = {
             version: row.version,
-            indexed_to: {
-                block_num: Number(row.block_num),
-                datetime: row.datetime,
-                timestamp: Number(row.timestamp),
-            },
+            block_num: Number(row.block_num),
+            datetime: row.datetime,
+            timestamp: Number(row.timestamp),
         };
     }
     return result;

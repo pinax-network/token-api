@@ -96,11 +96,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
             for (const network of Object.values(category as Record<string, unknown>)) {
                 const entry = network as Record<string, unknown>;
                 expect(entry).toHaveProperty('version');
-                expect(entry).toHaveProperty('indexed_to');
-                const indexedTo = entry.indexed_to as Record<string, unknown>;
-                expect(indexedTo).toHaveProperty('block_num');
-                expect(indexedTo).toHaveProperty('datetime');
-                expect(indexedTo).toHaveProperty('timestamp');
+                expect(entry).toHaveProperty('block_num');
+                expect(entry).toHaveProperty('datetime');
+                expect(entry).toHaveProperty('timestamp');
             }
         }
     });
