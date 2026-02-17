@@ -9,6 +9,11 @@ const healthResponseSchema = z.object({
     status: z.string(),
 });
 
+const errorResponseSchema = z.object({
+    status: z.string(),
+    error: z.string(),
+});
+
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Health Check',
@@ -24,6 +29,20 @@ const openapi = describeRoute(
                             example: {
                                 summary: 'Healthy',
                                 value: { status: 'OK' },
+                            },
+                        },
+                    },
+                },
+            },
+            503: {
+                description: 'One or more database connections failed',
+                content: {
+                    'application/json': {
+                        schema: resolver(errorResponseSchema),
+                        examples: {
+                            example: {
+                                summary: 'Unhealthy',
+                                value: { status: 'ERROR', error: 'Database ping failed for cluster default' },
                             },
                         },
                     },
@@ -61,8 +80,13 @@ route.get('/health', openapi, async (c) => {
         );
     }
 
-    await Promise.all(pingPromises);
-    return c.json({ status: 'OK' });
+    try {
+        await Promise.all(pingPromises);
+        return c.json({ status: 'OK' });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown database connection error';
+        return c.json({ status: 'ERROR', error: message }, 503);
+    }
 });
 
 export default route;
