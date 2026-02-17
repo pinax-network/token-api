@@ -58,7 +58,7 @@ function collectDbEntries(): DbEntry[] {
 function buildHealthQuery(entries: DbEntry[]): string {
     const subqueries = entries.map(
         (e) =>
-            `SELECT '${e.category}' as category, '${e.network}' as network, '${extractVersion(e.database)}' as version, max(block_num) as block_num, formatDateTime(max(timestamp), '%Y-%m-%d %H:%M:%S') as datetime, toUnixTimestamp(max(timestamp)) as timestamp FROM \`${e.database}\`.blocks`
+            `SELECT '${e.category}' as category, '${e.network}' as network, '${extractVersion(e.database)}' as version, max(block_num) as block_num, max(timestamp) as datetime, toUnixTimestamp(max(timestamp)) as timestamp FROM \`${e.database}\`.blocks`
     );
     return subqueries.join(' UNION ALL ');
 }
