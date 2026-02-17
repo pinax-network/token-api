@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
-import type { NetworkDatabaseMapping } from '../config/dbsConfig.js';
 import { config } from '../config.js';
-import { logger } from '../logger.js';
 import { withErrorResponses } from '../utils.js';
 
-interface BlocksTip {
+interface HealthRow {
+    category: string;
+    network: string;
+    version: string;
     block_num: number;
     datetime: string;
     timestamp: number;
@@ -15,7 +16,11 @@ interface BlocksTip {
 
 interface CategoryHealth {
     version: string;
-    indexed_to: BlocksTip;
+    indexed_to: {
+        block_num: number;
+        datetime: string;
+        timestamp: number;
+    };
 }
 
 type HealthResponse = Record<string, Record<string, CategoryHealth>>;
@@ -26,60 +31,52 @@ export function extractVersion(database: string): string {
     return match?.[1] ?? 'unknown';
 }
 
-/** Query the blocks table for max block_num and timestamp */
-async function queryBlocksTip(database: string, network: string): Promise<BlocksTip> {
-    const query = `SELECT max(block_num) as block_num, max(timestamp) as timestamp FROM \`${database}\`.blocks`;
-
-    const result = await client({ network }).query({
-        query,
-        format: 'JSONEachRow',
-    });
-
-    const rows = await result.json<{ block_num: number; timestamp: string }>();
-    const row = rows[0];
-
-    if (!row || !row.block_num) {
-        return { block_num: 0, datetime: '', timestamp: 0 };
-    }
-
-    const date = new Date(row.timestamp);
-    return {
-        block_num: Number(row.block_num),
-        datetime: row.timestamp.replace('T', ' ').substring(0, 19),
-        timestamp: Math.floor(date.getTime() / 1000),
-    };
+interface DbEntry {
+    category: string;
+    network: string;
+    database: string;
+    cluster: string;
 }
 
-/** Query indexed_to for all networks in a database category */
-async function queryCategoryHealth(
-    databases: Record<string, NetworkDatabaseMapping>
-): Promise<Record<string, CategoryHealth>> {
-    const entries = Object.entries(databases);
-    if (entries.length === 0) return {};
-
-    const results = await Promise.allSettled(
-        entries.map(async ([network, mapping]) => {
-            const tip = await queryBlocksTip(mapping.database, network);
-            return {
-                network,
-                version: extractVersion(mapping.database),
-                indexed_to: tip,
-            };
-        })
-    );
-
-    const health: Record<string, CategoryHealth> = {};
-    for (const result of results) {
-        if (result.status === 'fulfilled') {
-            health[result.value.network] = {
-                version: result.value.version,
-                indexed_to: result.value.indexed_to,
-            };
-        } else {
-            logger.error({ error: result.reason }, 'Health check query failed');
+/** Collect all DB entries with category labels */
+function collectDbEntries(): DbEntry[] {
+    const entries: DbEntry[] = [];
+    const categories: [string, Record<string, { database: string; cluster: string }>][] = [
+        ['transfers', config.transfersDatabases],
+        ['balances', config.balancesDatabases],
+        ['dexes', config.dexDatabases],
+    ];
+    for (const [category, databases] of categories) {
+        for (const [network, mapping] of Object.entries(databases)) {
+            entries.push({ category, network, database: mapping.database, cluster: mapping.cluster });
         }
     }
+    return entries;
+}
 
+/** Build a single SQL query using UNION ALL subqueries for all databases on a cluster */
+function buildHealthQuery(entries: DbEntry[]): string {
+    const subqueries = entries.map(
+        (e) =>
+            `SELECT '${e.category}' as category, '${e.network}' as network, '${extractVersion(e.database)}' as version, max(block_num) as block_num, formatDateTime(max(timestamp), '%Y-%m-%d %H:%M:%S') as datetime, toUnixTimestamp(max(timestamp)) as timestamp FROM \`${e.database}\`.blocks`
+    );
+    return subqueries.join(' UNION ALL ');
+}
+
+/** Parse query rows into the health response structure */
+function buildHealthResponse(rows: HealthRow[]): HealthResponse {
+    const health: HealthResponse = {};
+    for (const row of rows) {
+        if (!health[row.category]) health[row.category] = {};
+        health[row.category][row.network] = {
+            version: row.version,
+            indexed_to: {
+                block_num: Number(row.block_num),
+                datetime: row.datetime,
+                timestamp: Number(row.timestamp),
+            },
+        };
+    }
     return health;
 }
 
@@ -155,22 +152,28 @@ const openapi = describeRoute(
 const route = new Hono();
 
 route.get('/health', openapi, async (c) => {
-    const [transfers, balances, dexes] = await Promise.all([
-        queryCategoryHealth(config.transfersDatabases),
-        queryCategoryHealth(config.balancesDatabases),
-        queryCategoryHealth(config.dexDatabases),
-    ]);
+    const allEntries = collectDbEntries();
 
-    const health: HealthResponse = {};
-    if (Object.keys(transfers).length > 0) health.transfers = transfers;
-    if (Object.keys(balances).length > 0) health.balances = balances;
-    if (Object.keys(dexes).length > 0) health.dexes = dexes;
+    // Group entries by cluster to send one query per cluster
+    const byCluster = new Map<string, DbEntry[]>();
+    for (const entry of allEntries) {
+        const group = byCluster.get(entry.cluster) ?? [];
+        group.push(entry);
+        byCluster.set(entry.cluster, group);
+    }
 
-    c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-    c.header('Pragma', 'no-cache');
-    c.header('Expires', '0');
+    // Execute one query per cluster in parallel
+    const clusterResults = await Promise.all(
+        [...byCluster.entries()].map(async ([_cluster, entries]) => {
+            const query = buildHealthQuery(entries);
+            // Use the first network in the cluster group for client routing
+            const result = await client({ network: entries[0].network }).query({ query, format: 'JSONEachRow' });
+            return result.json<HealthRow>();
+        })
+    );
 
-    return c.json(health);
+    const allRows = clusterResults.flat();
+    return c.json(buildHealthResponse(allRows));
 });
 
 export default route;
