@@ -268,9 +268,7 @@ const config = z
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
-        dbsConfigPath: z.string({
-            message: 'DBS_CONFIG_PATH is required. Please provide a path to the database configuration YAML file.',
-        }),
+        dbsConfigPath: z.string().optional(),
         cacheDurations: z
             .string()
             .transform((val) => {
