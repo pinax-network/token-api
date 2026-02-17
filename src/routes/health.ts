@@ -164,12 +164,14 @@ route.get('/health', openapi, async (c) => {
 
     // Execute one query per cluster in parallel
     const clusterResults = await Promise.all(
-        [...byCluster.entries()].map(async ([_cluster, entries]) => {
-            const query = buildHealthQuery(entries);
-            // Use the first network in the cluster group for client routing
-            const result = await client({ network: entries[0].network }).query({ query, format: 'JSONEachRow' });
-            return result.json<HealthRow>();
-        })
+        [...byCluster.entries()]
+            .filter(([, entries]) => entries.length > 0)
+            .map(async ([, entries]) => {
+                const query = buildHealthQuery(entries);
+                // Use the first network in the cluster group for client routing
+                const result = await client({ network: entries[0].network }).query({ query, format: 'JSONEachRow' });
+                return result.json<HealthRow>();
+            })
     );
 
     const allRows = clusterResults.flat();
