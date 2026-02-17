@@ -71,19 +71,8 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     it('GET /v1/health', async () => {
         const { response, body } = await fetchRoute('/v1/health');
         expect(response.status).toBe(200);
-        expect(typeof body).toBe('object');
-        // Check that each category contains networks with version and indexed_to
-        for (const category of Object.values(body)) {
-            for (const network of Object.values(category as Record<string, unknown>)) {
-                const entry = network as Record<string, unknown>;
-                expect(entry).toHaveProperty('version');
-                expect(entry).toHaveProperty('indexed_to');
-                const indexedTo = entry.indexed_to as Record<string, unknown>;
-                expect(indexedTo).toHaveProperty('block_num');
-                expect(indexedTo).toHaveProperty('datetime');
-                expect(indexedTo).toHaveProperty('timestamp');
-            }
-        }
+        expect(body).toHaveProperty('status');
+        expect(body.status).toBe('OK');
     });
 
     it('GET /v1/version', async () => {
@@ -101,6 +90,19 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body).toHaveProperty('networks');
         expect(body.networks).toBeArray();
         expect(body.networks.length).toBeGreaterThan(0);
+        // Check indexed_to data per category
+        expect(body).toHaveProperty('indexed_to');
+        for (const category of Object.values(body.indexed_to)) {
+            for (const network of Object.values(category as Record<string, unknown>)) {
+                const entry = network as Record<string, unknown>;
+                expect(entry).toHaveProperty('version');
+                expect(entry).toHaveProperty('indexed_to');
+                const indexedTo = entry.indexed_to as Record<string, unknown>;
+                expect(indexedTo).toHaveProperty('block_num');
+                expect(indexedTo).toHaveProperty('datetime');
+                expect(indexedTo).toHaveProperty('timestamp');
+            }
+        }
     });
 
     // --- EVM Tokens ---

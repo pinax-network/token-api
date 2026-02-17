@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { extractVersion } from './health.js';
+import { extractVersion } from '../extractVersion.js';
 
 describe('extractVersion', () => {
     it('should extract version from standard database name', () => {
