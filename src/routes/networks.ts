@@ -26,7 +26,7 @@ const querySchema = createQuerySchema(
     {
         network: { schema: networkIdSchema, batched: true, optional: true },
     },
-    { include_pagination: false }
+    false
 );
 
 const indexedToEntrySchema = z.object({
@@ -198,7 +198,7 @@ async function queryIndexedTo(): Promise<Map<string, IndexedToEntry[]>> {
             .filter(([, entries]) => entries.length > 0)
             .map(async ([, entries]) => {
                 const query = buildIndexedToQuery(entries);
-                const result = await client({ network: entries[0].network }).query({ query, format: 'JSONEachRow' });
+                const result = await client({ network: entries[0]?.network }).query({ query, format: 'JSONEachRow' });
                 return result.json<IndexedToRow>();
             })
     );

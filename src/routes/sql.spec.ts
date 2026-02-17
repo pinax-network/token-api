@@ -108,7 +108,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- EVM Tokens ---
     it('GET /v1/evm/tokens', async () => {
         if (!hasEvmBalances || !hasEvmTransfers) return;
-        const { response, body } = await fetchRoute(`/v1/evm/tokens?network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/tokens?network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -125,7 +127,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM Tokens ---
     it('GET /v1/svm/tokens', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/tokens?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/tokens?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -134,7 +138,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- TVM Tokens ---
     it('GET /v1/tvm/tokens', async () => {
         if (!hasTvmTransfers) return;
-        const { response, body } = await fetchRoute(`/v1/tvm/tokens?network=${tvmNetwork}&contract=${TVM_CONTRACT_USDT_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/tvm/tokens?network=${tvmNetwork}&contract=${TVM_CONTRACT_USDT_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -151,7 +157,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- EVM Balances ---
     it('GET /v1/evm/balances', async () => {
         if (!hasEvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/evm/balances?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/balances?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -159,7 +167,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
 
     it('GET /v1/evm/balances/native', async () => {
         if (!hasEvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/evm/balances/native?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/balances/native?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -188,7 +198,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM Balances ---
     it('GET /v1/svm/balances', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/balances?network=${svmNetwork}&owner=${SVM_OWNER_USER_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/balances?network=${svmNetwork}&owner=${SVM_OWNER_USER_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -196,7 +208,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
 
     it('GET /v1/svm/balances/native', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/balances/native?network=${svmNetwork}&address=${SVM_ADDRESS_OWNER_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/balances/native?network=${svmNetwork}&address=${SVM_ADDRESS_OWNER_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -248,7 +262,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- EVM Holders ---
     it('GET /v1/evm/holders', async () => {
         if (!hasEvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/evm/holders?network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/holders?network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -265,7 +281,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM Holders ---
     it('GET /v1/svm/holders', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/holders?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/holders?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -355,7 +373,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- EVM OHLCV ---
     it('GET /v1/evm/pools/ohlc', async () => {
         if (!hasEvmDex) return;
-        const { response, body } = await fetchRoute(`/v1/evm/pools/ohlc?network=${evmNetwork}&pool=${EVM_POOL_USDC_WETH_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/pools/ohlc?network=${evmNetwork}&pool=${EVM_POOL_USDC_WETH_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -364,7 +384,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM OHLCV ---
     it('GET /v1/svm/pools/ohlc', async () => {
         if (!hasSvmDex || !hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/pools/ohlc?network=${svmNetwork}&amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/pools/ohlc?network=${svmNetwork}&amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -373,7 +395,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- TVM OHLCV ---
     it('GET /v1/tvm/pools/ohlc', async () => {
         if (!hasTvmDex) return;
-        const { response, body } = await fetchRoute(`/v1/tvm/pools/ohlc?network=${tvmNetwork}&pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/tvm/pools/ohlc?network=${tvmNetwork}&pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -382,7 +406,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     // --- SVM Owner ---
     it('GET /v1/svm/owner', async () => {
         if (!hasSvmBalances) return;
-        const { response, body } = await fetchRoute(`/v1/svm/owner?network=${svmNetwork}&account=${SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/svm/owner?network=${svmNetwork}&account=${SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
@@ -421,7 +447,9 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
 
     it('GET /v1/evm/nft/ownerships', async () => {
         if (!hasEvmNft) return;
-        const { response, body } = await fetchRoute(`/v1/evm/nft/ownerships?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`);
+        const { response, body } = await fetchRoute(
+            `/v1/evm/nft/ownerships?network=${evmNetwork}&address=${EVM_ADDRESS_VITALIK_EXAMPLE}`
+        );
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);

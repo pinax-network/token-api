@@ -53,9 +53,9 @@ describe('hasDatabase', () => {
     it('should return false for non-existent category on valid network', () => {
         // If there are configured networks, check a category that may not be configured
         if (config.networks.length > 0) {
-            const network = config.networks[0];
+            const [network] = config.networks;
             // At minimum, verify the function returns a boolean without errors
-            expect(typeof hasDatabase(config, network, 'nft')).toBe('boolean');
+            expect(typeof hasDatabase(config, network as string, 'nft')).toBe('boolean');
         }
     });
 

@@ -865,9 +865,7 @@ describe('createQuerySchema', () => {
                 false
             );
 
-            expect(() => schema.parse({ network: ['solana', 'solana'] })).toThrow(
-                'multiple values are not supported'
-            );
+            expect(() => schema.parse({ network: ['solana', 'solana'] })).toThrow('multiple values are not supported');
         });
     });
 
