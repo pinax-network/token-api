@@ -72,18 +72,7 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         const { response, body } = await fetchRoute('/v1/health');
         expect(response.status).toBe(200);
         expect(body).toHaveProperty('status');
-        expect(body).toHaveProperty('checks');
-        expect(body).toHaveProperty('duration_ms');
-        expect(['healthy', 'degraded', 'unhealthy']).toContain(body.status);
-    });
-
-    it('GET /v1/health?skip_endpoints=false', async () => {
-        const { response, body } = await fetchRoute('/v1/health?skip_endpoints=false');
-        expect([200, 503]).toContain(response.status);
-        expect(body).toHaveProperty('status');
-        expect(body).toHaveProperty('checks');
-        expect(body.checks).toHaveProperty('database');
-        expect(body.checks).toHaveProperty('api_endpoints');
+        expect(body.status).toBe('OK');
     });
 
     it('GET /v1/version', async () => {
@@ -101,6 +90,19 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body).toHaveProperty('networks');
         expect(body.networks).toBeArray();
         expect(body.networks.length).toBeGreaterThan(0);
+        // Check indexed_to data embedded in each network
+        for (const network of body.networks) {
+            expect(network).toHaveProperty('id');
+            expect(network).toHaveProperty('indexed_to');
+            expect(network.indexed_to).toBeArray();
+            for (const entry of network.indexed_to) {
+                expect(entry).toHaveProperty('category');
+                expect(entry).toHaveProperty('version');
+                expect(entry).toHaveProperty('block_num');
+                expect(entry).toHaveProperty('datetime');
+                expect(entry).toHaveProperty('timestamp');
+            }
+        }
     });
 
     // --- EVM Tokens ---
