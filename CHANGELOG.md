@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.10.0
+
+### Minor Changes
+
+- Added batch query support and `total_transfers` field to `/tokens` endpoint for EVM/TVM ([#337](https://github.com/pinax-network/token-api/pull/337))
+- Added `indexed_to` per DB category to `/networks` response and simplified `/health` to DB connection verification ([#381](https://github.com/pinax-network/token-api/pull/381))
+- Refactored routes to flatten structure, colocate SQL files, and use single router ([#346](https://github.com/pinax-network/token-api/pull/346))
+- Added server init logging for clusters, networks, databases, and supported routes ([#352](https://github.com/pinax-network/token-api/pull/352), [#366](https://github.com/pinax-network/token-api/pull/366))
+- Replaced `readSQL` with Bun native text imports for SQL files ([#355](https://github.com/pinax-network/token-api/pull/355))
+- Added SQL route tests with `DB_TESTS` flag and performance testing script ([#356](https://github.com/pinax-network/token-api/pull/356), [#368](https://github.com/pinax-network/token-api/pull/368))
+- Removed inject logic (except Web3icons), moved stables/natives to `src/registry/` ([#353](https://github.com/pinax-network/token-api/pull/353))
+- Removed Changesets tooling ([#344](https://github.com/pinax-network/token-api/pull/344))
+
+### Patch Changes
+
+- Fixed wrong CTE alias in EVM tokens query ORDER BY ([#342](https://github.com/pinax-network/token-api/pull/342))
+- Replaced sentinel default values with NULL in SQL query parameters ([#364](https://github.com/pinax-network/token-api/pull/364))
+- Reuse EVM SQL for identical TVM routes ([#372](https://github.com/pinax-network/token-api/pull/372))
+- Removed all references to `injectSymbol` ([#338](https://github.com/pinax-network/token-api/pull/338))
+- Removed maximum bar rate limits from plans ([#340](https://github.com/pinax-network/token-api/pull/340))
+- Added Bun cache to test workflow ([#358](https://github.com/pinax-network/token-api/pull/358))
+
 ## 3.9.0
 
 ### Minor Changes
