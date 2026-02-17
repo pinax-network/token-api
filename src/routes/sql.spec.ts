@@ -71,19 +71,19 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     it('GET /v1/health', async () => {
         const { response, body } = await fetchRoute('/v1/health');
         expect(response.status).toBe(200);
-        expect(body).toHaveProperty('status');
-        expect(body).toHaveProperty('checks');
-        expect(body).toHaveProperty('duration_ms');
-        expect(['healthy', 'degraded', 'unhealthy']).toContain(body.status);
-    });
-
-    it('GET /v1/health?skip_endpoints=false', async () => {
-        const { response, body } = await fetchRoute('/v1/health?skip_endpoints=false');
-        expect([200, 503]).toContain(response.status);
-        expect(body).toHaveProperty('status');
-        expect(body).toHaveProperty('checks');
-        expect(body.checks).toHaveProperty('database');
-        expect(body.checks).toHaveProperty('api_endpoints');
+        expect(typeof body).toBe('object');
+        // Check that each category contains networks with version and indexed_to
+        for (const category of Object.values(body)) {
+            for (const network of Object.values(category as Record<string, unknown>)) {
+                const entry = network as Record<string, unknown>;
+                expect(entry).toHaveProperty('version');
+                expect(entry).toHaveProperty('indexed_to');
+                const indexedTo = entry.indexed_to as Record<string, unknown>;
+                expect(indexedTo).toHaveProperty('block_num');
+                expect(indexedTo).toHaveProperty('datetime');
+                expect(indexedTo).toHaveProperty('timestamp');
+            }
+        }
     });
 
     it('GET /v1/version', async () => {

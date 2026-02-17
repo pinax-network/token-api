@@ -1,97 +1,147 @@
-import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-import { describeRoute, resolver, validator } from 'hono-openapi';
+import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
+import type { NetworkDatabaseMapping } from '../config/dbsConfig.js';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
-import { booleanFromString, dateTimeSchema } from '../types/zod.js';
-import { validatorHook, withErrorResponses } from '../utils.js';
+import { withErrorResponses } from '../utils.js';
 
-const querySchema = z.object({
-    skip_endpoints: booleanFromString.default(true).optional(),
+interface BlocksTip {
+    block_num: number;
+    datetime: string;
+    timestamp: number;
+}
+
+interface CategoryHealth {
+    version: string;
+    indexed_to: BlocksTip;
+}
+
+type HealthResponse = Record<string, Record<string, CategoryHealth>>;
+
+/** Extract version from database name (e.g. "mainnet:evm-transfers@v0.2.2" → "0.2.2") */
+export function extractVersion(database: string): string {
+    const match = database.match(/@v(.+)$/);
+    return match?.[1] ?? 'unknown';
+}
+
+/** Query the blocks table for max block_num and timestamp */
+async function queryBlocksTip(database: string, network: string): Promise<BlocksTip> {
+    const query = `SELECT max(block_num) as block_num, max(timestamp) as timestamp FROM \`${database}\`.blocks`;
+
+    const result = await client({ network }).query({
+        query,
+        format: 'JSONEachRow',
+    });
+
+    const rows = await result.json<{ block_num: number; timestamp: string }>();
+    const row = rows[0];
+
+    if (!row || !row.block_num) {
+        return { block_num: 0, datetime: '', timestamp: 0 };
+    }
+
+    const date = new Date(row.timestamp);
+    return {
+        block_num: Number(row.block_num),
+        datetime: row.timestamp.replace('T', ' ').substring(0, 19),
+        timestamp: Math.floor(date.getTime() / 1000),
+    };
+}
+
+/** Query indexed_to for all networks in a database category */
+async function queryCategoryHealth(
+    databases: Record<string, NetworkDatabaseMapping>
+): Promise<Record<string, CategoryHealth>> {
+    const entries = Object.entries(databases);
+    if (entries.length === 0) return {};
+
+    const results = await Promise.allSettled(
+        entries.map(async ([network, mapping]) => {
+            const tip = await queryBlocksTip(mapping.database, network);
+            return {
+                network,
+                version: extractVersion(mapping.database),
+                indexed_to: tip,
+            };
+        })
+    );
+
+    const health: Record<string, CategoryHealth> = {};
+    for (const result of results) {
+        if (result.status === 'fulfilled') {
+            health[result.value.network] = {
+                version: result.value.version,
+                indexed_to: result.value.indexed_to,
+            };
+        } else {
+            logger.error({ error: result.reason }, 'Health check query failed');
+        }
+    }
+
+    return health;
+}
+
+const indexedToSchema = z.object({
+    block_num: z.number(),
+    datetime: z.string(),
+    timestamp: z.number(),
 });
 
-const healthResponseSchema = z.object({
-    status: z.enum(['healthy', 'degraded', 'unhealthy']),
-    checks: z.object({
-        database: z.enum(['up', 'down', 'slow']),
-        api_endpoints: z.enum(['up', 'down', 'partial', 'skipped']),
-    }),
-    request_time: dateTimeSchema,
-    duration_ms: z.number(),
+const categoryHealthSchema = z.object({
+    version: z.string(),
+    indexed_to: indexedToSchema,
 });
-type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+const healthResponseSchema = z.record(z.string(), z.record(z.string(), categoryHealthSchema));
 
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Health Check',
         description:
-            'Returns API operational status and dependency health with optional endpoint testing.\n\nUse `skip_endpoints` to bypass endpoint responses checks.',
+            'Returns indexed block information for all connected databases per category (transfers, balances, dexes).',
         tags: ['Monitoring'],
         responses: {
             200: {
-                description: 'API is healthy or degraded',
+                description: 'Indexed block information per database category',
                 content: {
                     'application/json': {
                         schema: resolver(healthResponseSchema),
                         examples: {
-                            healthy: {
-                                summary: 'Healthy API',
+                            example: {
+                                summary: 'Health response',
                                 value: {
-                                    status: 'healthy',
-                                    checks: {
-                                        database: 'up',
-                                        api_endpoints: 'up',
+                                    transfers: {
+                                        mainnet: {
+                                            version: '0.2.2',
+                                            indexed_to: {
+                                                block_num: 24278225,
+                                                datetime: '2026-01-20 19:57:11',
+                                                timestamp: 1768939031,
+                                            },
+                                        },
                                     },
-                                    request_time: '2025-08-06 12:00:00',
-                                    duration_ms: 1250,
-                                },
-                            },
-                            degraded: {
-                                summary: 'Degraded API',
-                                value: {
-                                    status: 'degraded',
-                                    checks: {
-                                        database: 'slow',
-                                        api_endpoints: 'partial',
+                                    balances: {
+                                        mainnet: {
+                                            version: '0.2.3',
+                                            indexed_to: {
+                                                block_num: 24278200,
+                                                datetime: '2026-01-20 19:56:47',
+                                                timestamp: 1768939007,
+                                            },
+                                        },
                                     },
-                                    request_time: '2025-08-06 12:00:00',
-                                    duration_ms: 3400,
-                                },
-                            },
-                            skipped: {
-                                summary: 'Database-only check',
-                                value: {
-                                    status: 'healthy',
-                                    checks: {
-                                        database: 'up',
-                                        api_endpoints: 'skipped',
+                                    dexes: {
+                                        mainnet: {
+                                            version: '0.2.6',
+                                            indexed_to: {
+                                                block_num: 24278100,
+                                                datetime: '2026-01-20 19:54:47',
+                                                timestamp: 1768938887,
+                                            },
+                                        },
                                     },
-                                    request_time: '2025-08-06 12:00:00',
-                                    duration_ms: 125,
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-            503: {
-                description: 'API is unhealthy',
-                content: {
-                    'application/json': {
-                        schema: resolver(healthResponseSchema),
-                        examples: {
-                            unhealthy: {
-                                summary: 'Unhealthy API',
-                                value: {
-                                    status: 'unhealthy',
-                                    checks: {
-                                        database: 'down',
-                                        api_endpoints: 'down',
-                                    },
-                                    request_time: '2025-08-06 12:00:00',
-                                    duration_ms: 5000,
                                 },
                             },
                         },
@@ -102,161 +152,25 @@ const openapi = describeRoute(
     })
 );
 
-const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
+const route = new Hono();
 
-route.get(
-    '/health',
-    openapi,
-    zValidator('query', querySchema, validatorHook),
-    validator('query', querySchema),
-    async (c) => {
-        const params = c.req.valid('query');
-        const startTime = Date.now();
-        const skipEndpoints = params.skip_endpoints;
+route.get('/health', openapi, async (c) => {
+    const [transfers, balances, dexes] = await Promise.all([
+        queryCategoryHealth(config.transfersDatabases),
+        queryCategoryHealth(config.balancesDatabases),
+        queryCategoryHealth(config.dexDatabases),
+    ]);
 
-        let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+    const health: HealthResponse = {};
+    if (Object.keys(transfers).length > 0) health.transfers = transfers;
+    if (Object.keys(balances).length > 0) health.balances = balances;
+    if (Object.keys(dexes).length > 0) health.dexes = dexes;
 
-        // Database check
-        let dbStatus: 'up' | 'down' | 'slow' = 'up';
-        try {
-            const dbStart = Date.now();
-            const response = await client().ping();
-            const dbResponseTime = Date.now() - dbStart;
+    c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    c.header('Pragma', 'no-cache');
+    c.header('Expires', '0');
 
-            if (!response.success) {
-                dbStatus = 'down';
-                overallStatus = 'unhealthy';
-            } else if (dbResponseTime > config.degradedDbResponseTime) {
-                dbStatus = 'slow';
-                overallStatus = 'degraded';
-            }
-        } catch (_error) {
-            dbStatus = 'down';
-            overallStatus = 'unhealthy';
-        }
-
-        // API endpoints check (optional)
-        let apiStatus: 'up' | 'down' | 'partial' | 'skipped' = 'skipped';
-
-        if (!skipEndpoints) {
-            try {
-                const baseUrl = `http://${config.hostname}:${config.port}`;
-
-                const testEndpoints = [
-                    // Monitoring endpoints (no auth required)
-                    '/openapi',
-                    '/v1/networks',
-                    '/v1/version',
-
-                    // NFT endpoints
-                    '/v1/evm/nft/ownerships?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
-                    '/v1/evm/nft/collections?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&network=mainnet',
-                    '/v1/evm/nft/items?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&token_id=5712&network=mainnet',
-                    '/v1/evm/nft/transfers?network=mainnet',
-                    '/v1/evm/nft/holders?contract=0xbd3531da5cf5857e7cfaa92426877b022e612cf8&network=mainnet',
-                    '/v1/evm/nft/sales?network=mainnet',
-
-                    // Balance endpoints
-                    '/v1/evm/balances?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
-                    '/v1/svm/balances?owner=GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9&network=solana',
-
-                    // Transfer endpoints
-                    '/v1/evm/transfers?network=mainnet',
-                    '/v1/evm/transfers?network=solana',
-
-                    // Token endpoints
-                    '/v1/evm/tokens?contract=0xc944e90c64b2c07662a292be6244bdf05cda44a7&network=mainnet',
-                    '/v1/evm/holders?contract=0xc944e90c64b2c07662a292be6244bdf05cda44a7&network=mainnet',
-
-                    // Pool endpoints
-                    '/v1/evm/pools?network=mainnet',
-                    '/v1/svm/pools?network=solana',
-
-                    // Swap endpoints
-                    '/v1/evm/swaps?network=mainnet',
-                    '/v1/svm/swaps?network=solana',
-
-                    // OHLC endpoints
-                    '/v1/evm/pools/ohlc?pool=0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640&network=mainnet',
-                    '/v1/evm/prices/ohlc?contract=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&network=mainnet',
-
-                    // Historical endpoints
-                    '/v1/evm/balances/historical?address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&network=mainnet',
-                ];
-
-                const endpointResults = await Promise.allSettled(
-                    testEndpoints.map(async (endpoint) => {
-                        const response = await fetch(`${baseUrl}${endpoint}`, {
-                            method: 'GET',
-                            signal: AbortSignal.timeout(config.maxQueryExecutionTime * 1000),
-                        });
-
-                        const isWorking = response.status === 200;
-
-                        if (!isWorking)
-                            logger.error(
-                                `Health check failed for endpoint ${endpoint}: HTTP ${response.status} - ${response.statusText || 'Unknown error'}`
-                            );
-
-                        return {
-                            endpoint,
-                            status: response.status,
-                            working: isWorking,
-                        };
-                    })
-                );
-
-                const results = endpointResults.map((result) =>
-                    result.status === 'fulfilled' ? result.value : { working: false }
-                );
-
-                const workingEndpoints = results.filter((r) => r.working).length;
-                const totalEndpoints = testEndpoints.length;
-
-                if (workingEndpoints === 0) {
-                    apiStatus = 'down';
-                    overallStatus = 'unhealthy';
-                } else if (workingEndpoints < totalEndpoints) {
-                    apiStatus = 'partial';
-                    if (overallStatus === 'healthy') overallStatus = 'degraded';
-                } else {
-                    apiStatus = 'up';
-                }
-            } catch (_error) {
-                apiStatus = 'down';
-                overallStatus = 'unhealthy';
-            }
-        } else {
-            // When skipping endpoints, base overall status on database status only
-            apiStatus = 'skipped';
-            // Assume API endpoints are working if database is working
-            if (dbStatus === 'down') {
-                overallStatus = 'unhealthy';
-            } else if (dbStatus === 'slow') {
-                overallStatus = 'degraded';
-            } else {
-                overallStatus = 'healthy';
-            }
-        }
-
-        const healthResponse: HealthResponse = {
-            status: overallStatus,
-            checks: {
-                database: dbStatus,
-                api_endpoints: apiStatus,
-            },
-            request_time: new Date(startTime).toISOString().replace('T', ' ').substring(0, 19),
-            duration_ms: Date.now() - startTime,
-        };
-
-        const httpStatus = overallStatus === 'unhealthy' ? 503 : 200;
-
-        c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-        c.header('Pragma', 'no-cache');
-        c.header('Expires', '0');
-
-        return c.json(healthResponse, httpStatus);
-    }
-);
+    return c.json(health);
+});
 
 export default route;
