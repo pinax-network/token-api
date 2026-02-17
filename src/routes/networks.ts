@@ -254,7 +254,7 @@ logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
 logger.trace(`Default TVM network: ${config.defaultTvmNetwork}`);
 
 route.get('/networks', openapi, async (c) => {
-    const [indexed_to] = await Promise.all([queryIndexedTo()]);
+    const indexed_to = await queryIndexedTo();
 
     return c.json({
         networks: config.networks
