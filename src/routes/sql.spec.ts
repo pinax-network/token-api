@@ -90,11 +90,13 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body).toHaveProperty('networks');
         expect(body.networks).toBeArray();
         expect(body.networks.length).toBeGreaterThan(0);
-        // Check indexed_to data per category
-        expect(body).toHaveProperty('indexed_to');
-        for (const category of Object.values(body.indexed_to)) {
-            for (const network of Object.values(category as Record<string, unknown>)) {
-                const entry = network as Record<string, unknown>;
+        // Check indexed_to data embedded in each network
+        for (const network of body.networks) {
+            expect(network).toHaveProperty('id');
+            expect(network).toHaveProperty('indexed_to');
+            expect(network.indexed_to).toBeArray();
+            for (const entry of network.indexed_to) {
+                expect(entry).toHaveProperty('category');
                 expect(entry).toHaveProperty('version');
                 expect(entry).toHaveProperty('block_num');
                 expect(entry).toHaveProperty('datetime');

@@ -1,18 +1,43 @@
+import { zValidator } from '@hono/zod-validator';
 import { NetworksRegistry } from '@pinax/graph-networks-registry';
 import { Hono } from 'hono';
-import { describeRoute, resolver } from 'hono-openapi';
+import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
 import { config } from '../config.js';
 import { extractVersion } from '../extractVersion.js';
 import { logger } from '../logger.js';
-import { withErrorResponses } from '../utils.js';
+import { createQuerySchema } from '../types/zod.js';
+import { validatorHook, withErrorResponses } from '../utils.js';
 
 const registry = await NetworksRegistry.fromLatestVersion();
 
 const route = new Hono();
 
-const networksSchema = z.object({
+const networkIdSchema = z
+    .string()
+    .refine((val) => config.networks.includes(val), { message: 'Invalid network ID' })
+    .meta({
+        description: 'Network ID to filter by',
+        example: config.networks[0],
+    });
+
+const querySchema = createQuerySchema(
+    {
+        network: { schema: networkIdSchema, batched: true, optional: true },
+    },
+    { include_pagination: false }
+);
+
+const indexedToEntrySchema = z.object({
+    category: z.string(),
+    version: z.string(),
+    block_num: z.number(),
+    datetime: z.string(),
+    timestamp: z.number(),
+});
+
+const networkResponseSchema = z.object({
     id: z.string(),
     fullName: z.string(),
     shortName: z.string(),
@@ -24,21 +49,11 @@ const networksSchema = z.object({
         }),
     }),
     aliases: z.array(z.string()),
+    indexed_to: z.array(indexedToEntrySchema),
 });
 
-const categoryIndexedToSchema = z.record(
-    z.string(),
-    z.object({
-        version: z.string(),
-        block_num: z.number(),
-        datetime: z.string(),
-        timestamp: z.number(),
-    })
-);
-
 const responseSchema = z.object({
-    networks: z.array(networksSchema),
-    indexed_to: z.record(z.string(), categoryIndexedToSchema),
+    networks: z.array(networkResponseSchema),
 });
 
 const openapi = describeRoute(
@@ -56,17 +71,20 @@ const openapi = describeRoute(
                         examples: {
                             example: {
                                 value: {
-                                    networks: [getNetwork('mainnet')],
-                                    indexed_to: {
-                                        transfers: {
-                                            mainnet: {
-                                                version: '0.2.2',
-                                                block_num: 24278225,
-                                                datetime: '2026-01-20 19:57:11',
-                                                timestamp: 1768939031,
-                                            },
+                                    networks: [
+                                        {
+                                            ...getNetwork('mainnet'),
+                                            indexed_to: [
+                                                {
+                                                    category: 'transfers',
+                                                    version: '0.2.2',
+                                                    block_num: 24278225,
+                                                    datetime: '2026-01-20 19:57:11',
+                                                    timestamp: 1768939031,
+                                                },
+                                            ],
                                         },
-                                    },
+                                    ],
                                 },
                             },
                         },
@@ -112,14 +130,13 @@ interface IndexedToRow {
     timestamp: number;
 }
 
-interface CategoryEntry {
+interface IndexedToEntry {
+    category: string;
     version: string;
     block_num: number;
     datetime: string;
     timestamp: number;
 }
-
-type IndexedToResponse = Record<string, Record<string, CategoryEntry>>;
 
 /** Collect all DB entries with category labels */
 function collectDbEntries(): DbEntry[] {
@@ -146,23 +163,25 @@ function buildIndexedToQuery(entries: DbEntry[]): string {
     return subqueries.join(' UNION ALL ');
 }
 
-/** Parse query rows into the indexed_to response structure */
-function buildIndexedToResponse(rows: IndexedToRow[]): IndexedToResponse {
-    const result: IndexedToResponse = {};
+/** Parse query rows into a map of network → indexed_to entries */
+function buildIndexedToByNetwork(rows: IndexedToRow[]): Map<string, IndexedToEntry[]> {
+    const result = new Map<string, IndexedToEntry[]>();
     for (const row of rows) {
-        if (!result[row.category]) result[row.category] = {};
-        result[row.category][row.network] = {
+        const entries = result.get(row.network) ?? [];
+        entries.push({
+            category: row.category,
             version: row.version,
             block_num: Number(row.block_num),
             datetime: row.datetime,
             timestamp: Number(row.timestamp),
-        };
+        });
+        result.set(row.network, entries);
     }
     return result;
 }
 
 /** Query indexed_to information for all database categories */
-async function queryIndexedTo(): Promise<IndexedToResponse> {
+async function queryIndexedTo(): Promise<Map<string, IndexedToEntry[]>> {
     const allEntries = collectDbEntries();
 
     // Group entries by cluster to send one query per cluster
@@ -184,7 +203,7 @@ async function queryIndexedTo(): Promise<IndexedToResponse> {
             })
     );
 
-    return buildIndexedToResponse(clusterResults.flat());
+    return buildIndexedToByNetwork(clusterResults.flat());
 }
 
 async function validateNetworks() {
@@ -243,17 +262,33 @@ logger.trace(`Default EVM network: ${config.defaultEvmNetwork}`);
 logger.trace(`Default SVM network: ${config.defaultSvmNetwork}`);
 logger.trace(`Default TVM network: ${config.defaultTvmNetwork}`);
 
-route.get('/networks', openapi, async (c) => {
-    const indexed_to = await queryIndexedTo();
+route.get(
+    '/networks',
+    openapi,
+    zValidator('query', querySchema, validatorHook),
+    validator('query', querySchema),
+    async (c) => {
+        const params = c.req.valid('query');
+        const filterNetworks: string[] = params.network;
 
-    return c.json({
-        networks: config.networks
-            .map((id) => getNetwork(id))
-            .sort((a, b) => {
-                return a.id && b.id ? a.id.localeCompare(b.id) : -1;
-            }),
-        indexed_to,
-    });
-});
+        const indexedToByNetwork = await queryIndexedTo();
+
+        let networkIds = config.networks;
+        if (filterNetworks.length > 0) {
+            networkIds = networkIds.filter((id) => filterNetworks.includes(id));
+        }
+
+        return c.json({
+            networks: networkIds
+                .map((id) => ({
+                    ...getNetwork(id),
+                    indexed_to: indexedToByNetwork.get(id) ?? [],
+                }))
+                .sort((a, b) => {
+                    return a.id && b.id ? a.id.localeCompare(b.id) : -1;
+                }),
+        });
+    }
+);
 
 export default route;
