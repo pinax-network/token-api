@@ -137,7 +137,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `DBS_CONFIG_PATH` | Path to database configuration YAML file | | Yes |
+| `DBS_CONFIG_PATH` | Path to database configuration YAML file | `dbs-config.yaml` | No |
 | `PORT` | HTTP server port | `8000` | No |
 | `HOSTNAME` | Server hostname | `localhost` | No |
 | `IDLE_TIMEOUT` | Connection idle timeout (seconds) | `60` | No |

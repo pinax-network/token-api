@@ -223,7 +223,9 @@ const opts = program
             .default(DEFAULT_VERBOSE)
     )
     .addOption(
-        new Option('--dbs-config-path <string>', 'Path to database configuration YAML file').env('DBS_CONFIG_PATH')
+        new Option('--dbs-config-path <string>', 'Path to database configuration YAML file')
+            .env('DBS_CONFIG_PATH')
+            .default('dbs-config.yaml')
     )
     .addOption(
         new Option('--cache-durations <numbers>', 'Default cache durations in seconds (comma-separated)')
