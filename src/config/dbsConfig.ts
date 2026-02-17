@@ -51,7 +51,7 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
     const absolutePath = resolve(configPath);
 
     if (!existsSync(absolutePath)) {
-        throw new Error(`Database config file not found: ${absolutePath}`);
+        return null;
     }
 
     const fileContent = readFileSync(absolutePath, 'utf-8');
