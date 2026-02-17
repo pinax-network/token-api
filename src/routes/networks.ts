@@ -158,7 +158,7 @@ function collectDbEntries(): DbEntry[] {
 function buildIndexedToQuery(entries: DbEntry[]): string {
     const subqueries = entries.map(
         (e) =>
-            `SELECT '${e.category}' as category, '${e.network}' as network, '${extractVersion(e.database)}' as version, max(b.block_num) as block_num, max(b.timestamp) as datetime, toUnixTimestamp(max(b.timestamp)) as timestamp FROM \`${e.database}\`.blocks as b`
+            `SELECT '${e.category}' as category, '${e.network}' as network, '${extractVersion(e.database)}' as version, b.block_num as block_num, b.timestamp as datetime, toUnixTimestamp(b.timestamp) as timestamp FROM \`${e.database}\`.blocks as b WHERE b.block_num = (SELECT max(block_num) FROM \`${e.database}\`.blocks)`
     );
     return subqueries.join(' UNION ALL ');
 }
