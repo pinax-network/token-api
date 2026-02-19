@@ -94,8 +94,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Transfers',
-        description: 'Returns ERC-20 transfers with transaction and block data.',
-        tags: ['TVM Tokens (ERC-20)'],
+        description: 'Returns TRC-20 transfers with transaction and block data.',
+        tags: ['TVM Tokens (TRC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

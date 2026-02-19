@@ -58,8 +58,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Token Balances',
-        description: 'Returns ERC-20 token balances for a wallet address.',
-        tags: ['TVM Tokens (ERC-20)'],
+        description: 'Returns TRC-20 token balances for a wallet address.',
+        tags: ['TVM Tokens (TRC-20)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

@@ -59,7 +59,7 @@ app.get(
                 { name: 'EVM DEXs' },
                 { name: 'EVM NFTs' },
                 // TVM
-                { name: 'TVM Tokens (ERC-20)' },
+                { name: 'TVM Tokens (TRC-20)' },
                 { name: 'TVM Tokens (Native)' },
                 { name: 'TVM DEXs' },
                 // Monitoring
