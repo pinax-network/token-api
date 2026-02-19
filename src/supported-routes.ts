@@ -13,47 +13,54 @@ interface RouteDefinition {
  * Each route requires specific DB categories to be configured for the corresponding network.
  */
 export const ROUTE_DEFINITIONS: RouteDefinition[] = [
-    // EVM
-    { path: '/v1/evm/tokens', chain: 'evm', requires: ['balances', 'transfers'] },
-    { path: '/v1/evm/tokens/native', chain: 'evm', requires: ['balances'] },
-    { path: '/v1/evm/balances', chain: 'evm', requires: ['balances'] },
-    { path: '/v1/evm/balances/native', chain: 'evm', requires: ['balances'] },
-    { path: '/v1/evm/balances/historical', chain: 'evm', requires: ['balances'] },
-    { path: '/v1/evm/balances/historical/native', chain: 'evm', requires: ['balances'] },
+    // SVM - Tokens
+    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers'] },
+    { path: '/v1/svm/balances', chain: 'svm', requires: ['balances'] },
+    { path: '/v1/svm/holders', chain: 'svm', requires: ['balances'] },
+    { path: '/v1/svm/owner', chain: 'svm', requires: ['balances'] },
+    { path: '/v1/svm/tokens', chain: 'svm', requires: ['balances'] },
+    // SVM - Tokens (Native)
+    { path: '/v1/svm/balances/native', chain: 'svm', requires: ['balances'] },
+    // SVM - DEXs
+    { path: '/v1/svm/swaps', chain: 'svm', requires: ['dex'] },
+    { path: '/v1/svm/pools', chain: 'svm', requires: ['dex'] },
+    { path: '/v1/svm/pools/ohlc', chain: 'svm', requires: ['dex', 'balances'] },
+    { path: '/v1/svm/dexes', chain: 'svm', requires: ['dex'] },
+    // EVM - Tokens
     { path: '/v1/evm/transfers', chain: 'evm', requires: ['transfers'] },
-    { path: '/v1/evm/transfers/native', chain: 'evm', requires: ['transfers'] },
+    { path: '/v1/evm/balances', chain: 'evm', requires: ['balances'] },
     { path: '/v1/evm/holders', chain: 'evm', requires: ['balances'] },
+    { path: '/v1/evm/tokens', chain: 'evm', requires: ['balances', 'transfers'] },
+    { path: '/v1/evm/balances/historical', chain: 'evm', requires: ['balances'] },
+    // EVM - Tokens (Native)
+    { path: '/v1/evm/transfers/native', chain: 'evm', requires: ['transfers'] },
+    { path: '/v1/evm/balances/native', chain: 'evm', requires: ['balances'] },
     { path: '/v1/evm/holders/native', chain: 'evm', requires: ['balances'] },
+    { path: '/v1/evm/tokens/native', chain: 'evm', requires: ['balances'] },
+    { path: '/v1/evm/balances/historical/native', chain: 'evm', requires: ['balances'] },
+    // EVM - DEXs
     { path: '/v1/evm/swaps', chain: 'evm', requires: ['dex'] },
-    { path: '/v1/evm/dexes', chain: 'evm', requires: ['dex'] },
     { path: '/v1/evm/pools', chain: 'evm', requires: ['dex'] },
     { path: '/v1/evm/pools/ohlc', chain: 'evm', requires: ['dex'] },
+    { path: '/v1/evm/dexes', chain: 'evm', requires: ['dex'] },
+    // EVM - NFTs
     { path: '/v1/evm/nft/collections', chain: 'evm', requires: ['contracts', 'nft'] },
     { path: '/v1/evm/nft/holders', chain: 'evm', requires: ['nft'] },
     { path: '/v1/evm/nft/items', chain: 'evm', requires: ['nft'] },
     { path: '/v1/evm/nft/ownerships', chain: 'evm', requires: ['nft'] },
     { path: '/v1/evm/nft/sales', chain: 'evm', requires: ['nft'] },
     { path: '/v1/evm/nft/transfers', chain: 'evm', requires: ['nft'] },
-    // SVM
-    { path: '/v1/svm/tokens', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/balances', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/balances/native', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers'] },
-    { path: '/v1/svm/holders', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/swaps', chain: 'svm', requires: ['dex'] },
-    { path: '/v1/svm/dexes', chain: 'svm', requires: ['dex'] },
-    { path: '/v1/svm/pools', chain: 'svm', requires: ['dex'] },
-    { path: '/v1/svm/pools/ohlc', chain: 'svm', requires: ['dex', 'balances'] },
-    { path: '/v1/svm/owner', chain: 'svm', requires: ['balances'] },
-    // TVM
-    { path: '/v1/tvm/tokens', chain: 'tvm', requires: ['transfers'] },
-    { path: '/v1/tvm/tokens/native', chain: 'tvm', requires: ['transfers'] },
+    // TVM - Tokens
     { path: '/v1/tvm/transfers', chain: 'tvm', requires: ['transfers'] },
+    { path: '/v1/tvm/tokens', chain: 'tvm', requires: ['transfers'] },
+    // TVM - Tokens (Native)
     { path: '/v1/tvm/transfers/native', chain: 'tvm', requires: ['transfers'] },
+    { path: '/v1/tvm/tokens/native', chain: 'tvm', requires: ['transfers'] },
+    // TVM - DEXs
     { path: '/v1/tvm/swaps', chain: 'tvm', requires: ['dex'] },
-    { path: '/v1/tvm/dexes', chain: 'tvm', requires: ['dex'] },
     { path: '/v1/tvm/pools', chain: 'tvm', requires: ['dex'] },
     { path: '/v1/tvm/pools/ohlc', chain: 'tvm', requires: ['dex'] },
+    { path: '/v1/tvm/dexes', chain: 'tvm', requires: ['dex'] },
 ];
 
 type ConfigType = typeof Config;

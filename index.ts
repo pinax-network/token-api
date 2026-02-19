@@ -48,6 +48,23 @@ app.get(
             servers: config.disableOpenapiServers
                 ? [{ url: `http://${config.hostname}:${config.port}`, description: `${APP_DESCRIPTION} - Local` }]
                 : [{ url: config.apiUrl, description: `${APP_DESCRIPTION} - Remote` }],
+            tags: [
+                // SVM
+                { name: 'SVM Tokens' },
+                { name: 'SVM Tokens (Native)' },
+                { name: 'SVM DEXs' },
+                // EVM
+                { name: 'EVM Tokens (ERC-20)' },
+                { name: 'EVM Tokens (Native)' },
+                { name: 'EVM DEXs' },
+                { name: 'EVM NFTs' },
+                // TVM
+                { name: 'TVM Tokens (ERC-20)' },
+                { name: 'TVM Tokens (Native)' },
+                { name: 'TVM DEXs' },
+                // Monitoring
+                { name: 'Monitoring' },
+            ],
             components: {
                 securitySchemes: {
                     bearerAuth: {
