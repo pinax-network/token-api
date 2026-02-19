@@ -61,26 +61,38 @@ import tvmTransfersNative from './transfers/tvm_native.js';
 
 const router = new Hono();
 
-// Monitoring
-router.route('/v1', health);
-router.route('/v1', version);
-router.route('/v1', networks);
+// SVM - Tokens
+router.route('/v1/svm/transfers', svmTransfers);
+router.route('/v1/svm/balances', svmBalances);
+router.route('/v1/svm/holders', svmHolders);
+router.route('/v1/svm/owner', svmOwner);
+router.route('/v1/svm/tokens', svmTokens);
+// SVM - Tokens (Native)
+router.route('/v1/svm/balances/native', svmBalancesNative);
+// SVM - DEXs
+router.route('/v1/svm/swaps', svmSwaps);
+router.route('/v1/svm/pools', svmPools);
+router.route('/v1/svm/pools/ohlc', svmOhlcv);
+router.route('/v1/svm/dexes', svmDexes);
 
-// EVM
-router.route('/v1/evm/tokens', evmTokens);
-router.route('/v1/evm/tokens/native', evmTokensNative);
-router.route('/v1/evm/balances', evmBalances);
-router.route('/v1/evm/balances/native', evmBalancesNative);
-router.route('/v1/evm/balances/historical', evmBalancesHistorical);
-router.route('/v1/evm/balances/historical/native', evmBalancesHistoricalNative);
+// EVM - Tokens
 router.route('/v1/evm/transfers', evmTransfers);
-router.route('/v1/evm/transfers/native', evmTransfersNative);
+router.route('/v1/evm/balances', evmBalances);
 router.route('/v1/evm/holders', evmHolders);
+router.route('/v1/evm/tokens', evmTokens);
+router.route('/v1/evm/balances/historical', evmBalancesHistorical);
+// EVM - Tokens (Native)
+router.route('/v1/evm/transfers/native', evmTransfersNative);
+router.route('/v1/evm/balances/native', evmBalancesNative);
 router.route('/v1/evm/holders/native', evmHoldersNative);
+router.route('/v1/evm/tokens/native', evmTokensNative);
+router.route('/v1/evm/balances/historical/native', evmBalancesHistoricalNative);
+// EVM - DEXs
 router.route('/v1/evm/swaps', evmSwaps);
-router.route('/v1/evm/dexes', evmDexes);
 router.route('/v1/evm/pools', evmPools);
 router.route('/v1/evm/pools/ohlc', evmOhlcv);
+router.route('/v1/evm/dexes', evmDexes);
+// EVM - NFTs
 router.route('/v1/evm/nft/collections', nftCollections);
 router.route('/v1/evm/nft/holders', nftHolders);
 router.route('/v1/evm/nft/items', nftItems);
@@ -88,31 +100,26 @@ router.route('/v1/evm/nft/ownerships', nftOwnerships);
 router.route('/v1/evm/nft/sales', nftSales);
 router.route('/v1/evm/nft/transfers', nftTransfers);
 
-// SVM
-router.route('/v1/svm/tokens', svmTokens);
-router.route('/v1/svm/balances', svmBalances);
-router.route('/v1/svm/balances/native', svmBalancesNative);
-router.route('/v1/svm/transfers', svmTransfers);
-router.route('/v1/svm/holders', svmHolders);
-router.route('/v1/svm/swaps', svmSwaps);
-router.route('/v1/svm/dexes', svmDexes);
-router.route('/v1/svm/pools', svmPools);
-router.route('/v1/svm/pools/ohlc', svmOhlcv);
-router.route('/v1/svm/owner', svmOwner);
-
-// TVM
-router.route('/v1/tvm/tokens', tvmTokens);
-router.route('/v1/tvm/tokens/native', tvmTokensNative);
-// router.route('/v1/tvm/balances', tvmBalances);
-// router.route('/v1/tvm/balances/native', tvmBalancesNative);
-// router.route('/v1/tvm/balances/historical', tvmBalancesHistorical);
-// router.route('/v1/tvm/balances/historical/native', tvmBalancesHistoricalNative);
+// TVM - Tokens
 router.route('/v1/tvm/transfers', tvmTransfers);
-router.route('/v1/tvm/transfers/native', tvmTransfersNative);
+// router.route('/v1/tvm/balances', tvmBalances);
 // router.route('/v1/tvm/holders', tvmHolders);
+router.route('/v1/tvm/tokens', tvmTokens);
+// router.route('/v1/tvm/balances/historical', tvmBalancesHistorical);
+// TVM - Tokens (Native)
+router.route('/v1/tvm/transfers/native', tvmTransfersNative);
+// router.route('/v1/tvm/balances/native', tvmBalancesNative);
+router.route('/v1/tvm/tokens/native', tvmTokensNative);
+// router.route('/v1/tvm/balances/historical/native', tvmBalancesHistoricalNative);
+// TVM - DEXs
 router.route('/v1/tvm/swaps', tvmSwaps);
-router.route('/v1/tvm/dexes', tvmDexes);
 router.route('/v1/tvm/pools', tvmPools);
 router.route('/v1/tvm/pools/ohlc', tvmOhlcv);
+router.route('/v1/tvm/dexes', tvmDexes);
+
+// Monitoring
+router.route('/v1', health);
+router.route('/v1', version);
+router.route('/v1', networks);
 
 export default router;
