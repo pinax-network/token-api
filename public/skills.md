@@ -38,11 +38,7 @@ All endpoints return JSON responses.
 
 ### `GET /v1/health`
 
-Returns API operational status and dependency health.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `skip_endpoints` | boolean | `true` | Skip endpoint response checks |
+Verifies that all database connections are established. Returns `200 OK` when healthy, `503` when one or more connections fail.
 
 ### `GET /v1/version`
 
