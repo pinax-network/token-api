@@ -10,7 +10,7 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
-    intervalSchema,
+    evmIntervalSchema,
     timestampSchema,
     tvmNetworkIdSchema,
     tvmPoolSchema,
@@ -23,7 +23,7 @@ const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
 
     pool: { schema: tvmPoolSchema, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
-    interval: { schema: intervalSchema, prefault: '1d' },
+    interval: { schema: evmIntervalSchema, prefault: '1d' },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
 });

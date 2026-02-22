@@ -11,6 +11,7 @@ import {
     evmAddressSchema,
     evmContractSchema,
     evmFactorySchema,
+    evmIntervalSchema,
     evmNetworkIdSchema,
     evmPoolSchema,
     evmProtocolSchema,
@@ -32,6 +33,7 @@ import {
     svmAmmPoolSchema,
     svmAmmSchema,
     svmAuthoritySchema,
+    svmIntervalSchema,
     svmMetadataSchema,
     svmMintResponseSchema,
     svmMintSchema,
@@ -313,6 +315,48 @@ describe('Common Query Parameter Schemas', () => {
 
         it('should reject invalid intervals', () => {
             expect(() => intervalSchema.parse('invalid')).toThrow();
+        });
+
+        it('should reject minute intervals on SVM schema', () => {
+            expect(() => intervalSchema.parse('1m')).toThrow();
+            expect(() => intervalSchema.parse('5m')).toThrow();
+            expect(() => intervalSchema.parse('10m')).toThrow();
+            expect(() => intervalSchema.parse('30m')).toThrow();
+        });
+    });
+
+    describe('evmIntervalSchema', () => {
+        it('should transform all EVM intervals to minutes', () => {
+            expect(evmIntervalSchema.parse('1m')).toBe(1);
+            expect(evmIntervalSchema.parse('5m')).toBe(5);
+            expect(evmIntervalSchema.parse('10m')).toBe(10);
+            expect(evmIntervalSchema.parse('30m')).toBe(30);
+            expect(evmIntervalSchema.parse('1h')).toBe(60);
+            expect(evmIntervalSchema.parse('4h')).toBe(240);
+            expect(evmIntervalSchema.parse('1d')).toBe(1440);
+            expect(evmIntervalSchema.parse('1w')).toBe(10080);
+        });
+
+        it('should reject invalid intervals', () => {
+            expect(() => evmIntervalSchema.parse('invalid')).toThrow();
+        });
+    });
+
+    describe('svmIntervalSchema', () => {
+        it('should parse valid SVM intervals', () => {
+            expect(svmIntervalSchema.parse('1h')).toBe(60);
+            expect(svmIntervalSchema.parse('4h')).toBe(240);
+            expect(svmIntervalSchema.parse('1d')).toBe(1440);
+            expect(svmIntervalSchema.parse('1w')).toBe(10080);
+        });
+
+        it('should reject invalid intervals', () => {
+            expect(() => svmIntervalSchema.parse('invalid')).toThrow();
+        });
+
+        it('should reject EVM-only intervals', () => {
+            expect(() => svmIntervalSchema.parse('1m')).toThrow();
+            expect(() => svmIntervalSchema.parse('5m')).toThrow();
         });
     });
 

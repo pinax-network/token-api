@@ -186,6 +186,72 @@ export const intervalSchema = z
             'The interval* for which to aggregate price data (hourly, 4-hours, daily or weekly).<br>*Plan restricted.',
     });
 
+const svmIntervals = ['1h', '4h', '1d', '1w'] as const;
+export const svmIntervalSchema = z
+    .enum(svmIntervals)
+    .transform((interval: string, ctx) => {
+        switch (interval) {
+            case '1h':
+                return 60;
+            case '4h':
+                return 240;
+            case '1d':
+                return 1440;
+            case '1w':
+                return 10080;
+            default:
+                ctx.addIssue({
+                    code: 'custom',
+                    message: `Invalid 'interval'`,
+                });
+                return z.NEVER;
+        }
+    })
+    .meta({
+        type: 'string',
+        enum: svmIntervals,
+        default: '1d',
+        description:
+            'The interval* for which to aggregate price data (hourly, 4-hours, daily or weekly).<br>*Plan restricted.',
+    });
+
+const evmIntervals = ['1m', '5m', '10m', '30m', '1h', '4h', '1d', '1w'] as const;
+export const evmIntervalSchema = z
+    .enum(evmIntervals)
+    .transform((interval: string, ctx) => {
+        switch (interval) {
+            case '1m':
+                return 1;
+            case '5m':
+                return 5;
+            case '10m':
+                return 10;
+            case '30m':
+                return 30;
+            case '1h':
+                return 60;
+            case '4h':
+                return 240;
+            case '1d':
+                return 1440;
+            case '1w':
+                return 10080;
+            default:
+                ctx.addIssue({
+                    code: 'custom',
+                    message: `Invalid 'interval'`,
+                });
+                return z.NEVER;
+        }
+    })
+    .meta({
+        type: 'string',
+        enum: evmIntervals,
+        default: '1d',
+        description:
+            'The interval* for which to aggregate price data (1-minute, 5-minutes, 10-minutes, 30-minutes, hourly, 4-hours, daily or weekly).<br>*Plan restricted.',
+    });
+
 export const timestampSchema = z
     .string()
     .transform((input, ctx) => {

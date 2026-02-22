@@ -10,9 +10,9 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
+    evmIntervalSchema,
     evmNetworkIdSchema,
     evmPoolSchema,
-    intervalSchema,
     timestampSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
@@ -23,7 +23,7 @@ const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
 
     pool: { schema: evmPoolSchema, meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
-    interval: { schema: intervalSchema, prefault: '1d' },
+    interval: { schema: evmIntervalSchema, prefault: '1d' },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
 });
