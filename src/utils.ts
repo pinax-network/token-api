@@ -9,7 +9,6 @@ import {
     type ClientErrorResponse,
     clientErrorResponseSchema,
     evmIntervalSchema,
-    intervalSchema,
     type ServerErrorResponse,
     serverErrorResponseSchema,
 } from './types/zod.js';
