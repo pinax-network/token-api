@@ -8,6 +8,7 @@ import {
     type ApiErrorResponse,
     type ClientErrorResponse,
     clientErrorResponseSchema,
+    evmIntervalSchema,
     intervalSchema,
     type ServerErrorResponse,
     serverErrorResponseSchema,
@@ -123,10 +124,10 @@ export function validatorHook(
         if (is_ohlcv_endpoint && data.interval) {
             // Check interval restrictions
             if (allowed_intervals.length > 0) {
-                // Parse allowed intervals using intervalSchema
+                // Parse allowed intervals using evmIntervalSchema (superset of intervalSchema)
                 const allowedIntervalMinutes: number[] = [];
                 for (const intervalStr of allowed_intervals) {
-                    const parseResult = intervalSchema.safeParse(intervalStr);
+                    const parseResult = evmIntervalSchema.safeParse(intervalStr);
                     if (parseResult.success) {
                         allowedIntervalMinutes.push(parseResult.data);
                     }

@@ -18,6 +18,7 @@ import {
     evmTransaction,
     evmTransactionSchema,
     includeNullBalancesSchema,
+    evmIntervalSchema,
     intervalSchema,
     limitSchema,
     nftTokenIdSchema,
@@ -313,6 +314,30 @@ describe('Common Query Parameter Schemas', () => {
 
         it('should reject invalid intervals', () => {
             expect(() => intervalSchema.parse('invalid')).toThrow();
+        });
+
+        it('should reject minute intervals on SVM schema', () => {
+            expect(() => intervalSchema.parse('1m')).toThrow();
+            expect(() => intervalSchema.parse('5m')).toThrow();
+            expect(() => intervalSchema.parse('10m')).toThrow();
+            expect(() => intervalSchema.parse('30m')).toThrow();
+        });
+    });
+
+    describe('evmIntervalSchema', () => {
+        it('should transform all EVM intervals to minutes', () => {
+            expect(evmIntervalSchema.parse('1m')).toBe(1);
+            expect(evmIntervalSchema.parse('5m')).toBe(5);
+            expect(evmIntervalSchema.parse('10m')).toBe(10);
+            expect(evmIntervalSchema.parse('30m')).toBe(30);
+            expect(evmIntervalSchema.parse('1h')).toBe(60);
+            expect(evmIntervalSchema.parse('4h')).toBe(240);
+            expect(evmIntervalSchema.parse('1d')).toBe(1440);
+            expect(evmIntervalSchema.parse('1w')).toBe(10080);
+        });
+
+        it('should reject invalid intervals', () => {
+            expect(() => evmIntervalSchema.parse('invalid')).toThrow();
         });
     });
 
