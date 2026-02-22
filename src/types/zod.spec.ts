@@ -33,6 +33,7 @@ import {
     svmAmmPoolSchema,
     svmAmmSchema,
     svmAuthoritySchema,
+    svmIntervalSchema,
     svmMetadataSchema,
     svmMintResponseSchema,
     svmMintSchema,
@@ -338,6 +339,24 @@ describe('Common Query Parameter Schemas', () => {
 
         it('should reject invalid intervals', () => {
             expect(() => evmIntervalSchema.parse('invalid')).toThrow();
+        });
+    });
+
+    describe('svmIntervalSchema', () => {
+        it('should parse valid SVM intervals', () => {
+            expect(svmIntervalSchema.parse('1h')).toBe(60);
+            expect(svmIntervalSchema.parse('4h')).toBe(240);
+            expect(svmIntervalSchema.parse('1d')).toBe(1440);
+            expect(svmIntervalSchema.parse('1w')).toBe(10080);
+        });
+
+        it('should reject invalid intervals', () => {
+            expect(() => svmIntervalSchema.parse('invalid')).toThrow();
+        });
+
+        it('should reject EVM-only intervals', () => {
+            expect(() => svmIntervalSchema.parse('1m')).toThrow();
+            expect(() => svmIntervalSchema.parse('5m')).toThrow();
         });
     });
 
