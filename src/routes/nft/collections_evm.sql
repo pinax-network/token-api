@@ -4,16 +4,32 @@ erc721_stats AS (
         contract,
         uniq(token_id) AS total_supply,
         uniq(owner) AS owners
-    FROM {db_nft:Identifier}.erc721_owners FINAL
-    WHERE contract = {contract: String}
+    FROM (
+        SELECT
+            contract,
+            token_id,
+            argMax(owner, global_sequence) AS owner
+        FROM {db_nft:Identifier}.erc721_owners
+        PREWHERE contract = {contract: String}
+        GROUP BY contract, token_id
+    )
     GROUP BY contract
 ),
 erc721_transfer_stats AS (
     SELECT
         contract,
-        uniq(global_sequence) AS total_transfers
-    FROM {db_nft:Identifier}.erc721_transfers FINAL
-    WHERE contract = {contract: String}
+        count() AS total_transfers
+    FROM {db_nft:Identifier}.erc721_transfers
+    PREWHERE contract = {contract: String}
+    GROUP BY contract
+),
+erc721_contract_metadata AS (
+    SELECT
+        contract,
+        argMax(name, block_num) AS name,
+        argMax(symbol, block_num) AS symbol
+    FROM {db_nft:Identifier}.erc721_metadata_by_contract
+    PREWHERE contract = {contract: String}
     GROUP BY contract
 ),
 erc721 AS (
@@ -27,10 +43,9 @@ erc721 AS (
         s.owners,
         t.total_transfers,
         {network:String} AS network
-    FROM {db_nft:Identifier}.erc721_metadata_by_contract AS m FINAL
+    FROM erc721_contract_metadata AS m
     LEFT JOIN erc721_stats s ON m.contract = s.contract
     LEFT JOIN erc721_transfer_stats t ON m.contract = t.contract
-    WHERE m.contract = {contract: String}
 ),
 erc1155_stats AS (
     SELECT
@@ -38,16 +53,30 @@ erc1155_stats AS (
         uniq(token_id) AS total_unique_supply,
         sum(balance) AS total_supply,
         uniq(owner) AS owners
-    FROM {db_nft:Identifier}.erc1155_balances FINAL
-    WHERE contract = {contract: String} AND balance > 0
+    FROM (
+        SELECT contract, token_id, owner, sum(balance) AS balance
+        FROM {db_nft:Identifier}.erc1155_balances
+        PREWHERE contract = {contract: String}
+        GROUP BY contract, token_id, owner
+        HAVING balance > 0
+    )
     GROUP BY contract
 ),
 erc1155_transfer_stats AS (
     SELECT
         contract,
-        uniq(global_sequence) AS total_transfers
-    FROM {db_nft:Identifier}.erc1155_transfers FINAL
-    WHERE contract = {contract: String}
+        count() AS total_transfers
+    FROM {db_nft:Identifier}.erc1155_transfers
+    PREWHERE contract = {contract: String}
+    GROUP BY contract
+),
+erc1155_contract_metadata AS (
+    SELECT
+        contract,
+        argMax(name, block_num) AS name,
+        argMax(symbol, block_num) AS symbol
+    FROM {db_nft:Identifier}.erc1155_metadata_by_contract
+    PREWHERE contract = {contract: String}
     GROUP BY contract
 ),
 erc1155 AS (
@@ -61,10 +90,9 @@ erc1155 AS (
         s.owners,
         t.total_transfers,
         {network:String} AS network
-    FROM {db_nft:Identifier}.erc1155_metadata_by_contract AS m FINAL
+    FROM erc1155_contract_metadata AS m
     LEFT JOIN erc1155_stats s ON m.contract = s.contract
     LEFT JOIN erc1155_transfer_stats t ON m.contract = t.contract
-    WHERE m.contract = {contract: String}
 ),
 combined AS (
     SELECT * FROM erc721
@@ -77,7 +105,7 @@ contract_creation AS (
         timestamp,
         `from` AS creator
     FROM {db_contracts:Identifier}.contracts
-    WHERE address = {contract: String}
+    PREWHERE address = {contract: String}
 )
 SELECT
     timestamp AS contract_creation,

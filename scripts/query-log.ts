@@ -8,7 +8,7 @@ import { parse } from 'yaml';
 const args = process.argv.slice(2);
 function getArg(name: string, fallback: string): string {
     const idx = args.indexOf(`--${name}`);
-    return idx !== -1 && args[idx + 1] ? args[idx + 1] : fallback;
+    return idx !== -1 && args[idx + 1] ? (args[idx + 1] as string) : fallback;
 }
 
 const userOverride = getArg('user', '');
@@ -126,18 +126,21 @@ function printTable(rows: QueryRow[]) {
 
     console.log(sep);
     console.log(
-        `| ${col('#', W.n)} | ${col('Max Dur', W.dur)} | ${col('Avg Dur', W.avgDur)} | ${col('Peak Mem', W.mem)} | ${col('Avg Mem', W.avgMem)} | ${col('Read', W.read)} | ${col('Read Rows', W.rows)} | ${col('Runs', W.cnt)} | ${col('Query', W.query, 'left')} |`,
+        `| ${col('#', W.n)} | ${col('Max Dur', W.dur)} | ${col('Avg Dur', W.avgDur)} | ${col('Peak Mem', W.mem)} | ${col('Avg Mem', W.avgMem)} | ${col('Read', W.read)} | ${col('Read Rows', W.rows)} | ${col('Runs', W.cnt)} | ${col('Query', W.query, 'left')} |`
     );
     console.log(sep);
 
-    for (let i = 0; i < rows.length; i++) {
-        const r = rows[i]!;
+    for (const [i, r] of rows.entries()) {
         const preview = r.query_pattern.replace(/\s+/g, ' ').trim();
         console.log(
-            `| ${col(String(i + 1), W.n)} | ${col(`${r.max_duration_ms}ms`, W.dur)} | ${col(`${Math.round(r.avg_duration_ms)}ms`, W.avgDur)} | ${col(r.max_memory_readable, W.mem)} | ${col(r.avg_memory_readable, W.avgMem)} | ${col(r.total_read_size, W.read)} | ${col(String(r.total_read_rows), W.rows)} | ${col(String(r.query_count), W.cnt)} | ${col(preview, W.query, 'left')} |`,
+            `| ${col(String(i + 1), W.n)} | ${col(`${r.max_duration_ms}ms`, W.dur)} | ${col(`${Math.round(r.avg_duration_ms)}ms`, W.avgDur)} | ${col(r.max_memory_readable, W.mem)} | ${col(r.avg_memory_readable, W.avgMem)} | ${col(r.total_read_size, W.read)} | ${col(String(r.total_read_rows), W.rows)} | ${col(String(r.query_count), W.cnt)} | ${col(preview, W.query, 'left')} |`
         );
-        console.log(`|       DBs: ${formatList(r.databases).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`);
-        console.log(`|    Tables: ${formatList(r.tables).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`);
+        console.log(
+            `|       DBs: ${formatList(r.databases).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`
+        );
+        console.log(
+            `|    Tables: ${formatList(r.tables).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`
+        );
         console.log(sep);
     }
 
@@ -152,15 +155,14 @@ function printLongestQueries(rows: LongestQueryRow[]) {
 
     console.log(sep);
     console.log(
-        `| ${col('#', W.n)} | ${col('Duration', W.dur)} | ${col('Peak Mem', W.mem)} | ${col('User', W.user, 'left')} | ${col('Event Time', W.time, 'left')} | ${col('Query', W.query, 'left')} |`,
+        `| ${col('#', W.n)} | ${col('Duration', W.dur)} | ${col('Peak Mem', W.mem)} | ${col('User', W.user, 'left')} | ${col('Event Time', W.time, 'left')} | ${col('Query', W.query, 'left')} |`
     );
     console.log(sep);
 
-    for (let i = 0; i < rows.length; i++) {
-        const r = rows[i]!;
+    for (const [i, r] of rows.entries()) {
         const preview = r.query_preview.replace(/\s+/g, ' ').trim();
         console.log(
-            `| ${col(String(i + 1), W.n)} | ${col(`${r.duration_sec}s`, W.dur)} | ${col(r.peak_memory, W.mem)} | ${col(r.user, W.user, 'left')} | ${col(r.event_time, W.time, 'left')} | ${col(preview, W.query, 'left')} |`,
+            `| ${col(String(i + 1), W.n)} | ${col(`${r.duration_sec}s`, W.dur)} | ${col(r.peak_memory, W.mem)} | ${col(r.user, W.user, 'left')} | ${col(r.event_time, W.time, 'left')} | ${col(preview, W.query, 'left')} |`
         );
         console.log(`|       DBs: ${formatList(r.databases).padEnd(totalWidth - 12)}|`);
         console.log(`|    Tables: ${formatList(r.tables).padEnd(totalWidth - 12)}|`);
@@ -180,10 +182,10 @@ async function scanCluster(name: string, cluster: ClusterConfig): Promise<void> 
 
     try {
         const result = await client.query({ query: QUERY, format: 'JSONEachRow' });
-        const rows = await result.json<QueryRow[]>();
+        const rows = await result.json<QueryRow>();
 
         const longestResult = await client.query({ query: LONGEST_QUERY, format: 'JSONEachRow' });
-        const longestRows = await longestResult.json<LongestQueryRow[]>();
+        const longestRows = await longestResult.json<LongestQueryRow>();
 
         console.log(`\n  Cluster: ${name} (${cluster.url})`);
         console.log(`  Last ${hours}h | sorted by ${sort} | ${rows.length} unique query patterns\n`);
