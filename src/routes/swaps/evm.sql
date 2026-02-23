@@ -94,6 +94,19 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
+/* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
+block_start_ts AS
+(
+    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
+    WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num <= {start_block:Nullable(UInt64)}
+    ORDER BY block_num DESC LIMIT 1
+),
+block_end_ts AS
+(
+    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
+    WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num >= {end_block:Nullable(UInt64)}
+    ORDER BY block_num ASC LIMIT 1
+),
 filtered_swaps AS
 (
     SELECT *
@@ -109,6 +122,12 @@ filtered_swaps AS
         /* Fine-grained timestamp filter */
         AND (isNull({start_time:Nullable(UInt64)}) OR (minute, timestamp) >= (toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})), {start_time:Nullable(UInt64)}))
         AND (isNull({end_time:Nullable(UInt64)}) OR (minute, timestamp) <= (toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})), {end_time:Nullable(UInt64)}))
+
+        /* Block range → timestamp pruning (skip granules via ORDER BY minute, timestamp) */
+        AND (isNull({start_block:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(coalesce((SELECT ts FROM block_start_ts), toDateTime(0))))
+        AND (isNull({end_block:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(coalesce((SELECT ts FROM block_end_ts), now())))
+
+        /* Direct block_num filter */
         AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
         AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
 

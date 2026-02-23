@@ -61,21 +61,18 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
-/* Latest ingested timestamp in source table */
-latest_ts AS
-(
-    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.transfers
-),
 /* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
 block_start_ts AS
 (
-    SELECT maxOrNull(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
-    WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num = {start_block:Nullable(UInt64)}
+    SELECT timestamp AS ts FROM {db_transfers:Identifier}.blocks
+    WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num <= {start_block:Nullable(UInt64)}
+    ORDER BY block_num DESC LIMIT 1
 ),
 block_end_ts AS
 (
-    SELECT maxOrNull(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
-    WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num = {end_block:Nullable(UInt64)}
+    SELECT timestamp AS ts FROM {db_transfers:Identifier}.blocks
+    WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num >= {end_block:Nullable(UInt64)}
+    ORDER BY block_num ASC LIMIT 1
 ),
 filtered_transfers AS
 (
@@ -98,33 +95,23 @@ filtered_transfers AS
             ELSE 1
         END AS value
     FROM {db_transfers:Identifier}.transfers t
-    PREWHERE
-        (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
-        AND (
-            (
-                /* if no filters are active and no block range specified, search through the last minute only */
-                (SELECT n FROM active_filters) = 0
-                AND isNull({start_block:Nullable(UInt64)})
-                AND isNull({end_block:Nullable(UInt64)})
-                AND timestamp BETWEEN
-                    greatest( toDateTime(coalesce({start_time:Nullable(UInt64)}, 0)), least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
-                    AND least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts))
-            )
-            OR (
-                /* if block range filters are active (no other filters), resolve block_num → timestamp
-                   via the blocks table and use timestamp bounds to hit the primary index */
-                (SELECT n FROM active_filters) = 0
-                AND (isNotNull({start_block:Nullable(UInt64)}) OR isNotNull({end_block:Nullable(UInt64)}))
-                AND timestamp >= coalesce((SELECT ts FROM block_start_ts), toDateTime(0))
-                AND timestamp <= coalesce((SELECT ts FROM block_end_ts), toDateTime(4294967295))
-            )
-            /* if filters are active, search through the intersecting minute ranges */
-            OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
-        )
     WHERE
-        /* filter the trimmed down minute ranges by the active filters */
-        (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
+            ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
+
+        /* Timestamp filters (ORDER BY timestamp = efficient primary key pruning) */
+        AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= toDateTime({start_time:Nullable(UInt64)}))
+        AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= toDateTime({end_time:Nullable(UInt64)}))
+
+        /* Block range → timestamp pruning (skip granules via ORDER BY timestamp) */
+        AND (isNull({start_block:Nullable(UInt64)}) OR timestamp >= coalesce((SELECT ts FROM block_start_ts), toDateTime(0)))
+        AND (isNull({end_block:Nullable(UInt64)}) OR timestamp <= coalesce((SELECT ts FROM block_end_ts), now()))
+
+        /* Direct block_num filter (uses idx_block_num minmax index) */
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
+        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+
+        /* Apply filters on non-indexed columns */
+        AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
         AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
         AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
         AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
