@@ -47,6 +47,25 @@ ORDER BY ${ORDER_BY[sort]?.replace('query_duration_ms', 'max(query_duration_ms)'
 LIMIT ${limit}
 `;
 
+const LONGEST_QUERY = `
+SELECT
+    query_id,
+    user,
+    initial_query_id,
+    query_duration_ms / 1000 AS duration_sec,
+    formatReadableSize(memory_usage) AS peak_memory,
+    databases,
+    tables,
+    substring(query, 1, 200) AS query_preview,
+    event_time
+FROM system.query_log
+WHERE type = 'QueryFinish'
+  AND event_time >= now() - INTERVAL ${hours} HOUR
+  AND query NOT LIKE '%system.query_log%'
+ORDER BY query_duration_ms DESC
+LIMIT 20
+`;
+
 interface ClusterConfig {
     url: string;
     username?: string;
@@ -68,6 +87,18 @@ interface QueryRow {
     tables: string[];
 }
 
+interface LongestQueryRow {
+    query_id: string;
+    user: string;
+    initial_query_id: string;
+    duration_sec: number;
+    peak_memory: string;
+    databases: string[];
+    tables: string[];
+    query_preview: string;
+    event_time: string;
+}
+
 function loadClusters(): Record<string, ClusterConfig> {
     const configPath = process.env.DBS_CONFIG_PATH || resolve(import.meta.dirname, '../dbs-config.yaml');
     const raw = parse(readFileSync(configPath, 'utf-8'));
@@ -83,6 +114,11 @@ function separator(widths: number[]): string {
     return `+-${widths.map((w) => '-'.repeat(w)).join('-+-')}-+`;
 }
 
+function formatList(items: string[]): string {
+    if (!items || items.length === 0) return '-';
+    return items.join(', ');
+}
+
 function printTable(rows: QueryRow[]) {
     const W = { n: 5, dur: 10, avgDur: 10, mem: 12, avgMem: 12, read: 12, rows: 14, cnt: 5, query: 80 };
     const widths = [W.n, W.dur, W.avgDur, W.mem, W.avgMem, W.read, W.rows, W.cnt, W.query];
@@ -95,14 +131,43 @@ function printTable(rows: QueryRow[]) {
     console.log(sep);
 
     for (let i = 0; i < rows.length; i++) {
-        const r = rows[i];
+        const r = rows[i]!;
         const preview = r.query_pattern.replace(/\s+/g, ' ').trim();
         console.log(
             `| ${col(String(i + 1), W.n)} | ${col(`${r.max_duration_ms}ms`, W.dur)} | ${col(`${Math.round(r.avg_duration_ms)}ms`, W.avgDur)} | ${col(r.max_memory_readable, W.mem)} | ${col(r.avg_memory_readable, W.avgMem)} | ${col(r.total_read_size, W.read)} | ${col(String(r.total_read_rows), W.rows)} | ${col(String(r.query_count), W.cnt)} | ${col(preview, W.query, 'left')} |`,
         );
+        console.log(`|       DBs: ${formatList(r.databases).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`);
+        console.log(`|    Tables: ${formatList(r.tables).padEnd(widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 12)}|`);
+        console.log(sep);
     }
 
+    if (rows.length === 0) console.log(sep);
+}
+
+function printLongestQueries(rows: LongestQueryRow[]) {
+    const W = { n: 5, dur: 10, mem: 12, user: 15, time: 20, query: 100 };
+    const widths = [W.n, W.dur, W.mem, W.user, W.time, W.query];
+    const sep = separator(widths);
+    const totalWidth = widths.reduce((a, b) => a + b, 0) + widths.length * 3 - 1;
+
     console.log(sep);
+    console.log(
+        `| ${col('#', W.n)} | ${col('Duration', W.dur)} | ${col('Peak Mem', W.mem)} | ${col('User', W.user, 'left')} | ${col('Event Time', W.time, 'left')} | ${col('Query', W.query, 'left')} |`,
+    );
+    console.log(sep);
+
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]!;
+        const preview = r.query_preview.replace(/\s+/g, ' ').trim();
+        console.log(
+            `| ${col(String(i + 1), W.n)} | ${col(`${r.duration_sec}s`, W.dur)} | ${col(r.peak_memory, W.mem)} | ${col(r.user, W.user, 'left')} | ${col(r.event_time, W.time, 'left')} | ${col(preview, W.query, 'left')} |`,
+        );
+        console.log(`|       DBs: ${formatList(r.databases).padEnd(totalWidth - 12)}|`);
+        console.log(`|    Tables: ${formatList(r.tables).padEnd(totalWidth - 12)}|`);
+        console.log(sep);
+    }
+
+    if (rows.length === 0) console.log(sep);
 }
 
 async function scanCluster(name: string, cluster: ClusterConfig): Promise<void> {
@@ -117,6 +182,9 @@ async function scanCluster(name: string, cluster: ClusterConfig): Promise<void> 
         const result = await client.query({ query: QUERY, format: 'JSONEachRow' });
         const rows = await result.json<QueryRow[]>();
 
+        const longestResult = await client.query({ query: LONGEST_QUERY, format: 'JSONEachRow' });
+        const longestRows = await longestResult.json<LongestQueryRow[]>();
+
         console.log(`\n  Cluster: ${name} (${cluster.url})`);
         console.log(`  Last ${hours}h | sorted by ${sort} | ${rows.length} unique query patterns\n`);
 
@@ -124,6 +192,13 @@ async function scanCluster(name: string, cluster: ClusterConfig): Promise<void> 
             console.log('  (no queries found)');
         } else {
             printTable(rows);
+        }
+
+        console.log(`\n  Longest Running Queries (top ${longestRows.length}):\n`);
+        if (longestRows.length === 0) {
+            console.log('  (no queries found)');
+        } else {
+            printLongestQueries(longestRows);
         }
     } catch (err) {
         console.log(`\n  Cluster: ${name} (${cluster.url})`);
