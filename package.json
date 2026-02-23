@@ -35,6 +35,7 @@
         "test": "bun test --coverage",
         "test:db": "DB_TESTS=true bun test --timeout 30000 --coverage",
         "perf": "bun run scripts/perf.ts",
+        "query-log": "bun run scripts/query-log.ts",
         "clean": "bun i --force",
         "typecheck": "tsc --noEmit",
         "fix": "biome check --write --unsafe",
