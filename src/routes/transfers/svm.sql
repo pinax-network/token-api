@@ -92,11 +92,19 @@ filtered_transfers AS
         AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND (
             (
-                /* if no filters are active, search through the last minute only */
+                /* if no filters are active and no block range specified, search through the last minute only */
                 (SELECT n FROM active_filters) = 0
+                AND isNull({start_block:Nullable(UInt64)})
+                AND isNull({end_block:Nullable(UInt64)})
                 AND timestamp BETWEEN
                     greatest( toDateTime(coalesce({start_time:Nullable(UInt64)}, 0)), least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts)) - (INTERVAL 1 MINUTE + INTERVAL 1 * {offset:UInt64} SECOND))
                     AND least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts))
+            )
+            OR (
+                /* if only block range filters are active (no other filters), bypass the time safety net;
+                   block_num PREWHERE above handles the filtering */
+                (SELECT n FROM active_filters) = 0
+                AND (isNotNull({start_block:Nullable(UInt64)}) OR isNotNull({end_block:Nullable(UInt64)}))
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
