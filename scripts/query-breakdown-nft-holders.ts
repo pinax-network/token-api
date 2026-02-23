@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createClient } from '@clickhouse/client-web';
 import { parse } from 'yaml';
@@ -64,7 +64,7 @@ async function runQuery(name: string, sql: string): Promise<QueryStats> {
         let rows_read = 0;
         let bytes_read = 0;
         if (summary) {
-            const parsed = JSON.parse(Array.isArray(summary) ? summary[0] ?? '{}' : summary);
+            const parsed = JSON.parse(Array.isArray(summary) ? (summary[0] ?? '{}') : summary);
             rows_read = Number(parsed.read_rows || 0);
             bytes_read = Number(parsed.read_bytes || 0);
         }
@@ -90,7 +90,9 @@ function formatRows(rows: number): string {
 
 async function main() {
     const queryDir = resolve(import.meta.dirname, '../queries/nft-query-breakdown/holders_evm');
-    const files = readdirSync(queryDir).filter(f => f.endsWith('.sql')).sort();
+    const files = readdirSync(queryDir)
+        .filter((f) => f.endsWith('.sql'))
+        .sort();
 
     const results: QueryStats[] = [];
 
@@ -104,7 +106,9 @@ async function main() {
     }
 
     // Run the full query from src
-    const fullSql = replaceParams(readFileSync(resolve(import.meta.dirname, '../src/routes/nft/holders_evm.sql'), 'utf-8'));
+    const fullSql = replaceParams(
+        readFileSync(resolve(import.meta.dirname, '../src/routes/nft/holders_evm.sql'), 'utf-8')
+    );
     process.stdout.write('Running: FULL QUERY...');
     const fullStats = await runQuery('FULL QUERY', fullSql);
     results.push(fullStats);
@@ -115,29 +119,58 @@ async function main() {
     console.log('='.repeat(110));
 
     const nameW = 35;
-    console.log(['CTE Name'.padEnd(nameW), 'Rows Read'.padStart(14), 'Bytes Read'.padStart(14), 'Elapsed'.padStart(10), 'Result Rows'.padStart(12)].join(' | '));
+    console.log(
+        [
+            'CTE Name'.padEnd(nameW),
+            'Rows Read'.padStart(14),
+            'Bytes Read'.padStart(14),
+            'Elapsed'.padStart(10),
+            'Result Rows'.padStart(12),
+        ].join(' | ')
+    );
     console.log('-'.repeat(110));
 
     for (const r of results) {
-        console.log([(r.name === 'FULL QUERY' ? `** ${r.name} **` : r.name).padEnd(nameW), formatRows(r.rows_read).padStart(14), formatBytes(r.bytes_read).padStart(14), `${r.elapsed_ms}ms`.padStart(10), String(r.result_rows).padStart(12)].join(' | '));
+        console.log(
+            [
+                (r.name === 'FULL QUERY' ? `** ${r.name} **` : r.name).padEnd(nameW),
+                formatRows(r.rows_read).padStart(14),
+                formatBytes(r.bytes_read).padStart(14),
+                `${r.elapsed_ms}ms`.padStart(10),
+                String(r.result_rows).padStart(12),
+            ].join(' | ')
+        );
     }
 
     console.log('-'.repeat(110));
-    const individual = results.filter(r => r.name !== 'FULL QUERY');
+    const individual = results.filter((r) => r.name !== 'FULL QUERY');
     const totalRows = individual.reduce((a, b) => a + b.rows_read, 0);
     const totalBytes = individual.reduce((a, b) => a + b.bytes_read, 0);
     const totalElapsed = individual.reduce((a, b) => a + b.elapsed_ms, 0);
-    console.log(['SUM (individual CTEs)'.padEnd(nameW), formatRows(totalRows).padStart(14), formatBytes(totalBytes).padStart(14), `${totalElapsed}ms`.padStart(10), ''.padStart(12)].join(' | '));
+    console.log(
+        [
+            'SUM (individual CTEs)'.padEnd(nameW),
+            formatRows(totalRows).padStart(14),
+            formatBytes(totalBytes).padStart(14),
+            `${totalElapsed}ms`.padStart(10),
+            ''.padStart(12),
+        ].join(' | ')
+    );
     console.log('='.repeat(110));
 
     const sorted = [...individual].sort((a, b) => b.rows_read - a.rows_read);
     console.log('\nTop contributors by rows read:');
     for (const r of sorted.slice(0, 3)) {
         const pct = totalRows > 0 ? ((r.rows_read / totalRows) * 100).toFixed(1) : '0';
-        console.log(`  ${r.name}: ${formatRows(r.rows_read)} rows (${pct}%) | ${formatBytes(r.bytes_read)} | ${r.elapsed_ms}ms`);
+        console.log(
+            `  ${r.name}: ${formatRows(r.rows_read)} rows (${pct}%) | ${formatBytes(r.bytes_read)} | ${r.elapsed_ms}ms`
+        );
     }
 
     await client.close();
 }
 
-main().catch(err => { console.error('Failed:', err); process.exit(1); });
+main().catch((err) => {
+    console.error('Failed:', err);
+    process.exit(1);
+});
