@@ -1,37 +1,72 @@
-WITH erc721 AS (
+WITH erc721_current_owners AS (
     SELECT
-        toString(token_id) AS token_id,
-        'ERC721' AS token_standard,
         contract,
+        token_id,
+        argMax(owner, global_sequence) AS owner
+    FROM {db_nft:Identifier}.erc721_owners
+    WHERE contract = {contract: String}
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+    GROUP BY contract, token_id
+),
+erc721_token_metadata AS (
+    SELECT
+        contract,
+        token_id,
+        argMax(uri, block_num) AS uri
+    FROM {db_nft:Identifier}.erc721_metadata_by_token
+    WHERE contract = {contract: String}
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+    GROUP BY contract, token_id
+),
+erc721 AS (
+    SELECT
+        toString(t.token_id) AS token_id,
+        'ERC721' AS token_standard,
+        t.contract,
         o.owner AS owner,
-        uri,
+        t.uri,
         '' AS name,
         '' AS description,
         '' AS image,
         [] AS attributes
-    FROM {db_nft:Identifier}.erc721_metadata_by_token AS t
-    FINAL
-    JOIN {db_nft:Identifier}.erc721_owners AS o USING (contract, token_id)
+    FROM erc721_token_metadata AS t
+    JOIN erc721_current_owners AS o USING (contract, token_id)
+),
+erc1155_current_balances AS (
+    SELECT
+        contract,
+        token_id,
+        owner,
+        sum(balance) AS balance
+    FROM {db_nft:Identifier}.erc1155_balances
     WHERE contract = {contract: String}
     AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+    GROUP BY contract, token_id, owner
+    HAVING balance > 0
+),
+erc1155_token_metadata AS (
+    SELECT
+        contract,
+        token_id,
+        argMax(uri, block_num) AS uri
+    FROM {db_nft:Identifier}.erc1155_metadata_by_token
+    WHERE contract = {contract: String}
+    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+    GROUP BY contract, token_id
 ),
 erc1155 AS (
     SELECT
-        toString(token_id) AS token_id,
+        toString(t.token_id) AS token_id,
         'ERC1155' AS token_standard,
-        contract,
+        t.contract,
         o.owner AS owner,
-        uri,
+        t.uri,
         '' AS name,
         '' AS description,
         '' AS image,
         [] AS attributes
-    FROM {db_nft:Identifier}.erc1155_metadata_by_token AS t
-    FINAL
-    LEFT JOIN {db_nft:Identifier}.erc1155_balances AS o USING (contract, token_id)
-    WHERE contract = {contract: String}
-    AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
-    AND balance > 0
+    FROM erc1155_token_metadata AS t
+    LEFT JOIN erc1155_current_balances AS o USING (contract, token_id)
 ),
 combined AS (
     SELECT * FROM erc721
@@ -42,13 +77,14 @@ filtered_nft_metadata AS (
     SELECT
         contract,
         toString(token_id) AS token_id,
-        name,
-        description,
-        media_uri AS image,
-        attributes
+        argMax(name, created_at) AS name,
+        argMax(description, created_at) AS description,
+        argMax(media_uri, created_at) AS image,
+        argMax(attributes, created_at) AS attributes
     FROM {db_nft:Identifier}.nft_metadata
     WHERE contract = {contract: String}
     AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
+    GROUP BY contract, token_id
 )
 SELECT
     owner AS address,
