@@ -1,13 +1,13 @@
-import { createClient } from '@clickhouse/client-web';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { createClient } from '@clickhouse/client-web';
 import { parse } from 'yaml';
 
 // Usage: bun run scripts/query-breakdown.ts [--contract <addr>] [--network <net>]
 const args = process.argv.slice(2);
 function getArg(name: string, fallback: string): string {
     const idx = args.indexOf(`--${name}`);
-    return idx !== -1 && args[idx + 1] ? args[idx + 1] as string : fallback;
+    return idx !== -1 && args[idx + 1] ? (args[idx + 1] as string) : fallback;
 }
 
 const contract = getArg('contract', '0xbd3531da5cf5857e7cfaa92426877b022e612cf8'); // Pudgy Penguins
@@ -86,7 +86,7 @@ function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const units = ['B', 'KiB', 'MiB', 'GiB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+    return `${(bytes / 1024 ** i).toFixed(2)} ${units[i]}`;
 }
 
 function formatRows(rows: number): string {
@@ -353,7 +353,7 @@ async function main() {
         console.log(` done (${stats.elapsed_ms}ms)`);
     }
 
-    console.log('\n' + '='.repeat(110));
+    console.log(`\n${'='.repeat(110)}`);
     console.log('QUERY BREAKDOWN RESULTS');
     console.log('='.repeat(110));
 
@@ -403,7 +403,9 @@ async function main() {
     console.log('\nTop contributors by rows read:');
     for (const r of sorted.slice(0, 3)) {
         const pct = totalRows > 0 ? ((r.rows_read / totalRows) * 100).toFixed(1) : '0';
-        console.log(`  ${r.name}: ${formatRows(r.rows_read)} rows (${pct}%) | ${formatBytes(r.bytes_read)} | ${r.elapsed_ms}ms`);
+        console.log(
+            `  ${r.name}: ${formatRows(r.rows_read)} rows (${pct}%) | ${formatBytes(r.bytes_read)} | ${r.elapsed_ms}ms`
+        );
     }
 
     await client.close();
