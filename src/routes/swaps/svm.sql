@@ -83,6 +83,17 @@ latest_ts AS
 (
     SELECT max(timestamp) AS ts FROM {db_dex:Identifier}.swaps
 ),
+/* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
+block_start_ts AS
+(
+    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
+    WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num = {start_block:Nullable(UInt64)}
+),
+block_end_ts AS
+(
+    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
+    WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num = {end_block:Nullable(UInt64)}
+),
 filtered_swaps AS
 (
     SELECT
@@ -115,11 +126,12 @@ filtered_swaps AS
                     AND least(toDateTime(coalesce({end_time:Nullable(UInt64)}, 4294967295)), (SELECT ts FROM latest_ts))
             )
             OR (
-                /* if only block range filters are active (no other filters), bypass the 10-minute safety net;
-                   block_num PREWHERE above handles the filtering. Require start_time or end_time alongside
-                   block filters when possible for primary index efficiency. */
+                /* if block range filters are active (no other filters), resolve block_num → timestamp
+                   via the blocks table and use timestamp bounds to hit the primary index */
                 (SELECT n FROM active_filters) = 0
                 AND (isNotNull({start_block:Nullable(UInt64)}) OR isNotNull({end_block:Nullable(UInt64)}))
+                AND timestamp >= coalesce((SELECT ts FROM block_start_ts), toDateTime(0))
+                AND timestamp <= coalesce((SELECT ts FROM block_end_ts), toDateTime(4294967295))
             )
             /* if filters are active, search through the intersecting minute ranges */
             OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes)
