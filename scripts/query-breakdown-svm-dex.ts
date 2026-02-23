@@ -158,7 +158,7 @@ const queries: { name: string; sql: string }[] = [
         name: 'swaps: block→timestamp resolved (✅ fix)',
         sql: `
             WITH block_ts AS (
-                SELECT max(timestamp) AS ts FROM \`${dbDex}\`.blocks WHERE block_num = ${block}
+                SELECT maxOrNull(timestamp) AS ts FROM \`${dbDex}\`.blocks WHERE block_num = ${block}
             )
             SELECT * FROM \`${dbDex}\`.swaps
             WHERE timestamp <= (SELECT ts FROM block_ts)

@@ -69,12 +69,12 @@ latest_ts AS
 /* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
 block_start_ts AS
 (
-    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
+    SELECT maxOrNull(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
     WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num = {start_block:Nullable(UInt64)}
 ),
 block_end_ts AS
 (
-    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
+    SELECT maxOrNull(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
     WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num = {end_block:Nullable(UInt64)}
 ),
 filtered_transfers AS
