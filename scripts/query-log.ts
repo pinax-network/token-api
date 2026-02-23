@@ -8,7 +8,7 @@ import { parse } from 'yaml';
 const args = process.argv.slice(2);
 function getArg(name: string, fallback: string): string {
     const idx = args.indexOf(`--${name}`);
-    return idx !== -1 && args[idx + 1] ? args[idx + 1] : fallback;
+    return idx !== -1 && args[idx + 1] ? args[idx + 1] as string : fallback;
 }
 
 const userOverride = getArg('user', '');
@@ -180,10 +180,10 @@ async function scanCluster(name: string, cluster: ClusterConfig): Promise<void> 
 
     try {
         const result = await client.query({ query: QUERY, format: 'JSONEachRow' });
-        const rows = await result.json<QueryRow[]>();
+        const rows = await result.json<QueryRow>();
 
         const longestResult = await client.query({ query: LONGEST_QUERY, format: 'JSONEachRow' });
-        const longestRows = await longestResult.json<LongestQueryRow[]>();
+        const longestRows = await longestResult.json<LongestQueryRow>();
 
         console.log(`\n  Cluster: ${name} (${cluster.url})`);
         console.log(`  Last ${hours}h | sorted by ${sort} | ${rows.length} unique query patterns\n`);

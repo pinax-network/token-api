@@ -7,7 +7,7 @@ import { parse } from 'yaml';
 const args = process.argv.slice(2);
 function getArg(name: string, fallback: string): string {
     const idx = args.indexOf(`--${name}`);
-    return idx !== -1 && args[idx + 1] ? args[idx + 1] : fallback;
+    return idx !== -1 && args[idx + 1] ? args[idx + 1] as string : fallback;
 }
 
 const contract = getArg('contract', '0xbd3531da5cf5857e7cfaa92426877b022e612cf8'); // Pudgy Penguins
@@ -63,7 +63,8 @@ async function runQuery(name: string, sql: string): Promise<QueryStats> {
         let rows_read = 0;
         let bytes_read = 0;
         if (summary) {
-            const parsed = JSON.parse(summary);
+            const raw = Array.isArray(summary) ? summary[0] : summary;
+            const parsed = JSON.parse(raw ?? '{}');
             rows_read = Number(parsed.read_rows || 0);
             bytes_read = Number(parsed.read_bytes || 0);
         }
