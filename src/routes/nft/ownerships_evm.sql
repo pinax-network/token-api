@@ -1,44 +1,58 @@
-WITH erc721 AS (
-    SELECT DISTINCT
+WITH erc721_deduped AS (
+    SELECT
+        contract,
+        token_id,
+        argMax(owner, global_sequence) AS owner
+    FROM {db_nft:Identifier}.erc721_owners
+    WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract, token_id
+    HAVING owner IN {address:Array(String)}
+),
+erc721 AS (
+    SELECT
         o.owner AS address,
         o.contract,
         toString(o.token_id) AS token_id,
-        o.token_standard,
+        'ERC721' AS token_standard,
         m.name,
         m.symbol,
         {network:String} AS network
-    FROM (
-        SELECT
-            token_id,
-            'ERC721' AS token_standard,
-            contract,
-            owner,
-        FROM {db_nft:Identifier}.erc721_owners
-        WHERE owner IN {address:Array(String)} AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
-    ) AS o
-    LEFT JOIN {db_nft:Identifier}.erc721_metadata_by_contract AS m USING (contract)
+    FROM erc721_deduped AS o
+    LEFT JOIN (
+        SELECT contract, argMax(name, block_num) AS name, argMax(symbol, block_num) AS symbol
+        FROM {db_nft:Identifier}.erc721_metadata_by_contract
+        WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+        GROUP BY contract
+    ) AS m USING (contract)
+),
+erc1155_deduped AS (
+    SELECT
+        contract,
+        token_id,
+        owner,
+        sum(balance) AS balance
+    FROM {db_nft:Identifier}.erc1155_balances
+    WHERE owner IN {address:Array(String)}
+    AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract, token_id, owner
+    HAVING (balance > 0 OR {include_null_balances:Bool})
 ),
 erc1155 AS (
-    SELECT DISTINCT
+    SELECT
         o.owner AS address,
         o.contract,
         toString(o.token_id) AS token_id,
-        o.token_standard,
+        'ERC1155' AS token_standard,
         m.name,
         m.symbol,
         {network:String} AS network
-    FROM (
-        SELECT
-            token_id,
-            'ERC1155' AS token_standard,
-            contract,
-            owner,
-        FROM {db_nft:Identifier}.erc1155_balances
-        WHERE owner IN {address:Array(String)}
-        AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
-        AND (balance > 0 OR {include_null_balances:Bool})
-    ) AS o
-    LEFT JOIN {db_nft:Identifier}.erc1155_metadata_by_contract AS m USING (contract)
+    FROM erc1155_deduped AS o
+    LEFT JOIN (
+        SELECT contract, argMax(name, block_num) AS name, argMax(symbol, block_num) AS symbol
+        FROM {db_nft:Identifier}.erc1155_metadata_by_contract
+        WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+        GROUP BY contract
+    ) AS m USING (contract)
 ),
 combined AS (
     SELECT * FROM erc721

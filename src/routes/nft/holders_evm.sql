@@ -1,8 +1,12 @@
 WITH erc721 AS (
     WITH (
         SELECT count()
-        FROM {db_nft:Identifier}.erc721_owners FINAL
-        WHERE contract = {contract:String}
+        FROM (
+            SELECT contract, token_id
+            FROM {db_nft:Identifier}.erc721_owners
+            WHERE contract = {contract:String}
+            GROUP BY contract, token_id
+        )
     ) AS total_supply
     SELECT
         {contract:String} AS contract,
@@ -12,15 +16,27 @@ WITH erc721 AS (
         uniq(token_id) AS unique_tokens,
         100 * quantity / total_supply AS percentage,
         {network:String} AS network
-    FROM {db_nft:Identifier}.erc721_owners AS o FINAL
-    WHERE o.contract = {contract:String}
+    FROM (
+        SELECT
+            contract,
+            token_id,
+            argMax(owner, global_sequence) AS owner
+        FROM {db_nft:Identifier}.erc721_owners
+        WHERE contract = {contract:String}
+        GROUP BY contract, token_id
+    ) AS o
     GROUP BY owner
 ),
 erc1155 AS (
     WITH (
         SELECT sum(balance) AS supply
-        FROM {db_nft:Identifier}.erc1155_balances FINAL
-        WHERE contract = {contract:String}
+        FROM (
+            SELECT contract, token_id, owner, sum(balance) AS balance
+            FROM {db_nft:Identifier}.erc1155_balances
+            WHERE contract = {contract:String}
+            GROUP BY contract, token_id, owner
+            HAVING balance > 0
+        )
     ) AS total_supply
     SELECT
         {contract:String} AS contract,
@@ -30,8 +46,13 @@ erc1155 AS (
         uniq(token_id) AS unique_tokens,
         100 * quantity / total_supply AS percentage,
         {network:String} AS network
-    FROM {db_nft:Identifier}.erc1155_balances AS b FINAL
-    WHERE b.contract = {contract:String}
+    FROM (
+        SELECT contract, token_id, owner, sum(balance) AS balance
+        FROM {db_nft:Identifier}.erc1155_balances
+        WHERE contract = {contract:String}
+        GROUP BY contract, token_id, owner
+        HAVING balance > 0
+    ) AS b
     GROUP BY owner
 ),
 combined AS (
