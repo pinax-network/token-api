@@ -81,19 +81,39 @@ const PERF_ROUTES: PerfRoute[] = [
     { path: '/v1/evm/transfers', chain: 'evm', params: '', requires: ['transfers'] },
     { path: '/v1/evm/transfers', chain: 'evm', params: 'start_block=21000000', requires: ['transfers'] },
     { path: '/v1/evm/transfers', chain: 'evm', params: 'end_block=21000005', requires: ['transfers'] },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_block=21000000&end_block=21000005', requires: ['transfers'] },
+    {
+        path: '/v1/evm/transfers',
+        chain: 'evm',
+        params: 'start_block=21000000&end_block=21000005',
+        requires: ['transfers'],
+    },
     { path: '/v1/evm/transfers', chain: 'evm', params: 'start_time=1727592950', requires: ['transfers'] },
     { path: '/v1/evm/transfers', chain: 'evm', params: 'end_time=1727592950', requires: ['transfers'] },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_time=1727592950&end_time=1727592960', requires: ['transfers'] },
+    {
+        path: '/v1/evm/transfers',
+        chain: 'evm',
+        params: 'start_time=1727592950&end_time=1727592960',
+        requires: ['transfers'],
+    },
     { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
     { path: '/v1/svm/transfers', chain: 'svm', params: '', requires: ['transfers'] },
     { path: '/v1/svm/transfers', chain: 'svm', params: 'start_block=370000002', requires: ['transfers'] },
     { path: '/v1/svm/transfers', chain: 'svm', params: 'end_block=370000005', requires: ['transfers'] },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_block=370000000&end_block=370000005', requires: ['transfers'] },
+    {
+        path: '/v1/svm/transfers',
+        chain: 'svm',
+        params: 'start_block=370000000&end_block=370000005',
+        requires: ['transfers'],
+    },
     { path: '/v1/svm/transfers', chain: 'svm', params: 'start_time=1727592950', requires: ['transfers'] },
     { path: '/v1/svm/transfers', chain: 'svm', params: 'end_time=1727592950', requires: ['transfers'] },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_time=1727592950&end_time=1727592960', requires: ['transfers'] },
+    {
+        path: '/v1/svm/transfers',
+        chain: 'svm',
+        params: 'start_time=1727592950&end_time=1727592960',
+        requires: ['transfers'],
+    },
     // TVM Transfers
     { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
@@ -208,15 +228,17 @@ function getStatusEmoji(status: number, duration_ms: number, rows: number): stri
     return '✅';
 }
 
-function parseArgs(argv: string[]): { path?: string; chain?: ChainType } {
+function parseArgs(argv: string[]): { path?: string; chain?: ChainType; noCache?: boolean } {
     const args = argv.slice(2);
-    const result: { path?: string; chain?: ChainType } = {};
+    const result: { path?: string; chain?: ChainType; noCache?: boolean } = {};
 
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--path' && args[i + 1]) {
             result.path = args[++i];
         } else if (args[i] === '--chain' && args[i + 1]) {
             result.chain = args[++i] as ChainType;
+        } else if (args[i] === '--no-cache') {
+            result.noCache = true;
         } else if (!args[i].startsWith('-')) {
             result.path = args[i];
         }
@@ -227,6 +249,12 @@ function parseArgs(argv: string[]): { path?: string; chain?: ChainType } {
 async function runPerf() {
     const filters = parseArgs(process.argv);
     const hasFilters = filters.path || filters.chain;
+
+    // Override query cache at runtime
+    if (filters.noCache) {
+        // biome-ignore lint/suspicious/noExplicitAny: runtime override for benchmarking
+        (config as any).disableQueryCache = true;
+    }
 
     const activeRoutes = PERF_ROUTES.filter((r) => {
         if (filters.chain && r.chain !== filters.chain) return false;
@@ -245,8 +273,12 @@ async function runPerf() {
         process.exit(1);
     }
 
-    if (hasFilters) {
-        const parts = [filters.path && `path=${filters.path}`, filters.chain && `chain=${filters.chain}`].filter(Boolean);
+    if (hasFilters || filters.noCache) {
+        const parts = [
+            filters.path && `path=${filters.path}`,
+            filters.chain && `chain=${filters.chain}`,
+            filters.noCache && 'cache=off',
+        ].filter(Boolean);
         console.log(`Filter: ${parts.join(', ')}  (${activeRoutes.length}/${PERF_ROUTES.length} routes)\n`);
     }
 
@@ -260,7 +292,9 @@ async function runPerf() {
             routeNetworkLabels.push({ path: route.path, network });
         }
     }
-    const maxPathLen = Math.max(...activeRoutes.map((r) => r.params ? `${r.path}?${r.params}`.length : r.path.length));
+    const maxPathLen = Math.max(
+        ...activeRoutes.map((r) => (r.params ? `${r.path}?${r.params}`.length : r.path.length))
+    );
     const maxNetworkLen = Math.max(...routeNetworkLabels.map((r) => r.network.length));
 
     for (const route of activeRoutes) {

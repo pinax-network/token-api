@@ -224,7 +224,9 @@ async function main() {
     const blockFixed = results.find((r) => r.name.includes('fix'));
     if (blockOnly && blockFixed && blockOnly.rows_read > 0) {
         const reduction = ((1 - blockFixed.rows_read / blockOnly.rows_read) * 100).toFixed(1);
-        console.log(`\n📊 Fix impact: ${reduction}% fewer rows read (${formatRows(blockOnly.rows_read)} → ${formatRows(blockFixed.rows_read)})`);
+        console.log(
+            `\n📊 Fix impact: ${reduction}% fewer rows read (${formatRows(blockOnly.rows_read)} → ${formatRows(blockFixed.rows_read)})`
+        );
     }
 
     await client.close();
