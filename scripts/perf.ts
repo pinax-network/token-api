@@ -230,7 +230,7 @@ function parseArgs(argv: string[]): { path?: string; chain?: ChainType; noCache?
             result.chain = args[++i] as ChainType;
         } else if (args[i] === '--no-cache') {
             result.noCache = true;
-        } else if (!args[i].startsWith('-')) {
+        } else if (!args[i]?.startsWith('-')) {
             result.path = args[i];
         }
     }

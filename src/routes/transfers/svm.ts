@@ -159,7 +159,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_transfers: dbTransfers.database,
         db_metadata: dbTransfers.database,
-        db_dex: dbDex?.database,
+        db_dex: dbDex?.database ?? '',
     });
     return handleUsageQueryError(c, response);
 });
