@@ -29,6 +29,40 @@ interface PerfRoute {
     requires: DbCategory[];
 }
 
+// Chain-specific block/time examples for benchmarking
+const EVM_BENCH = { startBlock: 21000000, endBlock: 21000005, startTime: 1727592950, endTime: 1727592960 };
+const SVM_BENCH = { startBlock: 370000002, endBlock: 370000005, startTime: 1727592950, endTime: 1727592960 };
+
+/**
+ * Generates 7 filter-combination variants for a route that supports
+ * start_block / end_block / start_time / end_time:
+ *   1. no filter
+ *   2. start_block only
+ *   3. end_block only
+ *   4. start_block + end_block
+ *   5. start_time only
+ *   6. end_time only
+ *   7. start_time + end_time
+ */
+function timeBlockVariants(
+    path: string,
+    chain: ChainType,
+    requires: DbCategory[],
+    bench: typeof EVM_BENCH,
+    extraParams = ''
+): PerfRoute[] {
+    const p = extraParams ? `${extraParams}&` : '';
+    return [
+        { path, chain, params: extraParams, requires },
+        { path, chain, params: `${p}start_block=${bench.startBlock}`, requires },
+        { path, chain, params: `${p}end_block=${bench.endBlock}`, requires },
+        { path, chain, params: `${p}start_block=${bench.startBlock}&end_block=${bench.endBlock}`, requires },
+        { path, chain, params: `${p}start_time=${bench.startTime}`, requires },
+        { path, chain, params: `${p}end_time=${bench.endTime}`, requires },
+        { path, chain, params: `${p}start_time=${bench.startTime}&end_time=${bench.endTime}`, requires },
+    ];
+}
+
 // Route definitions with query parameters (excluding network) matching the test suite
 const PERF_ROUTES: PerfRoute[] = [
     // EVM Tokens
@@ -78,42 +112,10 @@ const PERF_ROUTES: PerfRoute[] = [
         requires: ['balances'],
     },
     // EVM Transfers
-    { path: '/v1/evm/transfers', chain: 'evm', params: '', requires: ['transfers'] },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_block=21000000', requires: ['transfers'] },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'end_block=21000005', requires: ['transfers'] },
-    {
-        path: '/v1/evm/transfers',
-        chain: 'evm',
-        params: 'start_block=21000000&end_block=21000005',
-        requires: ['transfers'],
-    },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_time=1727592950', requires: ['transfers'] },
-    { path: '/v1/evm/transfers', chain: 'evm', params: 'end_time=1727592950', requires: ['transfers'] },
-    {
-        path: '/v1/evm/transfers',
-        chain: 'evm',
-        params: 'start_time=1727592950&end_time=1727592960',
-        requires: ['transfers'],
-    },
+    ...timeBlockVariants('/v1/evm/transfers', 'evm', ['transfers'], EVM_BENCH),
     { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
-    { path: '/v1/svm/transfers', chain: 'svm', params: '', requires: ['transfers'] },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_block=370000002', requires: ['transfers'] },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'end_block=370000005', requires: ['transfers'] },
-    {
-        path: '/v1/svm/transfers',
-        chain: 'svm',
-        params: 'start_block=370000000&end_block=370000005',
-        requires: ['transfers'],
-    },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_time=1727592950', requires: ['transfers'] },
-    { path: '/v1/svm/transfers', chain: 'svm', params: 'end_time=1727592950', requires: ['transfers'] },
-    {
-        path: '/v1/svm/transfers',
-        chain: 'svm',
-        params: 'start_time=1727592950&end_time=1727592960',
-        requires: ['transfers'],
-    },
+    ...timeBlockVariants('/v1/svm/transfers', 'svm', ['transfers'], SVM_BENCH),
     // TVM Transfers
     { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
@@ -123,21 +125,9 @@ const PERF_ROUTES: PerfRoute[] = [
     // SVM Holders
     { path: '/v1/svm/holders', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // EVM Swaps
-    { path: '/v1/evm/swaps', chain: 'evm', params: '', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_block=21000000', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'end_block=21000005', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_block=21000000&end_block=21000005', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_time=1727592950', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'end_time=1727592950', requires: ['dex'] },
-    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_time=1727592950&end_time=1727592960', requires: ['dex'] },
+    ...timeBlockVariants('/v1/evm/swaps', 'evm', ['dex'], EVM_BENCH),
     // SVM Swaps
-    { path: '/v1/svm/swaps', chain: 'svm', params: '', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_block=370000002', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'end_block=370000005', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_block=370000000&end_block=370000005', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_time=1727592950', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'end_time=1727592950', requires: ['dex'] },
-    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_time=1727592950&end_time=1727592960', requires: ['dex'] },
+    ...timeBlockVariants('/v1/svm/swaps', 'svm', ['dex'], SVM_BENCH),
     // TVM Swaps
     { path: '/v1/tvm/swaps', chain: 'tvm', params: '', requires: ['dex'] },
     // EVM DEXes
