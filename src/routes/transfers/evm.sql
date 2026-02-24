@@ -38,22 +38,6 @@ minutes_union AS
     WHERE (notEmpty({transaction_id:Array(String)}) AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
 ),
-/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
-filtered_minutes AS
-(
-    SELECT minute FROM minutes_union
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
-      AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
-    GROUP BY minute
-    HAVING count() >= (SELECT n FROM active_filters)
-    ORDER BY minute DESC
-    LIMIT 1 BY minute
-    LIMIT if(
-        (SELECT n FROM active_filters) <= 1,
-        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
-        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
-    )
-),
 /* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
 block_start_ts AS
 (
@@ -66,6 +50,24 @@ block_end_ts AS
     SELECT timestamp AS ts FROM {db_transfers:Identifier}.blocks
     WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num >= {end_block:Nullable(UInt64)}
     ORDER BY block_num ASC LIMIT 1
+),
+/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time/block window */
+filtered_minutes AS
+(
+    SELECT minute FROM minutes_union
+    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
+      AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
+      AND (isNull({start_block:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(coalesce((SELECT ts FROM block_start_ts), toDateTime(0))))
+      AND (isNull({end_block:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(coalesce((SELECT ts FROM block_end_ts), now())))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
 ),
 filtered_transfers AS
 (

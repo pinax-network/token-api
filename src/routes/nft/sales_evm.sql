@@ -1,4 +1,37 @@
-WITH filtered_orders AS (
+/*
+    Unified timestamp resolution.
+    Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
+    the OR pattern prevents ClickHouse from recognizing a clean primary-key range.
+    With coalesce, ClickHouse always sees `timestamp >= <value>` / `timestamp <= <value>`,
+    enabling granule skipping on the primary index (timestamp is the leading key).
+
+    NOTE: block_num filtering is limited — unlike swaps/transfers, the NFT database
+    has no `blocks` table to resolve block_num → timestamp, so block filters are applied
+    as secondary WHERE clauses after the timestamp clamp.
+*/
+WITH
+start_ts AS (
+    SELECT coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)) AS ts
+),
+end_ts AS (
+    SELECT coalesce(toDateTime({end_time:Nullable(UInt64)}), now()) AS ts
+),
+has_filters AS (
+    SELECT (
+        notEmpty({contract:Array(String)})
+        OR notEmpty({transaction_id:Array(String)}) OR notEmpty({token_id:Array(String)})
+        OR notEmpty({address:Array(String)})
+        OR notEmpty({from_address:Array(String)}) OR notEmpty({to_address:Array(String)})
+    ) AS yes
+),
+clamped_start_ts AS (
+    SELECT if(
+        (SELECT yes FROM has_filters),
+        (SELECT ts FROM start_ts),
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
+    ) AS ts
+),
+filtered_orders AS (
     SELECT
         timestamp,
         block_num,
@@ -10,8 +43,9 @@ WITH filtered_orders AS (
         consideration_amount / pow(10, 18) AS sale_amount,
         {sale_currency:String} AS sale_currency
     FROM {db_nft:Identifier}.seaport_orders
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+    WHERE timestamp >= (SELECT ts FROM clamped_start_ts) AND timestamp <= (SELECT ts FROM end_ts)
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
+        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND toString(consideration_token) IN {nativeContracts: Array(String)}
         AND (empty({contract:Array(String)}) OR offer_token IN {contract:Array(String)})
         AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})

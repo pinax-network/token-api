@@ -78,22 +78,6 @@ minutes_union AS
     WHERE (isNotNull({protocol:Nullable(String)}) AND protocol = replaceAll({protocol:Nullable(String)}, '_', '-'))
     GROUP BY minute
 ),
-/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
-filtered_minutes AS
-(
-    SELECT minute FROM minutes_union
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
-      AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
-    GROUP BY minute
-    HAVING count() >= (SELECT n FROM active_filters)
-    ORDER BY minute DESC
-    LIMIT 1 BY minute
-    LIMIT if(
-        (SELECT n FROM active_filters) <= 1,
-        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
-        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
-    )
-),
 /*
     Unified timestamp resolution for start_time/end_time and start_block/end_block.
     Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
@@ -119,6 +103,22 @@ clamped_start_ts AS (
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
+),
+/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time/block window */
+filtered_minutes AS
+(
+    SELECT minute FROM minutes_union
+    WHERE minute >= toRelativeMinuteNum((SELECT ts FROM clamped_start_ts))
+      AND minute <= toRelativeMinuteNum((SELECT ts FROM end_ts))
+    GROUP BY minute
+    HAVING count() >= (SELECT n FROM active_filters)
+    ORDER BY minute DESC
+    LIMIT 1 BY minute
+    LIMIT if(
+        (SELECT n FROM active_filters) <= 1,
+        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
+        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
+    )
 ),
 filtered_swaps AS
 (
