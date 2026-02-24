@@ -32,6 +32,7 @@ interface PerfRoute {
 // Chain-specific block/time examples for benchmarking
 const EVM_BENCH = { startBlock: 21000000, endBlock: 21000005, startTime: 1727592950, endTime: 1727592960 };
 const SVM_BENCH = { startBlock: 370000002, endBlock: 370000005, startTime: 1727592950, endTime: 1727592960 };
+const TVM_BENCH = { startBlock: 68000000, endBlock: 68000005, startTime: 1727592950, endTime: 1727592960 };
 
 /**
  * Generates 7 filter-combination variants for a route that supports
@@ -117,7 +118,7 @@ const PERF_ROUTES: PerfRoute[] = [
     // SVM Transfers
     ...timeBlockVariants('/v1/svm/transfers', 'svm', ['transfers'], SVM_BENCH),
     // TVM Transfers
-    { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
+    ...timeBlockVariants('/v1/tvm/transfers', 'tvm', ['transfers'], TVM_BENCH),
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
     // EVM Holders
     { path: '/v1/evm/holders', chain: 'evm', params: `contract=${EVM_CONTRACT_USDT_EXAMPLE}`, requires: ['balances'] },
@@ -129,7 +130,7 @@ const PERF_ROUTES: PerfRoute[] = [
     // SVM Swaps
     ...timeBlockVariants('/v1/svm/swaps', 'svm', ['dex'], SVM_BENCH),
     // TVM Swaps
-    { path: '/v1/tvm/swaps', chain: 'tvm', params: '', requires: ['dex'] },
+    ...timeBlockVariants('/v1/tvm/swaps', 'tvm', ['dex'], TVM_BENCH),
     // EVM DEXes
     { path: '/v1/evm/dexes', chain: 'evm', params: '', requires: ['dex'] },
     // SVM DEXes
