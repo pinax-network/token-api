@@ -186,7 +186,7 @@ const PERF_ROUTES: PerfRoute[] = [
         requires: ['nft'],
     },
     { path: '/v1/evm/nft/sales', chain: 'evm', params: '', requires: ['nft'] },
-    { path: '/v1/evm/nft/transfers', chain: 'evm', params: '', requires: ['nft'] },
+    ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], EVM_BENCH),
 ];
 
 function getNetworksForChain(chain: ChainType): string[] {

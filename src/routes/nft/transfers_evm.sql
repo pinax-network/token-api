@@ -80,20 +80,22 @@ limit_combined AS (
     OFFSET {offset:UInt64}
 ),
 erc721_metadata_by_contract AS (
-    SELECT DISTINCT
+    SELECT
         contract,
-        name,
-        symbol
+        any(name) AS name,
+        any(symbol) AS symbol
     FROM {db_nft:Identifier}.erc721_metadata_by_contract
     WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract
 ),
 erc1155_metadata_by_contract AS (
-    SELECT DISTINCT
+    SELECT
         contract,
-        name,
-        symbol
+        any(name) AS name,
+        any(symbol) AS symbol
     FROM {db_nft:Identifier}.erc1155_metadata_by_contract
     WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract
 )
 SELECT
     c.block_num,
