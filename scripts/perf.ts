@@ -58,7 +58,7 @@ const BENCH: Record<string, BenchConfig> = {
     avalanche: { startBlock: 75_000_000, endBlock: 75_000_005, startTime: 1727592950, endTime: 1727592960 },
     optimism: { startBlock: 140_000_000, endBlock: 140_000_005, startTime: 1727592950, endTime: 1727592960 },
     polygon: { startBlock: 80_000_000, endBlock: 80_000_005, startTime: 1727592950, endTime: 1727592960 },
-    unichain: { startBlock: 38_000_000, endBlock: 38_000_005, startTime: 1768766360, endTime: 1768766370 },
+    unichain: { startBlock: 38_000_100, endBlock: 38_000_300, startTime: 1768766360, endTime: 1768766370 },
     // SVM Networks
     solana: { startBlock: 370_000_002, endBlock: 370_000_005, startTime: 1727592950, endTime: 1727592960 },
     // TVM Networks
