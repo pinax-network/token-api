@@ -3,17 +3,35 @@ import { config } from '../src/config.js';
 import routes from '../src/routes/index.js';
 import { hasDatabase } from '../src/supported-routes.js';
 import {
+    EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+    EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+    EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_VITALIK_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
     EVM_CONTRACT_USDT_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V3_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
+    EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+    EVM_TRANSACTION_NFT_SALE_EXAMPLE,
+    EVM_TRANSACTION_SWAP_EXAMPLE,
+    EVM_TRANSACTION_TRANSFER_EXAMPLE,
     SVM_ADDRESS_OWNER_EXAMPLE,
+    SVM_ADDRESS_USER_EXAMPLE,
     SVM_AMM_POOL_PUMP_EXAMPLE,
+    SVM_AMM_RAYDIUM_V4_EXAMPLE,
+    SVM_MINT_USDC_EXAMPLE,
     SVM_MINT_WSOL_EXAMPLE,
     SVM_OWNER_USER_EXAMPLE,
     SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
+    SVM_TRANSACTION_SWAP_EXAMPLE,
+    SVM_TRANSACTION_TRANSFER_EXAMPLE,
+    TVM_ADDRESS_SWAP_EXAMPLE,
     TVM_CONTRACT_USDT_EXAMPLE,
+    TVM_FACTORY_SUNSWAP_EXAMPLE,
     TVM_POOL_USDT_WTRX_EXAMPLE,
+    TVM_TRANSACTION_SWAP_EXAMPLE,
+    TVM_TRANSACTION_TRANSFER_EXAMPLE,
 } from '../src/types/examples.js';
 
 const app = new Hono();
@@ -62,6 +80,24 @@ function timeBlockVariants(
         { path, chain, params: `${p}end_time=${bench.endTime}`, requires },
         { path, chain, params: `${p}start_time=${bench.startTime}&end_time=${bench.endTime}`, requires },
     ];
+}
+
+/**
+ * Generates variants for a route where each filter param is tested individually.
+ * This ensures clamped_start_ts is properly disabled when any filter is active.
+ */
+function filterVariants(
+    path: string,
+    chain: ChainType,
+    requires: DbCategory[],
+    filters: Record<string, string>
+): PerfRoute[] {
+    return Object.entries(filters).map(([key, value]) => ({
+        path,
+        chain,
+        params: `${key}=${value}`,
+        requires,
+    }));
 }
 
 // Route definitions with query parameters (excluding network) matching the test suite
@@ -114,11 +150,30 @@ const PERF_ROUTES: PerfRoute[] = [
     },
     // EVM Transfers
     ...timeBlockVariants('/v1/evm/transfers', 'evm', ['transfers'], EVM_BENCH),
+    ...filterVariants('/v1/evm/transfers', 'evm', ['transfers'], {
+        transaction_id: EVM_TRANSACTION_TRANSFER_EXAMPLE,
+        contract: EVM_CONTRACT_USDT_EXAMPLE,
+        from_address: EVM_ADDRESS_VITALIK_EXAMPLE,
+        to_address: EVM_ADDRESS_TO_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/evm/transfers', 'evm', ['transfers'], EVM_BENCH, `contract=${EVM_CONTRACT_USDT_EXAMPLE}`),
     { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
     ...timeBlockVariants('/v1/svm/transfers', 'svm', ['transfers'], SVM_BENCH),
+    ...filterVariants('/v1/svm/transfers', 'svm', ['transfers'], {
+        signature: SVM_TRANSACTION_TRANSFER_EXAMPLE,
+        mint: SVM_MINT_WSOL_EXAMPLE,
+        authority: SVM_OWNER_USER_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/svm/transfers', 'svm', ['transfers'], SVM_BENCH, `mint=${SVM_MINT_WSOL_EXAMPLE}`),
     // TVM Transfers
     ...timeBlockVariants('/v1/tvm/transfers', 'tvm', ['transfers'], TVM_BENCH),
+    ...filterVariants('/v1/tvm/transfers', 'tvm', ['transfers'], {
+        transaction_id: TVM_TRANSACTION_TRANSFER_EXAMPLE,
+        contract: TVM_CONTRACT_USDT_EXAMPLE,
+        from_address: TVM_ADDRESS_SWAP_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/tvm/transfers', 'tvm', ['transfers'], TVM_BENCH, `contract=${TVM_CONTRACT_USDT_EXAMPLE}`),
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
     // EVM Holders
     { path: '/v1/evm/holders', chain: 'evm', params: `contract=${EVM_CONTRACT_USDT_EXAMPLE}`, requires: ['balances'] },
@@ -127,10 +182,41 @@ const PERF_ROUTES: PerfRoute[] = [
     { path: '/v1/svm/holders', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // EVM Swaps
     ...timeBlockVariants('/v1/evm/swaps', 'evm', ['dex'], EVM_BENCH),
+    ...filterVariants('/v1/evm/swaps', 'evm', ['dex'], {
+        transaction_id: EVM_TRANSACTION_SWAP_EXAMPLE,
+        factory: EVM_FACTORY_UNISWAP_V3_EXAMPLE,
+        pool: EVM_POOL_USDC_WETH_EXAMPLE,
+        caller: EVM_ADDRESS_SWAP_EXAMPLE,
+        sender: EVM_ADDRESS_SWAP_EXAMPLE,
+        recipient: EVM_ADDRESS_SWAP_EXAMPLE,
+        input_contract: EVM_CONTRACT_USDT_EXAMPLE,
+        output_contract: EVM_CONTRACT_USDT_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/evm/swaps', 'evm', ['dex'], EVM_BENCH, `pool=${EVM_POOL_USDC_WETH_EXAMPLE}`),
     // SVM Swaps
     ...timeBlockVariants('/v1/svm/swaps', 'svm', ['dex'], SVM_BENCH),
+    ...filterVariants('/v1/svm/swaps', 'svm', ['dex'], {
+        signature: SVM_TRANSACTION_SWAP_EXAMPLE,
+        amm: SVM_AMM_RAYDIUM_V4_EXAMPLE,
+        amm_pool: SVM_AMM_POOL_PUMP_EXAMPLE,
+        user: SVM_ADDRESS_USER_EXAMPLE,
+        input_mint: SVM_MINT_WSOL_EXAMPLE,
+        output_mint: SVM_MINT_USDC_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/svm/swaps', 'svm', ['dex'], SVM_BENCH, `amm_pool=${SVM_AMM_POOL_PUMP_EXAMPLE}`),
     // TVM Swaps
     ...timeBlockVariants('/v1/tvm/swaps', 'tvm', ['dex'], TVM_BENCH),
+    ...filterVariants('/v1/tvm/swaps', 'tvm', ['dex'], {
+        transaction_id: TVM_TRANSACTION_SWAP_EXAMPLE,
+        factory: TVM_FACTORY_SUNSWAP_EXAMPLE,
+        pool: TVM_POOL_USDT_WTRX_EXAMPLE,
+        caller: TVM_ADDRESS_SWAP_EXAMPLE,
+        sender: TVM_ADDRESS_SWAP_EXAMPLE,
+        recipient: TVM_ADDRESS_SWAP_EXAMPLE,
+        input_contract: TVM_CONTRACT_USDT_EXAMPLE,
+        output_contract: TVM_CONTRACT_USDT_EXAMPLE,
+    }),
+    ...timeBlockVariants('/v1/tvm/swaps', 'tvm', ['dex'], TVM_BENCH, `pool=${TVM_POOL_USDT_WTRX_EXAMPLE}`),
     // EVM DEXes
     { path: '/v1/evm/dexes', chain: 'evm', params: '', requires: ['dex'] },
     // SVM DEXes
@@ -188,6 +274,22 @@ const PERF_ROUTES: PerfRoute[] = [
     },
     { path: '/v1/evm/nft/sales', chain: 'evm', params: '', requires: ['nft'] },
     ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], EVM_BENCH),
+    ...filterVariants('/v1/evm/nft/transfers', 'evm', ['nft'], {
+        type: 'TRANSFER',
+        transaction_id: EVM_TRANSACTION_NFT_SALE_EXAMPLE,
+        contract: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
+        token_id: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+        address: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+        from_address: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+        to_address: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+    }),
+    ...timeBlockVariants(
+        '/v1/evm/nft/transfers',
+        'evm',
+        ['nft'],
+        EVM_BENCH,
+        `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`
+    ),
 ];
 
 function getNetworksForChain(chain: ChainType): string[] {

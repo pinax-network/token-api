@@ -6,8 +6,9 @@
     enabling granule skipping on the primary index.
     When no lower bound → falls back to epoch (toDateTime(0)) → no-op.
     When no upper bound → falls back to now() → no-op.
-    clamped_start_ts caps the scan window to 10 minutes before end_ts
-    so queries with only an upper bound don't scan from epoch.
+/* Only clamp to 10 minutes when no narrowing filters are active.
+   start_time/start_block are already incorporated into start_ts, so the
+   clamp's greatest() handles them correctly without disabling it. */
 
     NOTE: block_num filtering is limited — unlike swaps/transfers, the NFT database
     has no `blocks` table to resolve block_num → timestamp, so block filters are applied
@@ -23,10 +24,19 @@ start_ts AS (
 end_ts AS (
     SELECT coalesce(toDateTime({end_time:Nullable(UInt64)}), now()) AS ts
 ),
+has_filters AS (
+    SELECT (
+        isNotNull({type:Nullable(String)})
+        OR notEmpty({transaction_id:Array(String)}) OR notEmpty({contract:Array(String)})
+        OR notEmpty({token_id:Array(String)}) OR notEmpty({address:Array(String)})
+        OR notEmpty({from_address:Array(String)}) OR notEmpty({to_address:Array(String)})
+    ) AS yes
+),
 clamped_start_ts AS (
-    SELECT greatest(
+    SELECT if(
+        (SELECT yes FROM has_filters),
         (SELECT ts FROM start_ts),
-        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
 ),
 erc721 AS (

@@ -114,9 +114,10 @@ end_ts AS (
     ) AS ts
 ),
 clamped_start_ts AS (
-    SELECT greatest(
+    SELECT if(
+        (SELECT n FROM active_filters) > 0,
         (SELECT ts FROM start_ts),
-        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
 ),
 filtered_swaps AS

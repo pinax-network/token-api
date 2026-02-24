@@ -21,14 +21,22 @@ end_ts AS (
         coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
-/* When no lower bound is provided, start_ts = epoch → ClickHouse scans the entire table.
-   Always clamp start to at most 10 minutes before end_ts so ClickHouse has a tight
-   primary-key range. Since ORDER BY timestamp DESC, the first rows hit are near end_ts —
-   if start_ts is more recent than end_ts - 10min it wins via greatest(). */
+/* Only clamp to 10 minutes when no narrowing filters are active.
+   start_time/start_block are already incorporated into start_ts, so the
+   clamp's greatest() handles them correctly without disabling it. */
+has_filters AS (
+    SELECT (
+        notEmpty({signature:Array(String)}) OR notEmpty({amm:Array(String)})
+        OR notEmpty({amm_pool:Array(String)}) OR notEmpty({user:Array(String)})
+        OR notEmpty({input_mint:Array(String)}) OR notEmpty({output_mint:Array(String)})
+        OR notEmpty({program_id:Array(String)})
+    ) AS yes
+),
 clamped_start_ts AS (
-    SELECT greatest(
+    SELECT if(
+        (SELECT yes FROM has_filters),
         (SELECT ts FROM start_ts),
-        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
 )
 SELECT
