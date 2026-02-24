@@ -66,8 +66,6 @@ minutes_union AS
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
-      AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -77,24 +75,6 @@ filtered_minutes AS
         toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
-),
-/* Latest ingested timestamp in source table */
-latest_ts AS
-(
-    SELECT max(timestamp) AS ts FROM {db_dex:Identifier}.swaps
-),
-/* Resolve block_num → timestamp via blocks table (ORDER BY block_num = instant lookup) */
-block_start_ts AS
-(
-    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
-    WHERE isNotNull({start_block:Nullable(UInt64)}) AND block_num <= {start_block:Nullable(UInt64)}
-    ORDER BY block_num DESC LIMIT 1
-),
-block_end_ts AS
-(
-    SELECT timestamp AS ts FROM {db_dex:Identifier}.blocks
-    WHERE isNotNull({end_block:Nullable(UInt64)}) AND block_num >= {end_block:Nullable(UInt64)}
-    ORDER BY block_num ASC LIMIT 1
 ),
 filtered_swaps AS
 (
@@ -121,13 +101,9 @@ filtered_swaps AS
         AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= toDateTime({start_time:Nullable(UInt64)}))
         AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= toDateTime({end_time:Nullable(UInt64)}))
 
-        /* Block range → timestamp pruning (skip granules via ORDER BY timestamp) */
-        AND (isNull({start_block:Nullable(UInt64)}) OR timestamp >= coalesce((SELECT ts FROM block_start_ts), toDateTime(0)))
-        AND (isNull({end_block:Nullable(UInt64)}) OR timestamp <= coalesce((SELECT ts FROM block_end_ts), now()))
-
-        /* Direct block_num filter (uses idx_block_num minmax index) */
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
-        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+        /* Block filters using `blocks` table for efficient pruning (ORDER BY block_num = instant lookup) */
+        AND (isNull({start_block:Nullable(UInt32)}) OR timestamp >= (SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1))
+        AND (isNull({end_block:Nullable(UInt32)}) OR timestamp <= (SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1))
 
         /* Apply filters on non-indexed columns */
         AND (empty({signature:Array(String)})     OR signature      IN {signature:Array(String)})
@@ -137,7 +113,7 @@ filtered_swaps AS
         AND (empty({input_mint:Array(String)})    OR input_mint     IN {input_mint:Array(String)})
         AND (empty({output_mint:Array(String)})   OR output_mint    IN {output_mint:Array(String)})
         AND (empty({program_id:Array(String)})    OR program_id     IN {program_id:Array(String)})
-    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
+    ORDER BY timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
@@ -159,4 +135,4 @@ SELECT
     output_amount,
     {network:String} AS network
 FROM filtered_swaps AS s
-ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
+ORDER BY timestamp DESC, block_num DESC
