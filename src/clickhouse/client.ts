@@ -63,9 +63,9 @@ const client = (custom_config?: ClientOptions) => {
             readonly: '0',
             interactive_delay: '500000', // Interval between query progress reports in microseconds
             max_execution_time: config.maxQueryExecutionTime,
-            use_query_cache: 1,
-            enable_writes_to_query_cache: 1,
-            enable_reads_from_query_cache: 1,
+            use_query_cache: config.disableQueryCache ? 0 : 1,
+            enable_writes_to_query_cache: config.disableQueryCache ? 0 : 1,
+            enable_reads_from_query_cache: config.disableQueryCache ? 0 : 1,
             query_cache_nondeterministic_function_handling: 'save',
             query_cache_ttl: config.cacheDurations[0], // Make first cache duration value the default for all endpoints
             ...custom_config?.clickhouse_settings,

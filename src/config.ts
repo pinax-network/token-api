@@ -228,6 +228,12 @@ const opts = program
             .default('dbs-config.yaml')
     )
     .addOption(
+        new Option('--disable-query-cache <boolean>', 'Disable ClickHouse query cache (for benchmarking)')
+            .choices(['true', 'false'])
+            .env('DISABLE_QUERY_CACHE')
+            .default(false)
+    )
+    .addOption(
         new Option('--cache-durations <numbers>', 'Default cache durations in seconds (comma-separated)')
             .env('CACHE_DURATIONS')
             .default(DEFAULT_CACHE_DURATIONS)
@@ -268,6 +274,7 @@ const config = z
         // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
         prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
+        disableQueryCache: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         dbsConfigPath: z.string().optional(),
