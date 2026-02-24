@@ -22,12 +22,13 @@ end_ts AS (
     ) AS ts
 ),
 /* When no lower bound is provided, start_ts = epoch → ClickHouse scans the entire table.
-   Clamp to end_ts minus 10 minutes so there's always a tight primary-key range. */
+   Always clamp start to at most 10 minutes before end_ts so ClickHouse has a tight
+   primary-key range. Since ORDER BY timestamp DESC, the first rows hit are near end_ts —
+   if start_ts is more recent than end_ts - 10min it wins via greatest(). */
 clamped_start_ts AS (
-    SELECT if(
-        (SELECT ts FROM start_ts) = toDateTime(0),
-        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE,
-        (SELECT ts FROM start_ts)
+    SELECT greatest(
+        (SELECT ts FROM start_ts),
+        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
     ) AS ts
 )
 SELECT

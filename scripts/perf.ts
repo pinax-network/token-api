@@ -79,9 +79,21 @@ const PERF_ROUTES: PerfRoute[] = [
     },
     // EVM Transfers
     { path: '/v1/evm/transfers', chain: 'evm', params: '', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_block=21000000', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'end_block=21000005', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_block=21000000&end_block=21000005', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_time=1727592950', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'end_time=1727592950', requires: ['transfers'] },
+    { path: '/v1/evm/transfers', chain: 'evm', params: 'start_time=1727592950&end_time=1727592960', requires: ['transfers'] },
     { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
     { path: '/v1/svm/transfers', chain: 'svm', params: '', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_block=370000002', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'end_block=370000005', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_block=370000000&end_block=370000005', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_time=1727592950', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'end_time=1727592950', requires: ['transfers'] },
+    { path: '/v1/svm/transfers', chain: 'svm', params: 'start_time=1727592950&end_time=1727592960', requires: ['transfers'] },
     // TVM Transfers
     { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
@@ -92,8 +104,20 @@ const PERF_ROUTES: PerfRoute[] = [
     { path: '/v1/svm/holders', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // EVM Swaps
     { path: '/v1/evm/swaps', chain: 'evm', params: '', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_block=21000000', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'end_block=21000005', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_block=21000000&end_block=21000005', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_time=1727592950', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'end_time=1727592950', requires: ['dex'] },
+    { path: '/v1/evm/swaps', chain: 'evm', params: 'start_time=1727592950&end_time=1727592960', requires: ['dex'] },
     // SVM Swaps
     { path: '/v1/svm/swaps', chain: 'svm', params: '', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_block=370000002', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'end_block=370000005', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_block=370000000&end_block=370000005', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_time=1727592950', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'end_time=1727592950', requires: ['dex'] },
+    { path: '/v1/svm/swaps', chain: 'svm', params: 'start_time=1727592950&end_time=1727592960', requires: ['dex'] },
     // TVM Swaps
     { path: '/v1/tvm/swaps', chain: 'tvm', params: '', requires: ['dex'] },
     // EVM DEXes
@@ -184,21 +208,62 @@ function getStatusEmoji(status: number, duration_ms: number, rows: number): stri
     return '✅';
 }
 
+function parseArgs(argv: string[]): { path?: string; chain?: ChainType } {
+    const args = argv.slice(2);
+    const result: { path?: string; chain?: ChainType } = {};
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--path' && args[i + 1]) {
+            result.path = args[++i];
+        } else if (args[i] === '--chain' && args[i + 1]) {
+            result.chain = args[++i] as ChainType;
+        } else if (!args[i].startsWith('-')) {
+            result.path = args[i];
+        }
+    }
+    return result;
+}
+
 async function runPerf() {
+    const filters = parseArgs(process.argv);
+    const hasFilters = filters.path || filters.chain;
+
+    const activeRoutes = PERF_ROUTES.filter((r) => {
+        if (filters.chain && r.chain !== filters.chain) return false;
+        if (filters.path && !r.path.includes(filters.path)) return false;
+        return true;
+    });
+
+    if (activeRoutes.length === 0) {
+        console.log(`No routes matched filters: ${JSON.stringify(filters)}`);
+        console.log('\nUsage: bun run scripts/perf.ts [--path <substring>] [--chain <evm|svm|tvm>]');
+        console.log('\nExamples:');
+        console.log('  bun run scripts/perf.ts --chain evm');
+        console.log('  bun run scripts/perf.ts --path swaps');
+        console.log('  bun run scripts/perf.ts --path swaps --chain svm');
+        console.log('  bun run scripts/perf.ts swaps');
+        process.exit(1);
+    }
+
+    if (hasFilters) {
+        const parts = [filters.path && `path=${filters.path}`, filters.chain && `chain=${filters.chain}`].filter(Boolean);
+        console.log(`Filter: ${parts.join(', ')}  (${activeRoutes.length}/${PERF_ROUTES.length} routes)\n`);
+    }
+
     const results: PerfResult[] = [];
     const skipped: { path: string; network: string }[] = [];
 
     // Build the list of (route, network) pairs for alignment
     const routeNetworkLabels: { path: string; network: string }[] = [];
-    for (const route of PERF_ROUTES) {
+    for (const route of activeRoutes) {
         for (const network of getNetworksForChain(route.chain)) {
             routeNetworkLabels.push({ path: route.path, network });
         }
     }
-    const maxPathLen = Math.max(...routeNetworkLabels.map((r) => r.path.length));
+    const maxPathLen = Math.max(...activeRoutes.map((r) => r.params ? `${r.path}?${r.params}`.length : r.path.length));
     const maxNetworkLen = Math.max(...routeNetworkLabels.map((r) => r.network.length));
 
-    for (const route of PERF_ROUTES) {
+    for (const route of activeRoutes) {
         const networks = getNetworksForChain(route.chain);
 
         for (const network of networks) {
@@ -219,14 +284,16 @@ async function runPerf() {
 
                 results.push({ route: route.path, network, status: response.status, duration_ms, rows });
                 const emoji = getStatusEmoji(response.status, duration_ms, rows);
-                const paddedPath = route.path.padEnd(maxPathLen);
+                const label = route.params ? `${route.path}?${route.params}` : route.path;
+                const paddedPath = label.padEnd(maxPathLen);
                 const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
                 const paddedTime = `${duration_ms}ms`.padStart(12);
                 console.log(`${emoji} ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (${rows} rows)`);
             } catch (err) {
                 const duration_ms = Math.round((performance.now() - start) * 100) / 100;
                 results.push({ route: route.path, network, status: 0, duration_ms, rows: 0 });
-                const paddedPath = route.path.padEnd(maxPathLen);
+                const label = route.params ? `${route.path}?${route.params}` : route.path;
+                const paddedPath = label.padEnd(maxPathLen);
                 const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
                 const paddedTime = `${duration_ms}ms`.padStart(12);
                 console.log(`❌ ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (error: ${err})`);

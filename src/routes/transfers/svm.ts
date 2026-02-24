@@ -149,6 +149,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
+    const dbDex = config.dexDatabases[params.network];
 
     if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
@@ -158,6 +159,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_transfers: dbTransfers.database,
         db_metadata: dbTransfers.database,
+        db_dex: dbDex?.database,
     });
     return handleUsageQueryError(c, response);
 });

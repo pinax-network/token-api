@@ -237,6 +237,8 @@ const opts = program
             .env('PLANS')
             .default(DEFAULT_PLANS)
     )
+    .allowUnknownOption()
+    .allowExcessArguments()
     .parse()
     .opts();
 

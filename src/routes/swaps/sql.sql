@@ -3,47 +3,63 @@ WITH
 active_filters AS
 (
     SELECT
-        toUInt8(notEmpty({signature:Array(String)}))   +
-        toUInt8(notEmpty({source:Array(String)}))      +
-        toUInt8(notEmpty({destination:Array(String)})) +
-        toUInt8(notEmpty({authority:Array(String)}))   +
-        toUInt8(notEmpty({mint:Array(String)}))
+        toUInt8(notEmpty({signature:Array(String)}))    +
+        toUInt8(notEmpty({amm:Array(String)}))          +
+        toUInt8(notEmpty({amm_pool:Array(String)}))     +
+        toUInt8(notEmpty({user:Array(String)}))         +
+        toUInt8(notEmpty({input_mint:Array(String)}))   +
+        toUInt8(notEmpty({output_mint:Array(String)}))  +
+        toUInt8(notEmpty({program_id:Array(String)}))
     AS n
 ),
 /* 2) Union buckets from only active filters */
 minutes_union AS
 (
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_signature
+    FROM {db_dex:Identifier}.swaps_by_signature
     WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_source
-    WHERE (notEmpty({source:Array(String)}) AND source IN {source:Array(String)})
+    FROM {db_dex:Identifier}.swaps_by_amm
+    WHERE (notEmpty({amm:Array(String)}) AND amm IN {amm:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_destination
-    WHERE (notEmpty({destination:Array(String)}) AND destination IN {destination:Array(String)})
+    FROM {db_dex:Identifier}.swaps_by_amm_pool
+    WHERE (notEmpty({amm_pool:Array(String)}) AND amm_pool IN {amm_pool:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_authority
-    WHERE (notEmpty({authority:Array(String)}) AND authority IN {authority:Array(String)})
+    FROM {db_dex:Identifier}.swaps_by_user
+    WHERE (notEmpty({user:Array(String)}) AND user IN {user:Array(String)})
     ORDER BY minute DESC
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_mint
-    WHERE (notEmpty({mint:Array(String)}) AND mint IN {mint:Array(String)})
+    FROM {db_dex:Identifier}.swaps_by_input_mint
+    WHERE (notEmpty({input_mint:Array(String)}) AND input_mint IN {input_mint:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps_by_output_mint
+    WHERE (notEmpty({output_mint:Array(String)}) AND output_mint IN {output_mint:Array(String)})
+    ORDER BY minute DESC
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps_by_program_id
+    WHERE (notEmpty({program_id:Array(String)}) AND program_id IN {program_id:Array(String)})
     ORDER BY minute DESC
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
@@ -87,27 +103,24 @@ clamped_start_ts AS (
         (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
     ) AS ts
 ),
-filtered_transfers AS
+filtered_swaps AS
 (
     SELECT
         block_num,
         timestamp,
-        signature,
         transaction_index,
         instruction_index,
+        signature,
         program_id,
-        authority,
-        mint,
-        source,
-        destination,
-        amount,
-        decimals,
-        t.amount /
-        CASE
-            WHEN decimals IS NOT NULL THEN pow(10, decimals)
-            ELSE 1
-        END AS value
-    FROM {db_transfers:Identifier}.transfers t
+        program_names(program_id) AS program_name,
+        amm,
+        amm_pool,
+        user,
+        input_mint,
+        input_amount,
+        output_mint,
+        output_amount
+    FROM {db_dex:Identifier}.swaps s
     WHERE
             ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
 
@@ -120,75 +133,33 @@ filtered_transfers AS
         AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt32)})
 
         /* Apply filters on non-indexed columns */
-        AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
-        AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
-        AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
-        AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
-        AND (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
-        AND (isNull({program_id:Nullable(String)}) OR program_id = {program_id:Nullable(String)})
-    ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
+        AND (empty({signature:Array(String)})     OR signature      IN {signature:Array(String)})
+        AND (empty({amm:Array(String)})           OR amm            IN {amm:Array(String)})
+        AND (empty({amm_pool:Array(String)})      OR amm_pool       IN {amm_pool:Array(String)})
+        AND (empty({user:Array(String)})          OR user           IN {user:Array(String)})
+        AND (empty({input_mint:Array(String)})    OR input_mint     IN {input_mint:Array(String)})
+        AND (empty({output_mint:Array(String)})   OR output_mint    IN {output_mint:Array(String)})
+        AND (empty({program_id:Array(String)})    OR program_id     IN {program_id:Array(String)})
+    ORDER BY timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-spl_mints AS
-(
-    SELECT DISTINCT mint
-    FROM filtered_transfers
-    WHERE mint != 'So11111111111111111111111111111111111111111'
-),
-spl_metadata AS
-(
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM (
-        SELECT mint, name, symbol, uri
-        FROM {db_metadata:Identifier}.metadata_view
-        WHERE metadata IN (
-            SELECT metadata
-            FROM {db_metadata:Identifier}.metadata_mint_state
-            WHERE mint IN (SELECT mint FROM spl_mints)
-            GROUP BY metadata
-        )
-    )
-    WHERE (SELECT count() FROM spl_mints) > 0
-),
-native_metadata AS
-(
-    SELECT
-        'So11111111111111111111111111111111111111111' AS mint,
-        'Native' AS name,
-        'SOL' AS symbol,
-        NULL AS uri
-    WHERE 'So11111111111111111111111111111111111111111' IN (SELECT DISTINCT mint FROM filtered_transfers)
-),
-metadata AS
-(
-    SELECT * FROM spl_metadata
-    UNION ALL
-    SELECT * FROM native_metadata
 )
 SELECT
     block_num,
-    t.timestamp AS datetime,
-    toUnixTimestamp(t.timestamp) AS timestamp,
-    signature,
+    s.timestamp AS datetime,
+    toUnixTimestamp(s.timestamp) AS timestamp,
+    toString(signature) AS signature,
     transaction_index,
     instruction_index,
-    program_id,
-    mint,
-    authority,
-    source,
-    destination,
-    toString(amount) AS amount,
-    value,
-    decimals,
-    name,
-    symbol,
-    uri,
+    toString(program_id) AS program_id,
+    program_name,
+    toString(amm) AS amm,
+    toString(amm_pool) AS amm_pool,
+    toString(user) AS user,
+    toString(input_mint) AS input_mint,
+    input_amount,
+    toString(output_mint) AS output_mint,
+    output_amount,
     {network:String} AS network
-FROM filtered_transfers AS t
-LEFT JOIN metadata USING mint
-ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
+FROM filtered_swaps AS s
+ORDER BY timestamp DESC, block_num DESC
