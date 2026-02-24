@@ -21,12 +21,12 @@ end_ts AS (
         coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
-/* Only clamp to 10 minutes when no filters and no explicit start bound are provided.
-   When filters are active, the user needs the full time range to find matching rows. */
+/* Only clamp to 10 minutes when no narrowing filters are active.
+   start_time/start_block are already incorporated into start_ts, so the
+   clamp's greatest() handles them correctly without disabling it. */
 has_filters AS (
     SELECT (
-        isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)})
-        OR notEmpty({signature:Array(String)}) OR notEmpty({amm:Array(String)})
+        notEmpty({signature:Array(String)}) OR notEmpty({amm:Array(String)})
         OR notEmpty({amm_pool:Array(String)}) OR notEmpty({user:Array(String)})
         OR notEmpty({input_mint:Array(String)}) OR notEmpty({output_mint:Array(String)})
         OR notEmpty({program_id:Array(String)})

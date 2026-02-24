@@ -3,23 +3,23 @@ import { config } from '../src/config.js';
 import routes from '../src/routes/index.js';
 import { hasDatabase } from '../src/supported-routes.js';
 import {
-    EVM_ADDRESS_SWAP_EXAMPLE,
-    EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
     EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+    EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_VITALIK_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
     EVM_CONTRACT_USDT_EXAMPLE,
     EVM_FACTORY_UNISWAP_V3_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
     EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+    EVM_TRANSACTION_NFT_SALE_EXAMPLE,
     EVM_TRANSACTION_SWAP_EXAMPLE,
     EVM_TRANSACTION_TRANSFER_EXAMPLE,
-    EVM_TRANSACTION_NFT_SALE_EXAMPLE,
     SVM_ADDRESS_OWNER_EXAMPLE,
+    SVM_ADDRESS_USER_EXAMPLE,
     SVM_AMM_POOL_PUMP_EXAMPLE,
     SVM_AMM_RAYDIUM_V4_EXAMPLE,
-    SVM_ADDRESS_USER_EXAMPLE,
     SVM_MINT_USDC_EXAMPLE,
     SVM_MINT_WSOL_EXAMPLE,
     SVM_OWNER_USER_EXAMPLE,
@@ -283,7 +283,13 @@ const PERF_ROUTES: PerfRoute[] = [
         from_address: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
         to_address: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
     }),
-    ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], EVM_BENCH, `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`),
+    ...timeBlockVariants(
+        '/v1/evm/nft/transfers',
+        'evm',
+        ['nft'],
+        EVM_BENCH,
+        `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`
+    ),
 ];
 
 function getNetworksForChain(chain: ChainType): string[] {

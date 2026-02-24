@@ -99,7 +99,7 @@ end_ts AS (
 ),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT n FROM active_filters) > 0 OR isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)}),
+        (SELECT n FROM active_filters) > 0,
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
