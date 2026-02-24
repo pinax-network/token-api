@@ -23,10 +23,20 @@ start_ts AS (
 end_ts AS (
     SELECT coalesce(toDateTime({end_time:Nullable(UInt64)}), now()) AS ts
 ),
+has_filters AS (
+    SELECT (
+        isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt64)})
+        OR isNotNull({type:Nullable(String)})
+        OR notEmpty({transaction_id:Array(String)}) OR notEmpty({contract:Array(String)})
+        OR notEmpty({token_id:Array(String)}) OR notEmpty({address:Array(String)})
+        OR notEmpty({from_address:Array(String)}) OR notEmpty({to_address:Array(String)})
+    ) AS yes
+),
 clamped_start_ts AS (
-    SELECT greatest(
+    SELECT if(
+        (SELECT yes FROM has_filters),
         (SELECT ts FROM start_ts),
-        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
 ),
 erc721 AS (
