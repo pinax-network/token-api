@@ -90,6 +90,11 @@ interface EvmNetworkExamples {
     factory: string; // top DEX factory
     pool: string; // top liquidity pool
     swapCaller: string; // sample swap caller/sender/recipient
+    nftContract: string; // popular NFT collection
+    nftTokenId: string; // sample token ID
+    nftTransferTx: string; // sample NFT transfer tx
+    nftOfferer: string; // sample NFT seller/from
+    nftRecipient: string; // sample NFT buyer/to
 }
 
 const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
@@ -102,6 +107,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: EVM_FACTORY_UNISWAP_V3_EXAMPLE, // Uniswap V3
         pool: EVM_POOL_USDC_WETH_EXAMPLE, // USDC/WETH
         swapCaller: EVM_ADDRESS_SWAP_EXAMPLE,
+        nftContract: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE, // Pudgy Penguins
+        nftTokenId: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
+        nftTransferTx: EVM_TRANSACTION_NFT_SALE_EXAMPLE,
+        nftOfferer: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
+        nftRecipient: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
     },
     base: {
         contract: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
@@ -112,6 +122,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x8909dc15e40173ff4699343b6eb8132c65e18ec6', // Aerodrome
         pool: '0xb4cb800910b228ed3d0834cf79d697127bbb00e5',
         swapCaller: '0xcaf2da315f5a5499299a312b8a86faafe4bad959',
+        nftContract: '0xd4307e0acd12cf46fd6cf93bc264f5d5d1598792', // Base Onchain Summer
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     bsc: {
         contract: '0x55d398326f99059ff775485246999027b3197955', // USDT
@@ -122,6 +137,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0xca143ce32fe78f1f7019d7d551a6402fc5350c73', // PancakeSwap V2
         pool: '0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae',
         swapCaller: '0x9999b0cdd35d7f3b281ba02efc0d228486940515',
+        nftContract: '0x0a8901b0e25deb55a87524f0cc164e9644020eba', // PancakeSwap Bunnies
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     'arbitrum-one': {
         contract: '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
@@ -132,6 +152,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984', // Uniswap V3
         pool: '0xc6962004f452be9203591991d15f6b388e09e8d0',
         swapCaller: '0x27920e8039d2b6e93e36f5d5f53b998e2e631a70',
+        nftContract: '0xfae39ec09730ca0f14262a636d2d7c5539353752', // Smol Brains
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     avalanche: {
         contract: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e', // USDC
@@ -142,6 +167,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x9ad6c38be94206ca50bb0d90783181662f0cfa10', // TraderJoe
         pool: '0xfae3f424a0a47706811521e3ee268f00cfb5c45e',
         swapCaller: '0x808ce8dec9e10bed8d0892aceef9f1b8ec2f52bd',
+        nftContract: '0x4245a1bd84eb5f3ebc115b2e169c99cc898305ce', // Chill Penguins
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     optimism: {
         contract: '0x4200000000000000000000000000000000000006', // WETH
@@ -152,6 +182,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984', // Uniswap V3
         pool: '0xd1f1bad4c9e6c44dec1e9bf3b94902205c5cd6c3',
         swapCaller: '0x549f7822e78b783720c86513f14a38a7dbceda28',
+        nftContract: '0xb8df6cc3050cc02f967db1ee48330ba23276a492', // OptiPunk
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     polygon: {
         contract: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e
@@ -162,6 +197,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x5757371414417b8c6caad45baef941abc7d3ab32', // QuickSwap
         pool: '0x882df4b0fb50a229c3b4124eb18c759911485bfb',
         swapCaller: '0xee2a7b2c72217f6ebf0401dabb407c7a600d910f',
+        nftContract: '0xa5f1ea7df861952863df2e8d1312f7305dabf215', // ZED RUN
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
     unichain: {
         contract: '0x4200000000000000000000000000000000000006', // WETH
@@ -172,6 +212,11 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         factory: '0x1f98400000000000000000000000000000000004', // Uniswap V4
         pool: '0x9bdd72519ad7e2b5f0d5441d7af389771cc04a8406cd577fac0c68a8b6b396bd',
         swapCaller: '0xec9da8a9ed3eefe99f5d675562764a8e1d77a14e',
+        nftContract: '0x0000000000000000000000000000000000000000', // no major NFT on unichain yet
+        nftTokenId: '1',
+        nftTransferTx: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        nftOfferer: '0x0000000000000000000000000000000000000000',
+        nftRecipient: '0x0000000000000000000000000000000000000000',
     },
 };
 
@@ -406,39 +451,39 @@ const PERF_ROUTES: PerfRoute[] = [
     {
         path: '/v1/evm/nft/collections',
         chain: 'evm',
-        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        params: (n) => `contract=${getEvmExamples(n).nftContract}`,
         requires: ['contracts', 'nft'],
     },
     {
         path: '/v1/evm/nft/holders',
         chain: 'evm',
-        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        params: (n) => `contract=${getEvmExamples(n).nftContract}`,
         requires: ['nft'],
     },
     {
         path: '/v1/evm/nft/items',
         chain: 'evm',
-        params: `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`,
+        params: (n) => `contract=${getEvmExamples(n).nftContract}`,
         requires: ['nft'],
     },
     {
         path: '/v1/evm/nft/ownerships',
         chain: 'evm',
-        params: `address=${EVM_ADDRESS_VITALIK_EXAMPLE}`,
+        params: (n) => `address=${getEvmExamples(n).nftOfferer}`,
         requires: ['nft'],
     },
     { path: '/v1/evm/nft/sales', chain: 'evm', params: '', requires: ['nft'] },
     ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft']),
     ...filterVariants('/v1/evm/nft/transfers', 'evm', ['nft'], {
         type: 'TRANSFER',
-        transaction_id: EVM_TRANSACTION_NFT_SALE_EXAMPLE,
-        contract: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
-        token_id: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
-        address: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
-        from_address: EVM_ADDRESS_NFT_OFFERER_EXAMPLE,
-        to_address: EVM_ADDRESS_NFT_RECIPIENT_EXAMPLE,
+        transaction_id: (n) => getEvmExamples(n).nftTransferTx,
+        contract: (n) => getEvmExamples(n).nftContract,
+        token_id: (n) => getEvmExamples(n).nftTokenId,
+        address: (n) => getEvmExamples(n).nftOfferer,
+        from_address: (n) => getEvmExamples(n).nftOfferer,
+        to_address: (n) => getEvmExamples(n).nftRecipient,
     }),
-    ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], `contract=${EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE}`),
+    ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], (n) => `contract=${getEvmExamples(n).nftContract}`),
 ];
 
 function getNetworksForChain(chain: ChainType): string[] {
@@ -482,7 +527,7 @@ function parseArgs(argv: string[]): { path?: string; chain?: ChainType; noCache?
         } else if (args[i] === '--no-cache') {
             result.noCache = true;
         } else if (args[i] === '--delay' && args[i + 1]) {
-            result.delay = Number.parseInt(args[++i], 10);
+            result.delay = Number.parseInt(args[++i] as string, 10);
         } else if (!args[i]?.startsWith('-')) {
             result.path = args[i];
         }
