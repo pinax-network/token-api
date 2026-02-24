@@ -119,6 +119,9 @@ The Token API provides access to onchain NFT and fungible token data, including 
 
    # OpenAPI Configuration (optional)
    DISABLE_OPENAPI_SERVERS=false
+
+   # Caching (optional)
+   DISABLE_QUERY_CACHE=false
    ```
 
 4. **Start the development server**
@@ -143,6 +146,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `IDLE_TIMEOUT` | Connection idle timeout (seconds) | `60` | No |
 | `MAX_LIMIT` | Maximum query result limit | `1000` | No |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
+| `DISABLE_QUERY_CACHE` | Disable ClickHouse query cache (for benchmarking) | `false` | No |
 | `PRETTY_LOGGING` | Enable pretty console logging | `false` | No |
 | `VERBOSE` | Enable verbose logging | `false` | No |
 

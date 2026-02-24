@@ -29,6 +29,41 @@ interface PerfRoute {
     requires: DbCategory[];
 }
 
+// Chain-specific block/time examples for benchmarking
+const EVM_BENCH = { startBlock: 21000000, endBlock: 21000005, startTime: 1727592950, endTime: 1727592960 };
+const SVM_BENCH = { startBlock: 370000002, endBlock: 370000005, startTime: 1727592950, endTime: 1727592960 };
+const TVM_BENCH = { startBlock: 68000000, endBlock: 68000005, startTime: 1727592950, endTime: 1727592960 };
+
+/**
+ * Generates 7 filter-combination variants for a route that supports
+ * start_block / end_block / start_time / end_time:
+ *   1. no filter
+ *   2. start_block only
+ *   3. end_block only
+ *   4. start_block + end_block
+ *   5. start_time only
+ *   6. end_time only
+ *   7. start_time + end_time
+ */
+function timeBlockVariants(
+    path: string,
+    chain: ChainType,
+    requires: DbCategory[],
+    bench: typeof EVM_BENCH,
+    extraParams = ''
+): PerfRoute[] {
+    const p = extraParams ? `${extraParams}&` : '';
+    return [
+        { path, chain, params: extraParams, requires },
+        { path, chain, params: `${p}start_block=${bench.startBlock}`, requires },
+        { path, chain, params: `${p}end_block=${bench.endBlock}`, requires },
+        { path, chain, params: `${p}start_block=${bench.startBlock}&end_block=${bench.endBlock}`, requires },
+        { path, chain, params: `${p}start_time=${bench.startTime}`, requires },
+        { path, chain, params: `${p}end_time=${bench.endTime}`, requires },
+        { path, chain, params: `${p}start_time=${bench.startTime}&end_time=${bench.endTime}`, requires },
+    ];
+}
+
 // Route definitions with query parameters (excluding network) matching the test suite
 const PERF_ROUTES: PerfRoute[] = [
     // EVM Tokens
@@ -78,12 +113,12 @@ const PERF_ROUTES: PerfRoute[] = [
         requires: ['balances'],
     },
     // EVM Transfers
-    { path: '/v1/evm/transfers', chain: 'evm', params: '', requires: ['transfers'] },
+    ...timeBlockVariants('/v1/evm/transfers', 'evm', ['transfers'], EVM_BENCH),
     { path: '/v1/evm/transfers/native', chain: 'evm', params: '', requires: ['transfers'] },
     // SVM Transfers
-    { path: '/v1/svm/transfers', chain: 'svm', params: '', requires: ['transfers'] },
+    ...timeBlockVariants('/v1/svm/transfers', 'svm', ['transfers'], SVM_BENCH),
     // TVM Transfers
-    { path: '/v1/tvm/transfers', chain: 'tvm', params: '', requires: ['transfers'] },
+    ...timeBlockVariants('/v1/tvm/transfers', 'tvm', ['transfers'], TVM_BENCH),
     { path: '/v1/tvm/transfers/native', chain: 'tvm', params: '', requires: ['transfers'] },
     // EVM Holders
     { path: '/v1/evm/holders', chain: 'evm', params: `contract=${EVM_CONTRACT_USDT_EXAMPLE}`, requires: ['balances'] },
@@ -91,11 +126,11 @@ const PERF_ROUTES: PerfRoute[] = [
     // SVM Holders
     { path: '/v1/svm/holders', chain: 'svm', params: `mint=${SVM_MINT_WSOL_EXAMPLE}`, requires: ['balances'] },
     // EVM Swaps
-    { path: '/v1/evm/swaps', chain: 'evm', params: '', requires: ['dex'] },
+    ...timeBlockVariants('/v1/evm/swaps', 'evm', ['dex'], EVM_BENCH),
     // SVM Swaps
-    { path: '/v1/svm/swaps', chain: 'svm', params: '', requires: ['dex'] },
+    ...timeBlockVariants('/v1/svm/swaps', 'svm', ['dex'], SVM_BENCH),
     // TVM Swaps
-    { path: '/v1/tvm/swaps', chain: 'tvm', params: '', requires: ['dex'] },
+    ...timeBlockVariants('/v1/tvm/swaps', 'tvm', ['dex'], TVM_BENCH),
     // EVM DEXes
     { path: '/v1/evm/dexes', chain: 'evm', params: '', requires: ['dex'] },
     // SVM DEXes
@@ -152,7 +187,7 @@ const PERF_ROUTES: PerfRoute[] = [
         requires: ['nft'],
     },
     { path: '/v1/evm/nft/sales', chain: 'evm', params: '', requires: ['nft'] },
-    { path: '/v1/evm/nft/transfers', chain: 'evm', params: '', requires: ['nft'] },
+    ...timeBlockVariants('/v1/evm/nft/transfers', 'evm', ['nft'], EVM_BENCH),
 ];
 
 function getNetworksForChain(chain: ChainType): string[] {
@@ -184,21 +219,76 @@ function getStatusEmoji(status: number, duration_ms: number, rows: number): stri
     return '✅';
 }
 
+function parseArgs(argv: string[]): { path?: string; chain?: ChainType; noCache?: boolean } {
+    const args = argv.slice(2);
+    const result: { path?: string; chain?: ChainType; noCache?: boolean } = {};
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--path' && args[i + 1]) {
+            result.path = args[++i];
+        } else if (args[i] === '--chain' && args[i + 1]) {
+            result.chain = args[++i] as ChainType;
+        } else if (args[i] === '--no-cache') {
+            result.noCache = true;
+        } else if (!args[i]?.startsWith('-')) {
+            result.path = args[i];
+        }
+    }
+    return result;
+}
+
 async function runPerf() {
+    const filters = parseArgs(process.argv);
+    const hasFilters = filters.path || filters.chain;
+
+    // Override query cache at runtime
+    if (filters.noCache) {
+        // biome-ignore lint/suspicious/noExplicitAny: runtime override for benchmarking
+        (config as any).disableQueryCache = true;
+    }
+
+    const activeRoutes = PERF_ROUTES.filter((r) => {
+        if (filters.chain && r.chain !== filters.chain) return false;
+        if (filters.path && !r.path.includes(filters.path)) return false;
+        return true;
+    });
+
+    if (activeRoutes.length === 0) {
+        console.log(`No routes matched filters: ${JSON.stringify(filters)}`);
+        console.log('\nUsage: bun run scripts/perf.ts [--path <substring>] [--chain <evm|svm|tvm>]');
+        console.log('\nExamples:');
+        console.log('  bun run scripts/perf.ts --chain evm');
+        console.log('  bun run scripts/perf.ts --path swaps');
+        console.log('  bun run scripts/perf.ts --path swaps --chain svm');
+        console.log('  bun run scripts/perf.ts swaps');
+        process.exit(1);
+    }
+
+    if (hasFilters || filters.noCache) {
+        const parts = [
+            filters.path && `path=${filters.path}`,
+            filters.chain && `chain=${filters.chain}`,
+            filters.noCache && 'cache=off',
+        ].filter(Boolean);
+        console.log(`Filter: ${parts.join(', ')}  (${activeRoutes.length}/${PERF_ROUTES.length} routes)\n`);
+    }
+
     const results: PerfResult[] = [];
     const skipped: { path: string; network: string }[] = [];
 
     // Build the list of (route, network) pairs for alignment
     const routeNetworkLabels: { path: string; network: string }[] = [];
-    for (const route of PERF_ROUTES) {
+    for (const route of activeRoutes) {
         for (const network of getNetworksForChain(route.chain)) {
             routeNetworkLabels.push({ path: route.path, network });
         }
     }
-    const maxPathLen = Math.max(...routeNetworkLabels.map((r) => r.path.length));
+    const maxPathLen = Math.max(
+        ...activeRoutes.map((r) => (r.params ? `${r.path}?${r.params}`.length : r.path.length))
+    );
     const maxNetworkLen = Math.max(...routeNetworkLabels.map((r) => r.network.length));
 
-    for (const route of PERF_ROUTES) {
+    for (const route of activeRoutes) {
         const networks = getNetworksForChain(route.chain);
 
         for (const network of networks) {
@@ -219,14 +309,16 @@ async function runPerf() {
 
                 results.push({ route: route.path, network, status: response.status, duration_ms, rows });
                 const emoji = getStatusEmoji(response.status, duration_ms, rows);
-                const paddedPath = route.path.padEnd(maxPathLen);
+                const label = route.params ? `${route.path}?${route.params}` : route.path;
+                const paddedPath = label.padEnd(maxPathLen);
                 const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
                 const paddedTime = `${duration_ms}ms`.padStart(12);
                 console.log(`${emoji} ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (${rows} rows)`);
             } catch (err) {
                 const duration_ms = Math.round((performance.now() - start) * 100) / 100;
                 results.push({ route: route.path, network, status: 0, duration_ms, rows: 0 });
-                const paddedPath = route.path.padEnd(maxPathLen);
+                const label = route.params ? `${route.path}?${route.params}` : route.path;
+                const paddedPath = label.padEnd(maxPathLen);
                 const paddedNetwork = `[${network}]`.padEnd(maxNetworkLen + 2);
                 const paddedTime = `${duration_ms}ms`.padStart(12);
                 console.log(`❌ ${paddedPath}  ${paddedNetwork}  ${paddedTime}  (error: ${err})`);

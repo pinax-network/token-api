@@ -1,4 +1,35 @@
-WITH erc721 AS (
+/*
+    Unified timestamp + block_num resolution.
+    Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
+    the OR pattern prevents ClickHouse from recognizing a clean primary-key range,
+    causing a full scan. With coalesce, ClickHouse always sees direct bounds,
+    enabling granule skipping on the primary index.
+    When no lower bound → falls back to epoch (toDateTime(0)) → no-op.
+    When no upper bound → falls back to now() → no-op.
+    clamped_start_ts caps the scan window to 10 minutes before end_ts
+    so queries with only an upper bound don't scan from epoch.
+
+    NOTE: block_num filtering is limited — unlike swaps/transfers, the NFT database
+    has no `blocks` table to resolve block_num → timestamp, so block filters are applied
+    as secondary WHERE clauses after the timestamp clamp. This means block-only queries
+    are constrained to the 10-minute window. For accurate wide-range block_num filtering,
+    a blocks table needs to be added to the NFT substreams:
+    https://github.com/pinax-network/substreams-evm/issues/175
+*/
+WITH
+start_ts AS (
+    SELECT coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)) AS ts
+),
+end_ts AS (
+    SELECT coalesce(toDateTime({end_time:Nullable(UInt64)}), now()) AS ts
+),
+clamped_start_ts AS (
+    SELECT greatest(
+        (SELECT ts FROM start_ts),
+        (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE
+    ) AS ts
+),
+erc721 AS (
     SELECT
         CASE
             WHEN from IN (
@@ -23,8 +54,9 @@ WITH erc721 AS (
         transfer_type,
         token_standard
     FROM {db_nft:Identifier}.erc721_transfers AS t
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+    WHERE timestamp >= (SELECT ts FROM clamped_start_ts) AND timestamp <= (SELECT ts FROM end_ts)
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
+        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND (isNull({type:Nullable(String)}) OR `@type` = {type:Nullable(String)})
         AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
         AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
@@ -58,8 +90,9 @@ erc1155 AS (
         transfer_type,
         token_standard
     FROM {db_nft:Identifier}.erc1155_transfers AS t
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(UInt64)}) AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= {end_time:Nullable(UInt64)})
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)}) AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+    WHERE timestamp >= (SELECT ts FROM clamped_start_ts) AND timestamp <= (SELECT ts FROM end_ts)
+        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
+        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
         AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
         AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
         AND (empty({token_id:Array(String)}) OR token_id IN {token_id:Array(String)})
@@ -80,20 +113,22 @@ limit_combined AS (
     OFFSET {offset:UInt64}
 ),
 erc721_metadata_by_contract AS (
-    SELECT DISTINCT
+    SELECT
         contract,
-        name,
-        symbol
+        any(name) AS name,
+        any(symbol) AS symbol
     FROM {db_nft:Identifier}.erc721_metadata_by_contract
     WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract
 ),
 erc1155_metadata_by_contract AS (
-    SELECT DISTINCT
+    SELECT
         contract,
-        name,
-        symbol
+        any(name) AS name,
+        any(symbol) AS symbol
     FROM {db_nft:Identifier}.erc1155_metadata_by_contract
     WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    GROUP BY contract
 )
 SELECT
     c.block_num,
