@@ -485,4 +485,4 @@ npm run test:stable
 
 ---
 
-*Generated from `scripts/test-stablecoins.ts` against `scripts/stablecoins.json` (CoinGecko data)*
+_Generated from `scripts/test-stablecoins.ts` against `scripts/stablecoins.json` (CoinGecko data)_
