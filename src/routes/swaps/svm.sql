@@ -39,7 +39,7 @@ has_explicit_start AS (
 ),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT yes FROM has_filters) AND (SELECT yes FROM has_explicit_start),
+        (SELECT yes FROM has_filters) OR (SELECT yes FROM has_explicit_start),
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
