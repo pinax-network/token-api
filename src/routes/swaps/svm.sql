@@ -21,9 +21,11 @@ end_ts AS (
         coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
-/* Only clamp to 10 minutes when no narrowing filters are active.
-   start_time/start_block are already incorporated into start_ts, so the
-   clamp's greatest() handles them correctly without disabling it. */
+/* Only skip the 10-minute safety clamp when the caller has provided BOTH
+   narrowing filters AND an explicit lower bound (start_time or start_block).
+   Without a lower bound, start_ts = epoch → ClickHouse scans the entire table.
+   Filters alone (e.g. amm_pool) don't help with primary-key pruning — they only
+   narrow individual rows AFTER the timestamp range is scanned. */
 has_filters AS (
     SELECT (
         notEmpty({signature:Array(String)}) OR notEmpty({amm:Array(String)})
@@ -32,9 +34,12 @@ has_filters AS (
         OR notEmpty({program_id:Array(String)})
     ) AS yes
 ),
+has_explicit_start AS (
+    SELECT (isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)})) AS yes
+),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT yes FROM has_filters),
+        (SELECT yes FROM has_filters) AND (SELECT yes FROM has_explicit_start),
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts

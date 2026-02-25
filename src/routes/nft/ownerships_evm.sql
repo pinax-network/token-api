@@ -1,10 +1,23 @@
-WITH erc721_deduped AS (
+/*
+    Pre-narrow to only (contract, token_id) pairs where the target address has
+    EVER appeared as an owner. Without this, the argMax aggregation runs on
+    every single ERC721 token on mainnet (~100M+ groups) → ClickHouse timeout.
+    HAVING is still needed because the address may have transferred the token
+    away, so argMax(owner) could be someone else.
+*/
+WITH erc721_candidates AS (
+    SELECT DISTINCT contract, token_id
+    FROM {db_nft:Identifier}.erc721_owners
+    WHERE owner IN {address:Array(String)}
+      AND (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+),
+erc721_deduped AS (
     SELECT
         contract,
         token_id,
         argMax(owner, global_sequence) AS owner
     FROM {db_nft:Identifier}.erc721_owners
-    WHERE (empty({contract:Array(String)}) OR contract IN {contract:Array(String)})
+    WHERE (contract, token_id) IN (SELECT contract, token_id FROM erc721_candidates)
     GROUP BY contract, token_id
     HAVING owner IN {address:Array(String)}
 ),

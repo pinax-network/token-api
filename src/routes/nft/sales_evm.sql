@@ -24,9 +24,15 @@ has_filters AS (
         OR notEmpty({from_address:Array(String)}) OR notEmpty({to_address:Array(String)})
     ) AS yes
 ),
+/* Only skip the 10-minute safety clamp when the caller has provided BOTH
+   narrowing filters AND an explicit lower bound (start_time or start_block).
+   Without a lower bound, start_ts = epoch → ClickHouse scans the entire table. */
+has_explicit_start AS (
+    SELECT (isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt64)})) AS yes
+),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT yes FROM has_filters),
+        (SELECT yes FROM has_filters) AND (SELECT yes FROM has_explicit_start),
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
     ) AS ts
