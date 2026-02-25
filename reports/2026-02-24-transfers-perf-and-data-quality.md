@@ -2,8 +2,8 @@
 
 **Date:** 2026-02-24  
 **Branch:** `fix/evm-svm-perf` (PR #406)  
-**Endpoints tested:** EVM transfers, SVM transfers  
-**Tool:** `scripts/perf.ts`  
+**Endpoints tested:** EVM/SVM/TVM transfers, EVM/SVM/TVM swaps, EVM native transfers, NFT transfers  
+**Tool:** `scripts/perf.ts`, manual `curl` sweeps  
 
 ---
 
@@ -321,16 +321,103 @@ block_num   cnt
 
 ---
 
+## Bare Query Optimization (EVM Transfers)
+
+### Problem
+
+The EVM transfers SQL files (`evm.sql`, `evm_native.sql`) still used the old `isNull(X) OR timestamp >= (subquery)` pattern instead of the `coalesce`/`clamped_start_ts` pattern already applied to swaps, SVM transfers, and NFT transfers. This meant:
+
+1. **No primary-key pruning** — ClickHouse couldn't simplify `isNull(NULL) OR minute >= X` into a clean range bound
+2. **No 10-minute clamping** — bare queries (no params) would scan from epoch to `now()`, touching all minutes
+
+### Fix
+
+Replaced the old `block_start_ts`/`block_end_ts` + `isNull() OR` pattern in both files with:
+
+- **`start_ts`** — `coalesce(toDateTime({start_time}), toDateTime(0))` + block lookup via `coalesce`
+- **`end_ts`** — `coalesce(toDateTime({end_time}), now())` + block lookup via `coalesce`
+- **`clamped_start_ts`** — when no filters are active, clamps start to `end_ts - INTERVAL 10 MINUTE`
+- **Clean bounds** — `minute >= toRelativeMinuteNum(clamped_start_ts)` instead of `isNull() OR`
+- **Boundary-second exclusion** — `AND NOT (isNotNull({start_block}) AND timestamp = clamped_start_ts AND block_num < {start_block})`
+
+Files already optimized (no changes needed): `src/routes/swaps/evm.sql`, `src/routes/swaps/svm.sql`, `src/routes/transfers/svm.sql`, `src/routes/nft/transfers_evm.sql`.
+
+### Results — All Bare Queries (no params, warm cache)
+
+| Endpoint | Chain | Time | Rows | Verdict |
+|----------|-------|------|------|---------|
+| **EVM Transfers** | mainnet | 135ms | 10 | ✅ |
+| | base | 140ms | 10 | ✅ |
+| | bsc | 146ms | 10 | ✅ |
+| | arbitrum-one | 148ms | 10 | ✅ |
+| | avalanche | 142ms | 10 | ✅ |
+| | optimism | 150ms | 10 | ✅ |
+| | polygon | 227ms | 10 | ✅ |
+| | unichain | 208ms | 10 | ✅ |
+| **EVM Native Transfers** | mainnet | 114ms | 10 | ✅ |
+| | base | 103ms | 10 | ✅ |
+| | bsc | 101ms | 10 | ✅ |
+| | arbitrum-one | 91ms | 10 | ✅ |
+| **EVM Swaps** | mainnet | 550ms | 10 | ⚠️ |
+| | base | 626ms | 10 | ⚠️ |
+| | bsc | 578ms | 10 | ⚠️ |
+| | arbitrum-one | 548ms | 10 | ⚠️ |
+| | avalanche | 586ms | 10 | ⚠️ |
+| | optimism | 572ms | 10 | ⚠️ |
+| | polygon | 674ms | 10 | ⚠️ |
+| | unichain | 674ms | 10 | ⚠️ |
+| **SVM Transfers** | solana | 333ms | 10 | ✅ |
+| **SVM Swaps** | solana | 82ms | 10 | ✅ |
+| **TVM Transfers** | tron | 147ms | 10 | ✅ |
+| **TVM Swaps** | tron | 305ms | 10 | ✅ |
+| **NFT Transfers** | mainnet | 249ms | 10 | ✅ |
+
+### Bare vs Filtered — Confirms Bare Is Fastest
+
+| Endpoint | Bare | Filtered | Filter Used | Ratio |
+|----------|------|----------|-------------|-------|
+| EVM Transfers (mainnet) | **135ms** | 576ms | contract (USDT) | 4.3× faster |
+| EVM Transfers (mainnet) | **135ms** | 433ms | from_address | 3.2× faster |
+| EVM Swaps (mainnet) | **550ms** | 1,808ms | pool | 3.3× faster |
+| SVM Transfers (solana) | **333ms** | 367ms | contract (USDC) | ~1.1× faster |
+
+### EVM Swaps Baseline (550–674ms)
+
+EVM swaps are inherently slower than transfers even with `clamped_start_ts` already in place. Root causes:
+
+1. **Two metadata joins** — swaps resolve both `input_contract` and `output_contract` vs one `contract` for transfers
+2. **Denser data per minute** — DEX swaps have higher event density than token transfers
+3. **9 filter union branches** — the `minutes_union` CTE has 9 `UNION ALL` arms (factory, pool, recipient, sender, caller, input_contract, output_contract, protocol, transaction_id) vs 4 for transfers
+
+The `clamped_start_ts` optimization is already applied — remaining cost is structural.
+
+### Regression Tests (filters still work)
+
+| Query | Time | Rows | Verdict |
+|-------|------|------|---------|
+| EVM Transfers + contract (USDT, mainnet) | 576ms | 10 | ✅ |
+| EVM Transfers + from_address (mainnet) | 433ms | 10 | ✅ |
+| EVM Transfers + time range (mainnet) | 161ms | 10 | ✅ |
+| EVM Transfers + block range (mainnet) | 192ms | 10 | ✅ |
+| EVM Native Transfers + time range (mainnet) | 121ms | 10 | ✅ |
+| TVM Transfers + contract (USDT, tron) | 492ms | 10 | ✅ |
+
+---
+
 ## Key Takeaways
 
-1. **Bounded queries are fast.** When both start and end bounds are provided (time or block), all queries complete under 300ms across all 8 EVM chains and Solana. The `clamped_start_ts` optimization is working correctly.
+1. **Bare queries are the fastest for every endpoint.** With the `clamped_start_ts` optimization, queries with no params only scan the last 10 minutes — making them 1.1–4.3× faster than filtered queries. EVM transfers: 91–227ms, native transfers: 91–114ms, SVM: 82–333ms, TVM: 147–305ms.
 
-2. **Single-bound queries are slower.** `start_block` only or `end_block` only causes 500–1300ms. The block→timestamp resolution subquery adds overhead, and with only one bound the scan window is wider.
+2. **Bounded queries are fast.** When both start and end bounds are provided (time or block), all queries complete under 300ms across all 8 EVM chains and Solana. The `clamped_start_ts` optimization is working correctly.
 
-3. **Filter-only queries (no time bounds) are the remaining concern** at 500–1500ms. The `clamped_start_ts` clamps to a 10-minute window which helps, but the minute-union scan through materialized views is inherently expensive for high-volume contracts on large chains (especially BSC at 21B rows).
+3. **Single-bound queries are slower.** `start_block` only or `end_block` only causes 500–1300ms. The block→timestamp resolution subquery adds overhead, and with only one bound the scan window is wider.
 
-4. **Cold cache is not a real problem.** First-hit latency can be 10–80× higher due to ClickHouse OS page cache misses. This resolves immediately on retry and is not actionable via SQL optimization.
+4. **Filter-only queries (no time bounds) are the remaining concern** at 500–1500ms. The `clamped_start_ts` clamps to a 10-minute window which helps, but the minute-union scan through materialized views is inherently expensive for high-volume contracts on large chains (especially BSC at 21B rows).
 
-5. **SVM is generally healthy.** All time/block variants under 400ms. Filter queries run 500–1200ms which is consistent with the minute-union approach. Authority filter is the most expensive at ~1.2s.
+5. **EVM swaps have a 550–674ms structural baseline.** This is due to two metadata joins, 9 filter union branches, and denser DEX data — not a missing optimization. The `clamped_start_ts` is already in place.
 
-6. **Data quality is solid.** All filter types return correctly scoped data. Value computation, metadata joins, and native token handling are all verified correct.
+6. **Cold cache is not a real problem.** First-hit latency can be 10–80× higher due to ClickHouse OS page cache misses. This resolves immediately on retry and is not actionable via SQL optimization.
+
+7. **SVM is generally healthy.** All time/block variants under 400ms. Filter queries run 500–1200ms which is consistent with the minute-union approach. Authority filter is the most expensive at ~1.2s.
+
+8. **Data quality is solid.** All filter types return correctly scoped data. Value computation, metadata joins, and native token handling are all verified correct.
