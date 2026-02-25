@@ -24,7 +24,7 @@ const PLATFORM_TO_NETWORK: Record<string, string> = {
     solana: 'solana',
     // EVM L1s
     'binance-smart-chain': 'bsc',
-    'polygon-pos': 'matic',
+    'polygon-pos': 'polygon',
     avalanche: 'avalanche',
     fantom: 'fantom',
     cronos: 'cronos',
@@ -99,9 +99,9 @@ function loadNetworks(configPath: string): Set<string> {
 
 function formatUsd(n: number): string {
     if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-    if (n >= 1e6) return `$${(n / 1e6).toFixed(0)}M`;
+    if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
     if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
-    return `$${n}`;
+    return `$${n.toFixed(0)}`;
 }
 
 function loadStablecoins(path: string): NormalizedToken[] {
@@ -123,20 +123,66 @@ function loadStablecoins(path: string): NormalizedToken[] {
     return tokens;
 }
 
+// ─── Helpers ───
+interface ChainSummary {
+    network: string;
+    tokens: Map<string, NormalizedToken>; // deduped by address
+    marketCap: number;
+}
+
+/** Dedupe tokens by address and compute per-chain summary. */
+function summarizeByChain(tokens: NormalizedToken[]): ChainSummary[] {
+    const byChain = new Map<string, Map<string, NormalizedToken>>();
+    for (const t of tokens) {
+        let map = byChain.get(t.network);
+        if (!map) {
+            map = new Map();
+            byChain.set(t.network, map);
+        }
+        const key = t.address.toLowerCase();
+        if (!map.has(key)) map.set(key, t);
+    }
+    const summaries: ChainSummary[] = [];
+    for (const [network, tokenMap] of byChain) {
+        let marketCap = 0;
+        for (const t of tokenMap.values()) marketCap += t.value;
+        summaries.push({ network, tokens: tokenMap, marketCap });
+    }
+    return summaries.sort((a, b) => b.marketCap - a.marketCap);
+}
+
+function printTable(header: string[], rows: string[][], indent = 2) {
+    const colWidths = header.map((h, i) => Math.max(h.length, ...rows.map((r) => (r[i] || '').length)));
+    const pad = ' '.repeat(indent);
+    const sep = colWidths.map((w) => '─'.repeat(w + 2)).join('┼');
+    const fmtRow = (r: string[]) =>
+        r.map((c, i) => ` ${i === 0 ? c.padEnd(colWidths[i] ?? 0) : c.padStart(colWidths[i] ?? 0)} `).join('│');
+
+    console.log(`${pad}┌${sep.replaceAll('┼', '┬')}┐`);
+    console.log(`${pad}│${fmtRow(header)}│`);
+    console.log(`${pad}├${sep}┤`);
+    for (const row of rows) {
+        console.log(`${pad}│${fmtRow(row)}│`);
+    }
+    console.log(`${pad}└${sep.replaceAll('┼', '┴')}┘`);
+}
+
 // ─── Main ───
 function main() {
     const args = process.argv.slice(2);
     const filterNetwork = args.includes('--network') ? args[args.indexOf('--network') + 1] : null;
-    const minBalance = args.includes('--min-balance') ? parseInt(args[args.indexOf('--min-balance') + 1], 10) : 0;
+    const minBalance = args.includes('--min-balance')
+        ? Number.parseInt(args[args.indexOf('--min-balance') + 1] ?? '0', 10)
+        : 0;
     const configArg = args.includes('--config') ? args[args.indexOf('--config') + 1] : null;
 
     // Load stablecoin data
-    const path = resolve(import.meta.dir, 'stablecoins.json');
-    if (!existsSync(path)) {
+    const dataPath = resolve(import.meta.dir, 'stablecoins.json');
+    if (!existsSync(dataPath)) {
         console.error('stablecoins.json not found. Run: bun scripts/fetch-stablecoins.ts');
         process.exit(1);
     }
-    let tokens = loadStablecoins(path);
+    let tokens = loadStablecoins(dataPath);
 
     if (minBalance > 0) {
         tokens = tokens.filter((t) => t.value >= minBalance);
@@ -147,92 +193,141 @@ function main() {
         configArg || process.env.DBS_CONFIG_PATH || resolve(import.meta.dir, '../dbs-config.yaml.example');
     const supportedNetworks = loadNetworks(configPath);
 
-    console.log(`${tokens.length} token-chain pairs | ${supportedNetworks.size} supported networks`);
-    console.log(`Supported: ${[...supportedNetworks].join(', ')}\n`);
-
     // Classify
     const supported: NormalizedToken[] = [];
     const unsupported: NormalizedToken[] = [];
     for (const t of tokens) {
-        if (supportedNetworks.has(t.network)) {
-            supported.push(t);
-        } else {
-            unsupported.push(t);
-        }
+        (supportedNetworks.has(t.network) ? supported : unsupported).push(t);
     }
 
-    // ─── Supported networks ───
-    console.log('='.repeat(90));
-    console.log('✅ STABLECOINS ON SUPPORTED NETWORKS');
-    console.log('='.repeat(90));
+    // Apply --network filter for display
+    const filteredSupported = filterNetwork ? supported.filter((t) => t.network === filterNetwork) : supported;
+    const supportedChains = summarizeByChain(filteredSupported);
+    const unsupportedChains = summarizeByChain(unsupported);
 
-    const byNetwork = new Map<string, NormalizedToken[]>();
-    for (const t of supported) {
-        if (filterNetwork && t.network !== filterNetwork) continue;
-        if (!byNetwork.has(t.network)) byNetwork.set(t.network, []);
-        byNetwork.get(t.network)?.push(t);
-    }
+    const totalSupportedCap = supportedChains.reduce((s, c) => s + c.marketCap, 0);
+    const totalUnsupportedCap = unsupportedChains.reduce((s, c) => s + c.marketCap, 0);
+    const totalCap = totalSupportedCap + totalUnsupportedCap;
+    const coveragePct = totalCap > 0 ? ((totalSupportedCap / totalCap) * 100).toFixed(1) : '0.0';
 
-    const sortedNetworks = [...byNetwork.entries()].sort((a, b) => b[1].length - a[1].length);
+    // ─── Header ───
+    const now = new Date().toISOString().slice(0, 10);
+    console.log('');
+    console.log('╔══════════════════════════════════════════════════════════════════════════════════════════╗');
+    console.log('║                       STABLECOIN COVERAGE REPORT — TOKEN API                           ║');
+    console.log('╚══════════════════════════════════════════════════════════════════════════════════════════╝');
+    console.log(`  Date: ${now}`);
+    console.log(`  Config: ${configPath}`);
+    console.log(`  Total stablecoins in dataset: ${tokens.length} token-chain pairs`);
+    if (minBalance > 0) console.log(`  Filter: market cap ≥ ${formatUsd(minBalance)}`);
+    if (filterNetwork) console.log(`  Filter: network = ${filterNetwork}`);
+    console.log('');
 
-    let totalSupportedValue = 0;
-    for (const [network, toks] of sortedNetworks) {
-        console.log(`\n  ${network} (${toks.length} stablecoins):`);
-        // Dedupe by address
-        const seen = new Set<string>();
+    // ─── Grand summary box ───
+    console.log('┌──────────────────────────────────────────────────────────────┐');
+    console.log(
+        `│  ✅ Supported    ${String(supportedChains.length).padStart(3)} chains   ${formatUsd(totalSupportedCap).padStart(12)} market cap  │`
+    );
+    console.log(
+        `│  ❌ Unsupported  ${String(unsupportedChains.length).padStart(3)} chains   ${formatUsd(totalUnsupportedCap).padStart(12)} market cap  │`
+    );
+    console.log(`│  📊 Coverage     ${coveragePct.padStart(5)}%    of total stablecoin market cap    │`);
+    console.log('└──────────────────────────────────────────────────────────────┘');
+    console.log('');
+
+    // ─── Supported chains breakdown ───
+    console.log('═'.repeat(90));
+    console.log('  ✅ SUPPORTED CHAINS — BREAKDOWN');
+    console.log('═'.repeat(90));
+
+    const supportedRows = supportedChains.map((c) => [
+        c.network,
+        String(c.tokens.size),
+        formatUsd(c.marketCap),
+        totalCap > 0 ? `${((c.marketCap / totalCap) * 100).toFixed(1)}%` : '—',
+    ]);
+    supportedRows.push(['', '', '', '']);
+    supportedRows.push([
+        'TOTAL',
+        String(supportedChains.reduce((s, c) => s + c.tokens.size, 0)),
+        formatUsd(totalSupportedCap),
+        `${coveragePct}%`,
+    ]);
+    printTable(['Network', 'Tokens', 'Market Cap', '% of Total'], supportedRows);
+
+    // Per-chain token details
+    for (const chain of supportedChains) {
+        const toks = [...chain.tokens.values()].sort((a, b) => b.value - a.value);
+        console.log(`\n  ${chain.network}  (${toks.length} tokens, ${formatUsd(chain.marketCap)} combined)`);
+        console.log(`  ${'─'.repeat(76)}`);
         for (const t of toks) {
-            const key = t.address.toLowerCase();
-            if (seen.has(key)) continue;
-            seen.add(key);
-            totalSupportedValue += t.value;
-            console.log(`    ${t.symbol.padEnd(12)} ${t.address.padEnd(48)} ${formatUsd(t.value).padStart(10)}`);
+            const pct = chain.marketCap > 0 ? ((t.value / chain.marketCap) * 100).toFixed(0) : '0';
+            console.log(
+                `    ${t.symbol.padEnd(10)} ${t.address.padEnd(46)} ${formatUsd(t.value).padStart(10)} ${(`${pct}%`).padStart(5)}`
+            );
         }
     }
 
-    // ─── Unsupported chains ───
-    console.log(`\n${'='.repeat(90)}`);
-    console.log('❌ STABLECOINS ON UNSUPPORTED CHAINS');
-    console.log('='.repeat(90));
+    // ─── Unsupported chains breakdown ───
+    console.log(`\n${'═'.repeat(90)}`);
+    console.log('  ❌ UNSUPPORTED CHAINS — BREAKDOWN');
+    console.log('═'.repeat(90));
 
-    const byChain = new Map<string, NormalizedToken[]>();
-    for (const t of unsupported) {
-        const key = t.network;
-        if (!byChain.has(key)) byChain.set(key, []);
-        byChain.get(key)?.push(t);
-    }
+    const unsupportedRows = unsupportedChains.map((c) => [c.network, String(c.tokens.size), formatUsd(c.marketCap)]);
+    unsupportedRows.push(['', '', '']);
+    unsupportedRows.push([
+        'TOTAL',
+        String(unsupportedChains.reduce((s, c) => s + c.tokens.size, 0)),
+        formatUsd(totalUnsupportedCap),
+    ]);
+    printTable(['Chain', 'Tokens', 'Market Cap'], unsupportedRows);
 
-    const sortedUnsupported = [...byChain.entries()].sort((a, b) => b[1].length - a[1].length);
-
-    let totalUnsupportedValue = 0;
-    for (const [chain, toks] of sortedUnsupported) {
-        const uniqueTokens = new Map<string, NormalizedToken>();
-        for (const t of toks) {
-            const key = t.address.toLowerCase();
-            if (!uniqueTokens.has(key)) uniqueTokens.set(key, t);
+    // ─── Biggest gaps (unsupported chains by market cap) ───
+    const topGaps = unsupportedChains.slice(0, 15);
+    if (topGaps.length > 0) {
+        console.log('\n  💡 TOP UNSUPPORTED CHAINS BY MARKET CAP (coverage opportunities)');
+        console.log(`  ${'─'.repeat(76)}`);
+        for (const [i, c] of topGaps.entries()) {
+            const topSymbols = [...c.tokens.values()]
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 3)
+                .map((t) => t.symbol)
+                .join(', ');
+            console.log(
+                `    ${String(i + 1).padStart(2)}. ${c.network.padEnd(28)} ${formatUsd(c.marketCap).padStart(12)}   ${c.tokens.size} tokens  (${topSymbols})`
+            );
         }
-        console.log(`\n  ${chain} (${uniqueTokens.size} stablecoins):`);
-        for (const [, t] of uniqueTokens) {
-            totalUnsupportedValue += t.value;
-            console.log(`    ${t.symbol.padEnd(12)} ${t.address.padEnd(48)} ${formatUsd(t.value).padStart(10)}`);
+    }
+
+    // ─── Top stablecoins across all supported chains ───
+    console.log(`\n${'═'.repeat(90)}`);
+    console.log('  🏆 TOP 20 STABLECOINS ON SUPPORTED CHAINS');
+    console.log('═'.repeat(90));
+
+    // Dedupe globally by symbol, summing across chains
+    const bySymbol = new Map<string, { symbol: string; totalCap: number; chains: string[] }>();
+    for (const chain of supportedChains) {
+        for (const t of chain.tokens.values()) {
+            const existing = bySymbol.get(t.symbol);
+            if (existing) {
+                existing.totalCap += t.value;
+                if (!existing.chains.includes(chain.network)) existing.chains.push(chain.network);
+            } else {
+                bySymbol.set(t.symbol, { symbol: t.symbol, totalCap: t.value, chains: [chain.network] });
+            }
         }
     }
+    const topTokens = [...bySymbol.values()].sort((a, b) => b.totalCap - a.totalCap).slice(0, 20);
+    const topRows = topTokens.map((t, i) => [
+        String(i + 1),
+        t.symbol,
+        formatUsd(t.totalCap),
+        String(t.chains.length),
+        t.chains.slice(0, 5).join(', ') + (t.chains.length > 5 ? ` +${t.chains.length - 5}` : ''),
+    ]);
+    printTable(['#', 'Symbol', 'Market Cap', 'Chains', 'Networks'], topRows);
 
-    // ─── Summary ───
-    const totalValue = totalSupportedValue + totalUnsupportedValue;
-    console.log(`\n${'='.repeat(90)}`);
-    console.log('📊 SUMMARY');
-    console.log('='.repeat(90));
-    console.log(`  Supported:   ${supported.length} token-chain pairs across ${byNetwork.size} networks`);
-    console.log(`  Unsupported: ${unsupported.length} token-chain pairs across ${byChain.size} chains`);
-    if (totalValue > 0) {
-        console.log(`  Value coverage: ${((totalSupportedValue / totalValue) * 100).toFixed(1)}%`);
-    }
-
-    console.log(`\n  Top unsupported chains by token count:`);
-    for (const [chain, toks] of sortedUnsupported.slice(0, 15)) {
-        const uniqueCount = new Set(toks.map((t) => t.address.toLowerCase())).size;
-        console.log(`    ${chain.padEnd(30)} ${String(uniqueCount).padStart(3)} tokens`);
-    }
+    console.log('');
 }
 
 main();
