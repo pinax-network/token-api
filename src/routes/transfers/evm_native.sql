@@ -30,12 +30,38 @@ minutes_union AS
     WHERE (notEmpty({transaction_id:Array(String)}) AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
 ),
+/*
+    Unified timestamp resolution for start_time/end_time and start_block/end_block.
+    Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
+    the OR pattern prevents ClickHouse from recognizing a clean primary-key range.
+    greatest/least picks the tighter bound when both are provided.
+    clamped_start_ts ensures the scan window is at most 10 minutes wide for bare queries.
+*/
+start_ts AS (
+    SELECT greatest(
+        coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)),
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt64)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
+    ) AS ts
+),
+end_ts AS (
+    SELECT least(
+        coalesce(toDateTime({end_time:Nullable(UInt64)}), now()),
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), now())
+    ) AS ts
+),
+clamped_start_ts AS (
+    SELECT if(
+        (SELECT n FROM active_filters) > 0,
+        (SELECT ts FROM start_ts),
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
+    ) AS ts
+),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
-    WHERE (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
-      AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
+    WHERE minute >= toRelativeMinuteNum((SELECT ts FROM clamped_start_ts))
+      AND minute <= toRelativeMinuteNum((SELECT ts FROM end_ts))
     GROUP BY minute
     HAVING count() >= (SELECT n FROM active_filters)
     ORDER BY minute DESC
@@ -53,15 +79,15 @@ filtered_transfers AS
     WHERE
             ((SELECT n FROM active_filters) = 0 OR minute IN (SELECT minute FROM filtered_minutes))
 
-        /* Always apply minute bounds for partition pruning */
-        AND (isNull({start_time:Nullable(UInt64)}) OR minute >= toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})))
-        AND (isNull({end_time:Nullable(UInt64)}) OR minute <= toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})))
+        /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts/clamped_start_ts CTEs */
+        AND minute >= toRelativeMinuteNum((SELECT ts FROM clamped_start_ts))
+        AND minute <= toRelativeMinuteNum((SELECT ts FROM end_ts))
+        AND timestamp >= (SELECT ts FROM clamped_start_ts)
+        AND timestamp <= (SELECT ts FROM end_ts)
 
-        /* Fine-grained timestamp filter */
-        AND (isNull({start_time:Nullable(UInt64)}) OR (minute, timestamp) >= (toRelativeMinuteNum(toDateTime({start_time:Nullable(UInt64)})), {start_time:Nullable(UInt64)}))
-        AND (isNull({end_time:Nullable(UInt64)}) OR (minute, timestamp) <= (toRelativeMinuteNum(toDateTime({end_time:Nullable(UInt64)})), {end_time:Nullable(UInt64)}))
-        AND (isNull({start_block:Nullable(UInt64)}) OR block_num >= {start_block:Nullable(UInt64)})
-        AND (isNull({end_block:Nullable(UInt64)}) OR block_num <= {end_block:Nullable(UInt64)})
+        /* Fine-grained block_num exclusion — only rows on the exact boundary second are checked */
+        AND NOT (isNotNull({start_block:Nullable(UInt64)}) AND timestamp = (SELECT ts FROM clamped_start_ts) AND block_num < {start_block:Nullable(UInt64)})
+        AND NOT (isNotNull({end_block:Nullable(UInt64)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt64)})
 
         AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
         AND (empty({from_address:Array(String)})  OR `from` IN {from_address:Array(String)})
