@@ -63,6 +63,10 @@ const client = (custom_config?: ClientOptions) => {
             readonly: '0',
             interactive_delay: '500000', // Interval between query progress reports in microseconds
             max_execution_time: config.maxQueryExecutionTime,
+            // Workaround for ClickHouse 26.1.x bug (PR #92118): BlockIO::operator= does not move
+            // query_metadata_cache, causing use-after-free in MergeTreeIndexReader destructor when
+            // enable_shared_storage_snapshot_in_query=1 (the default). Fixed in 26.2 via PR #96995.
+            enable_shared_storage_snapshot_in_query: 0,
             use_query_cache: config.disableQueryCache ? 0 : 1,
             enable_writes_to_query_cache: config.disableQueryCache ? 0 : 1,
             enable_reads_from_query_cache: config.disableQueryCache ? 0 : 1,
