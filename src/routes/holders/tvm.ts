@@ -103,14 +103,10 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        {
-            ...params,
-            db_balances: dbBalances.database,
-        }
-    );
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_balances: dbBalances.database,
+    });
     return handleUsageQueryError(c, response);
 });
 

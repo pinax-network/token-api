@@ -93,15 +93,11 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        {
-            ...params,
-            db_nft: dbNft.database,
-            db_contracts: dbContracts.database,
-        }
-    );
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_nft: dbNft.database,
+        db_contracts: dbContracts.database,
+    });
 
     return handleUsageQueryError(c, response);
 });

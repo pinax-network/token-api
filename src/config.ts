@@ -36,8 +36,8 @@ export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
 // HTTP Cache-Control defaults (seconds)
-export const DEFAULT_CACHE_SERVER_MAX_AGE = 600;  // s-maxage for shared/proxy caches
-export const DEFAULT_CACHE_MAX_AGE = 60;           // max-age for browser caches
+export const DEFAULT_CACHE_SERVER_MAX_AGE = 600; // s-maxage for shared/proxy caches
+export const DEFAULT_CACHE_MAX_AGE = 60; // max-age for browser caches
 export const DEFAULT_CACHE_STALE_WHILE_REVALIDATE = 30; // RFC 5861 stale-while-revalidate window
 export const DEFAULT_PLANS = '';
 

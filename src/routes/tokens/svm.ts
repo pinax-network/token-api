@@ -102,15 +102,11 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     }
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
-    const response = await makeUsageQueryJson(
-        c,
-        [query],
-        {
-            ...params,
-            db_balances: dbBalances.database,
-            db_metadata: dbBalances.database,
-        }
-    );
+    const response = await makeUsageQueryJson(c, [query], {
+        ...params,
+        db_balances: dbBalances.database,
+        db_metadata: dbBalances.database,
+    });
     injectIcons(response);
     return handleUsageQueryError(c, response);
 });
