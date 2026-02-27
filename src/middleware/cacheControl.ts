@@ -19,7 +19,7 @@ function computeETag(body: string): string {
  *   ETag: W/"<hash>"
  *
  * Behaviour:
- * - When `DISABLE_CACHE=true`, no cache headers are emitted.
+ * - When `CACHE_DISABLE=true`, no cache headers are emitted.
  * - When the request includes `Cache-Control: no-cache`, no cache headers are emitted.
  * - Supports `If-None-Match` → returns 304 Not Modified when ETag matches.
  *
@@ -38,7 +38,7 @@ export function cacheControl() {
         await next();
 
         // Skip cache headers if caching is disabled
-        if (config.disableCache) return;
+        if (config.cacheDisable) return;
 
         // Skip cache headers if client requests no-cache
         if (ctx.req.header('Cache-Control') === 'no-cache') return;

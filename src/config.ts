@@ -232,7 +232,7 @@ const opts = program
     .addOption(
         new Option('--disable-cache <boolean>', 'Disable HTTP Cache-Control headers')
             .choices(['true', 'false'])
-            .env('DISABLE_CACHE')
+            .env('CACHE_DISABLE')
             .default(false)
     )
     .addOption(
@@ -286,7 +286,7 @@ const config = z
         // `z.coerce.boolean` doesn't parse boolean string values as expected (see https://github.com/colinhacks/zod/issues/1630)
         prettyLogging: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         disableOpenapiServers: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
-        disableCache: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
+        cacheDisable: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         dbsConfigPath: z.string().optional(),

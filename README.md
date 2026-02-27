@@ -121,7 +121,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
    DISABLE_OPENAPI_SERVERS=false
 
    # HTTP Cache-Control (optional)
-   DISABLE_CACHE=false
+   CACHE_DISABLE=false
    CACHE_SERVER_MAX_AGE=600
    CACHE_MAX_AGE=60
    CACHE_STALE_WHILE_REVALIDATE=30
@@ -149,7 +149,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `IDLE_TIMEOUT` | Connection idle timeout (seconds) | `60` | No |
 | `MAX_LIMIT` | Maximum query result limit | `1000` | No |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
-| `DISABLE_CACHE` | Disable HTTP Cache-Control headers entirely | `false` | No |
+| `CACHE_DISABLE` | Disable HTTP Cache-Control headers entirely | `false` | No |
 | `CACHE_SERVER_MAX_AGE` | `s-maxage` for shared/proxy caches (seconds) | `600` | No |
 | `CACHE_MAX_AGE` | `max-age` for browser caches (seconds) | `60` | No |
 | `CACHE_STALE_WHILE_REVALIDATE` | `stale-while-revalidate` window (seconds, [RFC 5861](https://datatracker.ietf.org/doc/html/rfc5861)) | `30` | No |
@@ -197,7 +197,7 @@ All cached routes share the same TTL values. Routes not listed below do not emit
 
 | Env Variable | Description | Default |
 |-------------|-------------|---------|
-| `DISABLE_CACHE` | Set to `true` to omit all Cache-Control headers | `false` |
+| `CACHE_DISABLE` | Set to `true` to omit all Cache-Control headers | `false` |
 | `CACHE_SERVER_MAX_AGE` | `s-maxage` for shared/proxy caches (seconds) | `600` |
 | `CACHE_MAX_AGE` | `max-age` for browser caches (seconds) | `60` |
 | `CACHE_STALE_WHILE_REVALIDATE` | `stale-while-revalidate` window (seconds) | `30` |
