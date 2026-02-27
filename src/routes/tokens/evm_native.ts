@@ -111,7 +111,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         },
         {
             clickhouse_settings: {
-                query_cache_ttl: config.cacheDurations[1],
                 max_execution_time: 60,
             },
         }

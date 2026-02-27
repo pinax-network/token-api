@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cacheControl, cacheControlDefault } from '../middleware/cacheControl.js';
 // Balances
 import evmBalances from './balances/evm.js';
 // import tvmBalancesNative from './balances/tvm_native.js';
@@ -60,6 +61,22 @@ import tvmTransfers from './transfers/tvm.js';
 import tvmTransfersNative from './transfers/tvm_native.js';
 
 const router = new Hono();
+
+// --- HTTP Cache-Control middleware ---
+// Default: all /v1/* routes get a minimal 1s cache (no SWR).
+// Specific routes below override with longer env-configured TTLs.
+router.use('/v1/*', cacheControlDefault());
+router.use('/v1/*/holders', cacheControl());
+router.use('/v1/*/holders/native', cacheControl());
+router.use('/v1/*/dexes', cacheControl());
+router.use('/v1/*/tokens', cacheControl());
+router.use('/v1/*/tokens/native', cacheControl());
+router.use('/v1/*/pools', cacheControl());
+router.use('/v1/*/pools/ohlc', cacheControl());
+router.use('/v1/*/nft/collections', cacheControl());
+router.use('/v1/*/nft/holders', cacheControl());
+router.use('/v1/*/balances/historical', cacheControl());
+router.use('/v1/*/balances/historical/native', cacheControl());
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
