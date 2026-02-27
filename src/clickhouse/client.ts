@@ -63,12 +63,7 @@ const client = (custom_config?: ClientOptions) => {
             readonly: '0',
             interactive_delay: '500000', // Interval between query progress reports in microseconds
             max_execution_time: config.maxQueryExecutionTime,
-            // TODO: Remove once upgraded to ClickHouse 26.2+ (verify with `SELECT version()`).
-            // Workaround for 26.1.x bug (PR #92118): BlockIO::operator= does not move
-            // query_metadata_cache, causing use-after-free in MergeTreeIndexReader destructor when
-            // enable_shared_storage_snapshot_in_query=1 (the default). Fixed in 26.2 via PR #96995.
-            // Tracked in https://github.com/pinax-network/token-api/issues/415
-            enable_shared_storage_snapshot_in_query: 0,
+
             ...custom_config?.clickhouse_settings,
         },
     };
