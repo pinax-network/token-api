@@ -28,8 +28,8 @@ function computeETag(body: string): string {
  *   CACHE_MAX_AGE         – `max-age` for browser caches. Default: 60
  *   CACHE_STALE_WHILE_REVALIDATE – RFC 5861 stale-while-revalidate window. Default: 30
  *
- * All cached routes share the same TTLs — no per-route tiers.
- * To cache a route, apply this middleware; uncached routes simply don't use it.
+ * Routes with `cacheControl()` get the full env-configured TTLs.
+ * Routes with `cacheControlDefault()` get a minimal 1s cache (no stale-while-revalidate).
  *
  * @see https://datatracker.ietf.org/doc/html/rfc5861
  */
@@ -68,6 +68,26 @@ export function cacheControl() {
                     ETag: etag,
                 },
             });
+        }
+    };
+}
+
+/**
+ * Lightweight default cache for all API routes (1s max-age, no stale-while-revalidate).
+ * Applied globally to `/v1/*` — routes with `cacheControl()` will override this since
+ * their middleware runs after and overwrites the Cache-Control header.
+ */
+export function cacheControlDefault() {
+    return async (ctx: Context, next: Next) => {
+        await next();
+
+        if (config.cacheDisable) return;
+        if (ctx.req.header('Cache-Control') === 'no-cache') return;
+        if (ctx.res.status !== 200) return;
+
+        // Only set if not already set by cacheControl()
+        if (!ctx.res.headers.has('Cache-Control')) {
+            ctx.res.headers.set('Cache-Control', 'public, max-age=1, s-maxage=1');
         }
     };
 }

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { cacheControl } from '../middleware/cacheControl.js';
+import { cacheControl, cacheControlDefault } from '../middleware/cacheControl.js';
 // Balances
 import evmBalances from './balances/evm.js';
 // import tvmBalancesNative from './balances/tvm_native.js';
@@ -63,8 +63,9 @@ import tvmTransfersNative from './transfers/tvm_native.js';
 const router = new Hono();
 
 // --- HTTP Cache-Control middleware ---
-// All cached routes share the same TTLs (configured via CACHE_SERVER_MAX_AGE, CACHE_MAX_AGE, CACHE_STALE_WHILE_REVALIDATE).
-// Routes without this middleware are not cached.
+// Default: all /v1/* routes get a minimal 1s cache (no SWR).
+// Specific routes below override with longer env-configured TTLs.
+router.use('/v1/*', cacheControlDefault());
 router.use('/v1/*/holders', cacheControl());
 router.use('/v1/*/holders/*', cacheControl());
 router.use('/v1/*/dexes', cacheControl());

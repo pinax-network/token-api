@@ -70,7 +70,7 @@ export function logServerInit() {
         console.log('Cache: disabled');
     } else {
         console.log(
-            `Cache: s-maxage=${config.cacheServerMaxAge}, max-age=${config.cacheMaxAge}, stale-while-revalidate=${config.cacheStaleWhileRevalidate}`
+            `Cache: default=1s, extended: s-maxage=${config.cacheServerMaxAge}, max-age=${config.cacheMaxAge}, stale-while-revalidate=${config.cacheStaleWhileRevalidate}`
         );
     }
 

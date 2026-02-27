@@ -177,9 +177,11 @@ ETag: W/"<hash>"
 | `stale-while-revalidate` | Proxy may serve stale for this window while revalidating in the background (`CACHE_STALE_WHILE_REVALIDATE`, default 30s). Defined by [RFC 5861](https://datatracker.ietf.org/doc/html/rfc5861). Caddy supports this via [cache-handler](https://github.com/caddyserver/cache-handler); Envoy does not yet, but the header is future-proof. |
 | `ETag` | Weak validator for conditional requests (`If-None-Match` → `304 Not Modified`) |
 
-### Cached Routes
+### Cache Tiers
 
-All cached routes share the same TTL values. Routes not listed below do not emit cache headers.
+*Default (all `/v1/*` routes):* `Cache-Control: public, max-age=1, s-maxage=1` — minimal 1s cache, no `stale-while-revalidate`. Applied globally.
+
+*Extended (specific routes):* Uses the env-configured `CACHE_SERVER_MAX_AGE`, `CACHE_MAX_AGE`, and `CACHE_STALE_WHILE_REVALIDATE` values plus `ETag`. Overrides the default on the routes listed below.
 
 | Cached Endpoints |
 |-----------------|
