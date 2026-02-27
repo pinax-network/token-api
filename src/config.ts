@@ -35,8 +35,10 @@ export const DEFAULT_DEFAULT_TVM_NETWORK = 'tron';
 export const DEFAULT_LOW_LIQUIDITY_CHECK = 10000; // $10K USD
 export const DEFAULT_DISABLE_OPENAPI_SERVERS = false;
 export const DEFAULT_SKIP_NETWORKS_VALIDATION = false;
-// Make cache duration minimum to be same as max SQL execution time
-export const DEFAULT_CACHE_DURATIONS = `${DEFAULT_MAX_QUERY_EXECUTION_TIME},600`;
+// HTTP Cache-Control defaults (seconds)
+export const DEFAULT_CACHE_SERVER_MAX_AGE = 600;  // s-maxage for shared/proxy caches
+export const DEFAULT_CACHE_MAX_AGE = 60;           // max-age for browser caches
+export const DEFAULT_CACHE_STALE_WHILE_REVALIDATE = 30; // RFC 5861 stale-while-revalidate window
 export const DEFAULT_PLANS = '';
 
 // GitHub metadata
@@ -234,9 +236,19 @@ const opts = program
             .default(false)
     )
     .addOption(
-        new Option('--cache-durations <numbers>', 'Default cache durations in seconds (comma-separated)')
-            .env('CACHE_DURATIONS')
-            .default(DEFAULT_CACHE_DURATIONS)
+        new Option('--cache-server-max-age <number>', 's-maxage for shared/proxy caches (seconds)')
+            .env('CACHE_SERVER_MAX_AGE')
+            .default(DEFAULT_CACHE_SERVER_MAX_AGE)
+    )
+    .addOption(
+        new Option('--cache-max-age <number>', 'max-age for browser caches (seconds)')
+            .env('CACHE_MAX_AGE')
+            .default(DEFAULT_CACHE_MAX_AGE)
+    )
+    .addOption(
+        new Option('--cache-stale-while-revalidate <number>', 'stale-while-revalidate window (seconds, RFC 5861)')
+            .env('CACHE_STALE_WHILE_REVALIDATE')
+            .default(DEFAULT_CACHE_STALE_WHILE_REVALIDATE)
     )
     .addOption(
         new Option('--plans <string>', 'Plan configurations (name:limit,batched,intervals)')
@@ -278,25 +290,9 @@ const config = z
         skipNetworksValidation: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         verbose: z.coerce.string().transform((val) => val.toLowerCase() === 'true'),
         dbsConfigPath: z.string().optional(),
-        cacheDurations: z
-            .string()
-            .transform((val) => {
-                if (!val) return [];
-                return val
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter((s) => s.length > 0)
-                    .map((s) => {
-                        const num = Number(s);
-                        if (Number.isNaN(num)) throw new Error(`Invalid duration: ${s}`);
-                        return num;
-                    });
-            })
-            .pipe(
-                z
-                    .array(z.number().nonnegative('Cache duration must be non-negative'))
-                    .min(2, { message: 'At least two cache durations are required' })
-            ),
+        cacheServerMaxAge: z.coerce.number().nonnegative('Cache server max-age must be non-negative'),
+        cacheMaxAge: z.coerce.number().nonnegative('Cache max-age must be non-negative'),
+        cacheStaleWhileRevalidate: z.coerce.number().nonnegative('Cache stale-while-revalidate must be non-negative'),
         plans: z.string().transform(parsePlans),
     })
     .transform((data) => {

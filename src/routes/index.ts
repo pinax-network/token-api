@@ -63,30 +63,27 @@ import tvmTransfersNative from './transfers/tvm_native.js';
 const router = new Hono();
 
 // --- HTTP Cache-Control middleware ---
-// "Long" cache tier (slow-changing metadata): holders, dexes, tokens, pools, NFT collections
-// These use cacheDurations[1] (default: 600s)
-router.use('/v1/*/holders', cacheControl('long'));
-router.use('/v1/*/holders/*', cacheControl('long'));
-router.use('/v1/*/dexes', cacheControl('long'));
-router.use('/v1/*/tokens', cacheControl('long'));
-router.use('/v1/*/tokens/*', cacheControl('long'));
-router.use('/v1/*/pools', cacheControl('long'));
-router.use('/v1/evm/nft/collections', cacheControl('long'));
-
-// "Default" cache tier (real-time data): transfers, swaps, balances, OHLCV, etc.
-// These use cacheDurations[0] (default: 10s)
-router.use('/v1/*/transfers', cacheControl('default'));
-router.use('/v1/*/transfers/*', cacheControl('default'));
-router.use('/v1/*/swaps', cacheControl('default'));
-router.use('/v1/*/balances', cacheControl('default'));
-router.use('/v1/*/balances/*', cacheControl('default'));
-router.use('/v1/*/pools/ohlc', cacheControl('default'));
-router.use('/v1/*/owner', cacheControl('default'));
-router.use('/v1/evm/nft/holders', cacheControl('default'));
-router.use('/v1/evm/nft/items', cacheControl('default'));
-router.use('/v1/evm/nft/ownerships', cacheControl('default'));
-router.use('/v1/evm/nft/sales', cacheControl('default'));
-router.use('/v1/evm/nft/transfers', cacheControl('default'));
+// All cached routes share the same TTLs (configured via CACHE_SERVER_MAX_AGE, CACHE_MAX_AGE, CACHE_STALE_WHILE_REVALIDATE).
+// Routes without this middleware are not cached.
+router.use('/v1/*/holders', cacheControl());
+router.use('/v1/*/holders/*', cacheControl());
+router.use('/v1/*/dexes', cacheControl());
+router.use('/v1/*/tokens', cacheControl());
+router.use('/v1/*/tokens/*', cacheControl());
+router.use('/v1/*/pools', cacheControl());
+router.use('/v1/*/pools/ohlc', cacheControl());
+router.use('/v1/*/transfers', cacheControl());
+router.use('/v1/*/transfers/*', cacheControl());
+router.use('/v1/*/swaps', cacheControl());
+router.use('/v1/*/balances', cacheControl());
+router.use('/v1/*/balances/*', cacheControl());
+router.use('/v1/*/owner', cacheControl());
+router.use('/v1/evm/nft/collections', cacheControl());
+router.use('/v1/evm/nft/holders', cacheControl());
+router.use('/v1/evm/nft/items', cacheControl());
+router.use('/v1/evm/nft/ownerships', cacheControl());
+router.use('/v1/evm/nft/sales', cacheControl());
+router.use('/v1/evm/nft/transfers', cacheControl());
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
