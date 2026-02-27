@@ -121,7 +121,8 @@ The Token API provides access to onchain NFT and fungible token data, including 
    DISABLE_OPENAPI_SERVERS=false
 
    # Caching (optional)
-   DISABLE_QUERY_CACHE=false
+   CACHE_DURATIONS=10,600    # default,long TTLs in seconds
+   DISABLE_CACHE=false
    ```
 
 4. **Start the development server**
@@ -146,9 +147,73 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `IDLE_TIMEOUT` | Connection idle timeout (seconds) | `60` | No |
 | `MAX_LIMIT` | Maximum query result limit | `1000` | No |
 | `DISABLE_OPENAPI_SERVERS` | Disable OpenAPI server list | `false` | No |
-| `DISABLE_QUERY_CACHE` | Disable ClickHouse query cache (for benchmarking) | `false` | No |
+| `CACHE_DURATIONS` | Comma-separated cache TTLs in seconds: `default,long` | `10,600` | No |
+| `DISABLE_CACHE` | Disable HTTP Cache-Control headers entirely | `false` | No |
 | `PRETTY_LOGGING` | Enable pretty console logging | `false` | No |
 | `VERBOSE` | Enable verbose logging | `false` | No |
+
+## Caching
+
+The API emits standard HTTP caching headers so responses can be cached by reverse proxies (Caddy, Envoy) and browsers.
+
+### Cache-Control Headers
+
+Every successful API response includes:
+
+```
+Cache-Control: public, max-age=<browser_ttl>, s-maxage=<proxy_ttl>, stale-while-revalidate=30
+ETag: W/"<hash>"
+```
+
+| Directive | Purpose |
+|-----------|---------|
+| `public` | Response can be stored by shared caches (proxies) |
+| `max-age` | Browser cache TTL (half of `s-maxage`, minimum 5s) |
+| `s-maxage` | Shared/proxy cache TTL — overrides `max-age` for Caddy/Envoy |
+| `stale-while-revalidate=30` | Proxy may serve stale for up to 30s while revalidating in the background ([RFC 5861](https://www.rfc-editor.org/rfc/rfc5861)). Caddy supports this via [cache-handler](https://github.com/caddyserver/cache-handler); Envoy does not yet, but the header is future-proof. |
+| `ETag` | Weak validator for conditional requests (`If-None-Match` → `304 Not Modified`) |
+
+### Cache Tiers
+
+Endpoints are assigned one of two cache tiers, configured via `CACHE_DURATIONS=<default>,<long>`:
+
+| Tier | Default TTL | Endpoints |
+|------|------------|-----------|
+| **Default** | 10s | Transfers, swaps, balances, OHLCV, NFT holders/items/ownerships/sales/transfers |
+| **Long** | 600s | Token metadata, holders, supported DEXs, liquidity pools, NFT collections |
+
+### Configuration
+
+| Env Variable | Description | Default |
+|-------------|-------------|---------|
+| `CACHE_DURATIONS` | Comma-separated TTLs in seconds: `default,long` | `10,600` |
+| `DISABLE_CACHE` | Set to `true` to omit all Cache-Control headers | `false` |
+
+When a client sends `Cache-Control: no-cache`, the API skips emitting cache headers on the response.
+
+### Proxy Configuration Examples
+
+**Caddy** (with [cache-handler](https://github.com/caddyserver/cache-handler)):
+```
+{
+    cache
+}
+
+token-api.example.com {
+    cache
+    reverse_proxy localhost:8000
+}
+```
+
+**Envoy** (HTTP cache filter):
+```yaml
+http_filters:
+  - name: envoy.filters.http.cache
+    typed_config:
+      "@type": type.googleapis.com/envoy.extensions.filters.http.cache.v3.CacheConfig
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.http.cache.simple_http_cache.v3.SimpleHttpCacheConfig
+```
 
 ## Backend Requirements
 

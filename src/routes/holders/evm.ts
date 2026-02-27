@@ -110,9 +110,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         {
             ...params,
             db_balances: dbBalances.database,
-        },
-        {
-            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
         }
     );
     return handleUsageQueryError(c, response);

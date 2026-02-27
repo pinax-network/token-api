@@ -119,9 +119,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
             ...params,
             db_balances: dbBalances.database,
             db_transfers: dbTransfers.database,
-        },
-        {
-            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
         }
     );
     injectIcons(response);

@@ -542,7 +542,7 @@ async function runPerf() {
     // Override query cache at runtime
     if (filters.noCache) {
         // biome-ignore lint/suspicious/noExplicitAny: runtime override for benchmarking
-        (config as any).disableQueryCache = true;
+        (config as any).disableCache = true;
     }
 
     const activeRoutes = PERF_ROUTES.filter((r) => {

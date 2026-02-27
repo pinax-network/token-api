@@ -67,11 +67,6 @@ const client = (custom_config?: ClientOptions) => {
             // query_metadata_cache, causing use-after-free in MergeTreeIndexReader destructor when
             // enable_shared_storage_snapshot_in_query=1 (the default). Fixed in 26.2 via PR #96995.
             enable_shared_storage_snapshot_in_query: 0,
-            use_query_cache: config.disableQueryCache ? 0 : 1,
-            enable_writes_to_query_cache: config.disableQueryCache ? 0 : 1,
-            enable_reads_from_query_cache: config.disableQueryCache ? 0 : 1,
-            query_cache_nondeterministic_function_handling: 'save',
-            query_cache_ttl: config.cacheDurations[0], // Make first cache duration value the default for all endpoints
             ...custom_config?.clickhouse_settings,
         },
     };

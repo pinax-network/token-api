@@ -100,9 +100,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
             ...params,
             db_nft: dbNft.database,
             db_contracts: dbContracts.database,
-        },
-        {
-            clickhouse_settings: { query_cache_ttl: config.cacheDurations[1] },
         }
     );
 
