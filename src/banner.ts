@@ -65,6 +65,15 @@ export function logServerInit() {
         }
     }
 
+    // Cache settings
+    if (config.cacheDisable) {
+        console.log('Cache: disabled');
+    } else {
+        console.log(
+            `Cache: s-maxage=${config.cacheServerMaxAge}, max-age=${config.cacheMaxAge}, stale-while-revalidate=${config.cacheStaleWhileRevalidate}`
+        );
+    }
+
     // Supported & unsupported API routes based on configured databases
     const { supported, unsupported } = getSupportedRoutes(config);
     console.log(`Supported Routes (${supported.length}):`);
