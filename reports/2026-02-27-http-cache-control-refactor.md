@@ -23,7 +23,7 @@ The previous implementation used ClickHouse's built-in query cache (`use_query_c
 ### Two-tier caching model
 
 - **Default tier (1s):** All `/v1/*` API routes automatically receive `Cache-Control: public, max-age=1, s-maxage=1`. This provides a minimal deduplication window for burst traffic without serving significantly stale data.
-- **Extended tier (configurable):** Specific data routes (transfers, swaps, balances, holders, tokens, pools, DEXs, NFTs) receive the full cache headers configured via environment variables, including `stale-while-revalidate` and `ETag` support.
+- **Extended tier (configurable):** Specific data routes (holders, tokens, pools, DEXs, NFT collections) receive the full cache headers configured via environment variables, including `stale-while-revalidate` and `ETag` support.
 
 ### Environment variables over code changes
 
@@ -91,6 +91,7 @@ This eliminates latency spikes on cache misses — the user always gets a fast r
 [Caddy cache-handler](https://github.com/caddyserver/cache-handler) is a distributed HTTP cache module based on [Souin](https://github.com/darkweak/souin).
 
 **Supports:**
+
 - `Cache-Control` directives (`max-age`, `s-maxage`, `public`, `private`)
 - `stale-while-revalidate` (RFC 5861) ✅
 - `ETag` / `If-None-Match` validation ✅
@@ -112,20 +113,23 @@ token-api.example.com {
 ```
 
 **Documentation:**
-- Repository: https://github.com/caddyserver/cache-handler
-- Souin docs: https://docs.souin.io
-- Storages: https://github.com/darkweak/storages
+
+- Repository: <https://github.com/caddyserver/cache-handler>
+- Souin docs: <https://docs.souin.io>
+- Storages: <https://github.com/darkweak/storages>
 
 ### Envoy
 
 Envoy provides a built-in [HTTP cache filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter) using `SimpleHttpCache` (in-memory).
 
 **Supports:**
+
 - `Cache-Control` directives (`max-age`, `s-maxage`, `public`, `no-cache`, `no-store`) ✅
 - `ETag` / `If-None-Match` validation ✅
 - `Age` header on cached responses ✅
 
 **Does NOT support (as of Envoy 1.38):**
+
 - `stale-while-revalidate` ❌ — [Tracking issue: envoyproxy/envoy#14362](https://github.com/envoyproxy/envoy/issues/14362)
 - `stale-if-error` ❌
 
@@ -143,8 +147,9 @@ http_filters:
 ```
 
 **Documentation:**
-- Cache filter: https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter
-- Cache sandbox: https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/cache
+
+- Cache filter: <https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter>
+- Cache sandbox: <https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/cache>
 - SimpleHttpCache: in-memory only, no distributed/shared cache support
 
 ## Implementation Details
@@ -184,15 +189,15 @@ All the following routes receive the full cache headers:
 
 | Resource | URL |
 |----------|-----|
-| RFC 7234 — HTTP/1.1 Caching | https://httpwg.org/specs/rfc7234.html |
-| RFC 5861 — HTTP Cache-Control Extensions for Stale Content | https://datatracker.ietf.org/doc/html/rfc5861 |
-| RFC 7232 — HTTP/1.1 Conditional Requests | https://httpwg.org/specs/rfc7232.html |
-| MDN — Cache-Control | https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control |
-| MDN — ETag | https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag |
-| Caddy cache-handler | https://github.com/caddyserver/cache-handler |
-| Souin documentation | https://docs.souin.io |
-| Envoy cache filter docs | https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter |
-| Envoy cache sandbox | https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/cache |
-| Envoy stale-while-revalidate tracking | https://github.com/envoyproxy/envoy/issues/14362 |
-| ClickHouse PR #92118 (BlockIO bug) | https://github.com/ClickHouse/ClickHouse/pull/92118 |
-| ClickHouse PR #96995 (fix in 26.2) | https://github.com/ClickHouse/ClickHouse/pull/96995 |
+| RFC 7234 — HTTP/1.1 Caching | <https://httpwg.org/specs/rfc7234.html> |
+| RFC 5861 — HTTP Cache-Control Extensions for Stale Content | <https://datatracker.ietf.org/doc/html/rfc5861> |
+| RFC 7232 — HTTP/1.1 Conditional Requests | <https://httpwg.org/specs/rfc7232.html> |
+| MDN — Cache-Control | <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control> |
+| MDN — ETag | <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag> |
+| Caddy cache-handler | <https://github.com/caddyserver/cache-handler> |
+| Souin documentation | <https://docs.souin.io> |
+| Envoy cache filter docs | <https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter> |
+| Envoy cache sandbox | <https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/cache> |
+| Envoy stale-while-revalidate tracking | <https://github.com/envoyproxy/envoy/issues/14362> |
+| ClickHouse PR #92118 (BlockIO bug) | <https://github.com/ClickHouse/ClickHouse/pull/92118> |
+| ClickHouse PR #96995 (fix in 26.2) | <https://github.com/ClickHouse/ClickHouse/pull/96995> |
