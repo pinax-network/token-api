@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { blockResolver } from '../middleware/blockResolver.js';
 import { cacheControl, cacheControlDefault } from '../middleware/cacheControl.js';
 // Balances
 import evmBalances from './balances/evm.js';
@@ -61,6 +62,15 @@ import tvmTransfers from './transfers/tvm.js';
 import tvmTransfersNative from './transfers/tvm_native.js';
 
 const router = new Hono();
+
+// --- Block→timestamp resolution middleware ---
+// Resolves start_block/end_block to start_time/end_time before query execution.
+// Applied to all routes that accept block number parameters.
+router.use('/v1/*/transfers', blockResolver());
+router.use('/v1/*/transfers/native', blockResolver());
+router.use('/v1/*/swaps', blockResolver());
+router.use('/v1/evm/nft/transfers', blockResolver());
+router.use('/v1/evm/nft/sales', blockResolver());
 
 // --- HTTP Cache-Control middleware ---
 // Default: all /v1/* routes get a minimal 1s cache (no SWR).
