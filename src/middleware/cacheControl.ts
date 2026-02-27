@@ -1,27 +1,20 @@
-import { createHash } from 'node:crypto';
 import type { Context, Next } from 'hono';
 import { config } from '../config.js';
 
 /**
- * Compute a weak ETag from the response body.
- * Uses MD5 for speed — this is not cryptographic, just a cache validator.
- */
-function computeETag(body: string): string {
-    const hash = createHash('md5').update(body).digest('hex').slice(0, 16);
-    return `W/"${hash}"`;
-}
-
-/**
- * Hono middleware that adds HTTP Cache-Control and ETag headers to cacheable responses.
+ * Hono middleware that adds HTTP Cache-Control headers to cacheable responses.
  *
  * Headers emitted (on 200 responses):
  *   Cache-Control: public, max-age=<CACHE_MAX_AGE>, s-maxage=<CACHE_SERVER_MAX_AGE>, stale-while-revalidate=<CACHE_STALE_WHILE_REVALIDATE>
- *   ETag: W/"<hash>"
  *
  * Behaviour:
  * - When `CACHE_DISABLE=true`, no cache headers are emitted.
  * - When the request includes `Cache-Control: no-cache`, no cache headers are emitted.
- * - Supports `If-None-Match` → returns 304 Not Modified when ETag matches.
+ *
+ * Note: ETag/If-None-Match is intentionally omitted — response bodies include dynamic
+ * metadata (request_time, duration_ms, statistics) that change on every request, making
+ * ETags ineffective. Time-based caching via Cache-Control + proxy s-maxage is the
+ * appropriate strategy for this API.
  *
  * Environment variables (all in seconds):
  *   CACHE_SERVER_MAX_AGE  – `s-maxage` for shared/proxy caches (Caddy, Envoy). Default: 600
@@ -52,23 +45,6 @@ export function cacheControl() {
             'Cache-Control',
             `public, max-age=${cacheMaxAge}, s-maxage=${cacheServerMaxAge}, stale-while-revalidate=${cacheStaleWhileRevalidate}`
         );
-
-        // Compute and set ETag from response body
-        const body = await ctx.res.clone().text();
-        const etag = computeETag(body);
-        ctx.res.headers.set('ETag', etag);
-
-        // Support conditional requests (If-None-Match)
-        const ifNoneMatch = ctx.req.header('If-None-Match');
-        if (ifNoneMatch && ifNoneMatch === etag) {
-            ctx.res = new Response(null, {
-                status: 304,
-                headers: {
-                    'Cache-Control': ctx.res.headers.get('Cache-Control') ?? '',
-                    ETag: etag,
-                },
-            });
-        }
     };
 }
 

@@ -15,15 +15,14 @@ The previous implementation used ClickHouse's built-in query cache (`use_query_c
 1. **Tight coupling** — Cache TTLs were hardcoded in route handlers alongside query logic
 2. **Limited control** — No way for infrastructure to tune caching without code changes
 3. **No proxy integration** — Reverse proxies (Caddy, Envoy) couldn't cache responses since no HTTP cache headers were emitted
-4. **No conditional requests** — Clients had no way to validate cached responses (no `ETag` or `Last-Modified`)
-5. **ClickHouse-specific** — Cache behavior was tied to a single database vendor's implementation
+4. **ClickHouse-specific** — Cache behavior was tied to a single database vendor's implementation
 
 ## Design Decisions
 
 ### Two-tier caching model
 
 - **Default tier (1s):** All `/v1/*` API routes automatically receive `Cache-Control: public, max-age=1, s-maxage=1`. This provides a minimal deduplication window for burst traffic without serving significantly stale data.
-- **Extended tier (configurable):** Specific data routes (holders, tokens, pools, DEXs, NFT collections) receive the full cache headers configured via environment variables, including `stale-while-revalidate` and `ETag` support.
+- **Extended tier (configurable):** Specific data routes (holders, tokens, pools, DEXs, NFT collections) receive the full cache headers configured via environment variables, including `stale-while-revalidate`.
 
 ### Environment variables over code changes
 
@@ -42,7 +41,6 @@ Extended-tier responses emit:
 
 ```
 Cache-Control: public, max-age=60, s-maxage=600, stale-while-revalidate=30
-ETag: W/"<md5-hash>"
 ```
 
 Default-tier responses emit:
@@ -62,11 +60,9 @@ Cache-Control: public, max-age=1, s-maxage=1
 | `s-maxage` | [RFC 7234 §5.2.2.9](https://httpwg.org/specs/rfc7234.html#cache-response-directive.s-maxage) | Overrides `max-age` for shared caches — allows longer proxy TTLs than browser TTLs |
 | `stale-while-revalidate` | [RFC 5861 §3](https://datatracker.ietf.org/doc/html/rfc5861#section-3) | After TTL expires, proxy may serve stale for this window while revalidating in the background |
 
-### ETag and conditional requests
+### Why no ETag
 
-- **ETag generation:** Weak ETag (`W/"<hash>"`) computed from MD5 of the response body. MD5 is used for speed — this is a cache validator, not cryptographic.
-- **Conditional requests:** When a client sends `If-None-Match: <etag>`, the API returns `304 Not Modified` if the ETag matches, saving bandwidth.
-- **Future:** `Last-Modified` / `If-Modified-Since` can be added later if needed.
+ETag/`If-None-Match` was intentionally removed. Response bodies include dynamic metadata (`request_time`, `duration_ms`, `statistics`) that change on every request, producing a different hash each time. This means `If-None-Match` would never match and clients would never receive `304 Not Modified`. Additionally, the server still runs the full ClickHouse query to compute the ETag, so there's no backend CPU savings — only bandwidth savings on a `304`. For an API behind a CDN with `s-maxage=600`, most requests won't even reach the origin, making ETags practically useless. Time-based caching via `Cache-Control` is the appropriate strategy.
 
 ### stale-while-revalidate (RFC 5861)
 
@@ -94,7 +90,7 @@ This eliminates latency spikes on cache misses — the user always gets a fast r
 
 - `Cache-Control` directives (`max-age`, `s-maxage`, `public`, `private`)
 - `stale-while-revalidate` (RFC 5861) ✅
-- `ETag` / `If-None-Match` validation ✅
+- ~~ETag / If-None-Match~~ (not used — see "Why no ETag" above)
 - [RFC 7234](https://httpwg.org/specs/rfc7234.html) compliant
 - [Cache-Status header](https://httpwg.org/http-extensions/draft-ietf-httpbis-cache-header.html) for debugging
 
@@ -125,7 +121,7 @@ Envoy provides a built-in [HTTP cache filter](https://www.envoyproxy.io/docs/env
 **Supports:**
 
 - `Cache-Control` directives (`max-age`, `s-maxage`, `public`, `no-cache`, `no-store`) ✅
-- `ETag` / `If-None-Match` validation ✅
+- ~~ETag / If-None-Match~~ (not used — see "Why no ETag" above)
 - `Age` header on cached responses ✅
 
 **Does NOT support (as of Envoy 1.38):**
@@ -159,7 +155,7 @@ http_filters:
 Cache headers are applied via Hono middleware in `src/routes/index.ts`:
 
 1. **`cacheControlDefault()`** — registered globally on `/v1/*`, sets minimal 1s cache. Only sets headers if no `Cache-Control` header exists (avoids overwriting extended tier).
-2. **`cacheControl()`** — registered on specific route patterns, sets full env-configured cache headers with `ETag`. Overwrites any existing `Cache-Control` header.
+2. **`cacheControl()`** — registered on specific route patterns, sets full env-configured cache headers. Overwrites any existing `Cache-Control` header.
 
 ### Cached routes (extended tier)
 
@@ -193,7 +189,6 @@ All the following routes receive the full cache headers:
 | RFC 5861 — HTTP Cache-Control Extensions for Stale Content | <https://datatracker.ietf.org/doc/html/rfc5861> |
 | RFC 7232 — HTTP/1.1 Conditional Requests | <https://httpwg.org/specs/rfc7232.html> |
 | MDN — Cache-Control | <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control> |
-| MDN — ETag | <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag> |
 | Caddy cache-handler | <https://github.com/caddyserver/cache-handler> |
 | Souin documentation | <https://docs.souin.io> |
 | Envoy cache filter docs | <https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/cache_filter> |

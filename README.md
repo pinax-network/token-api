@@ -166,7 +166,6 @@ Every successful response from a cached route includes:
 
 ```
 Cache-Control: public, max-age=60, s-maxage=600, stale-while-revalidate=30
-ETag: W/"<hash>"
 ```
 
 | Directive | Purpose |
@@ -175,13 +174,14 @@ ETag: W/"<hash>"
 | `max-age` | Browser cache TTL (`CACHE_MAX_AGE`, default 60s) |
 | `s-maxage` | Shared/proxy cache TTL — overrides `max-age` for Caddy/Envoy (`CACHE_SERVER_MAX_AGE`, default 600s) |
 | `stale-while-revalidate` | Proxy may serve stale for this window while revalidating in the background (`CACHE_STALE_WHILE_REVALIDATE`, default 30s). Defined by [RFC 5861](https://datatracker.ietf.org/doc/html/rfc5861). Caddy supports this via [cache-handler](https://github.com/caddyserver/cache-handler); Envoy does not yet, but the header is future-proof. |
-| `ETag` | Weak validator for conditional requests (`If-None-Match` → `304 Not Modified`) |
+
+> **Note:** ETag/`If-None-Match` is intentionally omitted. Response bodies include dynamic metadata (`request_time`, `duration_ms`, `statistics`) that change on every request, making content-based ETags ineffective. Time-based caching via `Cache-Control` + proxy `s-maxage` is the appropriate strategy.
 
 ### Cache Tiers
 
 *Default (all `/v1/*` routes):* `Cache-Control: public, max-age=1, s-maxage=1` — minimal 1s cache, no `stale-while-revalidate`. Applied globally.
 
-*Extended (specific routes):* Uses the env-configured `CACHE_SERVER_MAX_AGE`, `CACHE_MAX_AGE`, and `CACHE_STALE_WHILE_REVALIDATE` values plus `ETag`. Overrides the default on the routes listed below.
+*Extended (specific routes):* Uses the env-configured `CACHE_SERVER_MAX_AGE`, `CACHE_MAX_AGE`, and `CACHE_STALE_WHILE_REVALIDATE` values. Overrides the default on the routes listed below.
 
 | Cached Endpoints |
 |-----------------|
@@ -222,7 +222,7 @@ token-api.example.com {
 }
 ```
 
-Caddy's cache-handler respects `s-maxage`, `stale-while-revalidate`, and `ETag`/`If-None-Match` out of the box.
+Caddy's cache-handler respects `s-maxage` and `stale-while-revalidate` out of the box.
 
 **Envoy** (HTTP cache filter):
 
