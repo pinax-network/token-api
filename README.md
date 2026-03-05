@@ -43,6 +43,7 @@ The Token API provides access to onchain NFT and fungible token data, including 
 
 - **EVM Networks**: Ethereum, Base, Arbitrum, BSC, Polygon, Optimism, Avalanche, Unichain
 - **SVM Networks**: Solana with full SPL token and DEX swap support
+- **TVM Networks**: Tron with token, transfer, pool, and swap coverage
 - **Real-time Sync**: Sub-second data latency across all supported networks
 
 ## Quick Start
@@ -153,8 +154,19 @@ The Token API provides access to onchain NFT and fungible token data, including 
 | `CACHE_SERVER_MAX_AGE` | `s-maxage` for shared/proxy caches (seconds) | `600` | No |
 | `CACHE_MAX_AGE` | `max-age` for browser caches (seconds) | `60` | No |
 | `CACHE_STALE_WHILE_REVALIDATE` | `stale-while-revalidate` window (seconds, [RFC 5861](https://datatracker.ietf.org/doc/html/rfc5861)) | `30` | No |
+| `DEFAULT_EVM_NETWORK` | Default EVM network used when not explicitly provided | `mainnet` | No |
+| `DEFAULT_SVM_NETWORK` | Default SVM network used when not explicitly provided | `solana` | No |
+| `DEFAULT_TVM_NETWORK` | Default TVM network used when not explicitly provided | `tron` | No |
+| `MAX_QUERY_EXECUTION_TIME` | Maximum SQL query execution time (seconds) | `10` | No |
+| `DB_RESPONSE_TIME_TRIGGER_MS` | Health-check degraded threshold for DB response time | `1000` | No |
+| `LARGE_QUERIES_ROWS_TRIGGER` | Row threshold for large-query metrics | `10000000` | No |
+| `LARGE_QUERIES_BYTES_TRIGGER` | Byte threshold for large-query metrics | `1000000000` | No |
+| `SKIP_NETWORKS_VALIDATION` | Skip startup validation that configured networks exist in ClickHouse | `false` | No |
+| `PLANS` | Plan limits as `name:limit,batched,intervals` entries | empty (disabled) | No |
 | `PRETTY_LOGGING` | Enable pretty console logging | `false` | No |
 | `VERBOSE` | Enable verbose logging | `false` | No |
+
+Use `bun start --help` to view the complete CLI/environment surface, including `URL`, `API_URL`, `DATABASE`, `USERNAME`, and `PASSWORD`.
 
 ## Caching
 
@@ -269,6 +281,8 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 
 ## Supported Networks
 
+Supported networks are derived from `dbs-config.yaml` (`networks.*`) at startup. The lists below reflect the route coverage currently implemented in `src/routes/`.
+
 > [!TIP]
 >
 > Checkout the [`networks-registry`](https://github.com/graphprotocol/networks-registry) repository for reference.
@@ -280,13 +294,17 @@ curl -H "Authorization: Bearer <YOUR_API_TOKEN>" \
 - **Avalanche C-Chain** (`avalanche`)
 - **Base** (`base`)
 - **BNB Smart Chain** (`bsc`)
-- **Polygon** (`matic`)
+- **Polygon** (`polygon`)
 - **Optimism** (`optimism`)
 - **Unichain** (`unichain`)
 
 ### SVM Networks
 
 - **Solana Mainnet** (`solana`)
+
+### TVM Networks
+
+- **Tron Mainnet** (`tron`)
 
 ## Docker Deployment
 
@@ -371,13 +389,21 @@ AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= {start_time:Nullable(
 
 ```
 token-api/
+├── .github/workflows/   # CI/CD pipelines (test, release, docker publish)
+├── scripts/             # Utility scripts (perf, query analysis, stablecoin checks)
+├── queries/             # SQL breakdown/reference queries used by scripts
+├── reports/             # Versioned performance and operational reports
 ├── src/
 │   ├── routes/          # API route handlers (colocated .ts + .sql)
+│   ├── config/          # YAML config loader and validators
 │   ├── types/           # Zod schemas and TypeScript types
 │   ├── clickhouse/      # ClickHouse client configuration
-│   ├── services/        # Shared services (indexed tip, etc.)
+│   ├── middleware/      # Shared middleware (cache, redirects)
+│   ├── registry/        # Native/stable token registry helpers
+│   ├── services/        # Shared services (Redis/spam-scoring)
 │   └── sql/             # SQL utilities
 ├── public/              # Static assets
+├── docs/                # Maintainer navigation and operational docs
 └── index.ts             # Application entry point
 ```
 
