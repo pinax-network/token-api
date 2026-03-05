@@ -19,8 +19,8 @@ network = 'mainnet';
 hasAllDbs = route.requires.every((cat) => m.hasDatabase(cfg, network, cat));
 console.log(`Network: ${network}, requires: ${route.requires}, hasAllDbs: ${hasAllDbs}`);
 for (const cat of route.requires) {
-  const has = m.hasDatabase(cfg, network, cat);
-  console.log(`  hasDatabase('${network}', '${cat}'): ${has}`);
+    const has = m.hasDatabase(cfg, network, cat);
+    console.log(`  hasDatabase('${network}', '${cat}'): ${has}`);
 }
 
 console.log('\n=== Testing EVM NFT holders ===');
@@ -29,8 +29,8 @@ network = 'mainnet';
 hasAllDbs = route.requires.every((cat) => m.hasDatabase(cfg, network, cat));
 console.log(`Network: ${network}, requires: ${route.requires}, hasAllDbs: ${hasAllDbs}`);
 for (const cat of route.requires) {
-  const has = m.hasDatabase(cfg, network, cat);
-  console.log(`  hasDatabase('${network}', '${cat}'): ${has}`);
+    const has = m.hasDatabase(cfg, network, cat);
+    console.log(`  hasDatabase('${network}', '${cat}'): ${has}`);
 }
 
 console.log('\n=== Available databases ===');
@@ -38,4 +38,3 @@ console.log('Networks:', Object.keys(cfg.networks));
 console.log('dexDatabases:', cfg.dexDatabases);
 console.log('nftDatabases:', cfg.nftDatabases);
 console.log('contractsDatabases:', cfg.contractsDatabases);
-
