@@ -154,8 +154,7 @@ http_filters:
 
 Cache headers are applied via Hono middleware in `src/routes/index.ts`:
 
-1. **`cacheControlDefault()`** — registered globally on `/v1/*`, sets minimal 1s cache. Only sets headers if no `Cache-Control` header exists (avoids overwriting extended tier).
-2. **`cacheControl()`** — registered on specific route patterns, sets full env-configured cache headers. Overwrites any existing `Cache-Control` header.
+1. **`cacheControl()`** — registered on specific route patterns, sets full env-configured cache headers. Overwrites any existing `Cache-Control` header.
 
 ### Cached routes (extended tier)
 
