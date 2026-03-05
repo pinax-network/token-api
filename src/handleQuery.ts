@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { ZodError } from 'zod';
 import { makeQuery } from './clickhouse/makeQuery.js';
 import { config, DEFAULT_LIMIT, DEFAULT_PAGE } from './config.js';
+import { getResolvedTimeBounds } from './middleware/blockResolver.js';
 import { normalizeSQL } from './sql/index.js';
 import {
     type ApiErrorResponse,
@@ -43,10 +44,21 @@ export async function makeUsageQueryJson<T = unknown>(
     const limit = limitSchema.safeParse(ctx.req.query('limit')).data ?? DEFAULT_LIMIT;
     const page = pageSchema.safeParse(ctx.req.query('page')).data ?? DEFAULT_PAGE;
 
+    // Inject resolved block→timestamp bounds from middleware (if available)
+    const resolvedBounds = getResolvedTimeBounds(ctx);
+    const timeOverrides: Record<string, string> = {};
+    if (resolvedBounds.startTime !== null) {
+        timeOverrides.start_time = String(resolvedBounds.startTime);
+    }
+    if (resolvedBounds.endTime !== null) {
+        timeOverrides.end_time = String(resolvedBounds.endTime);
+    }
+
     // inject request query params
     const params = {
         ...ctx.req.param(),
         ...ctx.req.query(),
+        ...timeOverrides, // resolved block→timestamp overrides
         ...query_params,
         // Since `page` starts at 1, `offset` should be positive for page > 1
         offset: limit * (page - 1),
