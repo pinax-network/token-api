@@ -6,6 +6,10 @@ on:
             - main
     release:
         types: [published]
+    pull_request:
+        branches:
+            - main
+    workflow_dispatch:
 
 env:
     REGISTRY: ghcr.io
