@@ -63,7 +63,7 @@ export function cacheControlDefault() {
 
         // Only set if not already set by cacheControl()
         if (!ctx.res.headers.has('Cache-Control')) {
-            ctx.res.headers.set('Cache-Control', 'public, max-age=1, s-maxage=1');
+            ctx.res.headers.set('Cache-Control', 'public, max-age=1');
         }
     };
 }
