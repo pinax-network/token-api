@@ -22,7 +22,6 @@ import { config } from '../config.js';
  *   CACHE_STALE_WHILE_REVALIDATE – RFC 5861 stale-while-revalidate window. Default: 30
  *
  * Routes with `cacheControl()` get the full env-configured TTLs.
- * Routes with `cacheControlDefault()` get a minimal 1s cache (no stale-while-revalidate).
  *
  * @see https://datatracker.ietf.org/doc/html/rfc5861
  */
@@ -45,25 +44,5 @@ export function cacheControl() {
             'Cache-Control',
             `public, max-age=${cacheMaxAge}, s-maxage=${cacheServerMaxAge}, stale-while-revalidate=${cacheStaleWhileRevalidate}`
         );
-    };
-}
-
-/**
- * Lightweight default cache for all API routes (1s max-age, no stale-while-revalidate).
- * Applied globally to `/v1/*` — routes with `cacheControl()` will override this since
- * their middleware runs after and overwrites the Cache-Control header.
- */
-export function cacheControlDefault() {
-    return async (ctx: Context, next: Next) => {
-        await next();
-
-        if (config.cacheDisable) return;
-        if (ctx.req.header('Cache-Control') === 'no-cache') return;
-        if (ctx.res.status !== 200) return;
-
-        // Only set if not already set by cacheControl()
-        if (!ctx.res.headers.has('Cache-Control')) {
-            ctx.res.headers.set('Cache-Control', 'public, max-age=1');
-        }
     };
 }
