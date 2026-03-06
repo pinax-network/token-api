@@ -26,7 +26,6 @@ WITH ohlc AS (
         gross_volume0 / pow(10, m0.decimals) AS volume,
 
         /* Universal */
-        uniq_tx_from AS uaw,
         transactions,
 
         /* extra fields */
@@ -57,7 +56,6 @@ SELECT
     if(is_stablecoin, 1/high_raw, low_raw) AS low,
     if(is_stablecoin, 1/close_raw, close_raw) AS close,
     volume,
-    uaw,
     transactions,
 
     /* Network */

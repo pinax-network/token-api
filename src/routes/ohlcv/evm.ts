@@ -39,7 +39,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             low: z.number(),
             close: z.number(),
             volume: z.number(),
-            uaw: z.number(),
             transactions: z.number(),
             network: evmNetworkIdSchema,
         })
@@ -72,7 +71,6 @@ const openapi = describeRoute(
                                             low: 3959.52075942394,
                                             close: 3989.7646037044765,
                                             volume: 32956701.586648002,
-                                            uaw: 1363,
                                             transactions: 3066,
                                             network: 'mainnet',
                                         },

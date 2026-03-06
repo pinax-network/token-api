@@ -51,7 +51,7 @@ interface BenchConfig {
 // Timestamps are chain-agnostic (same real-world time), block numbers differ per chain
 const BENCH: Record<string, BenchConfig> = {
     // EVM Networks
-    mainnet: { startBlock: 21_000_000, endBlock: 21_000_005, startTime: 1727592950, endTime: 1727592960 },
+    mainnet: { startBlock: 21_000_000, endBlock: 21_000_010, startTime: 1729345619, endTime: 1729345667 },
     'arbitrum-one': { startBlock: 280_000_000, endBlock: 280_000_005, startTime: 1727592950, endTime: 1727592960 },
     bsc: { startBlock: 44_000_000, endBlock: 44_000_005, startTime: 1727592950, endTime: 1727592960 },
     base: { startBlock: 23_000_000, endBlock: 23_000_005, startTime: 1727592950, endTime: 1727592960 },
@@ -67,7 +67,7 @@ const BENCH: Record<string, BenchConfig> = {
 
 // Fallbacks per chain type (uses first-defined network defaults)
 const CHAIN_BENCH_DEFAULT: Record<ChainType, BenchConfig> = {
-    evm: { startBlock: 21_000_000, endBlock: 21_000_005, startTime: 1727592950, endTime: 1727592960 },
+    evm: { startBlock: 21_000_000, endBlock: 21_000_010, startTime: 1729345619, endTime: 1729345667 },
     svm: { startBlock: 370_000_002, endBlock: 370_000_005, startTime: 1727592950, endTime: 1727592960 },
     tvm: { startBlock: 68_000_000, endBlock: 68_000_005, startTime: 1727592950, endTime: 1727592960 },
 };
@@ -106,7 +106,7 @@ const EVM_NETWORK_EXAMPLES: Record<string, EvmNetworkExamples> = {
         swapTx: EVM_TRANSACTION_SWAP_EXAMPLE,
         factory: EVM_FACTORY_UNISWAP_V3_EXAMPLE, // Uniswap V3
         pool: EVM_POOL_USDC_WETH_EXAMPLE, // USDC/WETH
-        swapCaller: EVM_ADDRESS_SWAP_EXAMPLE,
+        swapCaller: '0x7692527f9f291e8bce0cbbe5732bf39654eef8e4',
         nftContract: EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE, // Pudgy Penguins
         nftTokenId: EVM_TOKEN_ID_PUDGY_PENGUIN_EXAMPLE,
         nftTransferTx: EVM_TRANSACTION_NFT_SALE_EXAMPLE,
