@@ -43,7 +43,7 @@ minutes_union AS
     Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
     the OR pattern prevents ClickHouse from recognizing a clean primary-key range.
     greatest/least picks the tighter bound when both are provided.
-    clamped_start_ts ensures the scan window is at most 10 minutes wide for bare queries.
+    clamped_start_ts ensures the scan window is at most 1 hour wide for bare queries.
 */
 start_ts AS (
     SELECT greatest(
@@ -61,7 +61,7 @@ clamped_start_ts AS (
     SELECT if(
         (SELECT n FROM active_filters) > 0,
         (SELECT ts FROM start_ts),
-        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 1 HOUR)
     ) AS ts
 ),
 /* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time/block window */

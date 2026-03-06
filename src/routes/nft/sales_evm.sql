@@ -28,7 +28,7 @@ clamped_start_ts AS (
     SELECT if(
         (SELECT yes FROM has_filters) OR isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt64)}),
         (SELECT ts FROM start_ts),
-        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 1 HOUR)
     ) AS ts
 ),
 filtered_orders AS (

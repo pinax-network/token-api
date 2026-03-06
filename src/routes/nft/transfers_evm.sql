@@ -6,7 +6,7 @@
     enabling granule skipping on the primary index.
     When no lower bound → falls back to epoch (toDateTime(0)) → no-op.
     When no upper bound → falls back to now() → no-op.
-/* Only clamp to 10 minutes when no narrowing filters are active.
+/* Only clamp to 1 hour when no narrowing filters are active.
    start_time/start_block are already incorporated into start_ts, so the
    clamp's greatest() handles them correctly without disabling it. */
 
@@ -44,7 +44,7 @@ clamped_start_ts AS (
     SELECT if(
         (SELECT yes FROM has_filters) OR (SELECT yes FROM has_explicit_start),
         (SELECT ts FROM start_ts),
-        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 10 MINUTE)
+        greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 1 HOUR)
     ) AS ts
 ),
 erc721 AS (
