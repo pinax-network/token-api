@@ -39,7 +39,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             low: z.number(),
             close: z.number(),
             volume: z.number(),
-            uaw: z.number(),
             transactions: z.number(),
             network: tvmNetworkIdSchema,
         })
@@ -72,7 +71,6 @@ const openapi = describeRoute(
                                             low: 0.28099080983643465,
                                             close: 0.2880636266155062,
                                             volume: 15584135805763,
-                                            uaw: 10,
                                             transactions: 102081,
                                             network: 'tron',
                                         },
