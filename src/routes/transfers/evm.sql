@@ -51,10 +51,13 @@ start_ts AS (
         coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt64)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
     ) AS ts
 ),
+max_ts AS (
+    SELECT max(timestamp) AS ts FROM {db_transfers:Identifier}.blocks
+),
 end_ts AS (
     SELECT least(
-        coalesce(toDateTime({end_time:Nullable(UInt64)}), now()),
-        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), now())
+        coalesce(toDateTime({end_time:Nullable(UInt64)}), (SELECT ts FROM max_ts)),
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), (SELECT ts FROM max_ts))
     ) AS ts
 ),
 clamped_start_ts AS (
