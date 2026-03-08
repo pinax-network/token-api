@@ -75,7 +75,7 @@ minutes_union AS
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (isNotNull({protocol:Nullable(String)}) AND protocol = replaceAll({protocol:Nullable(String)}, '_', '-'))
+    WHERE (isNotNull({protocol:Nullable(String)}) AND protocol = {protocol:Nullable(String)})
     GROUP BY minute
 ),
 /*

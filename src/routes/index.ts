@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cacheControl } from '../middleware/cacheControl.js';
+import { normalizeProtocolQuery } from '../middleware/normalizeProtocolQuery.js';
 // Balances
 import evmBalances from './balances/evm.js';
 // import tvmBalancesNative from './balances/tvm_native.js';
@@ -61,6 +62,10 @@ import tvmTransfers from './transfers/tvm.js';
 import tvmTransfersNative from './transfers/tvm_native.js';
 
 const router = new Hono();
+
+// --- Query normalization middleware ---
+// Normalize request query parameters before validation/route handling.
+router.use('/v1/*', normalizeProtocolQuery);
 
 // --- HTTP Cache-Control middleware ---
 // Default: all /v1/* routes get a minimal 1s cache (no SWR).
