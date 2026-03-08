@@ -49,15 +49,15 @@ SELECT
     timestamp,
     transaction_index,
     instruction_index,
-    signature,
-    program_id,
-    program_names(program_id) AS program_name,
-    amm,
-    amm_pool,
-    user,
-    input_mint,
+    toString(signature) AS signature,
+    toString(program_id) AS program_id,
+    toString(program_names(program_id)) AS program_name,
+    toString(amm) AS amm,
+    toString(amm_pool) AS amm_pool,
+    toString(user) AS user,
+    toString(input_mint) AS input_mint,
     input_amount,
-    output_mint,
+    toString(output_mint) AS output_mint,
     output_amount
 FROM {db_dex:Identifier}.swaps s
 WHERE
