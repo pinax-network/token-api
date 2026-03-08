@@ -12,9 +12,7 @@ const requiredPredicates = {
 };
 
 function whitespaceAgnostic(pattern: string) {
-    return new RegExp(
-        pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll(/\s+/g, '\\s+')
-    );
+    return new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll(/\s+/g, '\\s+'));
 }
 
 describe('SVM swaps SQL filters', () => {

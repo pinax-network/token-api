@@ -9,7 +9,7 @@ export async function normalizeProtocolQuery(c: Context, next: Next) {
 
         if (normalizedProtocol !== protocol) {
             url.searchParams.set('protocol', normalizedProtocol);
-            (c.req as any).raw = new Request(url.toString(), c.req.raw);
+            (c.req as { raw: Request }).raw = new Request(url.toString(), c.req.raw);
         }
     }
 
