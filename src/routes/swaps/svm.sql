@@ -72,6 +72,13 @@ WHERE
        → row passes instantly without touching block_num. */
     AND NOT (isNotNull({start_block:Nullable(UInt32)}) AND timestamp = (SELECT ts FROM clamped_start_ts) AND block_num < {start_block:Nullable(UInt32)})
     AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt32)})
+    AND (empty({signature:Array(String)})   OR signature IN {signature:Array(String)})
+    AND (empty({amm:Array(String)})         OR amm IN {amm:Array(String)})
+    AND (empty({amm_pool:Array(String)})    OR amm_pool IN {amm_pool:Array(String)})
+    AND (empty({user:Array(String)})        OR user IN {user:Array(String)})
+    AND (empty({input_mint:Array(String)})  OR input_mint IN {input_mint:Array(String)})
+    AND (empty({output_mint:Array(String)}) OR output_mint IN {output_mint:Array(String)})
+    AND (empty({program_id:Array(String)})  OR program_id IN {program_id:Array(String)})
 ORDER BY timestamp DESC, block_num DESC
 LIMIT   {limit:UInt64}
 OFFSET  {offset:UInt64}
