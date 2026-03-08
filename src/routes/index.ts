@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cacheControl } from '../middleware/cacheControl.js';
+import { normalizeProtocolQuery } from '../middleware/normalizeProtocolQuery.js';
 // Balances
 import evmBalances from './balances/evm.js';
 // import tvmBalancesNative from './balances/tvm_native.js';
@@ -77,6 +78,10 @@ router.use('/v1/*/nft/collections', cacheControl());
 router.use('/v1/*/nft/holders', cacheControl());
 router.use('/v1/*/balances/historical', cacheControl());
 router.use('/v1/*/balances/historical/native', cacheControl());
+router.use('/v1/evm/swaps', normalizeProtocolQuery);
+router.use('/v1/evm/pools', normalizeProtocolQuery);
+router.use('/v1/tvm/swaps', normalizeProtocolQuery);
+router.use('/v1/tvm/pools', normalizeProtocolQuery);
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
