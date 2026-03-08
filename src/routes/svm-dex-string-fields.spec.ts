@@ -9,6 +9,7 @@ describe('SVM DEX SQL string projections', () => {
     it('stringifies address-like fields in the swaps query', () => {
         expect(swapsQuery).toContain('toString(signature) AS signature');
         expect(swapsQuery).toContain('toString(program_id) AS program_id');
+        expect(swapsQuery).toContain('toString(program_names(program_id)) AS program_name');
         expect(swapsQuery).toContain('toString(amm) AS amm');
         expect(swapsQuery).toContain('toString(amm_pool) AS amm_pool');
         expect(swapsQuery).toContain('toString(user) AS user');
