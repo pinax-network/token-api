@@ -4,8 +4,8 @@ import {
     EVM_ADDRESS_SWAP_EXAMPLE,
     EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_VITALIK_EXAMPLE,
-    EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
+    EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_USDT_EXAMPLE,
     EVM_CONTRACT_WETH_EXAMPLE,
     EVM_FACTORY_UNISWAP_V3_EXAMPLE,
@@ -118,7 +118,11 @@ const SINGLE_FILTER_ROUTE_CASES = [
         requires: () => hasTvmTransfers,
         network: () => tvmNetwork,
         filters: [
-            { param: 'transaction_id', value: TVM_TRANSACTION_TRC20_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            {
+                param: 'transaction_id',
+                value: TVM_TRANSACTION_TRC20_TRANSFER_EXAMPLE,
+                responsePath: ['transaction_id'],
+            },
             { param: 'contract', value: TVM_CONTRACT_USDT_EXAMPLE, responsePath: ['contract'] },
             { param: 'from_address', value: TVM_ADDRESS_FROM_EXAMPLE, responsePath: ['from'] },
             { param: 'to_address', value: TVM_ADDRESS_TO_EXAMPLE, responsePath: ['to'] },
@@ -130,7 +134,11 @@ const SINGLE_FILTER_ROUTE_CASES = [
         requires: () => hasTvmTransfers,
         network: () => tvmNetwork,
         filters: [
-            { param: 'transaction_id', value: TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            {
+                param: 'transaction_id',
+                value: TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE,
+                responsePath: ['transaction_id'],
+            },
             { param: 'from_address', value: TVM_ADDRESS_FROM_EXAMPLE, responsePath: ['from'] },
             { param: 'to_address', value: TVM_ADDRESS_NATIVE_TO_EXAMPLE, responsePath: ['to'] },
         ],
@@ -655,7 +663,8 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
     for (const routeCase of MAINNET_ROUTE_CASES) {
         for (const boundary of MAINNET_BOUNDARIES) {
             it(`GET ${routeCase.path} exact start_time=end_time on mainnet at ${boundary.label}`, async () => {
-                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex))
+                    return;
 
                 const row = await fetchExactMainnetRow(
                     routeCase.path,
@@ -666,7 +675,8 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
             });
 
             it(`GET ${routeCase.path} exact start_block=end_block on mainnet at ${boundary.label}`, async () => {
-                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex))
+                    return;
 
                 const row = await fetchExactMainnetRow(
                     routeCase.path,
@@ -677,7 +687,8 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
             });
 
             it(`GET ${routeCase.path} single transaction_id filter uses default bounds on mainnet at ${boundary.label}`, async () => {
-                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex))
+                    return;
 
                 const fixture = await fetchExactMainnetRow(
                     routeCase.path,
