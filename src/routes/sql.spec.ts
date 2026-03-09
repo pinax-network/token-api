@@ -1,17 +1,40 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
 import {
+    EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_VITALIK_EXAMPLE,
+    EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
     EVM_CONTRACT_USDT_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_FACTORY_UNISWAP_V3_EXAMPLE,
     EVM_POOL_USDC_WETH_EXAMPLE,
+    EVM_TRANSACTION_SWAP_EXAMPLE,
+    EVM_TRANSACTION_TRANSFER_EXAMPLE,
+    SVM_ADDRESS_DESTINATION_EXAMPLE,
     SVM_ADDRESS_OWNER_EXAMPLE,
+    SVM_ADDRESS_USER_EXAMPLE,
     SVM_AMM_POOL_PUMP_EXAMPLE,
+    SVM_AMM_RAYDIUM_V4_EXAMPLE,
+    SVM_AUTHORITY_USER_EXAMPLE,
+    SVM_MINT_USDC_EXAMPLE,
     SVM_MINT_WSOL_EXAMPLE,
     SVM_OWNER_USER_EXAMPLE,
     SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
+    SVM_TRANSACTION_SWAP_EXAMPLE,
+    SVM_TRANSACTION_TRANSFER_EXAMPLE,
+    TVM_ADDRESS_FROM_EXAMPLE,
+    TVM_ADDRESS_NATIVE_TO_EXAMPLE,
+    TVM_ADDRESS_SWAP_EXAMPLE,
+    TVM_ADDRESS_TO_EXAMPLE,
     TVM_CONTRACT_USDT_EXAMPLE,
+    TVM_CONTRACT_WTRX_EXAMPLE,
+    TVM_FACTORY_SUNSWAP_EXAMPLE,
     TVM_POOL_USDT_WTRX_EXAMPLE,
+    TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE,
+    TVM_TRANSACTION_SWAP_EXAMPLE,
+    TVM_TRANSACTION_TRC20_TRANSFER_EXAMPLE,
 } from '../types/examples.js';
 
 const DB_TESTS = !!process.env.DB_TESTS;
@@ -31,10 +54,167 @@ let evmNetwork: string;
 let svmNetwork: string;
 let tvmNetwork: string;
 
+const MAINNET_NETWORK = 'mainnet';
+const MAINNET_HEAD_BLOCK = 24_616_075;
+const MAINNET_MID_BLOCK = 10_000_000;
+const MAINNET_HEAD_TIMESTAMP = 1_773_013_031;
+const MAINNET_MID_TIMESTAMP = 1_588_598_533;
+
+const MAINNET_BOUNDARIES = [
+    { label: 'chain head', block: MAINNET_HEAD_BLOCK, timestamp: MAINNET_HEAD_TIMESTAMP },
+    { label: 'mid chain', block: MAINNET_MID_BLOCK, timestamp: MAINNET_MID_TIMESTAMP },
+] as const;
+
+const MAINNET_ROUTE_CASES = [
+    { label: 'transfers', path: '/v1/evm/transfers', db: 'transfers' },
+    { label: 'native transfers', path: '/v1/evm/transfers/native', db: 'transfers' },
+    { label: 'swaps', path: '/v1/evm/swaps', db: 'dex' },
+] as const;
+
+const SINGLE_FILTER_ROUTE_CASES = [
+    {
+        chain: 'EVM',
+        path: '/v1/evm/transfers',
+        requires: () => hasEvmTransfers,
+        network: () => evmNetwork,
+        filters: [
+            { param: 'transaction_id', value: EVM_TRANSACTION_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'contract', value: EVM_CONTRACT_USDT_EXAMPLE, responsePath: ['contract'] },
+            { param: 'from_address', value: EVM_ADDRESS_VITALIK_EXAMPLE, responsePath: ['from'] },
+            { param: 'to_address', value: EVM_ADDRESS_TO_EXAMPLE, responsePath: ['to'] },
+        ],
+    },
+    {
+        chain: 'EVM',
+        path: '/v1/evm/transfers/native',
+        requires: () => hasEvmTransfers,
+        network: () => evmNetwork,
+        filters: [
+            { param: 'transaction_id', value: EVM_TRANSACTION_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'from_address', value: EVM_ADDRESS_VITALIK_EXAMPLE, responsePath: ['from'] },
+            { param: 'to_address', value: EVM_ADDRESS_TO_EXAMPLE, responsePath: ['to'] },
+        ],
+    },
+    {
+        chain: 'EVM',
+        path: '/v1/evm/swaps',
+        requires: () => hasEvmDex,
+        network: () => evmNetwork,
+        filters: [
+            { param: 'transaction_id', value: EVM_TRANSACTION_SWAP_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'factory', value: EVM_FACTORY_UNISWAP_V3_EXAMPLE, responsePath: ['factory'] },
+            { param: 'pool', value: EVM_POOL_USDC_WETH_EXAMPLE, responsePath: ['pool'] },
+            { param: 'caller', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['caller'] },
+            { param: 'sender', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['sender'] },
+            { param: 'recipient', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['recipient'] },
+            { param: 'input_contract', value: EVM_CONTRACT_USDC_EXAMPLE, responsePath: ['input_token', 'address'] },
+            { param: 'output_contract', value: EVM_CONTRACT_WETH_EXAMPLE, responsePath: ['output_token', 'address'] },
+            { param: 'protocol', value: 'uniswap_v3', responsePath: ['protocol'] },
+        ],
+    },
+    {
+        chain: 'TVM',
+        path: '/v1/tvm/transfers',
+        requires: () => hasTvmTransfers,
+        network: () => tvmNetwork,
+        filters: [
+            { param: 'transaction_id', value: TVM_TRANSACTION_TRC20_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'contract', value: TVM_CONTRACT_USDT_EXAMPLE, responsePath: ['contract'] },
+            { param: 'from_address', value: TVM_ADDRESS_FROM_EXAMPLE, responsePath: ['from'] },
+            { param: 'to_address', value: TVM_ADDRESS_TO_EXAMPLE, responsePath: ['to'] },
+        ],
+    },
+    {
+        chain: 'TVM',
+        path: '/v1/tvm/transfers/native',
+        requires: () => hasTvmTransfers,
+        network: () => tvmNetwork,
+        filters: [
+            { param: 'transaction_id', value: TVM_TRANSACTION_NATIVE_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'from_address', value: TVM_ADDRESS_FROM_EXAMPLE, responsePath: ['from'] },
+            { param: 'to_address', value: TVM_ADDRESS_NATIVE_TO_EXAMPLE, responsePath: ['to'] },
+        ],
+    },
+    {
+        chain: 'TVM',
+        path: '/v1/tvm/swaps',
+        requires: () => hasTvmDex,
+        network: () => tvmNetwork,
+        filters: [
+            { param: 'transaction_id', value: TVM_TRANSACTION_SWAP_EXAMPLE, responsePath: ['transaction_id'] },
+            { param: 'factory', value: TVM_FACTORY_SUNSWAP_EXAMPLE, responsePath: ['factory'] },
+            { param: 'pool', value: TVM_POOL_USDT_WTRX_EXAMPLE, responsePath: ['pool'] },
+            { param: 'caller', value: TVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['caller'] },
+            { param: 'sender', value: TVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['sender'] },
+            { param: 'recipient', value: TVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['recipient'] },
+            { param: 'input_contract', value: TVM_CONTRACT_USDT_EXAMPLE, responsePath: ['input_token', 'address'] },
+            { param: 'output_contract', value: TVM_CONTRACT_WTRX_EXAMPLE, responsePath: ['output_token', 'address'] },
+            { param: 'protocol', value: 'uniswap_v1', responsePath: ['protocol'] },
+        ],
+    },
+    {
+        chain: 'SVM',
+        path: '/v1/svm/transfers',
+        requires: () => hasSvmTransfers,
+        network: () => svmNetwork,
+        filters: [
+            { param: 'signature', value: SVM_TRANSACTION_TRANSFER_EXAMPLE, responsePath: ['signature'] },
+            { param: 'source', value: SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE, responsePath: ['source'] },
+            { param: 'destination', value: SVM_ADDRESS_DESTINATION_EXAMPLE, responsePath: ['destination'] },
+            { param: 'authority', value: SVM_AUTHORITY_USER_EXAMPLE, responsePath: ['authority'] },
+            { param: 'mint', value: SVM_MINT_WSOL_EXAMPLE, responsePath: ['mint'] },
+            {
+                param: 'program_id',
+                value: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                responsePath: ['program_id'],
+            },
+        ],
+    },
+    {
+        chain: 'SVM',
+        path: '/v1/svm/swaps',
+        requires: () => hasSvmDex,
+        network: () => svmNetwork,
+        filters: [
+            { param: 'signature', value: SVM_TRANSACTION_SWAP_EXAMPLE, responsePath: ['signature'] },
+            { param: 'amm', value: SVM_AMM_RAYDIUM_V4_EXAMPLE, responsePath: ['amm'] },
+            { param: 'amm_pool', value: SVM_AMM_POOL_PUMP_EXAMPLE, responsePath: ['amm_pool'] },
+            { param: 'user', value: SVM_ADDRESS_USER_EXAMPLE, responsePath: ['user'] },
+            { param: 'input_mint', value: SVM_MINT_WSOL_EXAMPLE, responsePath: ['input_mint'] },
+            { param: 'output_mint', value: SVM_MINT_USDC_EXAMPLE, responsePath: ['output_mint'] },
+            {
+                param: 'program_id',
+                value: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+                responsePath: ['program_id'],
+            },
+        ],
+    },
+] as const;
+
 async function fetchRoute(path: string) {
     const response = await app.request(path, { headers: { 'X-Plan': 'free' } });
     const body = await response.json();
     return { response, body };
+}
+
+async function fetchExactMainnetRow(
+    path: string,
+    params: string
+): Promise<{ block_num: number; timestamp: number; transaction_id: string }> {
+    const { response, body } = await fetchRoute(`${path}?network=${MAINNET_NETWORK}&${params}&limit=1`);
+
+    expect(response.status).toBe(200);
+    expect(body.data).toBeArray();
+    expect(body.data.length).toBe(1);
+
+    return body.data[0] as { block_num: number; timestamp: number; transaction_id: string };
+}
+
+function getValueAtPath(value: unknown, path: readonly string[]) {
+    return path.reduce<unknown>((current, segment) => {
+        if (current === null || current === undefined || typeof current !== 'object') return undefined;
+        return (current as Record<string, unknown>)[segment];
+    }, value);
 }
 
 describe.skipIf(!DB_TESTS)('SQL queries', () => {
@@ -470,4 +650,70 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
     });
+
+    // --- EVM Mainnet single-filter/default-bound coverage ---
+    for (const routeCase of MAINNET_ROUTE_CASES) {
+        for (const boundary of MAINNET_BOUNDARIES) {
+            it(`GET ${routeCase.path} exact start_time=end_time on mainnet at ${boundary.label}`, async () => {
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+
+                const row = await fetchExactMainnetRow(
+                    routeCase.path,
+                    `start_time=${boundary.timestamp}&end_time=${boundary.timestamp}`
+                );
+
+                expect(row.timestamp).toBe(boundary.timestamp);
+            });
+
+            it(`GET ${routeCase.path} exact start_block=end_block on mainnet at ${boundary.label}`, async () => {
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+
+                const row = await fetchExactMainnetRow(
+                    routeCase.path,
+                    `start_block=${boundary.block}&end_block=${boundary.block}`
+                );
+
+                expect(row.block_num).toBe(boundary.block);
+            });
+
+            it(`GET ${routeCase.path} single transaction_id filter uses default bounds on mainnet at ${boundary.label}`, async () => {
+                if ((routeCase.db === 'transfers' && !hasEvmTransfers) || (routeCase.db === 'dex' && !hasEvmDex)) return;
+
+                const fixture = await fetchExactMainnetRow(
+                    routeCase.path,
+                    `start_block=${boundary.block}&end_block=${boundary.block}`
+                );
+
+                const { response, body } = await fetchRoute(
+                    `${routeCase.path}?network=${MAINNET_NETWORK}&transaction_id=${fixture.transaction_id}&limit=1`
+                );
+
+                expect(response.status).toBe(200);
+                expect(body.data).toBeArray();
+                expect(body.data.length).toBe(1);
+                expect(body.data[0].transaction_id).toBe(fixture.transaction_id);
+            });
+        }
+    }
+
+    // --- Single-filter coverage across EVM / TVM / SVM ---
+    for (const routeCase of SINGLE_FILTER_ROUTE_CASES) {
+        for (const filter of routeCase.filters) {
+            it(`GET ${routeCase.path} single ${filter.param} filter on ${routeCase.chain}`, async () => {
+                if (!routeCase.requires()) return;
+
+                const { response, body } = await fetchRoute(
+                    `${routeCase.path}?network=${routeCase.network()}&${filter.param}=${encodeURIComponent(filter.value)}&limit=5`
+                );
+
+                expect(response.status).toBe(200);
+                expect(body.data).toBeArray();
+                expect(body.data.length).toBeGreaterThan(0);
+
+                for (const row of body.data as unknown[]) {
+                    expect(getValueAtPath(row, filter.responsePath)).toBe(filter.value);
+                }
+            });
+        }
+    }
 });
