@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { normalizeSQL } from '../../sql/index.js';
 import query from './svm.sql' with { type: 'text' };
 
 const requiredPredicates = {
@@ -21,4 +22,9 @@ describe('SVM swaps SQL filters', () => {
             expect(query).toMatch(whitespaceAgnostic(predicate));
         });
     }
+
+    it('clamped_start_ts respects start_block when no other filters are active', () => {
+        const sql = normalizeSQL(query);
+        expect(sql).toContain('isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)})');
+    });
 });
