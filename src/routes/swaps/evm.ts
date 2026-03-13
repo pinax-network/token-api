@@ -28,6 +28,7 @@ import {
     timestampSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
+import { applyTemporaryEvmUniswapV3SwapHotfix } from './evm.hotfix.js';
 
 import query from './evm.sql' with { type: 'text' };
 
@@ -183,7 +184,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_dex: dbDex.database,
     });
-    return handleUsageQueryError(c, response);
+    return handleUsageQueryError(c, applyTemporaryEvmUniswapV3SwapHotfix(response));
 });
 
 export default route;
