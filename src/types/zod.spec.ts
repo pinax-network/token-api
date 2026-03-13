@@ -240,6 +240,15 @@ describe('Protocol Schemas', () => {
             expect(evmProtocolSchema.parse('uniswap_v2')).toBe('uniswap_v2');
             expect(evmProtocolSchema.parse('uniswap_v3')).toBe('uniswap_v3');
             expect(evmProtocolSchema.parse('uniswap_v4')).toBe('uniswap_v4');
+            expect(evmProtocolSchema.parse('curvefi')).toBe('curvefi');
+            expect(evmProtocolSchema.parse('balancer')).toBe('balancer');
+            expect(evmProtocolSchema.parse('bancor')).toBe('bancor');
+            expect(evmProtocolSchema.parse('cow')).toBe('cow');
+            expect(evmProtocolSchema.parse('aerodrome')).toBe('aerodrome');
+            expect(evmProtocolSchema.parse('dodo')).toBe('dodo');
+            expect(evmProtocolSchema.parse('woofi')).toBe('woofi');
+            expect(evmProtocolSchema.parse('traderjoe')).toBe('traderjoe');
+            expect(evmProtocolSchema.parse('kyber_elastic')).toBe('kyber_elastic');
         });
 
         it('should reject invalid protocols', () => {
