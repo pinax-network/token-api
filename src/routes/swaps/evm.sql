@@ -151,10 +151,21 @@ filtered_swaps AS
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
+/* --- HOTFIX: reverse input/output for uniswap_v3 (remove when fixed upstream) --- */
+oriented_swaps AS (
+    SELECT * REPLACE (
+        if(protocol = 'uniswap_v3', output_contract, input_contract) AS input_contract,
+        if(protocol = 'uniswap_v3', input_contract,  output_contract) AS output_contract,
+        if(protocol = 'uniswap_v3', output_amount,   input_amount)   AS input_amount,
+        if(protocol = 'uniswap_v3', input_amount,     output_amount) AS output_amount
+    )
+    FROM filtered_swaps
+),
+/* --- END HOTFIX --- */
 contracts AS (
-    SELECT DISTINCT input_contract AS contract FROM filtered_swaps
+    SELECT DISTINCT input_contract AS contract FROM oriented_swaps
     UNION DISTINCT
-    SELECT DISTINCT output_contract AS contract FROM filtered_swaps
+    SELECT DISTINCT output_contract AS contract FROM oriented_swaps
 ),
 contracts_metadata AS (
     SELECT
@@ -220,7 +231,7 @@ SELECT
 
     /* network */
     {network:String} AS network
-FROM filtered_swaps AS s
+FROM oriented_swaps AS s
 LEFT JOIN contracts_metadata AS m1 ON s.input_contract = m1.contract
 LEFT JOIN contracts_metadata AS m2 ON s.output_contract = m2.contract
 ORDER BY minute DESC, timestamp DESC, block_num DESC
