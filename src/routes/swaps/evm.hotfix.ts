@@ -26,6 +26,32 @@ const READABLE_QUANTITY_SUFFIXES = [
     { value: 1_000, suffix: 'thousand' },
 ] as const;
 
+function toPlainNumberString(value: number) {
+    const stringValue = value.toString();
+
+    if (!stringValue.includes('e')) {
+        return stringValue;
+    }
+
+    const [mantissa = '', exponentPart = '0'] = stringValue.toLowerCase().split('e');
+    const exponent = Number(exponentPart);
+    const sign = mantissa.startsWith('-') ? '-' : '';
+    const unsignedMantissa = sign ? mantissa.slice(1) : mantissa;
+    const [integerPart = '', fractionalPart = ''] = unsignedMantissa.split('.');
+    const digits = `${integerPart}${fractionalPart}`;
+    const decimalIndex = integerPart.length + exponent;
+
+    if (decimalIndex <= 0) {
+        return `${sign}0.${'0'.repeat(Math.abs(decimalIndex))}${digits}`;
+    }
+
+    if (decimalIndex >= digits.length) {
+        return `${sign}${digits}${'0'.repeat(decimalIndex - digits.length)}`;
+    }
+
+    return `${sign}${digits.slice(0, decimalIndex)}.${digits.slice(decimalIndex)}`;
+}
+
 function formatReadableQuantity(value: number) {
     for (const readableQuantity of READABLE_QUANTITY_SUFFIXES) {
         if (Math.abs(value) >= readableQuantity.value) {
@@ -33,7 +59,7 @@ function formatReadableQuantity(value: number) {
         }
     }
 
-    return value.toString();
+    return toPlainNumberString(value);
 }
 
 function formatProtocol(protocol: string) {

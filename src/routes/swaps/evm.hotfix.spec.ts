@@ -152,4 +152,46 @@ describe('temporary EVM Uniswap V3 swap hotfix', () => {
             duration_ms: 1,
         });
     });
+
+    it('rebuilds summaries with plain decimal strings for very small values', () => {
+        const response = applyTemporaryEvmUniswapV3SwapHotfix({
+            data: [
+                {
+                    input_token: {
+                        address: '0xsmall-out',
+                        symbol: 'SMALL',
+                        decimals: 18,
+                    },
+                    output_token: {
+                        address: '0xusd',
+                        symbol: 'USD',
+                        decimals: 6,
+                    },
+                    input_amount: '123',
+                    output_amount: '456',
+                    input_value: 1.23e-9,
+                    output_value: 456,
+                    price: 370731707317.0732,
+                    price_inv: 2.697368421052632e-12,
+                    protocol: 'uniswap_v3',
+                    summary: 'ignored reversed summary',
+                },
+            ],
+            statistics: {},
+            pagination: {
+                previous_page: 1,
+                current_page: 1,
+            },
+            results: 1,
+            request_time: '2026-03-13T00:00:00.000Z',
+            duration_ms: 1,
+        });
+
+        expect('status' in response).toBe(false);
+        if ('status' in response) {
+            return;
+        }
+
+        expect(response.data[0]?.summary).toBe('Swap 456 USD for 0.00000000123 SMALL on Uniswap V3');
+    });
 });
