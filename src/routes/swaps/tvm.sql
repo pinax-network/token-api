@@ -44,6 +44,7 @@ minutes_union AS
     WHERE (notEmpty({recipient:Array(String)}) AND user IN {recipient:Array(String)})
     GROUP BY minute
 
+    /* `/v1` backwards compatibility: TVM caller, sender, and transaction_from all alias tx_from. */
     UNION ALL
 
     SELECT minute
@@ -150,6 +151,7 @@ filtered_swaps AS
         AND (empty({factory:Array(String)})             OR factory IN {factory:Array(String)})
         AND (empty({pool:Array(String)})                OR pool IN {pool:Array(String)})
         AND (empty({recipient:Array(String)})           OR user IN {recipient:Array(String)})
+        /* `/v1` backwards compatibility: TVM caller, sender, and transaction_from all alias tx_from. */
         AND (empty({sender:Array(String)})              OR tx_from IN {sender:Array(String)})
         AND (empty({caller:Array(String)})              OR tx_from IN {caller:Array(String)})
         AND (empty({transaction_from:Array(String)})    OR tx_from IN {transaction_from:Array(String)})

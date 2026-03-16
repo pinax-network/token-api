@@ -20,6 +20,13 @@ minutes_union AS
 (
     SELECT minute
     FROM {db_dex:Identifier}.swaps
+    WHERE (notEmpty({transaction_id:Array(String)}) AND tx_hash IN {transaction_id:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps
     WHERE (notEmpty({caller:Array(String)}) AND call_caller IN {caller:Array(String)})
     GROUP BY minute
 
@@ -28,13 +35,6 @@ minutes_union AS
     SELECT minute
     FROM {db_dex:Identifier}.swaps
     WHERE (notEmpty({transaction_from:Array(String)}) AND tx_from IN {transaction_from:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({transaction_id:Array(String)}) AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
 
     UNION ALL
