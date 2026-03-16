@@ -129,7 +129,21 @@ export const tvmNetworkIdSchema = z
 // ----------------------
 
 export const evmProtocolSchema = z
-    .enum(['uniswap_v1', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4', 'bancor', 'curvefi', 'balancer'])
+    .enum([
+        'uniswap_v1',
+        'uniswap_v2',
+        'uniswap_v3',
+        'uniswap_v4',
+        'curvefi',
+        'balancer',
+        'bancor',
+        'cow',
+        'aerodrome',
+        'dodo',
+        'woofi',
+        'traderjoe',
+        'kyber_elastic',
+    ])
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 
 export const svmProtocolSchema = z
