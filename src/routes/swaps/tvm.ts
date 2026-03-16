@@ -83,6 +83,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- swap --
             transaction_id: z.string(),
+            log_index: z.number(),
             factory: tvmFactorySchema,
             pool: tvmPoolSchema,
             input_token: tvmTokenResponseSchema,
@@ -91,9 +92,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             caller: tvmAddressSchema,
             sender: tvmAddressSchema,
             recipient: tvmAddressSchema,
-
-            // -- log --
-            // ordinal: z.number(),
 
             // -- price --
             input_amount: z.string(),
@@ -134,6 +132,7 @@ const openapi = describeRoute(
                                             timestamp: 1615351413,
                                             transaction_id:
                                                 '0x3e0f39b48dae8c49d3f95bc6206a632af484059764487b0c7d3e3c97bb433130',
+                                            log_index: 0,
                                             factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
                                             pool: 'TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA',
                                             caller: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',

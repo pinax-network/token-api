@@ -186,6 +186,9 @@ SELECT
 
     /* transaction */
     s.tx_hash AS transaction_id,
+
+    /* log */
+    s.log_index AS log_index,
     /* s.log_ordinal AS ordinal, for `/v2` endpoint */
 
     /* swap */
