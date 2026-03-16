@@ -65,7 +65,6 @@ const querySchema = createQuerySchema({
         meta: { example: TVM_FACTORY_SUNSWAP_EXAMPLE },
     },
     pool: { schema: tvmPoolSchema, batched: true, optional: true, meta: { example: TVM_POOL_USDT_WTRX_EXAMPLE } },
-    caller: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     transaction_from: {
         schema: tvmAddressSchema,
         batched: true,
@@ -94,18 +93,6 @@ const querySchema = createQuerySchema({
     start_block: { schema: blockNumberSchema, optional: true },
     end_block: { schema: blockNumberSchema, optional: true },
 });
-
-function normalizeTvmSwapQueryParams(params: z.infer<typeof querySchema>) {
-    return {
-        ...params,
-        caller: [],
-        sender: params.sender.length === 0 && params.caller.length > 0 ? params.caller : params.sender,
-        transaction_from:
-            params.transaction_from.length === 0 && params.caller.length > 0 && params.sender.length === 0
-                ? params.caller
-                : params.transaction_from,
-    };
-}
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -216,7 +203,6 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
-    const queryParams = normalizeTvmSwapQueryParams(params);
 
     const dbDex = config.dexDatabases[params.network];
     if (!dbDex) {
@@ -224,12 +210,12 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     }
 
     const response = await makeUsageQueryJson(c, [query], {
-        ...queryParams,
+        ...params,
         db_dex: dbDex.database,
     });
     if (isApiErrorResponse(response)) return handleUsageQueryError(c, response);
     return c.json(stripUnsupportedTvmSwapFields(response));
 });
 
-export { stripUnsupportedTvmSwapFields };
+export { querySchema, stripUnsupportedTvmSwapFields };
 export default route;
