@@ -13,6 +13,7 @@ import {
     TVM_TRANSACTION_SWAP_EXAMPLE,
 } from '../../types/examples.js';
 import {
+    type ApiErrorResponse,
     type ApiUsageResponse,
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -35,10 +36,14 @@ function stripUnsupportedTvmSwapFields(response: ApiUsageResponse) {
     return {
         ...response,
         data: response.data.map((row) => {
-            const { caller: _caller, call_index: _callIndex, ...rest } = row as Record<string, unknown>;
+            const { caller: _caller, call_index: _call_index, ...rest } = row as Record<string, unknown>;
             return rest;
         }),
     };
+}
+
+function isApiErrorResponse(response: ApiUsageResponse | ApiErrorResponse): response is ApiErrorResponse {
+    return 'status' in response;
 }
 
 const querySchema = createQuerySchema({
@@ -89,6 +94,18 @@ const querySchema = createQuerySchema({
     start_block: { schema: blockNumberSchema, optional: true },
     end_block: { schema: blockNumberSchema, optional: true },
 });
+
+function normalizeTvmSwapQueryParams(params: z.infer<typeof querySchema>) {
+    return {
+        ...params,
+        caller: [],
+        sender: params.sender.length === 0 && params.caller.length > 0 ? params.caller : params.sender,
+        transaction_from:
+            params.transaction_from.length === 0 && params.caller.length > 0 && params.sender.length === 0
+                ? params.caller
+                : params.transaction_from,
+    };
+}
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
@@ -199,15 +216,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
-    const queryParams = {
-        ...params,
-        caller: [],
-        sender: params.sender.length === 0 && params.caller.length > 0 ? params.caller : params.sender,
-        transaction_from:
-            params.transaction_from.length === 0 && params.caller.length > 0 && params.sender.length > 0
-                ? params.caller
-                : params.transaction_from,
-    };
+    const queryParams = normalizeTvmSwapQueryParams(params);
 
     const dbDex = config.dexDatabases[params.network];
     if (!dbDex) {
@@ -218,7 +227,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...queryParams,
         db_dex: dbDex.database,
     });
-    if ('status' in response) return handleUsageQueryError(c, response);
+    if (isApiErrorResponse(response)) return handleUsageQueryError(c, response);
     return c.json(stripUnsupportedTvmSwapFields(response));
 });
 
