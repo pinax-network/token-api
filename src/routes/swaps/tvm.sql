@@ -20,20 +20,6 @@ minutes_union AS
 (
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({caller:Array(String)}) AND call_caller IN {caller:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({transaction_from:Array(String)}) AND tx_from IN {transaction_from:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
     WHERE (notEmpty({transaction_id:Array(String)}) AND tx_hash IN {transaction_id:Array(String)})
     GROUP BY minute
 
@@ -63,6 +49,20 @@ minutes_union AS
     SELECT minute
     FROM {db_dex:Identifier}.swaps
     WHERE (notEmpty({sender:Array(String)}) AND tx_from IN {sender:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps
+    WHERE (notEmpty({caller:Array(String)}) AND tx_from IN {caller:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps
+    WHERE (notEmpty({transaction_from:Array(String)}) AND tx_from IN {transaction_from:Array(String)})
     GROUP BY minute
 
     UNION ALL
@@ -151,7 +151,7 @@ filtered_swaps AS
         AND (empty({pool:Array(String)})                OR pool IN {pool:Array(String)})
         AND (empty({recipient:Array(String)})           OR user IN {recipient:Array(String)})
         AND (empty({sender:Array(String)})              OR tx_from IN {sender:Array(String)})
-        AND (empty({caller:Array(String)})              OR call_caller IN {caller:Array(String)})
+        AND (empty({caller:Array(String)})              OR tx_from IN {caller:Array(String)})
         AND (empty({transaction_from:Array(String)})    OR tx_from IN {transaction_from:Array(String)})
         AND (empty({input_contract:Array(String)})      OR input_contract IN {input_contract:Array(String)})
         AND (empty({output_contract:Array(String)})     OR output_contract IN {output_contract:Array(String)})
@@ -197,7 +197,6 @@ SELECT
     s.tx_hash AS transaction_id,
     s.tx_index AS transaction_index,
     s.tx_from AS transaction_from,
-    s.call_index AS call_index,
 
     /* log */
     s.log_index AS log_index,
@@ -208,7 +207,7 @@ SELECT
     /* swap */
     toString(s.factory) AS factory,
     s.pool AS pool,
-    s.call_caller AS caller,
+    s.tx_from AS caller,
     s.tx_from AS sender,
     s.user AS recipient,
 

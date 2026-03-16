@@ -5,7 +5,11 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import { nativeContractRedirect } from '../../middleware/nativeContractRedirect.js';
-import { EVM_ADDRESS_TO_EXAMPLE, EVM_TRANSACTION_TRANSFER_EXAMPLE } from '../../types/examples.js';
+import {
+    EVM_ADDRESS_TO_EXAMPLE,
+    EVM_ADDRESS_VITALIK_EXAMPLE,
+    EVM_TRANSACTION_TRANSFER_EXAMPLE,
+} from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -32,6 +36,13 @@ const querySchema = createQuerySchema({
     },
     contract: { schema: evmContractSchema, batched: true, optional: true },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
+    caller: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_VITALIK_EXAMPLE } },
+    transaction_from: {
+        schema: evmAddressSchema,
+        batched: true,
+        optional: true,
+        meta: { example: EVM_ADDRESS_VITALIK_EXAMPLE },
+    },
     from_address: { schema: evmAddressSchema, batched: true, optional: true },
     to_address: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_TO_EXAMPLE } },
 
@@ -51,6 +62,16 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- transaction --
             transaction_id: evmTransactionSchema,
+            transaction_index: z.number(),
+            transaction_from: evmAddressSchema,
+            caller: evmAddressSchema,
+            call_index: z.number().nullable(),
+
+            // -- log --
+            log_index: z.number(),
+            log_ordinal: z.number(),
+            log_block_index: z.number(),
+            log_topic0: z.string(),
 
             // -- transfer --
             contract: evmContractSchema,
@@ -93,7 +114,15 @@ const openapi = describeRoute(
                                             timestamp: 1768939031,
                                             transaction_id:
                                                 '0x589cbe12efa0cca5a29b17bf7ee49c99566f0e05e937d54104134a2d916ab265',
+                                            transaction_index: 168,
+                                            transaction_from: '0x2393d38400cad1d0ffae85b37d76de05bb7eddc6',
+                                            caller: '0x2393d38400cad1d0ffae85b37d76de05bb7eddc6',
+                                            call_index: null,
+                                            log_ordinal: 24,
+                                            log_block_index: 0,
                                             log_index: 24,
+                                            log_topic0:
+                                                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
                                             contract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
                                             type: 'transfer',
                                             from: '0x2393d38400cad1d0ffae85b37d76de05bb7eddc6',

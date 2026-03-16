@@ -24,7 +24,7 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-import query from './evm.sql' with { type: 'text' };
+import query from './tvm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
@@ -40,6 +40,12 @@ const querySchema = createQuerySchema({
         batched: true,
         optional: true,
         meta: { example: TVM_CONTRACT_USDT_EXAMPLE },
+    },
+    transaction_from: {
+        schema: tvmAddressSchema,
+        batched: true,
+        optional: true,
+        meta: { example: TVM_ADDRESS_FROM_EXAMPLE },
     },
     // address: { schema: tvmAddressSchema, batched: true, default: '' },
     from_address: {
@@ -67,10 +73,13 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- transaction --
             transaction_id: tvmTransactionSchema,
             transaction_index: z.number(),
+            transaction_from: tvmAddressSchema,
 
             // -- log --
             log_index: z.number(),
             log_ordinal: z.number(),
+            log_block_index: z.number(),
+            log_topic0: z.string(),
 
             // -- transfer --
             contract: tvmContractSchema,
@@ -113,7 +122,13 @@ const openapi = describeRoute(
                                             timestamp: 1677653706,
                                             transaction_id:
                                                 '0xa85ee0572469b128690c00a80f03a328c882b7339496faf64a1ad0707b537329',
+                                            transaction_index: 12,
+                                            transaction_from: 'THx5jmvnQkRjDpYEpkaLn7yCvgafXzxiAF',
+                                            log_ordinal: 0,
+                                            log_block_index: 0,
                                             log_index: 0,
+                                            log_topic0:
+                                                'ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
                                             contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
                                             type: 'transfer',
                                             from: 'THx5jmvnQkRjDpYEpkaLn7yCvgafXzxiAF',
