@@ -13,6 +13,7 @@ import {
     TVM_TRANSACTION_SWAP_EXAMPLE,
 } from '../../types/examples.js';
 import {
+    type ApiUsageResponse,
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
@@ -28,7 +29,17 @@ import {
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-import query from './tvm.sql' with { type: 'text' };
+import query from './evm.sql' with { type: 'text' };
+
+function stripUnsupportedTvmSwapFields(response: ApiUsageResponse) {
+    return {
+        ...response,
+        data: response.data.map((row) => {
+            const { caller: _caller, call_index: _callIndex, ...rest } = row as Record<string, unknown>;
+            return rest;
+        }),
+    };
+}
 
 const querySchema = createQuerySchema({
     network: { schema: tvmNetworkIdSchema },
@@ -100,7 +111,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: tvmTokenResponseSchema,
             output_token: tvmTokenResponseSchema,
 
-            caller: tvmAddressSchema,
             sender: tvmAddressSchema,
             recipient: tvmAddressSchema,
 
@@ -152,7 +162,6 @@ const openapi = describeRoute(
                                                 'd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
                                             factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
                                             pool: 'TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA',
-                                            caller: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             sender: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             recipient: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             input_token: {
@@ -190,6 +199,15 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
+    const queryParams = {
+        ...params,
+        caller: [],
+        sender: params.sender.length === 0 && params.caller.length > 0 ? params.caller : params.sender,
+        transaction_from:
+            params.transaction_from.length === 0 && params.caller.length > 0 && params.sender.length > 0
+                ? params.caller
+                : params.transaction_from,
+    };
 
     const dbDex = config.dexDatabases[params.network];
     if (!dbDex) {
@@ -197,10 +215,12 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     }
 
     const response = await makeUsageQueryJson(c, [query], {
-        ...params,
+        ...queryParams,
         db_dex: dbDex.database,
     });
-    return handleUsageQueryError(c, response);
+    if ('status' in response) return handleUsageQueryError(c, response);
+    return c.json(stripUnsupportedTvmSwapFields(response));
 });
 
+export { stripUnsupportedTvmSwapFields };
 export default route;

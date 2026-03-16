@@ -4,8 +4,6 @@ active_filters AS
 (
     SELECT
         toUInt8(notEmpty({transaction_id:Array(String)})) +
-        toUInt8(notEmpty({caller:Array(String)})) +
-        toUInt8(notEmpty({transaction_from:Array(String)})) +
         toUInt8(notEmpty({from_address:Array(String)})) +
         toUInt8(notEmpty({to_address:Array(String)})) +
         toUInt8(notEmpty({contract:Array(String)}))
@@ -14,20 +12,6 @@ active_filters AS
 /* 2) Union minutes from only active filters */
 minutes_union AS
 (
-    SELECT minute
-    FROM {db_transfers:Identifier}.transfers
-    WHERE (notEmpty({caller:Array(String)}) AND call_caller IN {caller:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_transfers:Identifier}.transfers
-    WHERE (notEmpty({transaction_from:Array(String)}) AND trx_from IN {transaction_from:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
     WHERE (notEmpty({from_address:Array(String)}) AND `from` IN {from_address:Array(String)})
@@ -114,8 +98,6 @@ filtered_transfers AS
         AND NOT (isNotNull({end_block:Nullable(UInt64)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt64)})
 
         AND (empty({transaction_id:Array(String)}) OR tx_hash IN {transaction_id:Array(String)})
-        AND (empty({caller:Array(String)}) OR call_caller IN {caller:Array(String)})
-        AND (empty({transaction_from:Array(String)}) OR trx_from IN {transaction_from:Array(String)})
         AND (empty({from_address:Array(String)})  OR `from` IN {from_address:Array(String)})
         AND (empty({to_address:Array(String)})    OR `to` IN {to_address:Array(String)})
         AND (empty({contract:Array(String)})      OR log_address IN {contract:Array(String)})
@@ -145,16 +127,10 @@ SELECT
 
     /* transaction */
     toString(t.tx_hash) as transaction_id,
-    t.tx_index as transaction_index,
-    t.trx_from as transaction_from,
-    t.call_caller as caller,
-    t.call_index as call_index,
 
     /* log */
-    t.log_index as log_index,
-    t.log_ordinal as log_ordinal,
-    t.log_block_index as log_block_index,
-    t.log_topic0 as log_topic0,
+    log_index,
+    /* log_ordinal AS ordinal, for `/v2` endpoint */
     log_address as contract,
 
     /* transfer */
