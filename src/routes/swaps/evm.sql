@@ -69,14 +69,20 @@ minutes_union AS
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({input_contract:Array(String)}) AND input_contract IN {input_contract:Array(String)})
+    WHERE (
+        notEmpty({input_contract:Array(String)})
+        AND if(protocol = 'uniswap_v3', output_contract, input_contract) IN {input_contract:Array(String)}
+    )
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({output_contract:Array(String)}) AND output_contract IN {output_contract:Array(String)})
+    WHERE (
+        notEmpty({output_contract:Array(String)})
+        AND if(protocol = 'uniswap_v3', input_contract, output_contract) IN {output_contract:Array(String)}
+    )
     GROUP BY minute
 
     UNION ALL
@@ -153,8 +159,14 @@ filtered_swaps AS
         AND (empty({sender:Array(String)})              OR tx_from IN {sender:Array(String)})
         AND (empty({caller:Array(String)})              OR call_caller IN {caller:Array(String)})
         AND (empty({transaction_from:Array(String)})    OR tx_from IN {transaction_from:Array(String)})
-        AND (empty({input_contract:Array(String)})      OR input_contract IN {input_contract:Array(String)})
-        AND (empty({output_contract:Array(String)})     OR output_contract IN {output_contract:Array(String)})
+        AND (
+            empty({input_contract:Array(String)})
+            OR if(protocol = 'uniswap_v3', output_contract, input_contract) IN {input_contract:Array(String)}
+        )
+        AND (
+            empty({output_contract:Array(String)})
+            OR if(protocol = 'uniswap_v3', input_contract, output_contract) IN {output_contract:Array(String)}
+        )
         AND (isNull({protocol:Nullable(String)})        OR protocol = {protocol:Nullable(String)})
     ORDER BY minute DESC, timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
