@@ -2,7 +2,11 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
 import { config } from '../../config.js';
 import { hasDatabase } from '../../supported-routes.js';
-import { EVM_CONTRACT_USDC_EXAMPLE, EVM_CONTRACT_WETH_EXAMPLE, EVM_TRANSACTION_SWAP_EXAMPLE } from '../../types/examples.js';
+import {
+    EVM_CONTRACT_USDC_EXAMPLE,
+    EVM_CONTRACT_WETH_EXAMPLE,
+    EVM_TRANSACTION_SWAP_EXAMPLE,
+} from '../../types/examples.js';
 
 const DB_TESTS = !!process.env.DB_TESTS;
 
