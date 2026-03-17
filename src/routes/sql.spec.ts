@@ -487,6 +487,25 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data.length).toBeGreaterThan(0);
     });
 
+    it('GET /v1/evm/swaps keeps the Uniswap V3 token orientation hotfix for the known fixture tx', async () => {
+        if (!hasEvmDex) return;
+
+        const { response, body } = await fetchRoute(
+            `/v1/evm/swaps?network=${evmNetwork}&transaction_id=${EVM_TRANSACTION_SWAP_EXAMPLE}&limit=1`
+        );
+
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBe(1);
+
+        const row = body.data[0];
+
+        expect(row.protocol).toBe('uniswap_v3');
+        expect(row.transaction_id).toBe(EVM_TRANSACTION_SWAP_EXAMPLE);
+        expect(row.input_token.address).toBe(EVM_CONTRACT_USDC_EXAMPLE);
+        expect(row.output_token.address).toBe(EVM_CONTRACT_WETH_EXAMPLE);
+    });
+
     // --- SVM Swaps ---
     it('GET /v1/svm/swaps', async () => {
         if (!hasSvmDex) return;
