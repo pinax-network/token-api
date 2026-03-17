@@ -33,8 +33,6 @@
         "start": "bun index.ts",
         "build": "bun build --compile index.ts --outfile token-api",
         "test": "bun test --coverage",
-        "test:db": "bun run test:db:sql",
-        "test:db:all": "bun run test:db:sql && bun run test:db:perf",
         "test:db:sql": "DB_TESTS=true bun test src/routes/sql.spec.ts --timeout 30000",
         "test:db:perf": "DB_TESTS=true bun test src/routes/perf.spec.ts --timeout 30000",
         "test:db:health": "DB_TESTS=true bun test src/routes/sql.spec.ts --timeout 30000 -t 'health|networks'",
