@@ -48,6 +48,12 @@ const querySchema = createQuerySchema({
     },
     pool: { schema: evmPoolSchema, batched: true, optional: true, meta: { example: EVM_POOL_USDC_WETH_EXAMPLE } },
     caller: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
+    transaction_from: {
+        schema: evmAddressSchema,
+        batched: true,
+        optional: true,
+        meta: { example: EVM_ADDRESS_SWAP_EXAMPLE },
+    },
     sender: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     recipient: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     input_contract: {
@@ -80,7 +86,13 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- swap --
             transaction_id: z.string(),
+            transaction_index: z.number(),
+            transaction_from: evmAddressSchema,
+            call_index: z.number().nullable(),
             log_index: z.number(),
+            log_ordinal: z.number(),
+            log_block_index: z.number(),
+            log_topic0: z.string(),
             factory: evmFactorySchema,
             pool: evmPoolSchema,
             input_token: evmTokenResponseSchema,
@@ -129,7 +141,14 @@ const openapi = describeRoute(
                                             timestamp: 1760618927,
                                             transaction_id:
                                                 '0xf6374799c227c9db38ff5ac1d5bebe8b607a1de1238cd861ebd1053ec07305ca',
+                                            transaction_index: 143,
+                                            transaction_from: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            call_index: null,
+                                            log_ordinal: 42,
+                                            log_block_index: 0,
                                             log_index: 42,
+                                            log_topic0:
+                                                '0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67',
                                             factory: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
                                             pool: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
                                             input_token: {
