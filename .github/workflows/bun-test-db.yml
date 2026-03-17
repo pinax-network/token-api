@@ -27,8 +27,8 @@ jobs:
             - name: Set Git date
               run: echo "GIT_DATE=$(git log -1 --format=%cd --date=short)" >> $GITHUB_ENV
 
-            - name: Run DB tests
-              run: bun test:db
+            - name: Run DB SQL tests
+              run: bun test:db:sql
               env:
                   DB_TESTS: 'true'
                   GIT_DATE: ${{ env.GIT_DATE }}

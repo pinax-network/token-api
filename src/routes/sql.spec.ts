@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
 import {
     EVM_ADDRESS_SWAP_EXAMPLE,
+    EVM_ADDRESS_SWAP_SENDER_EXAMPLE,
     EVM_ADDRESS_TO_EXAMPLE,
     EVM_ADDRESS_VITALIK_EXAMPLE,
     EVM_CONTRACT_PUDGY_PENGUINS_EXAMPLE,
@@ -105,7 +106,7 @@ const SINGLE_FILTER_ROUTE_CASES = [
             { param: 'factory', value: EVM_FACTORY_UNISWAP_V3_EXAMPLE, responsePath: ['factory'] },
             { param: 'pool', value: EVM_POOL_USDC_WETH_EXAMPLE, responsePath: ['pool'] },
             { param: 'caller', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['caller'] },
-            { param: 'sender', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['sender'] },
+            { param: 'sender', value: EVM_ADDRESS_SWAP_SENDER_EXAMPLE, responsePath: ['sender'] },
             { param: 'recipient', value: EVM_ADDRESS_SWAP_EXAMPLE, responsePath: ['recipient'] },
             { param: 'input_contract', value: EVM_CONTRACT_USDC_EXAMPLE, responsePath: ['input_token', 'address'] },
             { param: 'output_contract', value: EVM_CONTRACT_WETH_EXAMPLE, responsePath: ['output_token', 'address'] },
