@@ -69,20 +69,14 @@ minutes_union AS
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (
-        notEmpty({input_contract:Array(String)})
-        AND if(protocol = 'uniswap_v3', output_contract, input_contract) IN {input_contract:Array(String)}
-    )
+    WHERE (notEmpty({input_contract:Array(String)}) AND input_contract IN {input_contract:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
     FROM {db_dex:Identifier}.swaps
-    WHERE (
-        notEmpty({output_contract:Array(String)})
-        AND if(protocol = 'uniswap_v3', input_contract, output_contract) IN {output_contract:Array(String)}
-    )
+    WHERE (notEmpty({output_contract:Array(String)}) AND output_contract IN {output_contract:Array(String)})
     GROUP BY minute
 
     UNION ALL
