@@ -94,6 +94,14 @@ const querySchema = createQuerySchema({
     end_block: { schema: blockNumberSchema, optional: true },
 });
 
+function buildTvmSwapQueryParams(params: z.infer<typeof querySchema>, dbDex: string) {
+    return {
+        ...params,
+        caller: [],
+        db_dex: dbDex,
+    };
+}
+
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
@@ -209,13 +217,10 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
-    const response = await makeUsageQueryJson(c, [query], {
-        ...params,
-        db_dex: dbDex.database,
-    });
+    const response = await makeUsageQueryJson(c, [query], buildTvmSwapQueryParams(params, dbDex.database));
     if (isApiErrorResponse(response)) return handleUsageQueryError(c, response);
     return c.json(stripUnsupportedTvmSwapFields(response));
 });
 
-export { querySchema, stripUnsupportedTvmSwapFields };
+export { buildTvmSwapQueryParams, querySchema, stripUnsupportedTvmSwapFields };
 export default route;
