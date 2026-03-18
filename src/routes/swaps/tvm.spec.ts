@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { querySchema, stripUnsupportedTvmSwapFields } from './tvm.js';
+import { buildTvmSwapQueryParams, querySchema, stripUnsupportedTvmSwapFields } from './tvm.js';
 
 describe('TVM swaps response modifiers', () => {
     it('does not expose caller in the TVM query schema', () => {
@@ -11,6 +11,20 @@ describe('TVM swaps response modifiers', () => {
 
         expect(parsed).not.toHaveProperty('caller');
         expect(parsed.sender).toEqual(['TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w']);
+    });
+
+    it('supplies an empty caller substitution for TVM swap SQL queries', () => {
+        const params = buildTvmSwapQueryParams(
+            querySchema.parse({
+                network: 'tron',
+                sender: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
+            }),
+            'tron_dex'
+        );
+
+        expect(params.caller).toEqual([]);
+        expect(params.db_dex).toBe('tron_dex');
+        expect(params.sender).toEqual(['TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w']);
     });
 
     it('removes caller and call_* fields from the response payload', () => {
