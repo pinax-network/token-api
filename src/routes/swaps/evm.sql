@@ -6,6 +6,7 @@ active_filters AS
         toUInt8(notEmpty({transaction_id:Array(String)}))  +
         toUInt8(notEmpty({factory:Array(String)}))         +
         toUInt8(notEmpty({pool:Array(String)}))            +
+        toUInt8(notEmpty({user:Array(String)}))            +
         toUInt8(notEmpty({recipient:Array(String)}))       +
         toUInt8(notEmpty({sender:Array(String)}))          +
         toUInt8(notEmpty({caller:Array(String)}))          +
@@ -49,6 +50,13 @@ minutes_union AS
     SELECT minute
     FROM {db_dex:Identifier}.swaps
     WHERE (notEmpty({pool:Array(String)}) AND pool IN {pool:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_dex:Identifier}.swaps
+    WHERE (notEmpty({user:Array(String)}) AND user IN {user:Array(String)})
     GROUP BY minute
 
     UNION ALL
@@ -149,6 +157,7 @@ filtered_swaps AS
         AND (empty({transaction_id:Array(String)})      OR tx_hash IN {transaction_id:Array(String)})
         AND (empty({factory:Array(String)})             OR factory IN {factory:Array(String)})
         AND (empty({pool:Array(String)})                OR pool IN {pool:Array(String)})
+        AND (empty({user:Array(String)})                OR user IN {user:Array(String)})
         AND (empty({recipient:Array(String)})           OR user IN {recipient:Array(String)})
         AND (empty({sender:Array(String)})              OR tx_from IN {sender:Array(String)})
         AND (empty({caller:Array(String)})              OR call_caller IN {caller:Array(String)})

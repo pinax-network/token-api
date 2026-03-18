@@ -6,10 +6,12 @@ describe('TVM swaps response modifiers', () => {
         const parsed = querySchema.parse({
             network: 'tron',
             caller: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
+            user: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
             sender: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
         });
 
         expect(parsed).not.toHaveProperty('caller');
+        expect(parsed.user).toEqual(['TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w']);
         expect(parsed.sender).toEqual(['TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w']);
     });
 

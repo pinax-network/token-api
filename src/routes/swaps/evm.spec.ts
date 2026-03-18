@@ -19,10 +19,12 @@ describe('EVM/TVM swaps SQL regressions', () => {
         expect(sql).toContain(
             'WHERE (notEmpty({transaction_from:Array(String)}) AND tx_from IN {transaction_from:Array(String)})'
         );
+        expect(sql).toContain('WHERE (notEmpty({user:Array(String)}) AND user IN {user:Array(String)})');
         expect(sql).toContain('(empty({caller:Array(String)})              OR call_caller IN {caller:Array(String)})');
         expect(sql).toContain(
             '(empty({transaction_from:Array(String)})    OR tx_from IN {transaction_from:Array(String)})'
         );
+        expect(sql).toContain('(empty({user:Array(String)})                OR user IN {user:Array(String)})');
     });
 
     it('selects the new swap ordering and log aliases', () => {

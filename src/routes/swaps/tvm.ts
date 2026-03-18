@@ -31,6 +31,7 @@ import {
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 import query from './evm.sql' with { type: 'text' };
+import { swapAddressFieldDescriptions } from './shared.js';
 
 function stripUnsupportedTvmSwapFields(response: ApiUsageResponse) {
     return {
@@ -71,6 +72,7 @@ const querySchema = createQuerySchema({
         optional: true,
         meta: { example: TVM_ADDRESS_SWAP_EXAMPLE },
     },
+    user: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     sender: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     recipient: { schema: tvmAddressSchema, batched: true, optional: true, meta: { example: TVM_ADDRESS_SWAP_EXAMPLE } },
     input_contract: {
@@ -93,14 +95,6 @@ const querySchema = createQuerySchema({
     start_block: { schema: blockNumberSchema, optional: true },
     end_block: { schema: blockNumberSchema, optional: true },
 });
-
-const swapAddressFieldDescriptions = {
-    transaction_from: 'Onchain transaction initiator address.',
-    user: 'Normalized user-oriented swap address. Prefer this field for integrations; sender and recipient remain legacy compatibility fields and are planned for deprecation in a future major release.',
-    sender: 'Legacy compatibility field for swap sender semantics. Prefer user for a normalized user-oriented swap address.',
-    recipient:
-        'Legacy compatibility field for swap recipient semantics. Prefer user for a normalized user-oriented swap address.',
-} as const;
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(

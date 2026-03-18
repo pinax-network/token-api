@@ -187,6 +187,7 @@ Response address fields: `transaction_from` is the onchain transaction initiator
 | `factory` | string | No | Filter by factory address (supports multiple) |
 | `pool` | string | No | Filter by pool address (supports multiple) |
 | `caller` | string | No | Filter by caller address (supports multiple) |
+| `user` | string | No | Filter by normalized user-oriented swap address (supports multiple) |
 | `sender` | string | No | Filter by sender address (supports multiple) |
 | `recipient` | string | No | Filter by recipient address (supports multiple) |
 | `input_contract` | string | No | Filter by input token contract (supports multiple) |
@@ -525,6 +526,7 @@ Response address fields: `transaction_from` is the onchain transaction initiator
 | `factory` | string | No | Filter by factory address (supports multiple) |
 | `pool` | string | No | Filter by pool address (supports multiple) |
 | `caller` | string | No | Filter by caller address (supports multiple) |
+| `user` | string | No | Filter by normalized user-oriented swap address (supports multiple) |
 | `sender` | string | No | Filter by sender address (supports multiple) |
 | `recipient` | string | No | Filter by recipient address (supports multiple) |
 | `input_contract` | string | No | Filter by input token contract (supports multiple) |
