@@ -76,6 +76,15 @@ const querySchema = createQuerySchema({
     end_block: { schema: blockNumberSchema, optional: true },
 });
 
+const swapAddressFieldDescriptions = {
+    transaction_from: 'Onchain transaction initiator address.',
+    caller: 'Account or contract that calls the swap-relevant contract.',
+    user: 'Normalized user-oriented swap address. Prefer this field for integrations; sender and recipient remain legacy compatibility fields and are planned for deprecation in a future major release.',
+    sender: 'Legacy compatibility field for swap sender semantics. Prefer user for a normalized user-oriented swap address.',
+    recipient:
+        'Legacy compatibility field for swap recipient semantics. Prefer user for a normalized user-oriented swap address.',
+} as const;
+
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
@@ -87,7 +96,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- swap --
             transaction_id: z.string(),
             transaction_index: z.number(),
-            transaction_from: evmAddressSchema,
+            transaction_from: evmAddressSchema.describe(swapAddressFieldDescriptions.transaction_from),
             call_index: z.number().nullable(),
             log_index: z.number(),
             log_ordinal: z.number(),
@@ -98,9 +107,10 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
 
-            caller: evmAddressSchema,
-            sender: evmAddressSchema,
-            recipient: evmAddressSchema,
+            caller: evmAddressSchema.describe(swapAddressFieldDescriptions.caller),
+            user: evmAddressSchema.describe(swapAddressFieldDescriptions.user),
+            sender: evmAddressSchema.describe(swapAddressFieldDescriptions.sender),
+            recipient: evmAddressSchema.describe(swapAddressFieldDescriptions.recipient),
 
             // -- price --
             input_amount: z.string(),
@@ -121,7 +131,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description: 'Returns DEX swaps events with input & output token amounts.',
+        description:
+            'Returns DEX swaps events with input & output token amounts.\n\nAddress semantics: `transaction_from` is the onchain transaction initiator, `caller` is the account or contract that calls the swap-relevant contract, and `user` is the normalized user-oriented swap address. `sender` and `recipient` remain available for legacy compatibility, but new integrations should prefer `user` and plan for `sender`/`recipient` deprecation in a future major release.',
 
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -162,6 +173,7 @@ const openapi = describeRoute(
                                                 decimals: 18,
                                             },
                                             caller: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            user: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             sender: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             recipient: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             input_amount: '40735537734',

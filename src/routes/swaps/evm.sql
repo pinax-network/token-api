@@ -215,6 +215,7 @@ SELECT
     toString(s.factory) AS factory,
     s.pool AS pool,
     s.call_caller AS caller,
+    s.user AS user,
     s.tx_from AS sender,
     s.user AS recipient,
 

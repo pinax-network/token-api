@@ -94,6 +94,14 @@ const querySchema = createQuerySchema({
     end_block: { schema: blockNumberSchema, optional: true },
 });
 
+const swapAddressFieldDescriptions = {
+    transaction_from: 'Onchain transaction initiator address.',
+    user: 'Normalized user-oriented swap address. Prefer this field for integrations; sender and recipient remain legacy compatibility fields and are planned for deprecation in a future major release.',
+    sender: 'Legacy compatibility field for swap sender semantics. Prefer user for a normalized user-oriented swap address.',
+    recipient:
+        'Legacy compatibility field for swap recipient semantics. Prefer user for a normalized user-oriented swap address.',
+} as const;
+
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
@@ -105,7 +113,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- swap --
             transaction_id: z.string(),
             transaction_index: z.number(),
-            transaction_from: tvmAddressSchema,
+            transaction_from: tvmAddressSchema.describe(swapAddressFieldDescriptions.transaction_from),
             log_index: z.number(),
             log_ordinal: z.number(),
             log_block_index: z.number(),
@@ -115,8 +123,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: tvmTokenResponseSchema,
             output_token: tvmTokenResponseSchema,
 
-            sender: tvmAddressSchema,
-            recipient: tvmAddressSchema,
+            user: tvmAddressSchema.describe(swapAddressFieldDescriptions.user),
+            sender: tvmAddressSchema.describe(swapAddressFieldDescriptions.sender),
+            recipient: tvmAddressSchema.describe(swapAddressFieldDescriptions.recipient),
 
             // -- price --
             input_amount: z.string(),
@@ -137,7 +146,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description: 'Returns DEX swaps events with input & output token amounts.',
+        description:
+            'Returns DEX swaps events with input & output token amounts.\n\nAddress semantics: `transaction_from` is the onchain transaction initiator and `user` is the normalized user-oriented swap address. `sender` and `recipient` remain available for legacy compatibility, but new integrations should prefer `user` and plan for `sender`/`recipient` deprecation in a future major release.',
 
         tags: ['TVM DEXs'],
         security: [{ bearerAuth: [] }],
@@ -166,6 +176,7 @@ const openapi = describeRoute(
                                                 'd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
                                             factory: 'TXk8rQSAvPvBBNtqSoY6nCfsXWCSSpTVQF',
                                             pool: 'TAqCH2kadHAugPEorFrpT7Kogqo2FckxWA',
+                                            user: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             sender: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             recipient: 'TSLjVj4sL7uDWQXDbHyV3Kbgz1KL9jB78w',
                                             input_token: {

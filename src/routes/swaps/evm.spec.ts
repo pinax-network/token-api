@@ -33,5 +33,7 @@ describe('EVM/TVM swaps SQL regressions', () => {
         expect(sql).toContain('s.log_block_index AS log_block_index');
         expect(sql).toContain('s.log_topic0 AS log_topic0');
         expect(sql).toContain('s.call_caller AS caller');
+        expect(sql).toContain('s.user AS user');
+        expect(sql).toContain('s.user AS recipient');
     });
 });

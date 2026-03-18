@@ -178,6 +178,8 @@ Get native token holders ranked by balance.
 
 Get DEX swap events.
 
+Response address fields: `transaction_from` is the onchain transaction initiator, `caller` is the account or contract that calls the swap-relevant contract, and `user` is the normalized user-oriented swap address. `sender` and `recipient` remain for legacy compatibility; prefer `user` for new integrations and plan for `sender`/`recipient` deprecation in a future major release after SDK/OpenAPI clients migrate.
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `network` | string | Yes | Blockchain network |
@@ -513,6 +515,8 @@ Get native TRX transfer events.
 #### `GET /v1/tvm/swaps`
 
 Get DEX swap events.
+
+Response address fields: `transaction_from` is the onchain transaction initiator and `user` is the normalized user-oriented swap address. `sender` and `recipient` remain for legacy compatibility; prefer `user` for new integrations and plan for `sender`/`recipient` deprecation in a future major release after SDK/OpenAPI clients migrate.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
