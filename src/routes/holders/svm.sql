@@ -91,12 +91,23 @@ top_balances AS (
     UNION ALL
     SELECT account, amt, ts, bn, dec, prog_id, mnt
     FROM top_spl
+),
+/* 5) Look up wallet owners from owner_state for token accounts */
+/* For native SOL, account IS the wallet (no entry in owner_state), so fall back to account */
+owner_lookup AS (
+    SELECT
+        account,
+        argMax(owner, block_num) AS owner  -- use most recent owner assignment per account
+    FROM {db_balances:Identifier}.owner_state
+    WHERE account IN (SELECT account FROM top_balances)
+    GROUP BY account
 )
 SELECT
     ts AS last_update,
     bn AS last_update_block_num,
     toUnixTimestamp(ts) AS last_update_timestamp,
-    toString(account) AS owner,
+    toString(if(notEmpty(ol.owner), ol.owner, toString(tb.account))) AS owner,
+    toString(tb.account) AS token_account,
     toString(mnt) AS mint,
     toString(prog_id) AS program_id,
     toString(amt) AS amount,
@@ -106,8 +117,9 @@ SELECT
     symbol,
     uri,
     {network:String} AS network
-FROM top_balances
+FROM top_balances AS tb
+LEFT JOIN owner_lookup AS ol ON tb.account = ol.account
 LEFT JOIN metadata ON mnt = metadata.mint
-ORDER BY value DESC, account
+ORDER BY value DESC, tb.account
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}
