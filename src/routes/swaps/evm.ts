@@ -124,9 +124,7 @@ const responseSchema = apiUsageResponseSchema.extend({
 const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
-        description:
-            'Returns DEX swaps events with input & output token amounts.\n\nAddress semantics: `transaction_from` is the onchain transaction initiator, `caller` is the account or contract that calls the swap-relevant contract, and `user` is the normalized user-oriented swap address. `sender` and `recipient` remain available for legacy compatibility, but new integrations should prefer `user` and plan for `sender`/`recipient` deprecation in a future major release.',
-
+        description: 'Returns DEX swaps events with input & output token amounts.',
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
         responses: {
