@@ -478,6 +478,28 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
+        // Verify the fix: each holder must expose both wallet owner and ATA
+        for (const item of body.data) {
+            expect(item).toHaveProperty('owner');
+            expect(item).toHaveProperty('token_account');
+        }
+    });
+
+    it('GET /v1/svm/holders owner is wallet not token account', async () => {
+        if (!hasSvmBalances) return;
+        // Use USDC mint — a well-known SPL token with real ATAs — so owner != token_account
+        const { response, body } = await fetchRoute(
+            `/v1/svm/holders?network=${svmNetwork}&mint=${SVM_MINT_USDC_EXAMPLE}&limit=5`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        for (const item of body.data) {
+            expect(item).toHaveProperty('owner');
+            expect(item).toHaveProperty('token_account');
+            // For a regular SPL token, the wallet owner differs from the token account (ATA)
+            expect(item.owner).not.toBe(item.token_account);
+        }
     });
 
     // --- EVM Swaps ---
