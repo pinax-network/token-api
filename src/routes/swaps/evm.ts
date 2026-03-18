@@ -30,6 +30,7 @@ import {
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 import query from './evm.sql' with { type: 'text' };
+import { swapAddressFieldDescriptions } from './shared.js';
 
 const querySchema = createQuerySchema({
     network: { schema: evmNetworkIdSchema },
@@ -54,6 +55,7 @@ const querySchema = createQuerySchema({
         optional: true,
         meta: { example: EVM_ADDRESS_SWAP_EXAMPLE },
     },
+    user: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     sender: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     recipient: { schema: evmAddressSchema, batched: true, optional: true, meta: { example: EVM_ADDRESS_SWAP_EXAMPLE } },
     input_contract: {
@@ -87,7 +89,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- swap --
             transaction_id: z.string(),
             transaction_index: z.number(),
-            transaction_from: evmAddressSchema,
+            transaction_from: evmAddressSchema.describe(swapAddressFieldDescriptions.transaction_from),
             call_index: z.number().nullable(),
             log_index: z.number(),
             log_ordinal: z.number(),
@@ -98,9 +100,10 @@ const responseSchema = apiUsageResponseSchema.extend({
             input_token: evmTokenResponseSchema,
             output_token: evmTokenResponseSchema,
 
-            caller: evmAddressSchema,
-            sender: evmAddressSchema,
-            recipient: evmAddressSchema,
+            caller: evmAddressSchema.describe(swapAddressFieldDescriptions.caller),
+            user: evmAddressSchema.describe(swapAddressFieldDescriptions.user),
+            sender: evmAddressSchema.describe(swapAddressFieldDescriptions.sender),
+            recipient: evmAddressSchema.describe(swapAddressFieldDescriptions.recipient),
 
             // -- price --
             input_amount: z.string(),
@@ -122,7 +125,6 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'Swap Events',
         description: 'Returns DEX swaps events with input & output token amounts.',
-
         tags: ['EVM DEXs'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -162,6 +164,7 @@ const openapi = describeRoute(
                                                 decimals: 18,
                                             },
                                             caller: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
+                                            user: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             sender: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             recipient: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c',
                                             input_amount: '40735537734',
