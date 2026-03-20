@@ -3,12 +3,11 @@ WITH
 balances AS (
     SELECT
         address,
-        argMax(balance, block_num) AS amt,
-        max(timestamp) AS ts,
-        max(block_num) AS bn
-    FROM {db_balances:Identifier}.erc20_balances
+        balance AS amt,
+        timestamp AS ts,
+        block_num AS bn
+    FROM {db_balances:Identifier}.erc20_balances FINAL
     WHERE contract = {contract:String} AND balance > 0
-    GROUP BY contract, address
     ORDER BY amt DESC, address
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
