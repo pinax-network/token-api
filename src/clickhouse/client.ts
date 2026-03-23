@@ -60,7 +60,7 @@ const client = (custom_config?: ClientOptions) => {
         clickhouse_settings: {
             allow_experimental_object_type: 1,
             output_format_json_quote_64bit_integers: 0,
-            readonly: '0',
+            readonly: '2',
             interactive_delay: '500000', // Interval between query progress reports in microseconds
             max_execution_time: config.maxQueryExecutionTime,
 

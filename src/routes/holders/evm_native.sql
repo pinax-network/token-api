@@ -20,12 +20,11 @@ WITH cutoff AS (
 top_native AS (
     SELECT
         address,
-        argMax(balance, timestamp) AS amt,
-        max(timestamp) AS ts,
-        max(block_num) AS bn
-    FROM {db_balances:Identifier}.native_balances
+        balance AS amt,
+        timestamp AS ts,
+        block_num AS bn
+    FROM {db_balances:Identifier}.native_balances FINAL
     WHERE balance > (SELECT eth_cut FROM cutoff) * pow(10, 18)
-    GROUP BY address
     ORDER BY amt DESC, address
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
