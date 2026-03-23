@@ -379,7 +379,7 @@ Get SPL token transfer events.
 
 #### `GET /v1/svm/holders`
 
-Get SPL token holders ranked by balance.
+Get SPL token holders ranked by balance. The `owner` field contains the wallet address and `token_account` contains the Associated Token Account (ATA) address.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|

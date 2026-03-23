@@ -9,10 +9,11 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
-    svmAddressSchema,
     svmMintSchema,
     svmNetworkIdSchema,
+    svmOwnerSchema,
     svmProgramIdSchema,
+    svmTokenAccountSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
@@ -32,7 +33,8 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_timestamp: z.number(),
 
             // -- contract --
-            owner: svmAddressSchema,
+            owner: svmOwnerSchema,
+            token_account: svmTokenAccountSchema,
             mint: svmMintSchema,
             program_id: svmProgramIdSchema,
             amount: z.string(),
@@ -72,6 +74,7 @@ const openapi = describeRoute(
                                             last_update_block_num: 367491952,
                                             last_update_timestamp: 1758139607,
                                             owner: '7AN6avKCJPMkXkW8kPwMuHmaWvJeHH69e8rKpLf9rdfk',
+                                            token_account: 'BzWtXFf9HL2GGzMGgcGKRnFjrJiZ8U3FG8BQKTbCzW9s',
                                             mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
                                             program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
                                             amount: '365461857133582111',
