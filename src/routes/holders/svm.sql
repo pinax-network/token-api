@@ -92,22 +92,32 @@ top_balances AS (
     SELECT account, amt, ts, bn, dec, prog_id, mnt
     FROM top_spl
 ),
-/* 5) Look up wallet owners from owner_state for token accounts */
+/* 5) Sort and limit first, then resolve wallet owners only for the result set */
+/* owner_state has ~7.5B rows — resolving all holders is too expensive */
+ranked AS (
+    SELECT account, amt, ts, bn, dec, prog_id, mnt, name, symbol, uri
+    FROM top_balances
+    LEFT JOIN metadata ON mnt = metadata.mint
+    ORDER BY amt / pow(10, dec) DESC, account
+    LIMIT {limit:UInt64}
+    OFFSET {offset:UInt64}
+),
+/* 6) Look up wallet owners from owner_state for the limited result set */
 /* For native SOL, account IS the wallet (no entry in owner_state), so fall back to account */
 owner_lookup AS (
     SELECT
         account,
-        argMax(owner, block_num) AS owner  -- use most recent owner assignment per account
+        argMax(owner, block_num) AS owner
     FROM {db_balances:Identifier}.owner_state
-    WHERE account IN (SELECT account FROM top_balances)
+    WHERE account IN (SELECT account FROM ranked)
     GROUP BY account
 )
 SELECT
     ts AS last_update,
     bn AS last_update_block_num,
     toUnixTimestamp(ts) AS last_update_timestamp,
-    toString(if(notEmpty(ol.owner), ol.owner, toString(tb.account))) AS owner,
-    toString(tb.account) AS token_account,
+    toString(if(notEmpty(ol.owner), ol.owner, toString(r.account))) AS owner,
+    toString(r.account) AS token_account,
     toString(mnt) AS mint,
     toString(prog_id) AS program_id,
     toString(amt) AS amount,
@@ -117,9 +127,7 @@ SELECT
     symbol,
     uri,
     {network:String} AS network
-FROM top_balances AS tb
-LEFT JOIN owner_lookup AS ol ON tb.account = ol.account
-LEFT JOIN metadata ON mnt = metadata.mint
-ORDER BY value DESC, tb.account
+FROM ranked AS r
+LEFT JOIN owner_lookup AS ol ON r.account = ol.account
+ORDER BY value DESC, r.account
 LIMIT {limit:UInt64}
-OFFSET {offset:UInt64}
