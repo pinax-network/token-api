@@ -303,62 +303,83 @@ const config = z
         return {
             ...data,
             clusters: yamlConfig?.clusters ?? {},
+            accountsDatabases: yamlConfig?.accountsDatabases ?? {},
             balancesDatabases: yamlConfig?.balancesDatabases ?? {},
             transfersDatabases: yamlConfig?.transfersDatabases ?? {},
+            metadataDatabases: yamlConfig?.metadataDatabases ?? {},
             nftDatabases: yamlConfig?.nftDatabases ?? {},
             dexDatabases: yamlConfig?.dexDatabases ?? {},
             contractDatabases: yamlConfig?.contractDatabases ?? {},
+            stakingDatabases: yamlConfig?.stakingDatabases ?? {},
         };
     })
     .transform((data) => ({
         ...data,
         evmNetworks: Object.keys({
+            ...data.accountsDatabases,
             ...data.balancesDatabases,
             ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.nftDatabases,
             ...data.dexDatabases,
             ...data.contractDatabases,
+            ...data.stakingDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
+                        ...data.accountsDatabases,
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.nftDatabases,
                         ...data.dexDatabases,
                         ...data.contractDatabases,
+                        ...data.stakingDatabases,
                     }[networkId]?.type === 'evm'
                 );
             })
             .sort(),
         svmNetworks: Object.keys({
+            ...data.accountsDatabases,
             ...data.balancesDatabases,
             ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.nftDatabases,
             ...data.dexDatabases,
             ...data.contractDatabases,
+            ...data.stakingDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
+                        ...data.accountsDatabases,
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.nftDatabases,
                         ...data.dexDatabases,
                         ...data.contractDatabases,
+                        ...data.stakingDatabases,
                     }[networkId]?.type === 'svm'
                 );
             })
             .sort(),
         tvmNetworks: Object.keys({
+            ...data.accountsDatabases,
             ...data.transfersDatabases,
+            ...data.metadataDatabases,
             ...data.dexDatabases,
+            ...data.stakingDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
+                        ...data.accountsDatabases,
                         ...data.transfersDatabases,
+                        ...data.metadataDatabases,
                         ...data.dexDatabases,
+                        ...data.stakingDatabases,
                     }[networkId]?.type === 'tvm'
                 );
             })

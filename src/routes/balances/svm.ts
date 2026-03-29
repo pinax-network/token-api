@@ -109,16 +109,25 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
+    const dbAccounts = config.accountsDatabases[params.network];
     const dbBalances = config.balancesDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
 
+    if (!dbAccounts) {
+        return c.json({ error: `Network not found: ${params.network} dbAccounts` }, 400);
+    }
     if (!dbBalances) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
+        return c.json({ error: `Network not found: ${params.network} dbBalances` }, 400);
+    }
+    if (!dbMetadata) {
+        return c.json({ error: `Network not found: ${params.network} dbMetadata` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
+        db_accounts: dbAccounts.database,
         db_balances: dbBalances.database,
-        db_metadata: dbBalances.database,
+        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });

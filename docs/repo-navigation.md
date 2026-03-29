@@ -8,7 +8,7 @@ This document captures stable, tool-agnostic navigation knowledge for the `token
 - `src/routes/`: endpoint modules grouped by domain (`balances`, `tokens`, `transfers`, `swaps`, `pools`, `dexes`, `holders`, `nft`, `owner`, monitoring routes).
 - `src/routes/index.ts`: global route registration and cache-control middleware wiring.
 - `src/config.ts`: runtime config surface (CLI/env), defaults, validation, and derived network lists.
-- `src/config/dbsConfig.ts`: parses `dbs-config.yaml`, validates clusters/networks, and builds per-category DB maps.
+- `src/config/dbsConfig.ts`: parses `dbs-config.yaml`, validates clusters/networks, and builds per-category DB maps, including dedicated SVM roles such as accounts and metadata when configured.
 - `src/clickhouse/`: ClickHouse client creation and query execution/streaming.
 - `src/handleQuery.ts`: shared query execution wrapper, pagination defaults, API response envelope, and error mapping.
 - `src/types/zod.ts`: shared schema primitives and query builders used by route handlers.

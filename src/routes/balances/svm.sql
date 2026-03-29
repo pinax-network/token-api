@@ -2,7 +2,7 @@ WITH accounts AS (
     SELECT DISTINCT
         owner,
         argMax(account, o.block_num) AS account
-    FROM {db_balances:Identifier}.owner_state AS o
+    FROM {db_accounts:Identifier}.owner_state AS o
     WHERE (empty({token_account:Array(String)}) or o.account IN {token_account:Array(String)})
       AND owner IN {owner:Array(String)}
     GROUP BY owner, o.account

@@ -4,6 +4,8 @@ import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
+import { getFirstDatabaseForNetwork } from '../config/databaseMappings.js';
+import { findMissingDatabases } from '../config/databaseValidation.js';
 import { config } from '../config.js';
 import { extractVersion } from '../extractVersion.js';
 import { logger } from '../logger.js';
@@ -142,9 +144,14 @@ interface IndexedToEntry {
 function collectDbEntries(): DbEntry[] {
     const entries: DbEntry[] = [];
     const categories: [string, Record<string, { database: string; cluster: string }>][] = [
+        ['accounts', config.accountsDatabases],
         ['transfers', config.transfersDatabases],
         ['balances', config.balancesDatabases],
+        ['metadata', config.metadataDatabases],
         ['dexes', config.dexDatabases],
+        ['nfts', config.nftDatabases],
+        ['contracts', config.contractDatabases],
+        ['staking', config.stakingDatabases],
     ];
     for (const [category, databases] of categories) {
         for (const [network, mapping] of Object.entries(databases)) {
@@ -217,38 +224,39 @@ async function validateNetworks() {
         throw new Error('Default network for EVM, SVM or TVM not found');
     }
 
-    // Group networks by their cluster
-    const networksByCluster = new Map<string, string[]>();
-    for (const network of config.networks) {
-        const networkDb =
-            config.balancesDatabases[network] ||
-            config.transfersDatabases[network] ||
-            config.nftDatabases[network] ||
-            config.dexDatabases[network] ||
-            config.contractDatabases[network];
+    const allEntries = collectDbEntries();
 
+    for (const network of config.networks) {
+        const networkDb = getFirstDatabaseForNetwork(config, network);
         if (!networkDb) {
             throw new Error(`No database configuration found for network: ${network}`);
         }
-
-        const clusterName = networkDb.cluster;
-        if (!networksByCluster.has(clusterName)) {
-            networksByCluster.set(clusterName, []);
-        }
-        networksByCluster.get(clusterName)?.push(network);
     }
 
-    // Validate each network against its cluster
-    const query = 'SHOW DATABASES';
-    for (const [clusterName, networks] of networksByCluster) {
-        const result = await client({ network: networks[0] }).query({ query, format: 'JSONEachRow' });
-        const dbs = await result.json<{ name: string }>();
-        const dbs_networks = new Set(dbs.map((db) => db.name.split(':')[0]));
+    // Validate each exact configured database against its cluster
+    const databasesByCluster = new Map<string, string[]>();
+    for (const entry of allEntries) {
+        const databases = databasesByCluster.get(entry.cluster) ?? [];
+        databases.push(entry.database);
+        databasesByCluster.set(entry.cluster, databases);
+    }
 
-        for (const network of networks) {
-            if (!dbs_networks.has(network)) {
-                throw new Error(`Databases for ${network} not found in cluster ${clusterName}`);
-            }
+    const query = 'SHOW DATABASES';
+    for (const [clusterName, expectedDatabases] of databasesByCluster) {
+        const network = allEntries.find((entry) => entry.cluster === clusterName)?.network;
+        if (!network) {
+            continue;
+        }
+
+        const result = await client({ network }).query({ query, format: 'JSONEachRow' });
+        const dbs = await result.json<{ name: string }>();
+        const missingDatabases = findMissingDatabases(
+            dbs.map((db) => db.name),
+            [...new Set(expectedDatabases)]
+        );
+
+        if (missingDatabases.length > 0) {
+            throw new Error(`Databases not found in cluster ${clusterName}: ${missingDatabases.join(', ')}`);
         }
     }
 }

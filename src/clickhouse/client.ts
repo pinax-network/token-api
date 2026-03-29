@@ -1,5 +1,6 @@
 import { createClient } from '@clickhouse/client-web';
 import type { WebClickHouseClientConfigOptions } from '@clickhouse/client-web/dist/config.js';
+import { getFirstDatabaseForNetwork } from '../config/databaseMappings.js';
 import { APP_NAME, config } from '../config.js';
 
 interface ClientOptions extends WebClickHouseClientConfigOptions {
@@ -7,13 +8,7 @@ interface ClientOptions extends WebClickHouseClientConfigOptions {
 }
 
 function getClusterForNetwork(network: string): { url: string; username?: string; password?: string } | null {
-    // Try to find cluster from any database type for this network
-    const networkDb =
-        config.balancesDatabases[network] ||
-        config.transfersDatabases[network] ||
-        config.nftDatabases[network] ||
-        config.dexDatabases[network] ||
-        config.contractDatabases[network];
+    const networkDb = getFirstDatabaseForNetwork(config, network);
 
     if (!networkDb || !networkDb.cluster) {
         return null;

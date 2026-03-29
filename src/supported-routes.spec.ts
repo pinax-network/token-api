@@ -13,7 +13,7 @@ describe('ROUTE_DEFINITIONS', () => {
     });
 
     it('should have valid DB categories for all routes', () => {
-        const validCategories = ['balances', 'transfers', 'dex', 'nft', 'contracts'];
+        const validCategories = ['balances', 'transfers', 'dex', 'nft', 'contracts', 'accounts', 'metadata', 'staking'];
         for (const route of ROUTE_DEFINITIONS) {
             expect(route.requires.length).toBeGreaterThan(0);
             for (const cat of route.requires) {
@@ -65,6 +65,18 @@ describe('hasDatabase', () => {
         }
     });
 
+    it('should be consistent with direct config access for accounts', () => {
+        for (const network of config.networks) {
+            expect(hasDatabase(config, network, 'accounts')).toBe(!!config.accountsDatabases[network]);
+        }
+    });
+
+    it('should be consistent with direct config access for metadata', () => {
+        for (const network of config.networks) {
+            expect(hasDatabase(config, network, 'metadata')).toBe(!!config.metadataDatabases[network]);
+        }
+    });
+
     it('should be consistent with direct config access for transfers', () => {
         for (const network of config.networks) {
             expect(hasDatabase(config, network, 'transfers')).toBe(!!config.transfersDatabases[network]);
@@ -86,6 +98,12 @@ describe('hasDatabase', () => {
     it('should be consistent with direct config access for contracts', () => {
         for (const network of config.networks) {
             expect(hasDatabase(config, network, 'contracts')).toBe(!!config.contractDatabases[network]);
+        }
+    });
+
+    it('should be consistent with direct config access for staking', () => {
+        for (const network of config.networks) {
+            expect(hasDatabase(config, network, 'staking')).toBe(!!config.stakingDatabases[network]);
         }
     });
 });

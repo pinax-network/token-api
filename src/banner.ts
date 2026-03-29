@@ -46,11 +46,14 @@ export function logServerInit() {
 
     // Database mappings per network
     const dbTypes = [
+        { label: 'accounts', mapping: config.accountsDatabases },
         { label: 'balances', mapping: config.balancesDatabases },
         { label: 'transfers', mapping: config.transfersDatabases },
+        { label: 'metadata', mapping: config.metadataDatabases },
         { label: 'nfts', mapping: config.nftDatabases },
         { label: 'dexes', mapping: config.dexDatabases },
         { label: 'contracts', mapping: config.contractDatabases },
+        { label: 'staking', mapping: config.stakingDatabases },
     ];
     console.log('Databases:');
     for (const networkId of config.networks) {

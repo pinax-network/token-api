@@ -12,11 +12,14 @@ const ClusterConfigSchema = z.object({
 const NetworkConfigSchema = z.object({
     type: z.enum(['evm', 'svm', 'tvm']),
     cluster: z.string(),
+    accounts: z.string().optional(),
     transfers: z.string().optional(),
     balances: z.string().optional(),
+    metadata: z.string().optional(),
     nfts: z.string().optional(),
     dexes: z.string().optional(),
     contracts: z.string().optional(),
+    staking: z.string().optional(),
 });
 
 const DbsConfigSchema = z.object({
@@ -36,11 +39,14 @@ export interface NetworkDatabaseMapping {
 
 export interface ParsedDbsConfig {
     clusters: Record<string, ClusterConfig>;
+    accountsDatabases: Record<string, NetworkDatabaseMapping>;
     balancesDatabases: Record<string, NetworkDatabaseMapping>;
     transfersDatabases: Record<string, NetworkDatabaseMapping>;
+    metadataDatabases: Record<string, NetworkDatabaseMapping>;
     nftDatabases: Record<string, NetworkDatabaseMapping>;
     dexDatabases: Record<string, NetworkDatabaseMapping>;
     contractDatabases: Record<string, NetworkDatabaseMapping>;
+    stakingDatabases: Record<string, NetworkDatabaseMapping>;
 }
 
 export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
@@ -60,11 +66,14 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
 
     const result: ParsedDbsConfig = {
         clusters: config.clusters,
+        accountsDatabases: {},
         balancesDatabases: {},
         transfersDatabases: {},
+        metadataDatabases: {},
         nftDatabases: {},
         dexDatabases: {},
         contractDatabases: {},
+        stakingDatabases: {},
     };
 
     for (const [networkId, networkConfig] of Object.entries(config.networks)) {
@@ -76,6 +85,13 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
             cluster: networkConfig.cluster,
         };
 
+        if (networkConfig.accounts) {
+            result.accountsDatabases[networkId] = {
+                database: networkConfig.accounts,
+                ...mapping,
+            };
+        }
+
         if (networkConfig.balances) {
             result.balancesDatabases[networkId] = {
                 database: networkConfig.balances,
@@ -86,6 +102,13 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
         if (networkConfig.transfers) {
             result.transfersDatabases[networkId] = {
                 database: networkConfig.transfers,
+                ...mapping,
+            };
+        }
+
+        if (networkConfig.metadata) {
+            result.metadataDatabases[networkId] = {
+                database: networkConfig.metadata,
                 ...mapping,
             };
         }
@@ -107,6 +130,13 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig | null {
         if (networkConfig.contracts) {
             result.contractDatabases[networkId] = {
                 database: networkConfig.contracts,
+                ...mapping,
+            };
+        }
+
+        if (networkConfig.staking) {
+            result.stakingDatabases[networkId] = {
+                database: networkConfig.staking,
                 ...mapping,
             };
         }

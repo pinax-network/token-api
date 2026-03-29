@@ -99,20 +99,20 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexDatabases[params.network];
-    const dbBalances = config.balancesDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
 
     if (!dbDex) {
         return c.json({ error: `Network not found: ${params.network} dbDex` }, 400);
     }
-    if (!dbBalances) {
-        return c.json({ error: `Network not found: ${params.network} dbBalances` }, 400);
+    if (!dbAccounts) {
+        return c.json({ error: `Network not found: ${params.network} dbAccounts` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         stablecoin_contracts: [...stables],
         db_dex: dbDex.database,
-        db_metadata: dbBalances.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

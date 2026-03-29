@@ -108,7 +108,7 @@ owner_lookup AS (
     SELECT
         account,
         argMax(owner, block_num) AS owner
-    FROM {db_balances:Identifier}.owner_state
+    FROM {db_accounts:Identifier}.owner_state
     WHERE account IN (SELECT account FROM ranked)
     GROUP BY account
 )

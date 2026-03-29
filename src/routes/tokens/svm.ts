@@ -96,16 +96,20 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
 
     if (!dbBalances) {
-        return c.json({ error: `Network not found: ${params.network}` }, 400);
+        return c.json({ error: `Network not found: ${params.network} dbBalances` }, 400);
+    }
+    if (!dbMetadata) {
+        return c.json({ error: `Network not found: ${params.network} dbMetadata` }, 400);
     }
     if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
-        db_metadata: dbBalances.database,
+        db_metadata: dbMetadata.database,
     });
     injectIcons(response);
     return handleUsageQueryError(c, response);

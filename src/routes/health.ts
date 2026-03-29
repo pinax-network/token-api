@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { describeRoute, resolver } from 'hono-openapi';
 import { z } from 'zod';
 import client from '../clickhouse/client.js';
+import { getFirstDatabaseForNetwork } from '../config/databaseMappings.js';
 import { config } from '../config.js';
 import { withErrorResponses } from '../utils.js';
 
@@ -60,12 +61,7 @@ route.get('/health', openapi, async (c) => {
     const pingPromises: Promise<void>[] = [];
 
     for (const network of config.networks) {
-        const networkDb =
-            config.balancesDatabases[network] ||
-            config.transfersDatabases[network] ||
-            config.nftDatabases[network] ||
-            config.dexDatabases[network] ||
-            config.contractDatabases[network];
+        const networkDb = getFirstDatabaseForNetwork(config, network);
 
         if (!networkDb || pingedClusters.has(networkDb.cluster)) continue;
         pingedClusters.add(networkDb.cluster);

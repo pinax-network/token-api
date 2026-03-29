@@ -1,11 +1,10 @@
+import { DATABASE_CATEGORY_GETTERS, type DatabaseCategory } from './config/databaseMappings.js';
 import type { config as Config } from './config.js';
-
-type DbCategory = 'balances' | 'transfers' | 'dex' | 'nft' | 'contracts';
 
 interface RouteDefinition {
     path: string;
     chain: 'evm' | 'svm' | 'tvm';
-    requires: DbCategory[];
+    requires: DatabaseCategory[];
 }
 
 /**
@@ -14,17 +13,17 @@ interface RouteDefinition {
  */
 export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     // SVM - Tokens
-    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers'] },
-    { path: '/v1/svm/balances', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/holders', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/owner', chain: 'svm', requires: ['balances'] },
-    { path: '/v1/svm/tokens', chain: 'svm', requires: ['balances'] },
+    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers', 'metadata', 'dex'] },
+    { path: '/v1/svm/balances', chain: 'svm', requires: ['accounts', 'balances', 'metadata'] },
+    { path: '/v1/svm/holders', chain: 'svm', requires: ['accounts', 'balances', 'metadata'] },
+    { path: '/v1/svm/owner', chain: 'svm', requires: ['accounts'] },
+    { path: '/v1/svm/tokens', chain: 'svm', requires: ['balances', 'metadata'] },
     // SVM - Tokens (Native)
     { path: '/v1/svm/balances/native', chain: 'svm', requires: ['balances'] },
     // SVM - DEXs
     { path: '/v1/svm/swaps', chain: 'svm', requires: ['dex'] },
     { path: '/v1/svm/pools', chain: 'svm', requires: ['dex'] },
-    { path: '/v1/svm/pools/ohlc', chain: 'svm', requires: ['dex', 'balances'] },
+    { path: '/v1/svm/pools/ohlc', chain: 'svm', requires: ['accounts', 'dex'] },
     { path: '/v1/svm/dexes', chain: 'svm', requires: ['dex'] },
     // EVM - Tokens
     { path: '/v1/evm/transfers', chain: 'evm', requires: ['transfers'] },
@@ -65,14 +64,6 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
 
 type ConfigType = typeof Config;
 
-const DB_CATEGORY_MAP: Record<DbCategory, (cfg: ConfigType) => Record<string, unknown>> = {
-    balances: (cfg) => cfg.balancesDatabases,
-    transfers: (cfg) => cfg.transfersDatabases,
-    dex: (cfg) => cfg.dexDatabases,
-    nft: (cfg) => cfg.nftDatabases,
-    contracts: (cfg) => cfg.contractDatabases,
-};
-
 /**
  * Check if a route has all its required DB categories configured for at least one network of its chain type.
  */
@@ -82,7 +73,7 @@ function isRouteSupported(route: RouteDefinition, cfg: ConfigType): boolean {
 
     return networkList.some((networkId) =>
         route.requires.every((category) => {
-            const mapping = DB_CATEGORY_MAP[category](cfg);
+            const mapping = DATABASE_CATEGORY_GETTERS[category](cfg);
             return !!mapping[networkId];
         })
     );
@@ -109,7 +100,7 @@ export function getSupportedRoutes(cfg: ConfigType): { supported: string[]; unsu
 /**
  * Check if a specific DB category is configured for a given network.
  */
-export function hasDatabase(cfg: ConfigType, networkId: string, category: DbCategory): boolean {
-    const mapping = DB_CATEGORY_MAP[category](cfg);
+export function hasDatabase(cfg: ConfigType, networkId: string, category: DatabaseCategory): boolean {
+    const mapping = DATABASE_CATEGORY_GETTERS[category](cfg);
     return !!mapping[networkId];
 }
