@@ -56,13 +56,13 @@ minutes_union AS
 start_ts AS (
     SELECT greatest(
         coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt32)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt32)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
     ) AS ts
 ),
 end_ts AS (
     SELECT least(
         coalesce(toDateTime({end_time:Nullable(UInt64)}), now()),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
 clamped_start_ts AS (

@@ -149,14 +149,10 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    const dbDex = config.dexDatabases[params.network];
     const dbMetadata = config.metadataDatabases[params.network];
 
     if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network} dbTransfers` }, 400);
-    }
-    if (!dbDex) {
-        return c.json({ error: `Network not found: ${params.network} dbDex` }, 400);
     }
     if (!dbMetadata) {
         return c.json({ error: `Network not found: ${params.network} dbMetadata` }, 400);
@@ -166,7 +162,6 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_transfers: dbTransfers.database,
         db_metadata: dbMetadata.database,
-        db_dex: dbDex.database,
     });
     return handleUsageQueryError(c, response);
 });

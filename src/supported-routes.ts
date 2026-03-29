@@ -13,7 +13,7 @@ interface RouteDefinition {
  */
 export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     // SVM - Tokens
-    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers', 'metadata', 'dex'] },
+    { path: '/v1/svm/transfers', chain: 'svm', requires: ['transfers', 'metadata'] },
     { path: '/v1/svm/balances', chain: 'svm', requires: ['accounts', 'balances', 'metadata'] },
     { path: '/v1/svm/holders', chain: 'svm', requires: ['accounts', 'balances', 'metadata'] },
     { path: '/v1/svm/owner', chain: 'svm', requires: ['accounts'] },
