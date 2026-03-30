@@ -484,6 +484,7 @@ export const tvmTransactionSchema = tvmTransaction.meta({
 
 export const evmTokenResponseSchema = z.object({
     address: evmAddressSchema.nullable(),
+    name: z.string().nullable(),
     symbol: z.string().nullable(),
     decimals: z.number().nullable(),
     display_name: z.string().nullable(),

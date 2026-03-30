@@ -233,18 +233,20 @@ SELECT
     /* tokens */
     CAST ((
         s.input_contract,
+        m1.name,
         m1.symbol,
         m1.decimals,
         if(m1.display_name != '', m1.display_name, m1.name),
         if(m1.display_symbol != '', m1.display_symbol, m1.symbol)
-    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS input_token,
+    ) AS Tuple(address String, name String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS input_token,
     CAST ((
         s.output_contract,
+        m2.name,
         m2.symbol,
         m2.decimals,
         if(m2.display_name != '', m2.display_name, m2.name),
         if(m2.display_symbol != '', m2.display_symbol, m2.symbol)
-    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS output_token,
+    ) AS Tuple(address String, name String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS output_token,
 
     /* amounts and prices */
     toString(s.input_amount) AS input_amount,

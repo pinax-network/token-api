@@ -51,19 +51,21 @@ SELECT
     /* tokens */
     CAST ((
         pt.token0,
+        m0.name,
         m0.symbol,
         m0.decimals,
         if(m0.display_name != '', m0.display_name, m0.name),
         if(m0.display_symbol != '', m0.display_symbol, m0.symbol)
-    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS input_token,
+    ) AS Tuple(address String, name String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS input_token,
 
     CAST ((
         pt.token1,
+        m1.name,
         m1.symbol,
         m1.decimals,
         if(m1.display_name != '', m1.display_name, m1.name),
         if(m1.display_symbol != '', m1.display_symbol, m1.symbol)
-    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS output_token,
+    ) AS Tuple(address String, name String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS output_token,
 
     /* Fees */
     f.fee AS fee,

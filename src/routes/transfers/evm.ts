@@ -103,6 +103,8 @@ const openapi = describeRoute(
                                             name: 'USD Coin',
                                             symbol: 'USDC',
                                             decimals: 6,
+                                            display_name: 'USDC',
+                                            display_symbol: 'USDC',
                                             amount: '2686',
                                             value: 0.002686,
                                             network: 'mainnet',

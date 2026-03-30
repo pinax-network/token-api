@@ -99,6 +99,8 @@ const openapi = describeRoute(
                                             name: 'Ethereum',
                                             symbol: 'ETH',
                                             decimals: 18,
+                                            display_name: 'Ethereum',
+                                            display_symbol: 'ETH',
                                             amount: '25000000000000',
                                             value: 0.000025,
                                             network: 'mainnet',

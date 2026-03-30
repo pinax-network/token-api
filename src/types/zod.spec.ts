@@ -590,6 +590,7 @@ describe('Response Schemas', () => {
         it('should validate token response objects', () => {
             const token = {
                 address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                name: 'Wrapped Ether',
                 symbol: 'WETH',
                 decimals: 18,
                 display_name: 'Wrapped Ether',

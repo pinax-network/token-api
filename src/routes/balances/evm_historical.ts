@@ -83,6 +83,8 @@ const openapi = describeRoute(
                                             name: 'Tether USD',
                                             symbol: 'USDT',
                                             decimals: 6,
+                                            display_name: 'Tether',
+                                            display_symbol: 'USDT',
                                             network: 'mainnet',
                                         },
                                     ],
