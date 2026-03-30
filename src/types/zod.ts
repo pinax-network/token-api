@@ -486,6 +486,8 @@ export const evmTokenResponseSchema = z.object({
     address: evmAddressSchema.nullable(),
     symbol: z.string().nullable(),
     decimals: z.number().nullable(),
+    display_name: z.string().nullable(),
+    display_symbol: z.string().nullable(),
 });
 
 export const svmMintResponseSchema = z.object({

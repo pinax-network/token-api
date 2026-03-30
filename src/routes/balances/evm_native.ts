@@ -39,6 +39,8 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- contract --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
+            display_name: z.string().nullable(),
+            display_symbol: z.string().nullable(),
             decimals: z.number().nullable(),
 
             // -- network --

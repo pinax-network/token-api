@@ -592,6 +592,8 @@ describe('Response Schemas', () => {
                 address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
                 symbol: 'WETH',
                 decimals: 18,
+                display_name: 'Wrapped Ether',
+                display_symbol: 'WETH',
             };
             const result = evmTokenResponseSchema.parse(token);
             expect(result.symbol).toBe('WETH');

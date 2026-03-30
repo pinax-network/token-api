@@ -39,6 +39,8 @@ const responseSchema = apiUsageResponseSchema.extend({
             close: z.number(),
             name: z.string(),
             symbol: z.string(),
+            display_name: z.string().nullable(),
+            display_symbol: z.string().nullable(),
             // -- network --
             network: evmNetworkIdSchema,
         })

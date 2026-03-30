@@ -116,6 +116,8 @@ SELECT
     m.name AS name,
     m.symbol AS symbol,
     m.decimals AS decimals,
+    if(m.display_name != '', m.display_name, m.name) AS display_name,
+    if(m.display_symbol != '', m.display_symbol, m.symbol) AS display_symbol,
 
     /* amounts */
     toString(t.amount) AS amount,

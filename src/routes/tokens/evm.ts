@@ -40,6 +40,8 @@ const responseSchema = apiUsageResponseSchema.extend({
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             decimals: z.number().nullable(),
+            display_name: z.string().nullable(),
+            display_symbol: z.string().nullable(),
             circulating_supply: z.number(),
             total_supply: z.number(),
             holders: z.number(),

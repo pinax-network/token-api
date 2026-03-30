@@ -197,7 +197,9 @@ contracts_metadata AS (
         contract,
         argMax(name, block_num) as name,
         argMax(symbol, block_num) as symbol,
-        argMax(decimals, block_num) as decimals
+        argMax(decimals, block_num) as decimals,
+        argMax(display_name, block_num) as display_name,
+        argMax(display_symbol, block_num) as display_symbol
     FROM metadata.metadata
     WHERE network = {network:String} AND contract IN (SELECT contract FROM contracts)
     GROUP BY network, contract
@@ -232,13 +234,17 @@ SELECT
     CAST ((
         s.input_contract,
         m1.symbol,
-        m1.decimals
-    ) AS Tuple(address String, symbol String, decimals UInt8)) AS input_token,
+        m1.decimals,
+        if(m1.display_name != '', m1.display_name, m1.name),
+        if(m1.display_symbol != '', m1.display_symbol, m1.symbol)
+    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS input_token,
     CAST ((
         s.output_contract,
         m2.symbol,
-        m2.decimals
-    ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
+        m2.decimals,
+        if(m2.display_name != '', m2.display_name, m2.name),
+        if(m2.display_symbol != '', m2.display_symbol, m2.symbol)
+    ) AS Tuple(address String, symbol String, decimals UInt8, display_name String, display_symbol String)) AS output_token,
 
     /* amounts and prices */
     toString(s.input_amount) AS input_amount,

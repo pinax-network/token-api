@@ -114,7 +114,9 @@ contracts_metadata AS (
         contract,
         argMax(name, block_num) as name,
         argMax(symbol, block_num) as symbol,
-        argMax(decimals, block_num) as decimals
+        argMax(decimals, block_num) as decimals,
+        argMax(display_name, block_num) as display_name,
+        argMax(display_symbol, block_num) as display_symbol
     FROM metadata.metadata
     WHERE network = {network:String} AND contract IN (SELECT contract FROM contracts)
     GROUP BY network, contract
@@ -142,6 +144,8 @@ SELECT
     m.name AS name,
     m.symbol AS symbol,
     m.decimals AS decimals,
+    if(m.display_name != '', m.display_name, m.name) AS display_name,
+    if(m.display_symbol != '', m.display_symbol, m.symbol) AS display_symbol,
 
     /* amounts */
     toString(t.amount) AS amount,

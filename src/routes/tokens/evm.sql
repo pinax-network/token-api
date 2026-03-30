@@ -46,6 +46,8 @@ SELECT
     name,
     symbol,
     decimals,
+    if(m.display_name != '', m.display_name, name) AS display_name,
+    if(m.display_symbol != '', m.display_symbol, symbol) AS display_symbol,
 
     /* network */
     {network: String} AS network
