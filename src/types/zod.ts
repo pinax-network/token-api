@@ -831,3 +831,63 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
         >;
     else return querySchema as z.ZodObject<ProcessedFields<T>>;
 }
+
+// ── Polymarket Schemas ──
+
+export const polymarketConditionIdSchema = z.coerce
+    .string()
+    .refine((val) => /^0x[a-fA-F0-9]{64}$/.test(val), 'Invalid condition ID (0x + 64 hex chars)')
+    .transform((val) => val.toLowerCase())
+    .pipe(z.string())
+    .meta({ type: 'string', example: '0x9708334534b504e2025a5a6af92f8600808c10be577e5066f920c40625fbec16' });
+
+export const polymarketTokenIdSchema = z.coerce
+    .string()
+    .refine((val) => /^\d+$/.test(val), 'Invalid token ID (numeric string)')
+    .meta({ type: 'string', example: '53342136288932702007624506186417846874594504126387502748453102780630218207922' });
+
+export const polymarketSlugSchema = z.coerce
+    .string()
+    .refine((val) => /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(val), 'Invalid slug')
+    .meta({ type: 'string', example: 'will-bitcoin-reach-150k-in-january-2026' });
+
+const polymarketEventTypes = ['trade', 'split', 'merge', 'redeem'] as const;
+export const polymarketEventTypeSchema = z.enum(polymarketEventTypes).meta({
+    type: 'string',
+    enum: polymarketEventTypes,
+    description: 'Filter by event type',
+});
+
+const polymarketMarketSortFields = ['volume', 'end_date', 'start_date'] as const;
+export const polymarketMarketSortBySchema = z.enum(polymarketMarketSortFields).meta({
+    type: 'string',
+    enum: polymarketMarketSortFields,
+    default: 'volume',
+});
+
+const polymarketMarketPositionSortFields = [
+    'position_value',
+    'realized_pnl',
+    'pnl_pct',
+    'transactions',
+    'avg_price',
+] as const;
+export const polymarketMarketPositionSortBySchema = z.enum(polymarketMarketPositionSortFields).meta({
+    type: 'string',
+    enum: polymarketMarketPositionSortFields,
+    default: 'position_value',
+});
+
+const polymarketPositionSortFields = [
+    'position_value',
+    'realized_pnl',
+    'pnl_pct',
+    'transactions',
+    'avg_price',
+    'current_price',
+] as const;
+export const polymarketPositionSortBySchema = z.enum(polymarketPositionSortFields).meta({
+    type: 'string',
+    enum: polymarketPositionSortFields,
+    default: 'position_value',
+});
