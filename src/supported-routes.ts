@@ -68,9 +68,9 @@ type ConfigType = typeof Config;
 const DB_CATEGORY_MAP: Record<DbCategory, (cfg: ConfigType) => Record<string, unknown>> = {
     balances: (cfg) => cfg.balancesDatabases,
     transfers: (cfg) => cfg.transfersDatabases,
-    dex: (cfg) => cfg.dexDatabases,
-    nft: (cfg) => cfg.nftDatabases,
-    contracts: (cfg) => cfg.contractDatabases,
+    dex: (cfg) => cfg.dexesDatabases,
+    nft: (cfg) => cfg.nftsDatabases,
+    contracts: (cfg) => cfg.contractsDatabases,
 };
 
 /**

@@ -73,19 +73,19 @@ describe('hasDatabase', () => {
 
     it('should be consistent with direct config access for dex', () => {
         for (const network of config.networks) {
-            expect(hasDatabase(config, network, 'dex')).toBe(!!config.dexDatabases[network]);
+            expect(hasDatabase(config, network, 'dex')).toBe(!!config.dexesDatabases[network]);
         }
     });
 
     it('should be consistent with direct config access for nft', () => {
         for (const network of config.networks) {
-            expect(hasDatabase(config, network, 'nft')).toBe(!!config.nftDatabases[network]);
+            expect(hasDatabase(config, network, 'nft')).toBe(!!config.nftsDatabases[network]);
         }
     });
 
     it('should be consistent with direct config access for contracts', () => {
         for (const network of config.networks) {
-            expect(hasDatabase(config, network, 'contracts')).toBe(!!config.contractDatabases[network]);
+            expect(hasDatabase(config, network, 'contracts')).toBe(!!config.contractsDatabases[network]);
         }
     });
 });

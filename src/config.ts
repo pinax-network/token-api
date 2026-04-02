@@ -296,18 +296,12 @@ const config = z
         plans: z.string().transform(parsePlans),
     })
     .transform((data) => {
-        // Load YAML config (required - loadDbsConfig throws if path is invalid or file not found)
-        const yamlConfig = loadDbsConfig(data.dbsConfigPath);
-
-        // Use YAML config as the authoritative source
+        // Use YAML config as the authoritative source — spread all database maps dynamically
+        const { clusters, ...databaseMaps } = loadDbsConfig(data.dbsConfigPath);
         return {
             ...data,
-            clusters: yamlConfig?.clusters ?? {},
-            balancesDatabases: yamlConfig?.balancesDatabases ?? {},
-            transfersDatabases: yamlConfig?.transfersDatabases ?? {},
-            nftDatabases: yamlConfig?.nftDatabases ?? {},
-            dexDatabases: yamlConfig?.dexDatabases ?? {},
-            contractDatabases: yamlConfig?.contractDatabases ?? {},
+            clusters,
+            ...databaseMaps,
         };
     })
     .transform((data) => ({
@@ -315,18 +309,18 @@ const config = z
         evmNetworks: Object.keys({
             ...data.balancesDatabases,
             ...data.transfersDatabases,
-            ...data.nftDatabases,
-            ...data.dexDatabases,
-            ...data.contractDatabases,
+            ...data.nftsDatabases,
+            ...data.dexesDatabases,
+            ...data.contractsDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
-                        ...data.nftDatabases,
-                        ...data.dexDatabases,
-                        ...data.contractDatabases,
+                        ...data.nftsDatabases,
+                        ...data.dexesDatabases,
+                        ...data.contractsDatabases,
                     }[networkId]?.type === 'evm'
                 );
             })
@@ -334,31 +328,31 @@ const config = z
         svmNetworks: Object.keys({
             ...data.balancesDatabases,
             ...data.transfersDatabases,
-            ...data.nftDatabases,
-            ...data.dexDatabases,
-            ...data.contractDatabases,
+            ...data.nftsDatabases,
+            ...data.dexesDatabases,
+            ...data.contractsDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
                         ...data.balancesDatabases,
                         ...data.transfersDatabases,
-                        ...data.nftDatabases,
-                        ...data.dexDatabases,
-                        ...data.contractDatabases,
+                        ...data.nftsDatabases,
+                        ...data.dexesDatabases,
+                        ...data.contractsDatabases,
                     }[networkId]?.type === 'svm'
                 );
             })
             .sort(),
         tvmNetworks: Object.keys({
             ...data.transfersDatabases,
-            ...data.dexDatabases,
+            ...data.dexesDatabases,
         })
             .filter((networkId) => {
                 return (
                     {
                         ...data.transfersDatabases,
-                        ...data.dexDatabases,
+                        ...data.dexesDatabases,
                     }[networkId]?.type === 'tvm'
                 );
             })
