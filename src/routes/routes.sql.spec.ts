@@ -756,4 +756,154 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
             });
         }
     }
+
+    // --- Polymarket ---
+    const POLYMARKET_CONDITION_ID = '0x39e227f0e4a6c0a7b282d77ae0e7d247d0cc4b8e69a348e853442bbd4db10f6a';
+    const POLYMARKET_TOKEN_ID = '48262548906086150698299934962091284390063927164151224719187427455086357699251';
+    const POLYMARKET_SLUG = 'bitcoin-above-86000-on-april-4';
+    const POLYMARKET_USER = '0x38e598961dd0456a7fb2e758bd433d3e59fb8a4a';
+
+    let hasPolymarket: boolean;
+
+    it('detect polymarket config', async () => {
+        const { config } = await import('../config.js');
+        hasPolymarket = !!config.polymarketDatabases?.polymarket;
+    });
+
+    it('GET /v1/polymarket/platform', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute('/v1/polymarket/platform?interval=1d&limit=1');
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('timestamp');
+        expect(body.data[0]).toHaveProperty('volume');
+        expect(body.data[0]).toHaveProperty('net_open_interest');
+        expect(body.data[0]).toHaveProperty('total_fees');
+    });
+
+    it('GET /v1/polymarket/markets (by slug)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(`/v1/polymarket/markets?market_slug=${POLYMARKET_SLUG}&limit=1`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBe(1);
+        expect(body.data[0]).toHaveProperty('condition_id');
+        expect(body.data[0]).toHaveProperty('outcomes');
+        expect(body.data[0].outcomes).toBeArray();
+        expect(body.data[0].outcomes.length).toBe(2);
+        expect(body.data[0].outcomes[0]).toHaveProperty('label');
+        expect(body.data[0].outcomes[0]).toHaveProperty('token_id');
+    });
+
+    it('GET /v1/polymarket/markets (discovery)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute('/v1/polymarket/markets?limit=5');
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBe(5);
+    });
+
+    it('GET /v1/polymarket/markets/ohlc', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(
+            `/v1/polymarket/markets/ohlc?token_id=${POLYMARKET_TOKEN_ID}&interval=1d&limit=1`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('open');
+        expect(body.data[0]).toHaveProperty('close');
+        expect(body.data[0]).toHaveProperty('market');
+        expect(body.data[0].market).toHaveProperty('condition_id');
+        expect(body.data[0].market).toHaveProperty('token_id');
+        expect(body.data[0].market).toHaveProperty('outcome_label');
+    });
+
+    it('GET /v1/polymarket/markets/oi (by condition_id)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(
+            `/v1/polymarket/markets/oi?condition_id=${POLYMARKET_CONDITION_ID}&interval=1d&limit=1`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('net_open_interest');
+        expect(body.data[0].market.token_id).toBeNull();
+        expect(body.data[0].market.outcome_label).toBeNull();
+    });
+
+    it('GET /v1/polymarket/markets/oi (by slug)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(
+            `/v1/polymarket/markets/oi?market_slug=${POLYMARKET_SLUG}&interval=1d&limit=1`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0].market.market_slug).toBe(POLYMARKET_SLUG);
+    });
+
+    it('GET /v1/polymarket/markets/activity (by user)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(`/v1/polymarket/markets/activity?user=${POLYMARKET_USER}&limit=3`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('event_type');
+        expect(body.data[0]).toHaveProperty('tx_hash');
+        expect(body.data[0]).toHaveProperty('market');
+    });
+
+    it('GET /v1/polymarket/markets/activity (by token_id)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(
+            `/v1/polymarket/markets/activity?token_id=${POLYMARKET_TOKEN_ID}&limit=3`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        for (const row of body.data) {
+            expect(row.event_type).toBe('trade');
+            expect(row.market.token_id).not.toBeNull();
+        }
+    });
+
+    it('GET /v1/polymarket/markets/activity requires filter', async () => {
+        if (!hasPolymarket) return;
+        const { response } = await fetchRoute('/v1/polymarket/markets/activity?limit=1');
+        expect(response.status).toBe(400);
+    });
+
+    it('GET /v1/polymarket/markets/positions', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(
+            `/v1/polymarket/markets/positions?token_id=${POLYMARKET_TOKEN_ID}&limit=3`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('user');
+        expect(body.data[0]).toHaveProperty('position_value');
+        expect(typeof body.data[0].active).toBe('boolean');
+        expect(body.data[0].market.token_id).toBe(POLYMARKET_TOKEN_ID);
+    });
+
+    it('GET /v1/polymarket/positions', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(`/v1/polymarket/positions?user=${POLYMARKET_USER}&limit=3`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('realized_pnl');
+        expect(body.data[0]).toHaveProperty('market');
+        expect(body.data[0].market).toHaveProperty('condition_id');
+        expect(body.data[0].market).toHaveProperty('outcome_label');
+    });
+
+    it('GET /v1/polymarket/markets/oi requires identifier', async () => {
+        if (!hasPolymarket) return;
+        const { response } = await fetchRoute('/v1/polymarket/markets/oi?interval=1d&limit=1');
+        expect(response.status).toBe(400);
+    });
 });
