@@ -114,7 +114,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const fragments = [baseQuery];
     if (params.active === true) fragments.push('HAVING active = 1');
     else if (params.active === false) fragments.push('HAVING active = 0');
-    fragments.push(`ORDER BY ${params.sort_by} DESC`);
+    fragments.push(`ORDER BY ${params.sort_by} DESC LIMIT {limit:UInt64} OFFSET {offset:UInt64}`);
 
     const response = await makeUsageQueryJson(c, fragments, {
         ...params,
