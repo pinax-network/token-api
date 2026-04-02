@@ -13,8 +13,8 @@ SELECT
     f.scaled_total_fee AS total_fees,
     f.fee_count,
     f.effective_fee_rate,
-    CAST((a.condition_id, a.market_slug, o.asset_id, a.outcome_label)
-        AS Tuple(condition_id String, market_slug String, token_id String, outcome_label String)) AS market
+    CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), o.asset_id, nullIf(a.outcome_label, ''))
+        AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String))) AS market
 FROM {db_polymarket:Identifier}.orderbook o
 LEFT JOIN {db_polymarket:Identifier}.fee f
     ON f.asset_id = o.asset_id AND f.timestamp = o.timestamp AND f.interval_min = o.interval_min

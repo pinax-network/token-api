@@ -29,11 +29,12 @@ WITH
         FROM {db_polymarket:Identifier}.ctfexchange_order_filled t
         LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
             ON a.asset_id = if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)
-        WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}))
+        WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
           AND (isNull({user:Nullable(String)}) OR taker = {user:Nullable(String)})
           AND (isNull({token_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) = toUInt256({token_id:Nullable(String)}))
+          AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
 
         UNION ALL
 
@@ -52,11 +53,12 @@ WITH
         FROM {db_polymarket:Identifier}.ctfexchange_order_filled t
         LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
             ON a.asset_id = if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)
-        WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}))
+        WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
           AND (isNull({user:Nullable(String)}) OR maker = {user:Nullable(String)})
           AND (isNull({token_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) = toUInt256({token_id:Nullable(String)}))
+          AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
 
         UNION ALL
 

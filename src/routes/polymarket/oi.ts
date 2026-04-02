@@ -104,6 +104,16 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
             400
         );
     }
+    if (params.condition_id && params.market_slug) {
+        return c.json(
+            {
+                status: 400,
+                code: 'bad_query_input',
+                message: 'Provide only one of condition_id or market_slug, not both',
+            },
+            400
+        );
+    }
 
     const db = config.polymarketDatabases.polymarket;
     const scraper = config.scraperDatabases.polymarket;
