@@ -98,7 +98,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbDex = config.dexDatabases[params.network];
+    const dbDex = config.dexesDatabases[params.network];
     const dbBalances = config.balancesDatabases[params.network];
 
     if (!dbDex) {

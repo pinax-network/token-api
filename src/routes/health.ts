@@ -63,9 +63,9 @@ route.get('/health', openapi, async (c) => {
         const networkDb =
             config.balancesDatabases[network] ||
             config.transfersDatabases[network] ||
-            config.nftDatabases[network] ||
-            config.dexDatabases[network] ||
-            config.contractDatabases[network];
+            config.nftsDatabases[network] ||
+            config.dexesDatabases[network] ||
+            config.contractsDatabases[network];
 
         if (!networkDb || pingedClusters.has(networkDb.cluster)) continue;
         pingedClusters.add(networkDb.cluster);

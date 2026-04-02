@@ -1,6 +1,9 @@
 # Token API Database Configuration
-# This file defines the database mappings for each network and data type
-# Set DBS_CONFIG_PATH environment variable to point to this file
+# This file defines the database mappings for each network and data type.
+# Set DBS_CONFIG_PATH environment variable to point to this file.
+#
+# Each network entry has `type` and `cluster` (required), plus any number of
+# database keys. Each key `foo` maps to `fooDatabases` in the parsed config.
 clusters:
   a:
     url: http://127.0.0.1:8123
@@ -36,3 +39,10 @@ networks:
     cluster: b
     transfers: tron:evm-transfers@v0.2.3
     dexes: tron:evm-dex@v0.2.6
+
+  # Polymarket
+  polymarket:
+    type: polymarket
+    cluster: b
+    polymarket: polygon:evm-polymarket@v0.1.2
+    scraper: polymarket

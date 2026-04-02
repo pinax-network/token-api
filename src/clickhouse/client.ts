@@ -11,9 +11,11 @@ function getClusterForNetwork(network: string): { url: string; username?: string
     const networkDb =
         config.balancesDatabases[network] ||
         config.transfersDatabases[network] ||
-        config.nftDatabases[network] ||
-        config.dexDatabases[network] ||
-        config.contractDatabases[network];
+        config.nftsDatabases[network] ||
+        config.dexesDatabases[network] ||
+        config.contractsDatabases[network] ||
+        config.polymarketDatabases[network] ||
+        config.scraperDatabases[network];
 
     if (!networkDb || !networkDb.cluster) {
         return null;

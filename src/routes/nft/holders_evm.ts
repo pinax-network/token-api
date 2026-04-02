@@ -78,7 +78,7 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbNft = config.nftDatabases[params.network];
+    const dbNft = config.nftsDatabases[params.network];
     if (!dbNft) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }

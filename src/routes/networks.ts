@@ -144,7 +144,7 @@ function collectDbEntries(): DbEntry[] {
     const categories: [string, Record<string, { database: string; cluster: string }>][] = [
         ['transfers', config.transfersDatabases],
         ['balances', config.balancesDatabases],
-        ['dexes', config.dexDatabases],
+        ['dexes', config.dexesDatabases],
     ];
     for (const [category, databases] of categories) {
         for (const [network, mapping] of Object.entries(databases)) {
@@ -223,9 +223,9 @@ async function validateNetworks() {
         const networkDb =
             config.balancesDatabases[network] ||
             config.transfersDatabases[network] ||
-            config.nftDatabases[network] ||
-            config.dexDatabases[network] ||
-            config.contractDatabases[network];
+            config.nftsDatabases[network] ||
+            config.dexesDatabases[network] ||
+            config.contractsDatabases[network];
 
         if (!networkDb) {
             throw new Error(`No database configuration found for network: ${network}`);
