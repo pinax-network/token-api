@@ -47,6 +47,14 @@ import svmOhlcv from './ohlcv/svm.js';
 import tvmOhlcv from './ohlcv/tvm.js';
 // Owner
 import svmOwner from './owner/svm.js';
+// Polymarket
+import polymarketActivity from './polymarket/activity.js';
+import polymarketMarketPositions from './polymarket/market_positions.js';
+import polymarketMarkets from './polymarket/markets.js';
+import polymarketOhlcv from './polymarket/ohlcv.js';
+import polymarketOi from './polymarket/oi.js';
+import polymarketPlatform from './polymarket/platform.js';
+import polymarketPositions from './polymarket/positions.js';
 // Pools
 import evmPools from './pools/evm.js';
 import svmPools from './pools/svm.js';
@@ -142,6 +150,16 @@ router.route('/v1/tvm/swaps', tvmSwaps);
 router.route('/v1/tvm/pools', tvmPools);
 router.route('/v1/tvm/pools/ohlc', tvmOhlcv);
 router.route('/v1/tvm/dexes', tvmDexes);
+
+// Polymarket
+router.use('/v1/polymarket/*', cacheControl());
+router.route('/v1/polymarket/markets', polymarketMarkets);
+router.route('/v1/polymarket/markets/ohlc', polymarketOhlcv);
+router.route('/v1/polymarket/markets/oi', polymarketOi);
+router.route('/v1/polymarket/markets/activity', polymarketActivity);
+router.route('/v1/polymarket/markets/positions', polymarketMarketPositions);
+router.route('/v1/polymarket/platform', polymarketPlatform);
+router.route('/v1/polymarket/positions', polymarketPositions);
 
 // Monitoring
 router.route('/v1', health);
