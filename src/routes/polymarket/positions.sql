@@ -1,9 +1,3 @@
-WITH latest_prices AS (
-    SELECT asset_id, argMax(close, timestamp) AS current_price
-    FROM {db_polymarket:Identifier}.orderbook
-    WHERE interval_min = 1440
-    GROUP BY asset_id
-)
 SELECT
     p.user,
     sum(p.scaled_buy_cost) AS buy_cost,
@@ -12,8 +6,8 @@ SELECT
     if(sum(p.scaled_buy_cost) > 0, sum(p.scaled_realized_pnl) / sum(p.scaled_buy_cost), 0) AS pnl_pct,
     sum(p.scaled_net_amount) AS net_position,
     if(sum(p.scaled_buy_amount) > 0, sum(p.scaled_buy_cost) / sum(p.scaled_buy_amount), 0) AS avg_price,
-    coalesce(lp.current_price, 0) AS current_price,
-    sum(p.scaled_net_amount) * coalesce(lp.current_price, 0) AS position_value,
+    coalesce(lp.close, 0) AS current_price,
+    sum(p.scaled_net_amount) * coalesce(lp.close, 0) AS position_value,
     toBool(sum(p.scaled_net_amount) != 0) AS active,
     sum(p.buy_count) AS buys,
     sum(p.sell_count) AS sells,
@@ -23,11 +17,11 @@ SELECT
 FROM {db_polymarket:Identifier}.user_position p
 LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
     ON a.asset_id = p.token_id
-LEFT JOIN latest_prices lp
+LEFT JOIN {db_polymarket:Identifier}.state_latest_price lp FINAL
     ON lp.asset_id = toString(p.token_id)
 WHERE p.interval_min = 1440
   AND p.user = {user:String}
   AND (isNull({token_id:Nullable(String)}) OR p.token_id = toUInt256({token_id:Nullable(String)}))
   AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
   AND (isNull({market_slug:Nullable(String)}) OR a.market_slug = {market_slug:Nullable(String)})
-GROUP BY p.user, p.token_id, a.condition_id, a.market_slug, a.outcome_label, lp.current_price
+GROUP BY p.user, p.token_id, a.condition_id, a.market_slug, a.outcome_label, lp.close
