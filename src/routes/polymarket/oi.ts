@@ -30,6 +30,7 @@ const marketContextSchema = z.object({
     market_slug: z.string().nullable(),
     token_id: z.null(),
     outcome_label: z.null(),
+    closed: z.boolean(),
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -80,6 +81,7 @@ const openapi = describeRoute(
                                                 market_slug: 'bitcoin-above-86000-on-april-4',
                                                 token_id: null,
                                                 outcome_label: null,
+                                                closed: false,
                                             },
                                         },
                                     ],

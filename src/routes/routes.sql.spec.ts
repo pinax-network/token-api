@@ -887,6 +887,7 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data[0]).toHaveProperty('position_value');
         expect(typeof body.data[0].active).toBe('boolean');
         expect(body.data[0].market.token_id).toBe(POLYMARKET_TOKEN_ID);
+        expect(typeof body.data[0].market.closed).toBe('boolean');
     });
 
     it('GET /v1/polymarket/positions', async () => {
@@ -899,6 +900,7 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data[0]).toHaveProperty('market');
         expect(body.data[0].market).toHaveProperty('condition_id');
         expect(body.data[0].market).toHaveProperty('outcome_label');
+        expect(typeof body.data[0].market.closed).toBe('boolean');
     });
 
     it('GET /v1/polymarket/markets/oi requires identifier', async () => {

@@ -23,7 +23,7 @@ const querySchema = createQuerySchema({
     token_id: { schema: polymarketTokenIdSchema, optional: true },
     condition_id: { schema: polymarketConditionIdSchema, optional: true },
     market_slug: { schema: polymarketSlugSchema, optional: true },
-    active: { schema: booleanFromString, optional: true },
+    closed: { schema: booleanFromString, optional: true },
     sort_by: { schema: polymarketPositionSortBySchema, prefault: 'position_value' },
 });
 
@@ -32,6 +32,7 @@ const marketContextSchema = z.object({
     market_slug: z.string().nullable(),
     token_id: z.string(),
     outcome_label: z.string().nullable(),
+    closed: z.boolean(),
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -59,7 +60,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'User Positions',
         description:
-            "Returns a user's positions with PNL breakdown per outcome token. Each row is one token's cumulative position: cost basis, realized PNL, net shares held, average entry price, and current market price.\n\nUse `active=true` for open positions only, or `active=false` for fully closed.",
+            "Returns a user's positions with PNL breakdown per outcome token. Each row is one token's cumulative position: cost basis, realized PNL, net shares held, average entry price, and current market price.\n\nUse `closed=false` for positions on live markets, or `closed=true` for resolved markets.",
         tags: ['Polymarket Positions'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -93,6 +94,7 @@ const openapi = describeRoute(
                                                 token_id:
                                                     '25362470215305294361999917933416973453076214567033270695579745712197481070383',
                                                 outcome_label: 'Up',
+                                                closed: false,
                                             },
                                         },
                                     ],
@@ -118,8 +120,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     }
 
     const fragments = [baseQuery];
-    if (params.active === true) fragments.push('HAVING active = 1');
-    else if (params.active === false) fragments.push('HAVING active = 0');
+    if (params.closed === true) fragments.push('HAVING a.closed = 1');
+    else if (params.closed === false) fragments.push('HAVING a.closed = 0');
     fragments.push(`ORDER BY ${params.sort_by} DESC LIMIT {limit:UInt64} OFFSET {offset:UInt64}`);
 
     const response = await makeUsageQueryJson(c, fragments, {

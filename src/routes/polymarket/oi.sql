@@ -1,5 +1,5 @@
 WITH resolved AS (
-    SELECT condition_id, market_slug
+    SELECT condition_id, market_slug, closed
     FROM {db_scraper:Identifier}.polymarket_markets FINAL
     WHERE condition_id = coalesce(
         {condition_id:Nullable(String)},
@@ -24,8 +24,9 @@ SELECT
         oi.condition_id,
         (SELECT market_slug FROM resolved),
         Null,
-        Null
-    ) AS Tuple(condition_id String, market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+        Null,
+        (SELECT closed FROM resolved)
+    ) AS Tuple(condition_id String, market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String), closed Bool)) AS market
 FROM {db_polymarket:Identifier}.open_interest oi
 WHERE oi.interval_min = {interval:UInt32}
   AND oi.condition_id = (SELECT condition_id FROM resolved)

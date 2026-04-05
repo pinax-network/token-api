@@ -28,6 +28,7 @@ const marketContextSchema = z.object({
     market_slug: z.string().nullable(),
     token_id: z.string(),
     outcome_label: z.string().nullable(),
+    closed: z.boolean(),
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -91,6 +92,7 @@ const openapi = describeRoute(
                                                 token_id:
                                                     '48262548906086150698299934962091284390063927164151224719187427455086357699251',
                                                 outcome_label: 'No',
+                                                closed: false,
                                             },
                                         },
                                     ],

@@ -12,8 +12,8 @@ SELECT
     sum(p.buy_count) AS buys,
     sum(p.sell_count) AS sells,
     sum(p.transactions) AS transactions,
-    CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), toString(p.token_id), nullIf(a.outcome_label, ''))
-        AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String))) AS market
+    CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), toString(p.token_id), nullIf(a.outcome_label, ''), a.closed)
+        AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String), closed Bool)) AS market
 FROM {db_polymarket:Identifier}.user_position p
 LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
     ON a.asset_id = p.token_id
@@ -24,4 +24,4 @@ WHERE p.interval_min = 1440
   AND (isNull({token_id:Nullable(String)}) OR p.token_id = toUInt256({token_id:Nullable(String)}))
   AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
   AND (isNull({market_slug:Nullable(String)}) OR a.market_slug = {market_slug:Nullable(String)})
-GROUP BY p.user, p.token_id, a.condition_id, a.market_slug, a.outcome_label, lp.close
+GROUP BY p.user, p.token_id, a.condition_id, a.market_slug, a.outcome_label, a.closed, lp.close

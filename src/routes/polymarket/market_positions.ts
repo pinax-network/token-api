@@ -17,7 +17,7 @@ import baseQuery from './market_positions.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     token_id: { schema: polymarketTokenIdSchema },
-    active: { schema: booleanFromString, optional: true },
+    closed: { schema: booleanFromString, optional: true },
     sort_by: { schema: polymarketMarketPositionSortBySchema, prefault: 'position_value' },
 });
 
@@ -26,6 +26,7 @@ const marketContextSchema = z.object({
     market_slug: z.string().nullable(),
     token_id: z.string(),
     outcome_label: z.string().nullable(),
+    closed: z.boolean(),
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -87,6 +88,7 @@ const openapi = describeRoute(
                                                 token_id:
                                                     '48262548906086150698299934962091284390063927164151224719187427455086357699251',
                                                 outcome_label: 'No',
+                                                closed: false,
                                             },
                                         },
                                     ],
@@ -112,8 +114,8 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     }
 
     const fragments = [baseQuery];
-    if (params.active === true) fragments.push('HAVING active = 1');
-    else if (params.active === false) fragments.push('HAVING active = 0');
+    if (params.closed === true) fragments.push('HAVING a.closed = 1');
+    else if (params.closed === false) fragments.push('HAVING a.closed = 0');
     fragments.push(`ORDER BY ${params.sort_by} DESC LIMIT {limit:UInt64} OFFSET {offset:UInt64}`);
 
     const response = await makeUsageQueryJson(c, fragments, {

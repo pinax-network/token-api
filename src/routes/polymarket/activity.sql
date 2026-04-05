@@ -145,8 +145,9 @@ SELECT
         if(p.event_type = 'trade', nullIf(a.condition_id, ''), nullIf(p.cond_id, '')),
         if(p.event_type = 'trade', nullIf(a.market_slug, ''), nullIf(m.market_slug, '')),
         if(p.event_type = 'trade', toString(p.token_asset_id), Null),
-        if(p.event_type = 'trade', nullIf(a.outcome_label, ''), Null)
-    ) AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+        if(p.event_type = 'trade', nullIf(a.outcome_label, ''), Null),
+        if(p.event_type = 'trade', a.closed, m.closed)
+    ) AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String), closed Bool)) AS market
 FROM paged p
 LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
     ON p.event_type = 'trade' AND a.asset_id = p.token_asset_id

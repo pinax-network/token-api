@@ -32,6 +32,7 @@ const marketContextSchema = z.object({
     market_slug: z.string().nullable(),
     token_id: z.string().nullable(),
     outcome_label: z.string().nullable(),
+    closed: z.boolean(),
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -86,6 +87,7 @@ const openapi = describeRoute(
                                                 token_id:
                                                     '3861173442961229042274748637211736540847931193208187121747580704941582603312',
                                                 outcome_label: 'Down',
+                                                closed: false,
                                             },
                                         },
                                         {
@@ -105,6 +107,7 @@ const openapi = describeRoute(
                                                 market_slug: 'btc-updown-5m-1775148600',
                                                 token_id: null,
                                                 outcome_label: null,
+                                                closed: false,
                                             },
                                         },
                                     ],
