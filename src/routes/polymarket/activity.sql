@@ -24,17 +24,17 @@ WITH
             taker_amount_filled / pow(10, 6) AS value,
             toString(fee) AS fee_amount,
             fee / pow(10, 6) AS fee_value,
-            CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), toString(if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)), nullIf(a.outcome_label, ''))
-                AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String))) AS market
+            if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) AS token_asset_id,
+            '' AS cond_id
         FROM {db_polymarket:Identifier}.ctfexchange_order_filled t
-        LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
-            ON a.asset_id = if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)
         WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
           AND (isNull({user:Nullable(String)}) OR taker = {user:Nullable(String)})
           AND (isNull({token_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) = toUInt256({token_id:Nullable(String)}))
-          AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
+          AND (isNull({condition_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) IN (
+              SELECT asset_id FROM {db_scraper:Identifier}.polymarket_markets_by_asset_id WHERE condition_id = {condition_id:Nullable(String)}
+          ))
 
         UNION ALL
 
@@ -48,17 +48,17 @@ WITH
             maker_amount_filled / pow(10, 6) AS value,
             toString(fee) AS fee_amount,
             fee / pow(10, 6) AS fee_value,
-            CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), toString(if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)), nullIf(a.outcome_label, ''))
-                AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String))) AS market
+            if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) AS token_asset_id,
+            '' AS cond_id
         FROM {db_polymarket:Identifier}.ctfexchange_order_filled t
-        LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
-            ON a.asset_id = if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id)
         WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({token_id:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
           AND (isNull({user:Nullable(String)}) OR maker = {user:Nullable(String)})
           AND (isNull({token_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) = toUInt256({token_id:Nullable(String)}))
-          AND (isNull({condition_id:Nullable(String)}) OR a.condition_id = {condition_id:Nullable(String)})
+          AND (isNull({condition_id:Nullable(String)}) OR if(t.taker_asset_id = 0, t.maker_asset_id, t.taker_asset_id) IN (
+              SELECT asset_id FROM {db_scraper:Identifier}.polymarket_markets_by_asset_id WHERE condition_id = {condition_id:Nullable(String)}
+          ))
 
         UNION ALL
 
@@ -72,11 +72,9 @@ WITH
             s.amount / pow(10, 6) AS value,
             '0' AS fee_amount,
             0 AS fee_value,
-            CAST((s.condition_id, m.market_slug, Null, Null)
-                AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+            toUInt256(0) AS token_asset_id,
+            s.condition_id AS cond_id
         FROM {db_polymarket:Identifier}.conditionaltokens_position_split s
-        LEFT JOIN {db_scraper:Identifier}.polymarket_markets m FINAL
-            ON m.condition_id = s.condition_id
         WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
@@ -95,11 +93,9 @@ WITH
             mg.amount / pow(10, 6) AS value,
             '0' AS fee_amount,
             0 AS fee_value,
-            CAST((mg.condition_id, m.market_slug, Null, Null)
-                AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+            toUInt256(0) AS token_asset_id,
+            mg.condition_id AS cond_id
         FROM {db_polymarket:Identifier}.conditionaltokens_positions_merge mg
-        LEFT JOIN {db_scraper:Identifier}.polymarket_markets m FINAL
-            ON m.condition_id = mg.condition_id
         WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
@@ -118,20 +114,41 @@ WITH
             r.payout / pow(10, 6) AS value,
             '0' AS fee_amount,
             0 AS fee_value,
-            CAST((r.condition_id, m.market_slug, Null, Null)
-                AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+            toUInt256(0) AS token_asset_id,
+            r.condition_id AS cond_id
         FROM {db_polymarket:Identifier}.conditionaltokens_payout_redemption r
-        LEFT JOIN {db_scraper:Identifier}.polymarket_markets m FINAL
-            ON m.condition_id = r.condition_id
         WHERE (isNotNull({user:Nullable(String)}) OR isNotNull({condition_id:Nullable(String)}))
           AND minute >= (SELECT m FROM start_minute)
           AND minute <= (SELECT m FROM end_minute)
           AND (isNull({user:Nullable(String)}) OR redeemer = {user:Nullable(String)})
           AND (isNull({condition_id:Nullable(String)}) OR r.condition_id = {condition_id:Nullable(String)})
+    ),
+    paged AS (
+        SELECT *
+        FROM activity
+        WHERE (isNull({event_type:Nullable(String)}) OR event_type = {event_type:Nullable(String)})
+        ORDER BY timestamp DESC
+        LIMIT {limit:UInt64}
+        OFFSET {offset:UInt64}
     )
-SELECT *
-FROM activity
-WHERE (isNull({event_type:Nullable(String)}) OR event_type = {event_type:Nullable(String)})
-ORDER BY timestamp DESC
-LIMIT {limit:UInt64}
-OFFSET {offset:UInt64}
+SELECT
+    p.event_type AS event_type,
+    p.timestamp AS timestamp,
+    p.block_num AS block_num,
+    p.tx_hash AS tx_hash,
+    p.user AS user,
+    p.amount AS amount,
+    p.value AS value,
+    p.fee_amount AS fee_amount,
+    p.fee_value AS fee_value,
+    CAST((
+        if(p.event_type = 'trade', nullIf(a.condition_id, ''), nullIf(p.cond_id, '')),
+        if(p.event_type = 'trade', nullIf(a.market_slug, ''), nullIf(m.market_slug, '')),
+        if(p.event_type = 'trade', toString(p.token_asset_id), Null),
+        if(p.event_type = 'trade', nullIf(a.outcome_label, ''), Null)
+    ) AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id Nullable(String), outcome_label Nullable(String))) AS market
+FROM paged p
+LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
+    ON p.event_type = 'trade' AND a.asset_id = p.token_asset_id
+LEFT JOIN {db_scraper:Identifier}.polymarket_markets m FINAL
+    ON p.event_type != 'trade' AND m.condition_id = p.cond_id
