@@ -892,9 +892,22 @@ export const polymarketPositionSortBySchema = z.enum(polymarketPositionSortField
     default: 'position_value',
 });
 
-const polymarketUserSortFields = ['total_volume', 'realized_pnl', 'transactions'] as const;
+const polymarketUserSortFields = [
+    'total_volume',
+    'realized_pnl',
+    'unrealized_pnl',
+    'total_pnl',
+    'transactions',
+] as const;
 export const polymarketUserSortBySchema = z.enum(polymarketUserSortFields).meta({
     type: 'string',
     enum: polymarketUserSortFields,
     default: 'total_volume',
+});
+
+const polymarketTimePeriods = ['ALL', 'MONTH', 'WEEK', 'DAY'] as const;
+export const polymarketTimePeriodSchema = z.enum(polymarketTimePeriods).meta({
+    type: 'string',
+    enum: polymarketTimePeriods,
+    default: 'ALL',
 });

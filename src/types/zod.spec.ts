@@ -32,6 +32,7 @@ import {
     polymarketMarketSortBySchema,
     polymarketPositionSortBySchema,
     polymarketSlugSchema,
+    polymarketTimePeriodSchema,
     polymarketTokenIdSchema,
     polymarketUserSortBySchema,
     serverErrorResponseSchema,
@@ -1180,15 +1181,29 @@ describe('Polymarket schemas', () => {
             expect(polymarketPositionSortBySchema.parse('current_price')).toBe('current_price');
         });
 
-        it('user sort should accept total_volume, realized_pnl, transactions', () => {
+        it('user sort should accept total_volume, realized_pnl, unrealized_pnl, total_pnl, transactions', () => {
             expect(polymarketUserSortBySchema.parse('total_volume')).toBe('total_volume');
             expect(polymarketUserSortBySchema.parse('realized_pnl')).toBe('realized_pnl');
+            expect(polymarketUserSortBySchema.parse('unrealized_pnl')).toBe('unrealized_pnl');
+            expect(polymarketUserSortBySchema.parse('total_pnl')).toBe('total_pnl');
             expect(polymarketUserSortBySchema.parse('transactions')).toBe('transactions');
         });
 
         it('user sort should reject invalid values', () => {
             expect(() => polymarketUserSortBySchema.parse('volume')).toThrow();
             expect(() => polymarketUserSortBySchema.parse('pnl')).toThrow();
+        });
+
+        it('time period should accept ALL, MONTH, WEEK, DAY', () => {
+            expect(polymarketTimePeriodSchema.parse('ALL')).toBe('ALL');
+            expect(polymarketTimePeriodSchema.parse('MONTH')).toBe('MONTH');
+            expect(polymarketTimePeriodSchema.parse('WEEK')).toBe('WEEK');
+            expect(polymarketTimePeriodSchema.parse('DAY')).toBe('DAY');
+        });
+
+        it('time period should reject invalid values', () => {
+            expect(() => polymarketTimePeriodSchema.parse('YEAR')).toThrow();
+            expect(() => polymarketTimePeriodSchema.parse('all')).toThrow();
         });
     });
 });

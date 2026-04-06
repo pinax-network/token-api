@@ -4,13 +4,20 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { apiUsageResponseSchema, createQuerySchema, evmAddress, polymarketUserSortBySchema } from '../../types/zod.js';
+import {
+    apiUsageResponseSchema,
+    createQuerySchema,
+    evmAddress,
+    polymarketTimePeriodSchema,
+    polymarketUserSortBySchema,
+} from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
 import baseQuery from './users.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     user: { schema: evmAddress, optional: true },
+    time_period: { schema: polymarketTimePeriodSchema, prefault: 'ALL' },
     sort_by: { schema: polymarketUserSortBySchema, prefault: 'total_volume' },
 });
 
@@ -25,6 +32,8 @@ const responseSchema = apiUsageResponseSchema.extend({
             volume_sold: z.number(),
             total_volume: z.number(),
             realized_pnl: z.number(),
+            unrealized_pnl: z.number(),
+            total_pnl: z.number(),
             first_trade: z.string(),
             last_trade: z.string(),
         })
@@ -35,7 +44,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'User Lookup',
         description:
-            'Returns trading statistics per user: volume, PNL, trade counts, and activity window. When no user address is provided, returns a paginated leaderboard for discovery.\n\nUse this to find active traders or look up aggregate stats for a specific wallet.',
+            'Returns trading statistics per user: volume, PNL (realized, unrealized, total), trade counts, and activity window. When no user address is provided, returns a paginated leaderboard for discovery.\n\nSupports time windows (`time_period`): `ALL` (lifetime), `MONTH`, `WEEK`, `DAY`. Data refreshes hourly.',
         tags: ['Polymarket Users'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -50,15 +59,17 @@ const openapi = describeRoute(
                                     data: [
                                         {
                                             user: '0x4ce73141dbfce41e65db3723e31059a730f0abad',
-                                            buys: 62724,
-                                            sells: 560154,
-                                            transactions: 622878,
-                                            volume_bought: 21058584.22,
-                                            volume_sold: 66145363.7,
-                                            total_volume: 87203947.92,
-                                            realized_pnl: 45086779.48,
-                                            first_trade: '2024-05-30 17:39:29',
-                                            last_trade: '2024-12-04 14:00:40',
+                                            buys: 32168,
+                                            sells: 294299,
+                                            transactions: 326467,
+                                            volume_bought: 11882418.59,
+                                            volume_sold: 35795922.98,
+                                            total_volume: 47678341.57,
+                                            realized_pnl: 23913504.39,
+                                            unrealized_pnl: 12090462.43,
+                                            total_pnl: 36003966.82,
+                                            first_trade: '2024-05-30 00:00:00',
+                                            last_trade: '2024-11-28 00:00:00',
                                         },
                                     ],
                                 },
