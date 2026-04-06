@@ -890,9 +890,33 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(typeof body.data[0].market.closed).toBe('boolean');
     });
 
-    it('GET /v1/polymarket/positions', async () => {
+    it('GET /v1/polymarket/users (discovery)', async () => {
         if (!hasPolymarket) return;
-        const { response, body } = await fetchRoute(`/v1/polymarket/positions?user=${POLYMARKET_USER}&limit=3`);
+        const { response, body } = await fetchRoute('/v1/polymarket/users?limit=5');
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBe(5);
+        expect(body.data[0]).toHaveProperty('user');
+        expect(body.data[0]).toHaveProperty('total_volume');
+        expect(body.data[0]).toHaveProperty('realized_pnl');
+        expect(body.data[0]).toHaveProperty('transactions');
+        expect(body.data[0]).toHaveProperty('first_trade');
+        expect(body.data[0]).toHaveProperty('last_trade');
+    });
+
+    it('GET /v1/polymarket/users (lookup)', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(`/v1/polymarket/users?user=${POLYMARKET_USER}&limit=1`);
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBe(1);
+        expect(body.data[0].user).toBe(POLYMARKET_USER);
+        expect(body.data[0].total_volume).toBeGreaterThan(0);
+    });
+
+    it('GET /v1/polymarket/users/positions', async () => {
+        if (!hasPolymarket) return;
+        const { response, body } = await fetchRoute(`/v1/polymarket/users/positions?user=${POLYMARKET_USER}&limit=3`);
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);

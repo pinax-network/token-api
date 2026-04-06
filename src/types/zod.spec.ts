@@ -33,6 +33,7 @@ import {
     polymarketPositionSortBySchema,
     polymarketSlugSchema,
     polymarketTokenIdSchema,
+    polymarketUserSortBySchema,
     serverErrorResponseSchema,
     statisticsResponseSchema,
     svmAddress,
@@ -1177,6 +1178,17 @@ describe('Polymarket schemas', () => {
 
         it('user position sort should include current_price', () => {
             expect(polymarketPositionSortBySchema.parse('current_price')).toBe('current_price');
+        });
+
+        it('user sort should accept total_volume, realized_pnl, transactions', () => {
+            expect(polymarketUserSortBySchema.parse('total_volume')).toBe('total_volume');
+            expect(polymarketUserSortBySchema.parse('realized_pnl')).toBe('realized_pnl');
+            expect(polymarketUserSortBySchema.parse('transactions')).toBe('transactions');
+        });
+
+        it('user sort should reject invalid values', () => {
+            expect(() => polymarketUserSortBySchema.parse('volume')).toThrow();
+            expect(() => polymarketUserSortBySchema.parse('pnl')).toThrow();
         });
     });
 });

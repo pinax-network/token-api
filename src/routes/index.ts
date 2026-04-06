@@ -55,6 +55,7 @@ import polymarketOhlcv from './polymarket/ohlcv.js';
 import polymarketOi from './polymarket/oi.js';
 import polymarketPlatform from './polymarket/platform.js';
 import polymarketPositions from './polymarket/positions.js';
+import polymarketUsers from './polymarket/users.js';
 // Pools
 import evmPools from './pools/evm.js';
 import svmPools from './pools/svm.js';
@@ -159,7 +160,8 @@ router.route('/v1/polymarket/markets/oi', polymarketOi);
 router.route('/v1/polymarket/markets/activity', polymarketActivity);
 router.route('/v1/polymarket/markets/positions', polymarketMarketPositions);
 router.route('/v1/polymarket/platform', polymarketPlatform);
-router.route('/v1/polymarket/positions', polymarketPositions);
+router.route('/v1/polymarket/users', polymarketUsers);
+router.route('/v1/polymarket/users/positions', polymarketPositions);
 
 // Monitoring
 router.route('/v1', health);

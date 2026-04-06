@@ -61,7 +61,7 @@ const openapi = describeRoute(
         summary: 'User Positions',
         description:
             "Returns a user's positions with PNL breakdown per outcome token. Each row is one token's cumulative position: cost basis, realized PNL, net shares held, average entry price, and current market price.\n\nUse `closed=false` for positions on live markets, or `closed=true` for resolved markets.",
-        tags: ['Polymarket Positions'],
+        tags: ['Polymarket Users'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {

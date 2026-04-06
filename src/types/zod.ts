@@ -891,3 +891,10 @@ export const polymarketPositionSortBySchema = z.enum(polymarketPositionSortField
     enum: polymarketPositionSortFields,
     default: 'position_value',
 });
+
+const polymarketUserSortFields = ['total_volume', 'realized_pnl', 'transactions'] as const;
+export const polymarketUserSortBySchema = z.enum(polymarketUserSortFields).meta({
+    type: 'string',
+    enum: polymarketUserSortFields,
+    default: 'total_volume',
+});
