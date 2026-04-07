@@ -23,7 +23,7 @@ pools AS (
     AND (empty({output_mint:Array(String)}) OR amm_pool IN output_pools)
     AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
     AND (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
-    AND (empty({protocol:Array(String)}) OR protocol IN {protocol:Array(String)})
+    AND (isNull({protocol:String}) OR protocol IN {protocol:String})
 
     GROUP BY protocol, program_id, amm, amm_pool
 

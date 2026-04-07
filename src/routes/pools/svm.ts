@@ -27,7 +27,7 @@ const querySchema = createQuerySchema({
     input_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
-    protocol: { schema: svmProtocolSchema, batched: true, optional: true },
+    protocol: { schema: svmProtocolSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
