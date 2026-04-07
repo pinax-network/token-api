@@ -39,6 +39,8 @@ export interface ParsedDbsConfig {
     clusters: Record<string, ClusterConfig>;
     balancesDatabases: DatabaseMap;
     transfersDatabases: DatabaseMap;
+    accountsDatabases: DatabaseMap;
+    metadataDatabases: DatabaseMap;
     nftsDatabases: DatabaseMap;
     dexesDatabases: DatabaseMap;
     contractsDatabases: DatabaseMap;
@@ -51,6 +53,8 @@ function emptyConfig(): ParsedDbsConfig {
         clusters: {},
         balancesDatabases: {},
         transfersDatabases: {},
+        accountsDatabases: {},
+        metadataDatabases: {},
         nftsDatabases: {},
         dexesDatabases: {},
         contractsDatabases: {},

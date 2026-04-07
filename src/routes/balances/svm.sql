@@ -1,30 +1,29 @@
 WITH accounts AS (
     SELECT DISTINCT
         owner,
-        argMax(account, o.block_num) AS account
-    FROM {db_balances:Identifier}.owner_state AS o
+        account
+    FROM {db_accounts:Identifier}.owner_state AS o
     WHERE (empty({token_account:Array(String)}) or o.account IN {token_account:Array(String)})
       AND owner IN {owner:Array(String)}
-    GROUP BY owner, o.account
+      AND owner != ''
 ),
 filtered_balances AS
 (
     SELECT
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp,
-        program_id,
-        owner,
-        account,
-        argMax(amount, b.block_num) AS amount,
-        mint,
-        any(decimals) AS decimals
+        max(b.block_num) AS block_num,
+        max(b.timestamp) AS timestamp,
+        b.program_id,
+        a.owner,
+        b.account,
+        argMax(b.amount, b.block_num) AS amount,
+        b.mint,
+        any(b.decimals) AS decimals
     FROM {db_balances:Identifier}.balances AS b
-    LEFT JOIN accounts USING account
-    WHERE (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
-        AND account IN (SELECT account FROM accounts)
-        AND (isNull({program_id:Nullable(String)}) OR program_id = {program_id:Nullable(String)})
+    INNER JOIN accounts AS a ON b.account = a.account
+    WHERE (empty({mint:Array(String)}) OR b.mint IN {mint:Array(String)})
+        AND (isNull({program_id:Nullable(String)}) OR b.program_id = {program_id:Nullable(String)})
         AND (b.amount > 0 OR {include_null_balances:Bool})
-    GROUP BY program_id, owner, account, mint
+    GROUP BY b.program_id, a.owner, b.account, b.mint
     ORDER BY timestamp DESC, owner, account, mint
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}

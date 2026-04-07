@@ -31,21 +31,21 @@ metadata AS (
         GROUP BY metadata
     )
 ),
-/* 2) Branch if it's native SOL - use balances_native table with reasonable cutoff */
+/* 2) Branch if it's native SOL - use native_balances table with reasonable cutoff */
 /* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
-/* SELECT countDistinct(account) FROM balances_native WHERE lamports > N * pow(10, 9); */
+/* SELECT countDistinct(account) FROM native_balances WHERE amount > N * pow(10, 9); */
 top_native AS (
     SELECT
         account,
-        argMax(lamports, timestamp) AS amt,
+        argMax(amount, timestamp) AS amt,
         max(timestamp) AS ts,
         max(block_num) AS bn,
         toUInt8(9) AS dec,
         'Native' AS prog_id,
         {mint:String} AS mnt
-    FROM {db_balances:Identifier}.balances_native
+    FROM {db_balances:Identifier}.native_balances
     WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
-      AND lamports > 100000 * pow(10, 9)
+      AND amount > 100000 * pow(10, 9)
     GROUP BY account
 ),
 /* 3) Branch if it's wrapped SOL - use balances table with reasonable cutoff */
@@ -108,7 +108,7 @@ owner_lookup AS (
     SELECT
         account,
         argMax(owner, block_num) AS owner
-    FROM {db_balances:Identifier}.owner_state
+    FROM {db_accounts:Identifier}.owner_state
     WHERE account IN (SELECT account FROM ranked)
     GROUP BY account
 )

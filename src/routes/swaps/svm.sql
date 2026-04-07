@@ -1,73 +1,10 @@
 WITH
-/* 1) Count how many filters are active */
-active_filters AS
-(
-    SELECT
-        toUInt8(notEmpty({signature:Array(String)}))    +
-        toUInt8(notEmpty({amm:Array(String)}))          +
-        toUInt8(notEmpty({amm_pool:Array(String)}))     +
-        toUInt8(notEmpty({user:Array(String)}))         +
-        toUInt8(notEmpty({input_mint:Array(String)}))   +
-        toUInt8(notEmpty({output_mint:Array(String)}))  +
-        toUInt8(notEmpty({program_id:Array(String)}))
-    AS n
-),
-/* 2) Union buckets from only active filters */
-minutes_union AS
-(
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_signature
-    WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_amm
-    WHERE (notEmpty({amm:Array(String)}) AND amm IN {amm:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_amm_pool
-    WHERE (notEmpty({amm_pool:Array(String)}) AND amm_pool IN {amm_pool:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_user
-    WHERE (notEmpty({user:Array(String)}) AND user IN {user:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_input_mint
-    WHERE (notEmpty({input_mint:Array(String)}) AND input_mint IN {input_mint:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_output_mint
-    WHERE (notEmpty({output_mint:Array(String)}) AND output_mint IN {output_mint:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps_by_program_id
-    WHERE (notEmpty({program_id:Array(String)}) AND program_id IN {program_id:Array(String)})
-    ORDER BY minute DESC
-),
 /*
     Unified timestamp resolution for start_time/end_time and start_block/end_block.
     Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
     the OR pattern prevents ClickHouse from recognizing a clean primary-key range.
     greatest/least picks the tighter bound when both are provided.
-    clamped_start_ts ensures the scan window is at most 1 hour wide.
+    clamped_start_ts ensures the scan window is at most 1 hour wide when no filters are provided.
 */
 start_ts AS (
     SELECT greatest(
@@ -81,28 +18,25 @@ end_ts AS (
         coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
+has_filters AS (
+    SELECT (
+        notEmpty({signature:Array(String)}) OR
+        notEmpty({amm:Array(String)}) OR
+        notEmpty({amm_pool:Array(String)}) OR
+        notEmpty({user:Array(String)}) OR
+        notEmpty({input_mint:Array(String)}) OR
+        notEmpty({output_mint:Array(String)}) OR
+        notEmpty({program_id:Array(String)}) OR
+        isNotNull({start_time:Nullable(UInt64)}) OR
+        isNotNull({start_block:Nullable(UInt32)})
+    ) AS has_filter
+),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT n FROM active_filters) > 0 OR isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)}),
+        (SELECT has_filter FROM has_filters),
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 1 HOUR)
     ) AS ts
-),
-/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time/block window */
-filtered_minutes AS
-(
-    SELECT minute FROM minutes_union
-    WHERE minute >= toRelativeMinuteNum((SELECT ts FROM clamped_start_ts))
-      AND minute <= toRelativeMinuteNum((SELECT ts FROM end_ts))
-    GROUP BY minute
-    HAVING count() >= (SELECT n FROM active_filters)
-    ORDER BY minute DESC
-    LIMIT 1 BY minute
-    LIMIT if(
-        (SELECT n FROM active_filters) <= 1,
-        toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),
-        (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10
-    )
 ),
 filtered_swaps AS
 (
@@ -122,17 +56,15 @@ filtered_swaps AS
         output_amount
     FROM {db_dex:Identifier}.swaps s
     WHERE
-            ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
-
         /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts CTEs */
-        AND timestamp >= (SELECT ts FROM clamped_start_ts)
+        timestamp >= (SELECT ts FROM clamped_start_ts)
         AND timestamp <= (SELECT ts FROM end_ts)
 
         /* Fine-grained block_num exclusion — only rows on the exact boundary second are checked */
         AND NOT (isNotNull({start_block:Nullable(UInt32)}) AND timestamp = (SELECT ts FROM clamped_start_ts) AND block_num < {start_block:Nullable(UInt32)})
         AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt32)})
 
-        /* Apply filters on non-indexed columns */
+        /* Apply filters */
         AND (empty({signature:Array(String)})     OR signature      IN {signature:Array(String)})
         AND (empty({amm:Array(String)})           OR amm            IN {amm:Array(String)})
         AND (empty({amm_pool:Array(String)})      OR amm_pool       IN {amm_pool:Array(String)})

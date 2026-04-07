@@ -110,15 +110,18 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbBalances) {
+    if (!dbBalances || !dbAccounts || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
-        db_metadata: dbBalances.database,
+        db_accounts: dbAccounts.database,
+        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });
