@@ -36,6 +36,8 @@ const responseSchema = apiUsageResponseSchema.extend({
         z.object({
             condition_id: z.string(),
             market_slug: z.string(),
+            event_slug: z.string().nullable(),
+            event_title: z.string().nullable(),
             question: z.string(),
             description: z.string(),
             outcomes: z.array(outcomeSchema),
@@ -46,8 +48,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             volume: z.number(),
             start_date: z.string(),
             end_date: z.string(),
-            event_slug: z.string().nullable(),
-            event_title: z.string().nullable(),
         })
     ),
 });
@@ -73,6 +73,8 @@ const openapi = describeRoute(
                                             condition_id:
                                                 '0x6331a779482df72d904c3c1e12b6409ff836bc06f8c97945cba9b25ada2c605c',
                                             market_slug: 'will-the-portland-trail-blazers-win-the-2026-nba-finals',
+                                            event_slug: '2026-nba-champion',
+                                            event_title: '2026 NBA Champion',
                                             question: 'Will the Portland Trail Blazers win the 2026 NBA Finals?',
                                             description: '',
                                             outcomes: [
@@ -94,8 +96,6 @@ const openapi = describeRoute(
                                             volume: 5483559.78,
                                             start_date: '2025-06-23T16:02:41.286933Z',
                                             end_date: '2026-07-01T00:00:00Z',
-                                            event_slug: '2026-nba-champion',
-                                            event_title: '2026 NBA Champion',
                                         },
                                     ],
                                 },

@@ -10,6 +10,8 @@ WITH resolved_token AS (
 SELECT
     m.condition_id,
     m.market_slug,
+    e.slug AS event_slug,
+    e.title AS event_title,
     m.question,
     m.description,
     CAST(arrayMap((o, t) -> (o, t), m.outcomes, m.clob_token_ids)
@@ -20,9 +22,7 @@ SELECT
     m.fees_enabled,
     m.volume_num AS volume,
     m.start_date,
-    m.end_date,
-    e.slug AS event_slug,
-    e.title AS event_title
+    m.end_date
 FROM {db_scraper:Identifier}.polymarket_markets m FINAL
 LEFT JOIN {db_scraper:Identifier}.polymarket_events e FINAL
     ON e.condition_id = m.condition_id
