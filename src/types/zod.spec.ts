@@ -32,8 +32,8 @@ import {
     polymarketMarketSortBySchema,
     polymarketPositionSortBySchema,
     polymarketSlugSchema,
-    polymarketTimePeriodSchema,
     polymarketTokenIdSchema,
+    polymarketUserIntervalSchema,
     polymarketUserSortBySchema,
     serverErrorResponseSchema,
     statisticsResponseSchema,
@@ -1194,16 +1194,16 @@ describe('Polymarket schemas', () => {
             expect(() => polymarketUserSortBySchema.parse('pnl')).toThrow();
         });
 
-        it('time period should accept ALL, MONTH, WEEK, DAY', () => {
-            expect(polymarketTimePeriodSchema.parse('ALL')).toBe('ALL');
-            expect(polymarketTimePeriodSchema.parse('MONTH')).toBe('MONTH');
-            expect(polymarketTimePeriodSchema.parse('WEEK')).toBe('WEEK');
-            expect(polymarketTimePeriodSchema.parse('DAY')).toBe('DAY');
+        it('user interval should transform to minutes', () => {
+            expect(polymarketUserIntervalSchema.parse('1h')).toBe(60);
+            expect(polymarketUserIntervalSchema.parse('1d')).toBe(1440);
+            expect(polymarketUserIntervalSchema.parse('1w')).toBe(10080);
+            expect(polymarketUserIntervalSchema.parse('30d')).toBe(43200);
         });
 
-        it('time period should reject invalid values', () => {
-            expect(() => polymarketTimePeriodSchema.parse('YEAR')).toThrow();
-            expect(() => polymarketTimePeriodSchema.parse('all')).toThrow();
+        it('user interval should reject invalid values', () => {
+            expect(() => polymarketUserIntervalSchema.parse('4h')).toThrow();
+            expect(() => polymarketUserIntervalSchema.parse('ALL')).toThrow();
         });
     });
 });

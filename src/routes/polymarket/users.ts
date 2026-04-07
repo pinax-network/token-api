@@ -8,7 +8,7 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     evmAddress,
-    polymarketTimePeriodSchema,
+    polymarketUserIntervalSchema,
     polymarketUserSortBySchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
@@ -17,7 +17,7 @@ import baseQuery from './users.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     user: { schema: evmAddress, optional: true },
-    time_period: { schema: polymarketTimePeriodSchema, prefault: 'ALL' },
+    interval: { schema: polymarketUserIntervalSchema, optional: true },
     sort_by: { schema: polymarketUserSortBySchema, prefault: 'total_volume' },
 });
 
@@ -44,7 +44,7 @@ const openapi = describeRoute(
     withErrorResponses({
         summary: 'User Lookup',
         description:
-            'Returns trading statistics per user: volume, PNL (realized, unrealized, total), trade counts, and activity window. When no user address is provided, returns a paginated leaderboard for discovery.\n\nSupports time windows (`time_period`): `ALL` (lifetime), `MONTH`, `WEEK`, `DAY`. Data refreshes hourly.',
+            'Returns trading statistics per user: volume, PNL (realized, unrealized, total), trade counts, and activity window. When no user address is provided, returns a paginated leaderboard for discovery.\n\nSupports lookback windows via `interval`: `1h`, `1d`, `1w`, `30d`. Omit for all-time. Data refreshes hourly.',
         tags: ['Polymarket Users'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -97,6 +97,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
 
     const response = await makeUsageQueryJson(c, fragments, {
         ...params,
+        interval_min: params.interval ?? 0,
         network: 'polymarket',
         db_polymarket: db.database,
     });

@@ -905,9 +905,12 @@ export const polymarketUserSortBySchema = z.enum(polymarketUserSortFields).meta(
     default: 'total_volume',
 });
 
-const polymarketTimePeriods = ['ALL', 'MONTH', 'WEEK', 'DAY'] as const;
-export const polymarketTimePeriodSchema = z.enum(polymarketTimePeriods).meta({
-    type: 'string',
-    enum: polymarketTimePeriods,
-    default: 'ALL',
-});
+const polymarketUserIntervals = ['1h', '1d', '1w', '30d'] as const;
+export const polymarketUserIntervalSchema = z
+    .enum(polymarketUserIntervals)
+    .transform((v) => ({ '1h': 60, '1d': 1440, '1w': 10080, '30d': 43200 })[v])
+    .meta({
+        type: 'string',
+        enum: polymarketUserIntervals,
+        description: 'Lookback window for user statistics (1 hour, 1 day, 1 week, 30 days). Omit for all-time.',
+    });
