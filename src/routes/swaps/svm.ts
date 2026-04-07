@@ -13,9 +13,11 @@ import {
     svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
+    svmMintResponseSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
+    svmProtocolSchema,
     svmTransactionSchema,
     timestampSchema,
 } from '../../types/zod.js';
@@ -30,12 +32,15 @@ const querySchema = createQuerySchema({
     amm: { schema: svmAmmSchema, batched: true, optional: true },
     amm_pool: { schema: svmAmmPoolSchema, batched: true, optional: true, meta: { example: '' } },
     user: { schema: svmAddressSchema, batched: true, optional: true, meta: { example: SVM_ADDRESS_USER_EXAMPLE } },
+    fee_payer: { schema: svmAddressSchema, batched: true, optional: true },
+    signer: { schema: svmAddressSchema, batched: true, optional: true },
     input_mint: {
         schema: svmMintSchema,
         batched: true,
         optional: true,
         meta: { example: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw' },
     },
+    protocol: { schema: svmProtocolSchema, optional: true },
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
 
@@ -57,6 +62,11 @@ const responseSchema = apiUsageResponseSchema.extend({
             signature: svmTransactionSchema,
             transaction_index: z.number(),
             instruction_index: z.number(),
+            stack_height: z.number(),
+
+            // -- fees --
+            fee: z.number(),
+            compute_units_consumed: z.number(),
 
             // -- transaction --
             program_id: svmProgramIdSchema,
@@ -68,9 +78,15 @@ const responseSchema = apiUsageResponseSchema.extend({
             user: svmAddressSchema,
 
             input_mint: svmMintSchema,
-            input_amount: z.number(),
+            input_amount: z.string(),
+            input_value: z.number(),
             output_mint: svmMintSchema,
-            output_amount: z.number(),
+            output_amount: z.string(),
+            output_value: z.number(),
+            input_token: svmMintResponseSchema,
+            output_token: svmMintResponseSchema,
+            price: z.number(),
+            price_inv: z.number(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -103,8 +119,11 @@ const openapi = describeRoute(
                                                 '5pdoVcSiSBr3LMAijdRYKrL5RoLFjLgHxHbZ34dUBVubnsQt3q1v48LuPazebsSiBVuSbSTyJdzf3G9jqqn8o6jA',
                                             transaction_index: 8,
                                             instruction_index: 1,
+                                            stack_height: 1,
                                             program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
                                             program_name: 'Jupiter Aggregator v6',
+                                            fee: 5000,
+                                            compute_units_consumed: 175632,
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_pool: '',
                                             user: '5MGfsuYNRhbuN6x1M6WaR3721dSDGtXpcsHxNsgkjsXC',
@@ -131,13 +150,18 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexesDatabases[params.network];
-    if (!dbDex) {
+    const dbMetadata = config.metadataDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
+
+    if (!dbDex || !dbMetadata || !dbAccounts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_dex: dbDex.database,
+        db_metadata: dbMetadata.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

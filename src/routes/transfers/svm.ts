@@ -188,8 +188,9 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
 
     const dbTransfers = config.transfersDatabases[params.network];
     const dbMetadata = config.metadataDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
 
-    if (!dbTransfers || !dbMetadata) {
+    if (!dbTransfers || !dbMetadata || !dbAccounts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
@@ -197,6 +198,7 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
         ...params,
         db_transfers: dbTransfers.database,
         db_metadata: dbMetadata.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

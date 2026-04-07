@@ -156,16 +156,17 @@ mints AS
 (
     SELECT DISTINCT mint FROM filtered_transfers
 ),
-spl_metadata AS
+mint_decimals AS
 (
     SELECT
-        'So11111111111111111111111111111111111111112' AS mint,
-        'Wrapped SOL' AS name,
-        'WSOL' AS symbol,
-        '' AS uri
-
-    UNION ALL
-
+        mint,
+        argMax(decimals, version) AS decimals
+    FROM {db_accounts:Identifier}.initialize_mint
+    WHERE mint IN (SELECT mint FROM mints)
+    GROUP BY mint
+),
+spl_metadata AS
+(
     SELECT
         mint,
         if(empty(name), NULL, name) AS name,
@@ -184,34 +185,48 @@ spl_metadata AS
     WHERE (SELECT count() FROM mints) > 0
 )
 SELECT
+    /* block */
     block_num,
     t.timestamp AS datetime,
     toUnixTimestamp(t.timestamp) AS timestamp,
+
+    /* transaction */
     signature,
     transaction_index,
     instruction_index,
     stack_height,
+    fee_payer,
+    signer,
+    signers,
+
+    /* fee */
+    fee,
+    compute_units_consumed,
+
+    /* transfer */
     program_id,
     mint,
     authority,
     multisig_authority,
-    signer,
-    signers,
     source,
     destination,
-    fee_payer,
+
+    /* amount */
     toString(t.amount) AS amount,
     t.amount /
         CASE
-            WHEN t.decimals IS NOT NULL THEN pow(10, t.decimals)
+            WHEN d.decimals IS NOT NULL THEN pow(10, d.decimals)
             ELSE 1
         END AS value,
-    t.decimals AS decimals,
+
+    /* metadata */
+    d.decimals AS decimals,
     m.name AS name,
     m.symbol AS symbol,
-    fee,
-    compute_units_consumed,
+
+    /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
 LEFT JOIN spl_metadata AS m USING mint
+LEFT JOIN mint_decimals AS d USING mint
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

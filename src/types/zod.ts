@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { symbol, z } from 'zod';
 import { config, DEFAULT_LIMIT } from '../config.js';
 import {
     EVM_ADDRESS_VITALIK_EXAMPLE,
@@ -147,7 +147,21 @@ export const evmProtocolSchema = z
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 
 export const svmProtocolSchema = z
-    .enum(['raydium_amm_v4'])
+    .enum([
+        'jupiter_v4',
+        'jupiter_v6',
+        'pumpfun',
+        'pumpfun_amm',
+        'raydium_amm_v4',
+        'raydium_clmm',
+        'raydium_cpmm',
+        'raydium_launchpad',
+        'meteora_dllm',
+        'orca_whirlpool',
+        'boop',
+        'darklake',
+        'dumpfun',
+    ])
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const tvmProtocolSchema = z
@@ -489,7 +503,9 @@ export const evmTokenResponseSchema = z.object({
 
 export const svmMintResponseSchema = z.object({
     address: svmAddressSchema,
-    decimals: z.number(),
+    symbol: z.string().nullable(),
+    name: z.string().nullable(),
+    decimals: z.number().nullable(),
 });
 
 export const tvmTokenResponseSchema = z.object({

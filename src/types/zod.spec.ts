@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { z } from 'zod';
+import { symbol, z } from 'zod';
 import {
     apiErrorResponseSchema,
     apiUsageResponseSchema,
@@ -603,6 +603,7 @@ describe('Response Schemas', () => {
         it('should validate mint response objects', () => {
             const mint = {
                 address: 'So11111111111111111111111111111111111111112',
+                symbol: 'WSOL',
                 decimals: 9,
             };
             const result = svmMintResponseSchema.parse(mint);
