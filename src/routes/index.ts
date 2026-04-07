@@ -58,6 +58,7 @@ import tvmSwaps from './swaps/tvm.js';
 import evmTransfers from './transfers/evm.js';
 import evmTransfersNative from './transfers/evm_native.js';
 import svmTransfers from './transfers/svm.js';
+import svmTransfersNative from './transfers/svm_native.js';
 import tvmTransfers from './transfers/tvm.js';
 import tvmTransfersNative from './transfers/tvm_native.js';
 
@@ -85,6 +86,7 @@ router.use('/v1/*/balances/historical/native', cacheControl());
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
+router.route('/v1/svm/transfers/native', svmTransfersNative);
 router.route('/v1/svm/balances', svmBalances);
 router.route('/v1/svm/holders', svmHolders);
 router.route('/v1/svm/owner', svmOwner);

@@ -393,7 +393,6 @@ export const svmOwnerSchema = svmAddress.meta({
 
 export const svmTokenAccountSchema = svmAddress.meta({
     description: 'Filter by token account address',
-    example: SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
 });
 
 export const svmMintSchema = svmAddress.meta({
