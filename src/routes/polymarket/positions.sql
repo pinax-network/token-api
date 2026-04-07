@@ -8,6 +8,8 @@ SELECT
     if(sum(p.scaled_buy_amount) > 0, sum(p.scaled_buy_cost) / sum(p.scaled_buy_amount), 0) AS avg_price,
     coalesce(lp.close, 0) AS current_price,
     sum(p.scaled_net_amount) * coalesce(lp.close, 0) AS position_value,
+    if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * coalesce(lp.close, 0), 0) AS unrealized_pnl,
+    sum(p.scaled_realized_pnl) + if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * coalesce(lp.close, 0), 0) AS total_pnl,
     toBool(sum(p.scaled_net_amount) != 0) AS active,
     sum(p.buy_count) AS buys,
     sum(p.sell_count) AS sells,

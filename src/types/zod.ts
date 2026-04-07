@@ -868,6 +868,8 @@ export const polymarketMarketSortBySchema = z.enum(polymarketMarketSortFields).m
 const polymarketMarketPositionSortFields = [
     'position_value',
     'realized_pnl',
+    'unrealized_pnl',
+    'total_pnl',
     'pnl_pct',
     'transactions',
     'avg_price',
@@ -881,6 +883,8 @@ export const polymarketMarketPositionSortBySchema = z.enum(polymarketMarketPosit
 const polymarketPositionSortFields = [
     'position_value',
     'realized_pnl',
+    'unrealized_pnl',
+    'total_pnl',
     'pnl_pct',
     'transactions',
     'avg_price',

@@ -12,6 +12,8 @@ SELECT
         WHERE interval_min = 1440 AND asset_id = {token_id:String}
     ), 0) AS current_price,
     sum(p.scaled_net_amount) * current_price AS position_value,
+    if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * current_price, 0) AS unrealized_pnl,
+    sum(p.scaled_realized_pnl) + if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * current_price, 0) AS total_pnl,
     toBool(sum(p.scaled_net_amount) != 0) AS active,
     sum(p.buy_count) AS buys,
     sum(p.sell_count) AS sells,
