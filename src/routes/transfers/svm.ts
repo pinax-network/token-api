@@ -5,11 +5,6 @@ import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
 import {
-    SVM_ADDRESS_DESTINATION_EXAMPLE,
-    SVM_AUTHORITY_USER_EXAMPLE,
-    SVM_TRANSACTION_TRANSFER_EXAMPLE,
-} from '../../types/examples.js';
-import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
@@ -34,25 +29,50 @@ const querySchema = createQuerySchema({
         schema: svmTransactionSchema,
         batched: true,
         optional: true,
-        meta: { example: SVM_TRANSACTION_TRANSFER_EXAMPLE },
+        meta: { example: '4Xj7G5UWDKWbPEKTMie8adzPD27qGRYLE9hpYwuad228Tw96aVBMqhc4XG5daAeLrJXGAqRnQw8Cbi129dQfynAd' },
     },
     // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    source: { schema: svmTokenAccountSchema, batched: true, optional: true },
+    mint: {
+        schema: svmMintSchema,
+        batched: true,
+        optional: true,
+        meta: { example: 'So11111111111111111111111111111111111111112' },
+    },
+    source: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        optional: true,
+        meta: { example: 'HuxWhQJLCvuuSzHuBkHX1PVJ2LrpVz8GnTCaEkMRKgM1' },
+    },
     destination: {
         schema: svmTokenAccountSchema,
         batched: true,
         optional: true,
-        meta: { example: SVM_ADDRESS_DESTINATION_EXAMPLE },
+        meta: { example: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat' },
+    },
+    program_id: {
+        schema: svmSPLTokenProgramIdSchema,
+        batched: true,
+        optional: true,
     },
     authority: {
         schema: svmAuthoritySchema,
         batched: true,
         optional: true,
-        meta: { example: SVM_AUTHORITY_USER_EXAMPLE },
+        meta: { example: 'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe' },
     },
-    mint: { schema: svmMintSchema, batched: true, optional: true },
-    program_id: { schema: svmSPLTokenProgramIdSchema, optional: true },
-
+    fee_payer: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        optional: true,
+        meta: { example: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo' },
+    },
+    signer: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        optional: true,
+        meta: { example: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo' },
+    },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
     start_block: { schema: blockNumberSchema, optional: true },
@@ -71,22 +91,31 @@ const responseSchema = apiUsageResponseSchema.extend({
             signature: z.string(),
             transaction_index: z.number(),
             instruction_index: z.number(),
+            stack_height: z.number(),
 
             // -- instruction --
             program_id: svmSPLTokenProgramIdSchema,
             mint: svmMintSchema,
             authority: svmAuthoritySchema,
+            multisig_authority: z.array(svmAuthoritySchema),
+            signer: svmAddressSchema,
+            signers: z.array(svmAddressSchema),
 
             // -- transfer --
             source: svmAddressSchema,
             destination: svmAddressSchema,
             amount: z.string(),
             value: z.number(),
-            decimals: z.number().nullable(),
 
+            // -- token metadata --
+            decimals: z.number().nullable(),
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),
+
+            // -- fees --
+            fee: z.number(),
+            compute_units_consumed: z.number(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -112,24 +141,30 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 372132067,
-                                            datetime: '2025-10-09 02:10:01',
-                                            timestamp: 1759975801,
+                                            block_num: 411673404,
+                                            datetime: '2026-04-07 17:06:18',
+                                            timestamp: 1775581578,
                                             signature:
-                                                '2Y3YJMa7Gx96ZprnWxSQHiahGdbiNFwF1DdT4ZWGf8cwJnv4fRTcFg9Z5THuAHhja66fi6Jd8fLngtH1d8qSNj3H',
-                                            transaction_index: 65,
-                                            instruction_index: 0,
-                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-                                            authority: 'GXYBNgyYKbSLr938VJCpmGLCUaAHWsncTi7jDoQSdFR9',
-                                            source: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW',
-                                            destination: '64nnJ2CBUZ3VasttjVhxbQXqzbjAxnj4VT4vBrrveNV',
-                                            amount: '835996345',
-                                            value: 835.996345,
-                                            decimals: 6,
-                                            name: 'Pump',
-                                            symbol: 'PUMP',
-                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
+                                                '4Xj7G5UWDKWbPEKTMie8adzPD27qGRYLE9hpYwuad228Tw96aVBMqhc4XG5daAeLrJXGAqRnQw8Cbi129dQfynAd',
+                                            transaction_index: 208,
+                                            instruction_index: 3,
+                                            stack_height: 2,
+                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                            mint: 'So11111111111111111111111111111111111111112',
+                                            authority: 'HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC',
+                                            multisig_authority: [],
+                                            signer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
+                                            signers: ['3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo'],
+                                            source: 'HuxWhQJLCvuuSzHuBkHX1PVJ2LrpVz8GnTCaEkMRKgM1',
+                                            destination: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat',
+                                            fee_payer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
+                                            amount: '927931314',
+                                            value: 0.927931314,
+                                            decimals: 9,
+                                            name: 'Wrapped SOL',
+                                            symbol: 'WSOL',
+                                            fee: 5000,
+                                            compute_units_consumed: 50323,
                                             network: 'solana',
                                         },
                                     ],

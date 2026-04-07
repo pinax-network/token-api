@@ -76,6 +76,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- instruction --
             program_id: svmAddressSchema.meta({ example: SVM_ADDRESS_SYSTEM_EXAMPLE }),
+            signer: svmAddressSchema,
+            signers: z.array(svmAddressSchema),
 
             // -- transfer --
             source: svmAddressSchema,
