@@ -92,30 +92,32 @@ const responseSchema = apiUsageResponseSchema.extend({
             transaction_index: z.number(),
             instruction_index: z.number(),
             stack_height: z.number(),
-
-            // -- instruction --
-            program_id: svmSPLTokenProgramIdSchema,
-            mint: svmMintSchema,
-            authority: svmAuthoritySchema,
-            multisig_authority: z.array(svmAuthoritySchema),
             signer: svmAddressSchema,
             signers: z.array(svmAddressSchema),
-
-            // -- transfer --
-            source: svmAddressSchema,
-            destination: svmAddressSchema,
-            amount: z.number(),
-            value: z.number(),
-
-            // -- token metadata --
-            decimals: z.number().nullable(),
-            name: z.string().nullable(),
-            symbol: z.string().nullable(),
-            uri: z.string().nullable(),
 
             // -- fees --
             fee: z.number(),
             compute_units_consumed: z.number(),
+
+            // -- transfer --
+            program_id: svmSPLTokenProgramIdSchema,
+            mint: svmMintSchema,
+            source: svmAddressSchema,
+            destination: svmAddressSchema,
+
+            // -- authority --
+            authority: svmAuthoritySchema,
+            multisig_authority: z.array(svmAuthoritySchema),
+
+            // -- amount --
+            amount: z.number(),
+            value: z.number(),
+            decimals: z.number().nullable(),
+
+            // -- token metadata --
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,

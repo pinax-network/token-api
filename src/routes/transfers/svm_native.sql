@@ -128,26 +128,40 @@ filtered_transfers AS
     OFFSET  {offset:UInt64}
 )
 SELECT
+    /* block */
     block_num,
     t.timestamp AS datetime,
     toUnixTimestamp(t.timestamp) AS timestamp,
+
+    /* transaction */
     signature,
     transaction_index,
     instruction_index,
     stack_height,
-    '11111111111111111111111111111111' AS program_id,
-    source,
-    destination,
     fee_payer,
     signer,
     signers,
-    toString(lamports) AS amount,
-    lamports / pow(10, 9) AS value,
-    9 AS decimals,
-    'Native' AS name,
-    'SOL' AS symbol,
+
+    /* fee */
     fee,
     compute_units_consumed,
+
+    /* transfer */
+    '11111111111111111111111111111111' AS program_id,
+    'So11111111111111111111111111111111111111111' AS mint,
+    source,
+    destination,
+
+    /* amount */
+    lamports AS amount,
+    lamports / pow(10, 9) AS value,
+    9 AS decimals,
+
+    /* metadata */
+    'Native' AS name,
+    'SOL' AS symbol,
+
+    /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

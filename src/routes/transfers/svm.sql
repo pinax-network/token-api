@@ -174,16 +174,16 @@ SELECT
     /* transfer */
     t.program_id AS program_id,
     t.mint AS mint,
-    authority,
-    multisig_authority,
     source,
     destination,
+
+    /* authority */
+    authority,
+    multisig_authority,
 
     /* amount */
     t.amount AS amount,
     t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
-
-    /* accounts */
     coalesce(t.decimals, d.decimals) AS decimals,
 
     /* metadata */

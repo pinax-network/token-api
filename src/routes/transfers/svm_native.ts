@@ -4,7 +4,6 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { SVM_ADDRESS_SYSTEM_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -73,26 +72,30 @@ const responseSchema = apiUsageResponseSchema.extend({
             transaction_index: z.number(),
             instruction_index: z.number(),
             stack_height: z.number(),
-
-            // -- instruction --
-            program_id: svmAddressSchema.meta({ example: SVM_ADDRESS_SYSTEM_EXAMPLE }),
+            fee_payer: svmAddressSchema,
             signer: svmAddressSchema,
             signers: z.array(svmAddressSchema),
-
-            // -- transfer --
-            source: svmAddressSchema,
-            destination: svmAddressSchema,
-            amount: z.string(),
-            value: z.number(),
-
-            // -- metadata --
-            name: z.string().nullable(),
-            symbol: z.string().nullable(),
-            decimals: z.number().nullable(),
 
             // -- fees --
             fee: z.number(),
             compute_units_consumed: z.number(),
+
+            // -- instruction --
+            program_id: svmAddressSchema.meta({ example: '11111111111111111111111111111111' }),
+            mint: svmAddressSchema.meta({ example: 'So11111111111111111111111111111111111111111' }),
+
+            // -- transfer --
+            source: svmAddressSchema,
+            destination: svmAddressSchema,
+
+            // -- amounts --
+            amount: z.string(),
+            value: z.number(),
+            decimals: z.number().nullable(),
+
+            // -- metadata --
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,
