@@ -28,7 +28,6 @@ SELECT
     decimals,
     'SOL' AS name,
     'SOL' AS symbol,
-    null AS uri,
     {network:String} AS network
 FROM filtered_balances AS b
 ORDER BY timestamp DESC

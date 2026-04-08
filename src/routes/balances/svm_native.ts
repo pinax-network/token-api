@@ -48,7 +48,6 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             name: z.string().nullable(),
             symbol: z.string().nullable(),
-            uri: z.string().nullable(),
 
             // -- network --
             network: svmNetworkIdSchema,
@@ -85,7 +84,6 @@ const openapi = describeRoute(
                                             decimals: 9,
                                             name: 'SOL',
                                             symbol: 'SOL',
-                                            uri: null,
                                             network: 'solana',
                                         },
                                     ],
