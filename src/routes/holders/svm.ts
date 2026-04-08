@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
+import { nativeMintRedirect } from '../../middleware/nativeContractRedirect.js';
 import { SVM_MINT_WSOL_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
@@ -16,7 +17,6 @@ import {
     svmTokenAccountSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
-
 import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
@@ -97,6 +97,9 @@ const openapi = describeRoute(
 );
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
+
+// TODO: Remove this middleware once migration is complete
+route.use('/', nativeMintRedirect);
 
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');

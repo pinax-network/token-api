@@ -3,11 +3,8 @@ WITH balances AS
     SELECT
         max(block_num) AS block_num,
         max(timestamp) AS timestamp,
-        '11111111111111111111111111111111' AS program_id,
         account,
-        argMax(amount, b.block_num) AS balance_amount,
-        'So11111111111111111111111111111111111111111' AS mint,
-        9 AS decimals
+        argMax(amount, b.block_num) AS amount
     FROM {db_balances:Identifier}.native_balances AS b
     WHERE account IN {address:Array(String)}
     AND (b.amount > 0 OR {include_null_balances:Bool})
@@ -17,15 +14,22 @@ WITH balances AS
     OFFSET {offset:UInt64}
 )
 SELECT
+    /* block */
     b.timestamp                         AS last_update,
     block_num                           AS last_update_block_num,
-    toUnixTimestamp(b.timestamp)        AS last_update_timestamp,
-    toString(program_id)                AS program_id,
-    toString(account)                   AS address,
-    toString(mint)                      AS mint,
-    toString(b.balance_amount)          AS amount,
-    b.balance_amount / pow(10, decimals) AS value,
-    decimals,
+    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
+
+    /* token */
+    '11111111111111111111111111111111' AS program_id,
+    account AS address,
+    'So11111111111111111111111111111111111111111' AS mint,
+
+    /* amount */
+    b.amount AS amount,
+    b.amount / pow(10, 9) AS value,
+    9 as decimals,
+
+    /* metadata */
     'SOL' AS name,
     'SOL' AS symbol,
     {network:String} AS network

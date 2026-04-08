@@ -4,24 +4,24 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
+import { SVM_MINT_WSOL_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
-    includeNullBalancesSchema,
-    svmAddressSchema,
     svmMintSchema,
     svmNetworkIdSchema,
-    svmSPLTokenProgramIdSchema,
+    svmOwnerSchema,
+    svmProgramIdSchema,
+    svmTokenAccountSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-import query from './svm_native.sql' with { type: 'text' };
+import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-    address: { schema: svmAddressSchema, batched: true },
-    include_null_balances: { schema: includeNullBalancesSchema, default: false },
+    mint: { schema: svmMintSchema, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -32,24 +32,20 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            // -- transaction --
-            // signature: z.string(),
-
-            // -- instruction --
-            program_id: svmSPLTokenProgramIdSchema,
-
-            // -- balance --
-            address: svmAddressSchema,
+            // -- contract --
+            owner: svmOwnerSchema,
+            token_account: svmTokenAccountSchema,
             mint: svmMintSchema,
-
-            amount: z.number(),
+            program_id: svmProgramIdSchema,
+            amount: z.string(),
             value: z.number(),
-            decimals: z.number().nullable(),
 
+            // -- contract --
+            decimals: z.number().nullable(),
             name: z.string().nullable(),
             symbol: z.string().nullable(),
 
-            // -- network --
+            // -- chain --
             network: svmNetworkIdSchema,
         })
     ),
@@ -57,8 +53,8 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Native Balances',
-        description: 'Returns SOL native balances for wallet addresses.',
+        summary: 'Native Holders',
+        description: 'Returns top token holders ranked by Native balance.',
 
         tags: ['SVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
@@ -73,17 +69,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2025-10-16 08:20:15',
-                                            last_update_block_num: 373711220,
-                                            last_update_timestamp: 1760602815,
-                                            program_id: '11111111111111111111111111111111',
-                                            address: 'So11111111111111111111111111111111111111112',
-                                            mint: 'So11111111111111111111111111111111111111111',
-                                            amount: 1173096711863,
-                                            value: 1173.096711863,
-                                            decimals: 9,
-                                            name: 'SOL',
-                                            symbol: 'SOL',
+                                            last_update: '2025-09-17 20:06:47',
+                                            last_update_block_num: 367491952,
+                                            last_update_timestamp: 1758139607,
+                                            owner: '7AN6avKCJPMkXkW8kPwMuHmaWvJeHH69e8rKpLf9rdfk',
+                                            token_account: 'BzWtXFf9HL2GGzMGgcGKRnFjrJiZ8U3FG8BQKTbCzW9s',
+                                            mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            amount: '365461857133582111',
+                                            value: 365461857133.5821,
+                                            decimals: 6,
+                                            name: 'Pump',
+                                            symbol: 'PUMP',
                                             network: 'solana',
                                         },
                                     ],
@@ -103,13 +100,18 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
-    if (!dbBalances) {
+    const dbAccounts = config.accountsDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
+
+    if (!dbBalances || !dbAccounts || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
+        db_accounts: dbAccounts.database,
+        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });
