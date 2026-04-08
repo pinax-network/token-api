@@ -782,7 +782,11 @@ export function createQuerySchema<T extends Record<string, FieldConfig>>(
                         .meta({ ...resultSchema.meta() });
                 } else if (isOptional) {
                     // Optional field: use empty array for batched, null for scalar
-                    resultSchema = resultSchema.default(batched ? [] : null).meta({ ...resultSchema.meta() });
+                    const optionalDefault = batched ? [] : null;
+                    resultSchema = resultSchema.default(optionalDefault).meta({
+                        ...resultSchema.meta(),
+                        ...(optionalDefault === null ? { default: undefined } : {}),
+                    });
                 } else if (defaultValue !== undefined) {
                     // Apply default (output-level) if provided - takes precedence over prefault
                     // For batched fields with null default, use empty array instead of [null]
