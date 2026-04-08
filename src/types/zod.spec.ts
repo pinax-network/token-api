@@ -604,6 +604,7 @@ describe('Response Schemas', () => {
             const mint = {
                 address: 'So11111111111111111111111111111111111111112',
                 symbol: 'WSOL',
+                name: 'Wrapped SOL',
                 decimals: 9,
             };
             const result = svmMintResponseSchema.parse(mint);
