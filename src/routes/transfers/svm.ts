@@ -104,7 +104,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             // -- transfer --
             source: svmAddressSchema,
             destination: svmAddressSchema,
-            amount: z.string(),
+            amount: z.number(),
             value: z.number(),
 
             // -- token metadata --

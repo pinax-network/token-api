@@ -1,133 +1,47 @@
-/* 1) Get metadata for the mint */
-WITH
-metadata AS (
-    SELECT
-        'So11111111111111111111111111111111111111111' AS mint,
-        'Native' AS name,
-        'SOL' AS symbol,
-        '' AS uri
-
-    UNION ALL
-
-    SELECT
-        'So11111111111111111111111111111111111111112' AS mint,
-        'Wrapped SOL' AS name,
-        'SOL' AS symbol,
-        '' AS uri
-
-    UNION ALL
-
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM {db_metadata:Identifier}.metadata_view
-    WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
-      AND metadata IN (
-        SELECT metadata
-        FROM {db_metadata:Identifier}.metadata_mint_state
-        WHERE mint = {mint:String}
-        GROUP BY metadata
-    )
-),
-/* 2) Branch if it's native SOL - use native_balances table with reasonable cutoff */
-/* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
-/* SELECT countDistinct(account) FROM native_balances WHERE amount > N * pow(10, 9); */
-top_native AS (
+WITH balances AS (
     SELECT
         account,
-        argMax(amount, timestamp) AS amt,
-        max(timestamp) AS ts,
-        max(block_num) AS bn,
-        toUInt8(9) AS dec,
-        'Native' AS prog_id,
-        {mint:String} AS mnt
-    FROM {db_balances:Identifier}.native_balances
-    WHERE {mint:String} = 'So11111111111111111111111111111111111111111'
-      AND amount > 100000 * pow(10, 9)
-    GROUP BY account
-),
-/* 3) Branch if it's wrapped SOL - use balances table with reasonable cutoff */
-/* With optimal cutoff number, distinct holders with that cutoff should be at least 1000, but reasonable for the query performance: */
-/* SELECT countDistinct(account) FROM balances WHERE mint = 'So11111111111111111111111111111111111111112' AND amount > N * pow(10, 9); */
-top_wrapped AS (
-    SELECT
-        account,
-        argMax(amount, timestamp) AS amt,
-        max(timestamp) AS ts,
-        max(block_num) AS bn,
-        any(decimals) AS dec,
-        any(program_id) AS prog_id,
-        any(mint) AS mnt
-    FROM {db_balances:Identifier}.balances
-    WHERE {mint:String} = 'So11111111111111111111111111111111111111112'
-      AND mint = {mint:String}
-      AND amount > 4000 * pow(10, 9)
-    GROUP BY account
-),
-/* 4) Branch if it's a regular SPL token - no cutoff */
-top_spl AS (
-    SELECT
-        account,
-        argMax(amount, timestamp) AS amt,
-        max(timestamp) AS ts,
-        max(block_num) AS bn,
-        any(decimals) AS dec,
-        any(program_id) AS prog_id,
-        any(mint) AS mnt
-    FROM {db_balances:Identifier}.balances
-    WHERE {mint:String} NOT IN ('So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112')
-      AND mint = {mint:String}
-      AND amount > 0
-    GROUP BY account
-),
-top_balances AS (
-    SELECT account, amt, ts, bn, dec, prog_id, mnt
-    FROM top_native
-    UNION ALL
-    SELECT account, amt, ts, bn, dec, prog_id, mnt
-    FROM top_wrapped
-    UNION ALL
-    SELECT account, amt, ts, bn, dec, prog_id, mnt
-    FROM top_spl
-),
-/* 5) Sort and limit first, then resolve wallet owners only for the result set */
-/* owner_state has ~7.5B rows — resolving all holders is too expensive */
-ranked AS (
-    SELECT account, amt, ts, bn, dec, prog_id, mnt, name, symbol, uri
-    FROM top_balances
-    LEFT JOIN metadata ON mnt = metadata.mint
-    ORDER BY amt / pow(10, dec) DESC, account
+        argMax(b.amount, b.block_num) AS amount,
+        max(b.timestamp) AS timestamp,
+        max(b.block_num) AS block_num,
+        program_id,
+        decimals,
+        mint
+    FROM {db_balances:Identifier}.balances b
+    WHERE mint = {mint:String}
+    GROUP BY account, program_id, mint, decimals
+    HAVING amount > if ( {mint:String} = 'So11111111111111111111111111111111111111112', 4000 * pow(10, 9), 0 )
+    ORDER BY amount DESC, account DESC
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
-),
-/* 6) Look up wallet owners from owner_state for the limited result set */
-/* For native SOL, account IS the wallet (no entry in owner_state), so fall back to account */
-owner_lookup AS (
-    SELECT
-        account,
-        argMax(owner, block_num) AS owner
-    FROM {db_accounts:Identifier}.owner_state
-    WHERE account IN (SELECT account FROM ranked)
-    GROUP BY account
 )
 SELECT
-    ts AS last_update,
-    bn AS last_update_block_num,
-    toUnixTimestamp(ts) AS last_update_timestamp,
-    toString(if(notEmpty(ol.owner), ol.owner, toString(r.account))) AS owner,
-    toString(r.account) AS token_account,
-    toString(mnt) AS mint,
-    toString(prog_id) AS program_id,
-    toString(amt) AS amount,
-    amt / pow(10, dec) AS value,
-    dec AS decimals,
-    name,
-    symbol,
-    uri,
+    b.timestamp AS last_update,
+    b.block_num AS last_update_block_num,
+    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
+    /* token */
+    toString(b.program_id) AS program_id,
+    toString(b.mint) AS mint,
+
+    /* owner */
+    toString(if(notEmpty(o.owner), o.owner, Null)) AS owner,
+    toString(b.account) AS token_account,
+
+    /* amount */
+    toString(b.amount) AS amount,
+    b.amount / pow(10, b.decimals) AS value,
+
+    /* accounts */
+    b.decimals AS decimals,
+
+    /* metadata */
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
+
     {network:String} AS network
-FROM ranked AS r
-LEFT JOIN owner_lookup AS ol ON r.account = ol.account
-ORDER BY value DESC, r.account
-LIMIT {limit:UInt64}
+FROM balances AS b
+LEFT JOIN {db_accounts:Identifier}.owner_view AS o USING (account)
+LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
+ORDER BY amount DESC, b.account

@@ -13,7 +13,6 @@ import {
     svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
-    svmMintResponseSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
@@ -78,15 +77,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             user: svmAddressSchema,
 
             input_mint: svmMintSchema,
-            input_amount: z.string(),
-            input_value: z.number(),
+            input_amount: z.number(),
             output_mint: svmMintSchema,
-            output_amount: z.string(),
-            output_value: z.number(),
-            input_token: svmMintResponseSchema,
-            output_token: svmMintResponseSchema,
-            price: z.number(),
-            price_inv: z.number(),
+            output_amount: z.number(),
 
             // -- chain --
             network: svmNetworkIdSchema,

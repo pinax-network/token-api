@@ -151,42 +151,10 @@ filtered_transfers AS
     ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-mints AS
-(
-    SELECT DISTINCT mint FROM filtered_transfers
-),
-mint_decimals AS
-(
-    SELECT
-        mint,
-        argMax(decimals, version) AS decimals
-    FROM {db_accounts:Identifier}.initialize_mint
-    WHERE mint IN (SELECT mint FROM mints)
-    GROUP BY mint
-),
-spl_metadata AS
-(
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM (
-        SELECT mint, name, symbol, uri
-        FROM {db_metadata:Identifier}.metadata_view
-        WHERE metadata IN (
-            SELECT metadata
-            FROM {db_metadata:Identifier}.metadata_mint_state
-            WHERE mint IN (SELECT mint FROM mints)
-            GROUP BY metadata
-        )
-    )
-    WHERE (SELECT count() FROM mints) > 0
 )
 SELECT
     /* block */
-    block_num,
+    t.block_num AS block_num,
     t.timestamp AS datetime,
     toUnixTimestamp(t.timestamp) AS timestamp,
 
@@ -204,29 +172,29 @@ SELECT
     compute_units_consumed,
 
     /* transfer */
-    program_id,
-    mint,
+    t.program_id AS program_id,
+    t.mint AS mint,
     authority,
     multisig_authority,
     source,
     destination,
 
     /* amount */
-    toString(t.amount) AS amount,
-    t.amount /
-        CASE
-            WHEN d.decimals IS NOT NULL THEN pow(10, d.decimals)
-            ELSE 1
-        END AS value,
+    t.amount AS amount,
+    t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
+
+    /* accounts */
+    coalesce(t.decimals, d.decimals) AS decimals,
 
     /* metadata */
-    d.decimals AS decimals,
-    m.name AS name,
-    m.symbol AS symbol,
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
 
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN spl_metadata AS m USING mint
-LEFT JOIN mint_decimals AS d USING mint
+LEFT JOIN {db_accounts:Identifier}.decimals_state AS d USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

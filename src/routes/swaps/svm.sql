@@ -176,40 +176,6 @@ filtered_swaps AS
     ORDER BY timestamp DESC, block_num DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-mints AS
-(
-    SELECT DISTINCT input_mint AS mint FROM filtered_swaps
-    UNION DISTINCT
-    SELECT DISTINCT output_mint AS mint FROM filtered_swaps
-),
-mint_decimals AS
-(
-    SELECT
-        mint,
-        CAST(argMax(decimals, version), 'Nullable(UInt8)') AS decimals
-    FROM {db_accounts:Identifier}.initialize_mint
-    WHERE mint IN (SELECT mint FROM mints)
-    GROUP BY mint
-),
-spl_metadata AS
-(
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM (
-        SELECT mint, name, symbol, uri
-        FROM {db_metadata:Identifier}.metadata_view
-        WHERE metadata IN (
-            SELECT metadata
-            FROM {db_metadata:Identifier}.metadata_mint_state
-            WHERE mint IN (SELECT mint FROM mints)
-            GROUP BY metadata
-        )
-    )
-    WHERE (SELECT count() FROM mints) > 0
 )
 SELECT
     /* block */
@@ -218,7 +184,7 @@ SELECT
     toUnixTimestamp(s.timestamp) AS timestamp,
 
     /* transaction */
-    toString(signature) AS signature,
+    signature,
     transaction_index,
     instruction_index,
     stack_height,
@@ -231,48 +197,26 @@ SELECT
     compute_units_consumed,
 
     /* instruction */
-    toString(program_id) AS program_id,
-    toString(program_names(program_id)) AS program_name,
+    program_id,
+    program_names(program_id) AS program_name,
 
     /* swap */
-    toString(amm) AS amm,
-    toString(amm_pool) AS amm_pool,
-    toString(user) AS user,
-
-    /* tokens */
-    CAST ((
-        s.input_mint,
-        m1.symbol,
-        m1.name,
-        d1.decimals
-    ) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS input_token,
-    CAST ((
-        s.output_mint,
-        m2.symbol,
-        m2.name,
-        d2.decimals
-    ) AS Tuple(address String, symbol Nullable(String), name Nullable(String), decimals Nullable(UInt8))) AS output_token,
+    amm,
+    amm_pool,
+    user,
 
     /* input */
-    toString(input_mint) AS input_mint,
-    toString(s.input_amount) AS input_amount,
-    s.input_amount / pow(10, d1.decimals) AS input_value,
+    input_mint,
+    input_amount,
 
     /* output */
-    toString(output_mint) AS output_mint,
-    toString(s.output_amount) AS output_amount,
-    s.output_amount / pow(10, d2.decimals) AS output_value,
+    output_mint,
+    output_amount,
 
     /* prices */
-    if(s.input_amount > 0, (s.output_amount / pow(10, d2.decimals)) / (s.input_amount / pow(10, d1.decimals)), 0) AS price,
-    if(s.output_amount > 0, (s.input_amount / pow(10, d1.decimals)) / (s.output_amount / pow(10, d2.decimals)), 0) AS price_inv,
     s.protocol AS protocol,
 
     /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
-LEFT JOIN mint_decimals AS d1 ON s.input_mint = d1.mint
-LEFT JOIN mint_decimals AS d2 ON s.output_mint = d2.mint
-LEFT JOIN spl_metadata AS m1 ON s.input_mint = m1.mint
-LEFT JOIN spl_metadata AS m2 ON s.output_mint = m2.mint
 ORDER BY timestamp DESC, block_num DESC
