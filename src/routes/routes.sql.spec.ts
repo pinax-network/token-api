@@ -91,7 +91,11 @@ const SINGLE_FILTER_ROUTE_CASES = [
         requires: () => hasEvmTransfers,
         network: () => evmNetwork,
         filters: [
-            { param: 'transaction_id', value: EVM_TRANSACTION_TRANSFER_EXAMPLE, responsePath: ['transaction_id'] },
+            {
+                param: 'transaction_id',
+                value: '0xd671e7314849d87f852c3674fd98157f1faf512364640c37ea38e997f67bd088',
+                responsePath: ['transaction_id'],
+            },
             { param: 'from_address', value: EVM_ADDRESS_VITALIK_EXAMPLE, responsePath: ['from'] },
             { param: 'to_address', value: EVM_ADDRESS_TO_EXAMPLE, responsePath: ['to'] },
         ],

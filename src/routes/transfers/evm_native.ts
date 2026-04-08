@@ -4,7 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { EVM_ADDRESS_TO_EXAMPLE, EVM_TRANSACTION_TRANSFER_EXAMPLE } from '../../types/examples.js';
+import { EVM_ADDRESS_TO_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
@@ -26,7 +26,7 @@ const querySchema = createQuerySchema({
         schema: evmTransactionSchema,
         batched: true,
         optional: true,
-        meta: { example: EVM_TRANSACTION_TRANSFER_EXAMPLE },
+        meta: { example: '0xd671e7314849d87f852c3674fd98157f1faf512364640c37ea38e997f67bd088' },
     },
     // address: { schema: evmAddressSchema, batched: true, default: '' },
     from_address: { schema: evmAddressSchema, batched: true, optional: true },
