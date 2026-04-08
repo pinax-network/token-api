@@ -5,7 +5,7 @@ SELECT
     program_names(p.amm) AS amm_name,
     IF(program_id = amm, false, true) AS is_aggregator,
     sum(transactions) AS transactions
-FROM {db_dex:Identifier}.pool_activity_summary AS p
+FROM {db_dex:Identifier}.state_pools_aggregating_by_pool AS p
 GROUP BY
     p.program_id,
     p.amm
