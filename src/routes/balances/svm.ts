@@ -36,9 +36,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            // -- transaction --
-            // signature: z.string(),
-
             // -- instruction --
             program_id: svmSPLTokenProgramIdSchema,
 
@@ -46,10 +43,13 @@ const responseSchema = apiUsageResponseSchema.extend({
             owner: svmOwnerSchema,
             token_account: svmTokenAccountSchema,
             mint: svmMintSchema,
+
+            // -- amount --
             amount: z.string(),
             value: z.number(),
             decimals: z.number().nullable(),
 
+            // -- mint metadata --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),

@@ -1,63 +1,56 @@
-WITH accounts AS (
-    SELECT DISTINCT
-        owner,
-        account
+WITH owners AS (
+    SELECT owner, account
     FROM {db_accounts:Identifier}.owner_state AS o
-    WHERE (empty({token_account:Array(String)}) or o.account IN {token_account:Array(String)})
-      AND owner IN {owner:Array(String)}
-      AND owner != ''
+    WHERE owner IN {owner:Array(String)}
 ),
-filtered_balances AS
+balances AS
 (
     SELECT
         max(b.block_num) AS block_num,
         max(b.timestamp) AS timestamp,
-        b.program_id,
-        a.owner,
-        b.account,
+        program_id,
+        account,
         argMax(b.amount, b.block_num) AS amount,
-        b.mint,
-        any(b.decimals) AS decimals
+        mint,
+        decimals
     FROM {db_balances:Identifier}.balances AS b
-    INNER JOIN accounts AS a ON b.account = a.account
-    WHERE (empty({mint:Array(String)}) OR b.mint IN {mint:Array(String)})
+    WHERE account IN (SELECT account FROM owners)
+        AND (empty({token_account:Array(String)}) OR b.account IN {token_account:Array(String)})
+        AND (empty({mint:Array(String)}) OR b.mint IN {mint:Array(String)})
         AND (isNull({program_id:Nullable(String)}) OR b.program_id = {program_id:Nullable(String)})
-        AND (b.amount > 0 OR {include_null_balances:Bool})
-    GROUP BY b.program_id, a.owner, b.account, b.mint
-    ORDER BY timestamp DESC, owner, account, mint
+    GROUP BY program_id, account, mint, decimals
+    HAVING {include_null_balances:Bool} OR amount > 0
+    ORDER BY timestamp DESC, account, mint
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
-),
-metadata AS
-(
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM {db_metadata:Identifier}.metadata_view
-    WHERE metadata IN (
-        SELECT metadata
-        FROM {db_metadata:Identifier}.metadata_mint_state
-        WHERE mint IN (SELECT mint FROM filtered_balances)
-        GROUP BY metadata
-    )
 )
 SELECT
+    /* block */
     b.timestamp AS last_update,
-    block_num AS last_update_block_num,
+    b.block_num AS last_update_block_num,
     toUnixTimestamp(b.timestamp) AS last_update_timestamp,
-    toString(program_id) AS program_id,
-    toString(owner) AS owner,
-    toString(account) AS token_account,
-    toString(mint) AS mint,
-    toString(b.amount) AS amount,
-    b.amount / pow(10, decimals) AS value,
-    decimals,
-    name,
-    symbol,
-    uri,
+
+    /* balance */
+    b.program_id as program_id,
+    o.owner as owner,
+    b.account as account,
+    b.mint as mint,
+
+    /* amount */
+    b.amount AS amount,
+    b.amount / pow(10, coalesce(b.decimals, d.decimals, 1)) AS value,
+    coalesce(b.decimals, d.decimals) AS decimals,
+
+    /* metadata */
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
+
+    /* network */
     {network:String} AS network
-FROM filtered_balances AS b
-LEFT JOIN metadata USING mint
-ORDER BY timestamp DESC, owner, token_account, mint
+FROM balances AS b
+LEFT JOIN owners AS o USING (account)
+LEFT JOIN {db_accounts:Identifier}.decimals_state AS d USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
+ORDER BY b.timestamp DESC, b.account, b.mint
