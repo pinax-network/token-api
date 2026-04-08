@@ -18,7 +18,11 @@ import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-    account: { schema: svmTokenAccountSchema, batched: true },
+    account: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        meta: { example: '12uyyQZ4LKiJGBfBGiRchtBCi1qp4JxxtouQXsRqNXYy' },
+    },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
