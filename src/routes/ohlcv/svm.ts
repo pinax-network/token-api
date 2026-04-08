@@ -9,9 +9,9 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
+    evmIntervalSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
-    svmIntervalSchema,
     svmMintSchema,
     svmNetworkIdSchema,
     timestampSchema,
@@ -24,7 +24,7 @@ const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
     amm_pool: { schema: svmAmmPoolSchema },
 
-    interval: { schema: svmIntervalSchema, prefault: '1d' },
+    interval: { schema: evmIntervalSchema, prefault: '1d' },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
 });

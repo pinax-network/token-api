@@ -3,7 +3,7 @@ WITH balances AS (
         account,
         argMax(b.amount, b.block_num) AS amount,
         max(b.timestamp) AS timestamp,
-        max(b.block_num) AS block_num,
+        max(b.block_num) AS block_num
     FROM {db_balances:Identifier}.native_balances b
     GROUP BY account
     HAVING amount > 4000 * pow(10, 9)
@@ -21,11 +21,11 @@ SELECT
     'So11111111111111111111111111111111111111111' AS mint,
 
     /* owner */
-    toString(if(notEmpty(o.owner), o.owner, Null)) AS owner,
-    toString(b.account) AS token_account,
+    if(notEmpty(o.owner), o.owner, Null) AS owner,
+    b.account AS token_account,
 
     /* amount */
-    toString(b.amount) AS amount,
+    b.amount AS amount,
     b.amount / pow(10, 9) AS value,
 
     /* accounts */

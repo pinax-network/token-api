@@ -1,14 +1,14 @@
 WITH balances AS
 (
     SELECT
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp,
+        max(b.block_num) AS block_num,
+        max(b.timestamp) AS timestamp,
         account,
-        argMax(amount, b.block_num) AS amount
+        argMax(b.amount, b.block_num) AS amount
     FROM {db_balances:Identifier}.native_balances AS b
     WHERE account IN {address:Array(String)}
-    AND (b.amount > 0 OR {include_null_balances:Bool})
     GROUP BY account
+    HAVING {include_null_balances:Bool} OR amount > 0
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
