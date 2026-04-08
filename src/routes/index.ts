@@ -33,6 +33,7 @@ import evmHolders from './holders/evm.js';
 // import tvmHolders from './holders/tvm.js';
 import evmHoldersNative from './holders/evm_native.js';
 import svmHolders from './holders/svm.js';
+import svmHoldersNative from './holders/svm_native.js';
 // NFT
 import nftCollections from './nft/collections_evm.js';
 import nftHolders from './nft/holders_evm.js';
@@ -58,6 +59,7 @@ import tvmSwaps from './swaps/tvm.js';
 import evmTransfers from './transfers/evm.js';
 import evmTransfersNative from './transfers/evm_native.js';
 import svmTransfers from './transfers/svm.js';
+import svmTransfersNative from './transfers/svm_native.js';
 import tvmTransfers from './transfers/tvm.js';
 import tvmTransfersNative from './transfers/tvm_native.js';
 
@@ -85,8 +87,10 @@ router.use('/v1/*/balances/historical/native', cacheControl());
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
+router.route('/v1/svm/transfers/native', svmTransfersNative);
 router.route('/v1/svm/balances', svmBalances);
 router.route('/v1/svm/holders', svmHolders);
+router.route('/v1/svm/holders/native', svmHoldersNative);
 router.route('/v1/svm/owner', svmOwner);
 router.route('/v1/svm/tokens', svmTokens);
 // SVM - Tokens (Native)

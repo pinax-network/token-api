@@ -1,34 +1,37 @@
-WITH filtered_balances AS
+WITH balances AS
 (
     SELECT
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp,
-        '11111111111111111111111111111111' AS program_id,
+        max(b.block_num) AS block_num,
+        max(b.timestamp) AS timestamp,
         account,
-        argMax(lamports, b.block_num) AS amount,
-        'So11111111111111111111111111111111111111111' AS mint,
-        9 AS decimals
-    FROM {db_balances:Identifier}.balances_native AS b
+        argMax(b.amount, b.block_num) AS amount
+    FROM {db_balances:Identifier}.native_balances AS b
     WHERE account IN {address:Array(String)}
-    AND (lamports > 0 OR {include_null_balances:Bool})
     GROUP BY account
+    HAVING {include_null_balances:Bool} OR amount > 0
     ORDER BY timestamp DESC
     LIMIT  {limit:UInt64}
     OFFSET {offset:UInt64}
 )
 SELECT
+    /* block */
     b.timestamp                         AS last_update,
     block_num                           AS last_update_block_num,
-    toUnixTimestamp(b.timestamp)        AS last_update_timestamp,
-    toString(program_id)                AS program_id,
-    toString(account)                   AS address,
-    toString(mint)                      AS mint,
-    toString(b.amount)                  AS amount,
-    b.amount / pow(10, decimals)        AS value,
-    decimals,
+    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
+
+    /* token */
+    '11111111111111111111111111111111' AS program_id,
+    account AS address,
+    'So11111111111111111111111111111111111111111' AS mint,
+
+    /* amount */
+    b.amount AS amount,
+    b.amount / pow(10, 9) AS value,
+    9 as decimals,
+
+    /* metadata */
     'SOL' AS name,
     'SOL' AS symbol,
-    null AS uri,
     {network:String} AS network
-FROM filtered_balances AS b
+FROM balances AS b
 ORDER BY timestamp DESC

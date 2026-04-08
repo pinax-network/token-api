@@ -42,13 +42,12 @@ const responseSchema = apiUsageResponseSchema.extend({
             address: svmAddressSchema,
             mint: svmMintSchema,
 
-            amount: z.string(),
+            amount: z.number(),
             value: z.number(),
             decimals: z.number().nullable(),
 
             name: z.string().nullable(),
             symbol: z.string().nullable(),
-            uri: z.string().nullable(),
 
             // -- network --
             network: svmNetworkIdSchema,
@@ -80,12 +79,11 @@ const openapi = describeRoute(
                                             program_id: '11111111111111111111111111111111',
                                             address: 'So11111111111111111111111111111111111111112',
                                             mint: 'So11111111111111111111111111111111111111111',
-                                            amount: '1173096711863',
+                                            amount: 1173096711863,
                                             value: 1173.096711863,
                                             decimals: 9,
                                             name: 'SOL',
                                             symbol: 'SOL',
-                                            uri: null,
                                             network: 'solana',
                                         },
                                     ],

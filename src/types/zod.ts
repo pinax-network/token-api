@@ -13,7 +13,6 @@ import {
     SVM_AMM_RAYDIUM_V4_EXAMPLE,
     SVM_AUTHORITY_USER_EXAMPLE,
     SVM_MINT_PUMP_EXAMPLE,
-    SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
     SVM_TRANSACTION_SWAP_EXAMPLE,
     TVM_ADDRESS_JUSTIN_SUN_EXAMPLE,
     TVM_CONTRACT_USDT_EXAMPLE,
@@ -147,7 +146,21 @@ export const evmProtocolSchema = z
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 
 export const svmProtocolSchema = z
-    .enum(['raydium_amm_v4'])
+    .enum([
+        'jupiter_v4',
+        'jupiter_v6',
+        'pumpfun',
+        'pumpfun_amm',
+        'raydium_amm_v4',
+        'raydium_clmm',
+        'raydium_cpmm',
+        'raydium_launchpad',
+        'meteora_dllm',
+        'orca_whirlpool',
+        'boop',
+        'darklake',
+        'dumpfun',
+    ])
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const tvmProtocolSchema = z
@@ -393,7 +406,6 @@ export const svmOwnerSchema = svmAddress.meta({
 
 export const svmTokenAccountSchema = svmAddress.meta({
     description: 'Filter by token account address',
-    example: SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
 });
 
 export const svmMintSchema = svmAddress.meta({
@@ -421,21 +433,10 @@ export const svmTransactionSchema = svmTransaction.meta({
     example: SVM_TRANSACTION_SWAP_EXAMPLE,
 });
 
-export const svmProgramIdSchema = z
-    .enum([
-        'LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj',
-        'CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C',
-        '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-        'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK',
-        'Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB',
-        'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-        'LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo',
-        'cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG',
-        'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
-        'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB',
-        '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',
-    ])
-    .meta({ description: 'Filter by program ID', example: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4' });
+export const svmProgramIdSchema = svmAddress.meta({
+    description: 'Filter by program ID',
+    example: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
+});
 
 export const svmSPLTokenProgramIdSchema = z
     .enum([
@@ -490,7 +491,9 @@ export const evmTokenResponseSchema = z.object({
 
 export const svmMintResponseSchema = z.object({
     address: svmAddressSchema,
-    decimals: z.number(),
+    symbol: z.string().nullable(),
+    name: z.string().nullable(),
+    decimals: z.number().nullable(),
 });
 
 export const tvmTokenResponseSchema = z.object({

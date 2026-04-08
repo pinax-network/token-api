@@ -4,6 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
+import { nativeMintRedirect } from '../../middleware/nativeContractRedirect.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -16,7 +17,6 @@ import {
     svmTokenAccountSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
-
 import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
@@ -36,9 +36,6 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            // -- transaction --
-            // signature: z.string(),
-
             // -- instruction --
             program_id: svmSPLTokenProgramIdSchema,
 
@@ -46,10 +43,13 @@ const responseSchema = apiUsageResponseSchema.extend({
             owner: svmOwnerSchema,
             token_account: svmTokenAccountSchema,
             mint: svmMintSchema,
+
+            // -- amount --
             amount: z.string(),
             value: z.number(),
             decimals: z.number().nullable(),
 
+            // -- mint metadata --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),
@@ -106,19 +106,25 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
+// TODO: Remove this middleware once migration is complete
+route.use('/', nativeMintRedirect);
+
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbBalances) {
+    if (!dbBalances || !dbAccounts || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
-        db_metadata: dbBalances.database,
+        db_accounts: dbAccounts.database,
+        db_metadata: dbMetadata.database,
     });
     return handleUsageQueryError(c, response);
 });

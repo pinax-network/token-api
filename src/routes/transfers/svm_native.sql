@@ -4,12 +4,8 @@ active_filters AS
 (
     SELECT
         toUInt8(notEmpty({signature:Array(String)})) +
-        toUInt8(notEmpty({amm:Array(String)})) +
-        toUInt8(notEmpty({amm_pool:Array(String)})) +
-        toUInt8(notEmpty({input_mint:Array(String)})) +
-        toUInt8(notEmpty({output_mint:Array(String)})) +
-        toUInt8(notEmpty({user:Array(String)})) +
-        toUInt8(notEmpty({program_id:Array(String)})) +
+        toUInt8(notEmpty({source:Array(String)})) +
+        toUInt8(notEmpty({destination:Array(String)})) +
         toUInt8(notEmpty({fee_payer:Array(String)})) +
         toUInt8(notEmpty({signer:Array(String)}))
     AS n
@@ -18,70 +14,35 @@ active_filters AS
 minutes_union AS
 (
     SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({amm:Array(String)}) AND amm IN {amm:Array(String)})
+    FROM {db_transfers:Identifier}.native_transfers
+    WHERE (notEmpty({source:Array(String)}) AND source IN {source:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({amm_pool:Array(String)}) AND amm_pool IN {amm_pool:Array(String)})
+    FROM {db_transfers:Identifier}.native_transfers
+    WHERE (notEmpty({destination:Array(String)}) AND destination IN {destination:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({program_id:Array(String)}) AND program_id IN {program_id:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({input_mint:Array(String)}) AND input_mint IN {input_mint:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({output_mint:Array(String)}) AND output_mint IN {output_mint:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (notEmpty({user:Array(String)}) AND user IN {user:Array(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_dex:Identifier}.swaps
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE (notEmpty({fee_payer:Array(String)}) AND fee_payer IN {fee_payer:Array(String)})
     GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_dex:Identifier}.swaps
-    WHERE (isNotNull({protocol:Nullable(String)}) AND protocol = {protocol:Nullable(String)})
-    GROUP BY minute
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_dex:Identifier}.swaps
+    FROM {db_transfers:Identifier}.native_transfers
     WHERE (notEmpty({signer:Array(String)}) AND signer IN {signer:Array(String)})
     GROUP BY minute
 ),
@@ -95,13 +56,13 @@ minutes_union AS
 start_ts AS (
     SELECT greatest(
         coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt64)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt64)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
     ) AS ts
 ),
 end_ts AS (
     SELECT least(
         coalesce(toDateTime({end_time:Nullable(UInt64)}), now()),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), now())
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
 clamped_start_ts AS (
@@ -127,7 +88,7 @@ filtered_minutes AS
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
 ),
-filtered_swaps AS
+filtered_transfers AS
 (
     SELECT
         block_num,
@@ -136,21 +97,15 @@ filtered_swaps AS
         transaction_index,
         instruction_index,
         stack_height,
-        user,
-        amm,
-        amm_pool,
+        source,
+        destination,
+        fee_payer,
         signer,
         signers,
-        fee_payer,
-        program_id,
-        input_mint,
-        output_mint,
-        input_amount,
-        output_amount,
+        lamports,
         fee,
-        protocol,
         compute_units_consumed
-    FROM {db_dex:Identifier}.swaps t
+    FROM {db_transfers:Identifier}.native_transfers t
     WHERE
             ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
 
@@ -164,24 +119,19 @@ filtered_swaps AS
 
         /* Apply filters */
         AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
-        AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
-        AND (empty({input_mint:Array(String)}) OR input_mint IN {input_mint:Array(String)})
-        AND (empty({output_mint:Array(String)}) OR output_mint IN {output_mint:Array(String)})
-        AND (empty({user:Array(String)}) OR user IN {user:Array(String)})
-        AND (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
-        AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
+        AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
+        AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
         AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
         AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
-        AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
-    ORDER BY timestamp DESC, block_num DESC
+    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 )
 SELECT
     /* block */
     block_num,
-    s.timestamp AS datetime,
-    toUnixTimestamp(s.timestamp) AS timestamp,
+    t.timestamp AS datetime,
+    toUnixTimestamp(t.timestamp) AS timestamp,
 
     /* transaction */
     signature,
@@ -196,27 +146,22 @@ SELECT
     fee,
     compute_units_consumed,
 
-    /* instruction */
-    program_id,
-    program_names(program_id) AS program_name,
+    /* transfer */
+    '11111111111111111111111111111111' AS program_id,
+    'So11111111111111111111111111111111111111111' AS mint,
+    source,
+    destination,
 
-    /* swap */
-    amm,
-    amm_pool,
-    user,
+    /* amount */
+    lamports AS amount,
+    lamports / pow(10, 9) AS value,
+    9 AS decimals,
 
-    /* input */
-    input_mint,
-    input_amount,
-
-    /* output */
-    output_mint,
-    output_amount,
-
-    /* prices */
-    s.protocol AS protocol,
+    /* metadata */
+    'Native' AS name,
+    'SOL' AS symbol,
 
     /* network */
     {network:String} AS network
-FROM filtered_swaps AS s
-ORDER BY timestamp DESC, block_num DESC
+FROM filtered_transfers AS t
+ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

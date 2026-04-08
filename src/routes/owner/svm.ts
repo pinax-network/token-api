@@ -18,7 +18,11 @@ import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-    account: { schema: svmTokenAccountSchema, batched: true },
+    account: {
+        schema: svmTokenAccountSchema,
+        batched: true,
+        meta: { example: '12uyyQZ4LKiJGBfBGiRchtBCi1qp4JxxtouQXsRqNXYy' },
+    },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -82,14 +86,14 @@ const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema>
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
-    const dbBalances = config.balancesDatabases[params.network];
-    if (!dbBalances) {
+    const dbAccounts = config.accountsDatabases[params.network];
+    if (!dbAccounts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
-        db_balances: dbBalances.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

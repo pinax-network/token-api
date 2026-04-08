@@ -603,6 +603,8 @@ describe('Response Schemas', () => {
         it('should validate mint response objects', () => {
             const mint = {
                 address: 'So11111111111111111111111111111111111111112',
+                symbol: 'WSOL',
+                name: 'Wrapped SOL',
                 decimals: 9,
             };
             const result = svmMintResponseSchema.parse(mint);

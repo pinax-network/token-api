@@ -13,6 +13,7 @@ import {
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
+    svmProtocolSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
@@ -26,6 +27,7 @@ const querySchema = createQuerySchema({
     input_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
+    protocol: { schema: svmProtocolSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -94,13 +96,18 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexesDatabases[params.network];
-    if (!dbDex) {
+    const dbMetadata = config.metadataDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
+
+    if (!dbDex || !dbMetadata || !dbAccounts) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_dex: dbDex.database,
+        db_metadata: dbMetadata.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

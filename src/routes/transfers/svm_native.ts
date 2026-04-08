@@ -4,23 +4,20 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { nativeMintRedirect } from '../../middleware/nativeContractRedirect.js';
 import {
     apiUsageResponseSchema,
     blockNumberSchema,
     createQuerySchema,
     dateTimeSchema,
     svmAddressSchema,
-    svmAuthoritySchema,
-    svmMintSchema,
     svmNetworkIdSchema,
-    svmSPLTokenProgramIdSchema,
     svmTokenAccountSchema,
     svmTransactionSchema,
     timestampSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
-import query from './svm.sql' with { type: 'text' };
+
+import query from './svm_native.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
@@ -29,34 +26,17 @@ const querySchema = createQuerySchema({
         schema: svmTransactionSchema,
         batched: true,
         optional: true,
-        meta: { example: '4Xj7G5UWDKWbPEKTMie8adzPD27qGRYLE9hpYwuad228Tw96aVBMqhc4XG5daAeLrJXGAqRnQw8Cbi129dQfynAd' },
+        meta: { example: '5wzpiQF3tjfyk94V7vpwVSeFBvZk8B7mNXEsBdKcX2cAkgY2m7xFQQ4eas7GHEqVdPHgKc1dJoak89hQP2JwMPjK' },
     },
     // address: { schema: svmTokenAccountSchema, batched: true, default: '' },
-    mint: {
-        schema: svmMintSchema,
-        batched: true,
-        optional: true,
-        meta: { example: 'So11111111111111111111111111111111111111112' },
-    },
     source: {
         schema: svmTokenAccountSchema,
         batched: true,
         optional: true,
-        meta: { example: 'HuxWhQJLCvuuSzHuBkHX1PVJ2LrpVz8GnTCaEkMRKgM1' },
+        meta: { example: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ' },
     },
     destination: {
         schema: svmTokenAccountSchema,
-        batched: true,
-        optional: true,
-        meta: { example: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat' },
-    },
-    program_id: {
-        schema: svmSPLTokenProgramIdSchema,
-        batched: true,
-        optional: true,
-    },
-    authority: {
-        schema: svmAuthoritySchema,
         batched: true,
         optional: true,
         meta: { example: 'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe' },
@@ -65,13 +45,13 @@ const querySchema = createQuerySchema({
         schema: svmTokenAccountSchema,
         batched: true,
         optional: true,
-        meta: { example: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo' },
+        meta: { example: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ' },
     },
     signer: {
         schema: svmTokenAccountSchema,
         batched: true,
         optional: true,
-        meta: { example: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo' },
+        meta: { example: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ' },
     },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
@@ -92,6 +72,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             transaction_index: z.number(),
             instruction_index: z.number(),
             stack_height: z.number(),
+            fee_payer: svmAddressSchema,
             signer: svmAddressSchema,
             signers: z.array(svmAddressSchema),
 
@@ -99,25 +80,22 @@ const responseSchema = apiUsageResponseSchema.extend({
             fee: z.number(),
             compute_units_consumed: z.number(),
 
+            // -- instruction --
+            program_id: svmAddressSchema.meta({ example: '11111111111111111111111111111111' }),
+            mint: svmAddressSchema.meta({ example: 'So11111111111111111111111111111111111111111' }),
+
             // -- transfer --
-            program_id: svmSPLTokenProgramIdSchema,
-            mint: svmMintSchema,
             source: svmAddressSchema,
             destination: svmAddressSchema,
 
-            // -- authority --
-            authority: svmAuthoritySchema,
-            multisig_authority: z.array(svmAuthoritySchema),
-
-            // -- amount --
-            amount: z.number(),
+            // -- amounts --
+            amount: z.string(),
             value: z.number(),
             decimals: z.number().nullable(),
 
-            // -- token metadata --
+            // -- metadata --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
-            uri: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -127,10 +105,9 @@ const responseSchema = apiUsageResponseSchema.extend({
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Transfers',
-        description: 'Returns SPL token transfers with program, authority, and account information.',
-
-        tags: ['SVM Tokens'],
+        summary: 'Native Transfers',
+        description: 'Returns Native transfers with transaction and block data.',
+        tags: ['SVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -143,30 +120,27 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 411673404,
-                                            datetime: '2026-04-07 17:06:18',
-                                            timestamp: 1775581578,
+                                            block_num: 411665924,
+                                            datetime: '2026-04-07 16:17:08',
+                                            timestamp: 1775578628,
                                             signature:
-                                                '4Xj7G5UWDKWbPEKTMie8adzPD27qGRYLE9hpYwuad228Tw96aVBMqhc4XG5daAeLrJXGAqRnQw8Cbi129dQfynAd',
-                                            transaction_index: 208,
-                                            instruction_index: 3,
-                                            stack_height: 2,
-                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            mint: 'So11111111111111111111111111111111111111112',
-                                            authority: 'HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC',
-                                            multisig_authority: [],
-                                            signer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
-                                            signers: ['3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo'],
-                                            source: 'HuxWhQJLCvuuSzHuBkHX1PVJ2LrpVz8GnTCaEkMRKgM1',
-                                            destination: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat',
-                                            fee_payer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
-                                            amount: '927931314',
-                                            value: 0.927931314,
+                                                '5wzpiQF3tjfyk94V7vpwVSeFBvZk8B7mNXEsBdKcX2cAkgY2m7xFQQ4eas7GHEqVdPHgKc1dJoak89hQP2JwMPjK',
+                                            transaction_index: 409,
+                                            instruction_index: 0,
+                                            stack_height: 0,
+                                            program_id: '11111111111111111111111111111111',
+                                            source: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ',
+                                            destination: 'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe',
+                                            fee_payer: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ',
+                                            signer: 'BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ',
+                                            signers: ['BMnT51N4iSNhWU5PyFFgWwFvN1jgaiiDr9ZHgnkm3iLJ'],
+                                            amount: '4182522',
+                                            value: 0.004182522,
                                             decimals: 9,
-                                            name: 'Wrapped SOL',
-                                            symbol: 'WSOL',
+                                            name: 'Native',
+                                            symbol: 'SOL',
                                             fee: 5000,
-                                            compute_units_consumed: 50323,
+                                            compute_units_consumed: 27160,
                                             network: 'solana',
                                         },
                                     ],
@@ -182,25 +156,18 @@ const openapi = describeRoute(
 
 const route = new Hono<{ Variables: { validatedData: z.infer<typeof querySchema> } }>();
 
-// TODO: Remove this middleware once migration is complete
-route.use('/', nativeMintRedirect);
-
 route.get('/', openapi, zValidator('query', querySchema, validatorHook), validator('query', querySchema), async (c) => {
     const params = c.req.valid('query');
 
     const dbTransfers = config.transfersDatabases[params.network];
-    const dbMetadata = config.metadataDatabases[params.network];
-    const dbAccounts = config.accountsDatabases[params.network];
 
-    if (!dbTransfers || !dbMetadata || !dbAccounts) {
+    if (!dbTransfers) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_transfers: dbTransfers.database,
-        db_metadata: dbMetadata.database,
-        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

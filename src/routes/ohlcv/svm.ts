@@ -9,11 +9,11 @@ import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
+    evmIntervalSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
-    svmIntervalSchema,
-    svmMintSchema,
     svmNetworkIdSchema,
+    svmProgramIdSchema,
     timestampSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
@@ -23,8 +23,7 @@ import query from './svm.sql' with { type: 'text' };
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
     amm_pool: { schema: svmAmmPoolSchema },
-
-    interval: { schema: svmIntervalSchema, prefault: '1d' },
+    interval: { schema: evmIntervalSchema, prefault: '1d' },
     start_time: { schema: timestampSchema, optional: true },
     end_time: { schema: timestampSchema, optional: true },
 });
@@ -33,12 +32,9 @@ const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
             datetime: dateTimeSchema,
+            program_id: svmProgramIdSchema,
             amm: svmAmmSchema,
             amm_pool: svmAmmPoolSchema,
-            token0: svmMintSchema,
-            token0_decimals: z.number().nullable(),
-            token1: svmMintSchema,
-            token1_decimals: z.number().nullable(),
             open: z.number(),
             high: z.number(),
             low: z.number(),
@@ -70,16 +66,11 @@ const openapi = describeRoute(
                                             datetime: '2025-10-16 00:00:00',
                                             amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
                                             amm_pool: 'AmmpSnW5xVeKHTAU9fMjyKEMPgrzmUj3ah5vgvHhAB5J',
-                                            token0: '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',
-                                            token0_decimals: 6,
-                                            token1: 'So11111111111111111111111111111111111111112',
-                                            token1_decimals: 9,
                                             open: 0.0020385820805914096,
                                             high: 0.002037622484039942,
                                             low: 0.002029088299722426,
                                             close: 0.0020285665581652053,
                                             volume: 0.14567917800000002,
-                                            uaw: 8,
                                             transactions: 8,
                                         },
                                     ],
@@ -99,20 +90,19 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbDex = config.dexesDatabases[params.network];
-    const dbBalances = config.balancesDatabases[params.network];
+    const dbMetadata = config.metadataDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
 
-    if (!dbDex) {
-        return c.json({ error: `Network not found: ${params.network} dbDex` }, 400);
-    }
-    if (!dbBalances) {
-        return c.json({ error: `Network not found: ${params.network} dbBalances` }, 400);
+    if (!dbDex || !dbMetadata || !dbAccounts) {
+        return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         stablecoin_contracts: [...stables],
         db_dex: dbDex.database,
-        db_metadata: dbBalances.database,
+        db_metadata: dbMetadata.database,
+        db_accounts: dbAccounts.database,
     });
     return handleUsageQueryError(c, response);
 });

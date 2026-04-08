@@ -4,56 +4,57 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { injectIcons } from '../../inject/icon.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
     dateTimeSchema,
     svmMintSchema,
     svmNetworkIdSchema,
-    svmSPLTokenProgramIdSchema,
+    svmOwnerSchema,
+    svmProgramIdSchema,
+    svmTokenAccountSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
-import query from './svm.sql' with { type: 'text' };
+import query from './svm_native.sql' with { type: 'text' };
 
-const querySchema = createQuerySchema(
-    {
-        network: { schema: svmNetworkIdSchema },
-        mint: { schema: svmMintSchema, batched: true },
-    },
-    false
-);
+const querySchema = createQuerySchema({
+    network: { schema: svmNetworkIdSchema },
+});
 
 const responseSchema = apiUsageResponseSchema.extend({
     data: z.array(
         z.object({
+            // -- block --
             last_update: dateTimeSchema,
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            program_id: svmSPLTokenProgramIdSchema,
+            // -- contract --
+            owner: svmOwnerSchema,
+            token_account: svmTokenAccountSchema,
             mint: svmMintSchema,
+            program_id: svmProgramIdSchema,
+            amount: z.number(),
+            value: z.number(),
+
+            // -- contract --
             decimals: z.number().nullable(),
-
-            circulating_supply: z.number(),
-            // total_supply: z.number(),
-            holders: z.number(),
-
             name: z.string().nullable(),
             symbol: z.string().nullable(),
-            uri: z.string().nullable(),
 
-            network: z.string(),
+            // -- chain --
+            network: svmNetworkIdSchema,
         })
     ),
 });
 
 const openapi = describeRoute(
     withErrorResponses({
-        summary: 'Token Metadata',
-        description: 'Provides SVM token contract metadata.',
-        tags: ['SVM Tokens'],
+        summary: 'Native Holders',
+        description: 'Returns top token holders ranked by Native balance.',
+
+        tags: ['SVM Tokens (Native)'],
         security: [{ bearerAuth: [] }],
         responses: {
             200: {
@@ -66,17 +67,18 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-02-13 19:51:23',
-                                            last_update_block_num: 400052757,
-                                            last_update_timestamp: 1771012283,
-                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            last_update: '2025-09-17 20:06:47',
+                                            last_update_block_num: 367491952,
+                                            last_update_timestamp: 1758139607,
+                                            owner: '7AN6avKCJPMkXkW8kPwMuHmaWvJeHH69e8rKpLf9rdfk',
+                                            token_account: 'BzWtXFf9HL2GGzMGgcGKRnFjrJiZ8U3FG8BQKTbCzW9s',
                                             mint: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-                                            circulating_supply: 1008838089998.1345,
-                                            holders: 139755,
+                                            program_id: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                                            amount: '365461857133582111',
+                                            value: 365461857133.5821,
                                             decimals: 6,
                                             name: 'Pump',
                                             symbol: 'PUMP',
-                                            uri: 'https://ipfs.io/ipfs/bafkreibcglldkfdekdkxgumlveoe6qv3pbiceypkwtli33clbzul7leo4m',
                                             network: 'solana',
                                         },
                                     ],
@@ -96,19 +98,19 @@ route.get('/', openapi, zValidator('query', querySchema, validatorHook), validat
     const params = c.req.valid('query');
 
     const dbBalances = config.balancesDatabases[params.network];
+    const dbAccounts = config.accountsDatabases[params.network];
     const dbMetadata = config.metadataDatabases[params.network];
 
-    if (!dbBalances || !dbMetadata) {
+    if (!dbBalances || !dbAccounts || !dbMetadata) {
         return c.json({ error: `Network not found: ${params.network}` }, 400);
     }
-    if (!query) return c.json({ error: 'Query for tokens could not be loaded' }, 500);
 
     const response = await makeUsageQueryJson(c, [query], {
         ...params,
         db_balances: dbBalances.database,
+        db_accounts: dbAccounts.database,
         db_metadata: dbMetadata.database,
     });
-    injectIcons(response);
     return handleUsageQueryError(c, response);
 });
 

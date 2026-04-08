@@ -3,76 +3,93 @@ WITH
 active_filters AS
 (
     SELECT
-        toUInt8(notEmpty({signature:Array(String)}))   +
-        toUInt8(notEmpty({source:Array(String)}))      +
+        toUInt8(notEmpty({signature:Array(String)})) +
+        toUInt8(notEmpty({source:Array(String)})) +
         toUInt8(notEmpty({destination:Array(String)})) +
-        toUInt8(notEmpty({authority:Array(String)}))   +
-        toUInt8(notEmpty({mint:Array(String)}))
+        toUInt8(notEmpty({mint:Array(String)})) +
+        toUInt8(notEmpty({authority:Array(String)})) +
+        toUInt8(notEmpty({program_id:Array(String)})) +
+        toUInt8(notEmpty({fee_payer:Array(String)})) +
+        toUInt8(notEmpty({signer:Array(String)}))
     AS n
 ),
-/* 2) Union buckets from only active filters */
+/* 2) Union minutes from only active filters */
 minutes_union AS
 (
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_signature
-    WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
-    ORDER BY minute DESC
-
-    UNION ALL
-
-    SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_source
+    FROM {db_transfers:Identifier}.transfers
     WHERE (notEmpty({source:Array(String)}) AND source IN {source:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_destination
+    FROM {db_transfers:Identifier}.transfers
     WHERE (notEmpty({destination:Array(String)}) AND destination IN {destination:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_authority
-    WHERE (notEmpty({authority:Array(String)}) AND authority IN {authority:Array(String)})
-    ORDER BY minute DESC
+    FROM {db_transfers:Identifier}.transfers
+    WHERE (notEmpty({program_id:Array(String)}) AND program_id IN {program_id:Array(String)})
+    GROUP BY minute
 
     UNION ALL
 
     SELECT minute
-    FROM {db_transfers:Identifier}.transfers_by_mint
+    FROM {db_transfers:Identifier}.transfers
     WHERE (notEmpty({mint:Array(String)}) AND mint IN {mint:Array(String)})
-    ORDER BY minute DESC
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_transfers:Identifier}.transfers
+    WHERE (notEmpty({signature:Array(String)}) AND signature IN {signature:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_transfers:Identifier}.transfers
+    WHERE (notEmpty({fee_payer:Array(String)}) AND fee_payer IN {fee_payer:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_transfers:Identifier}.transfers
+    WHERE (notEmpty({signer:Array(String)}) AND signer IN {signer:Array(String)})
+    GROUP BY minute
 ),
 /*
     Unified timestamp resolution for start_time/end_time and start_block/end_block.
     Uses coalesce instead of `isNull(X) OR timestamp >= (subquery)` because
     the OR pattern prevents ClickHouse from recognizing a clean primary-key range.
     greatest/least picks the tighter bound when both are provided.
-    clamped_start_ts ensures the scan window is at most 1 hour wide.
+    clamped_start_ts ensures the scan window is at most 1 hour wide when no filters are provided.
 */
 start_ts AS (
     SELECT greatest(
         coalesce(toDateTime({start_time:Nullable(UInt64)}), toDateTime(0)),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt32)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num >= {start_block:Nullable(UInt64)} ORDER BY block_num ASC LIMIT 1), toDateTime(0))
     ) AS ts
 ),
 end_ts AS (
     SELECT least(
         coalesce(toDateTime({end_time:Nullable(UInt64)}), now()),
-        coalesce((SELECT timestamp FROM {db_dex:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt32)} ORDER BY block_num DESC LIMIT 1), now())
+        coalesce((SELECT timestamp FROM {db_transfers:Identifier}.blocks WHERE block_num <= {end_block:Nullable(UInt64)} ORDER BY block_num DESC LIMIT 1), now())
     ) AS ts
 ),
 clamped_start_ts AS (
     SELECT if(
-        (SELECT n FROM active_filters) > 0 OR isNotNull({start_time:Nullable(UInt64)}) OR isNotNull({start_block:Nullable(UInt32)}),
+        (SELECT n FROM active_filters) > 0,
         (SELECT ts FROM start_ts),
         greatest((SELECT ts FROM start_ts), (SELECT ts FROM end_ts) - INTERVAL 1 HOUR)
     ) AS ts
 ),
-/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time/block window */
+/* 3) Intersect: keep only buckets present in ALL active filters, bounded by requested time window */
 filtered_minutes AS
 (
     SELECT minute FROM minutes_union
@@ -96,23 +113,25 @@ filtered_transfers AS
         signature,
         transaction_index,
         instruction_index,
-        program_id,
         authority,
-        mint,
+        multisig_authority,
+        stack_height,
         source,
         destination,
-        amount,
+        fee_payer,
+        program_id,
+        mint,
         decimals,
-        t.amount /
-        CASE
-            WHEN decimals IS NOT NULL THEN pow(10, decimals)
-            ELSE 1
-        END AS value
+        signer,
+        signers,
+        amount,
+        fee,
+        compute_units_consumed
     FROM {db_transfers:Identifier}.transfers t
     WHERE
             ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
 
-        /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts CTEs */
+        /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts/clamped_start_ts CTEs */
         AND timestamp >= (SELECT ts FROM clamped_start_ts)
         AND timestamp <= (SELECT ts FROM end_ts)
 
@@ -120,76 +139,62 @@ filtered_transfers AS
         AND NOT (isNotNull({start_block:Nullable(UInt32)}) AND timestamp = (SELECT ts FROM clamped_start_ts) AND block_num < {start_block:Nullable(UInt32)})
         AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt32)})
 
-        /* Apply filters on non-indexed columns */
+        /* Apply filters */
         AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
         AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
         AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
         AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
+        AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
         AND (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
-        AND (isNull({program_id:Nullable(String)}) OR program_id = {program_id:Nullable(String)})
-    ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
+        AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
+        AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
+    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
-),
-spl_mints AS
-(
-    SELECT DISTINCT mint
-    FROM filtered_transfers
-    WHERE mint != 'So11111111111111111111111111111111111111111'
-),
-spl_metadata AS
-(
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM (
-        SELECT mint, name, symbol, uri
-        FROM {db_metadata:Identifier}.metadata_view
-        WHERE metadata IN (
-            SELECT metadata
-            FROM {db_metadata:Identifier}.metadata_mint_state
-            WHERE mint IN (SELECT mint FROM spl_mints)
-            GROUP BY metadata
-        )
-    )
-    WHERE (SELECT count() FROM spl_mints) > 0
-),
-native_metadata AS
-(
-    SELECT
-        'So11111111111111111111111111111111111111111' AS mint,
-        'Native' AS name,
-        'SOL' AS symbol,
-        NULL AS uri
-    WHERE 'So11111111111111111111111111111111111111111' IN (SELECT DISTINCT mint FROM filtered_transfers)
-),
-metadata AS
-(
-    SELECT * FROM spl_metadata
-    UNION ALL
-    SELECT * FROM native_metadata
 )
 SELECT
-    block_num,
+    /* block */
+    t.block_num AS block_num,
     t.timestamp AS datetime,
     toUnixTimestamp(t.timestamp) AS timestamp,
+
+    /* transaction */
     signature,
     transaction_index,
     instruction_index,
-    program_id,
-    mint,
-    authority,
+    stack_height,
+    fee_payer,
+    signer,
+    signers,
+
+    /* fee */
+    fee,
+    compute_units_consumed,
+
+    /* transfer */
+    t.program_id AS program_id,
+    t.mint AS mint,
     source,
     destination,
-    toString(amount) AS amount,
-    value,
-    decimals,
-    name,
-    symbol,
-    uri,
+
+    /* authority */
+    authority,
+    multisig_authority,
+
+    /* amount */
+    t.amount AS amount,
+    t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
+    coalesce(t.decimals, d.decimals) AS decimals,
+
+    /* metadata */
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
+
+    /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN metadata USING mint
-ORDER BY timestamp DESC, transaction_index DESC, instruction_index DESC
+LEFT JOIN {db_accounts:Identifier}.decimals_state AS d USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
+LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
+ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

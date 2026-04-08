@@ -1,32 +1,64 @@
-WITH filtered_pools AS (
+WITH
+output_pools AS (
+    SELECT DISTINCT amm_pool
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_mint
+    WHERE empty({output_mint:Array(String)}) OR mint IN {output_mint:Array(String)}
+),
+input_pools AS (
+    SELECT DISTINCT amm_pool
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_mint
+    WHERE empty({input_mint:Array(String)}) OR mint IN {input_mint:Array(String)}
+),
+pools AS (
     SELECT
+        protocol,
         program_id,
-        program_names(program_id) AS program_name,
         amm,
-        program_names(amm) AS amm_name,
         amm_pool,
-        mint0,
-        mint1,
-        transactions
-    FROM {db_dex:Identifier}.pool_activity_summary
-    WHERE (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
-        AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
-        AND (empty({input_mint:Array(String)}) OR mint1 IN {input_mint:Array(String)})
-        AND (empty({output_mint:Array(String)}) OR mint0 IN {output_mint:Array(String)})
-        AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
+        sum(transactions) as transactions
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
+    WHERE
+        amm_pool != ''
+    AND (empty({input_mint:Array(String)}) OR amm_pool IN input_pools)
+    AND (empty({output_mint:Array(String)}) OR amm_pool IN output_pools)
+    AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
+    AND (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
+    AND (isNull({protocol:String}) OR protocol IN {protocol:String})
+
+    GROUP BY protocol, program_id, amm, amm_pool
+
+    ORDER BY transactions DESC
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
+),
+pools_with_tokens AS (
+    SELECT
+        amm_pool,
+        amm,
+        protocol,
+        program_id,
+        arraySort(groupArrayDistinct(mint)) as tokens,
+        arrayElement(tokens, 1) AS token0,
+        arrayElement(tokens, 2) AS token1
+
+    FROM {db_dex:Identifier}.state_pools_aggregating_by_mint AS pt
+    WHERE amm_pool IN (SELECT amm_pool FROM pools)
+    GROUP BY protocol, program_id, amm, amm_pool
 )
 SELECT
-    toString(program_id) AS program_id,
-    toString(program_name) AS program_name,
-    toString(amm) AS amm,
-    toString(amm_name) AS amm_name,
-    toString(amm_pool) AS amm_pool,
-    toString(mint1) AS input_mint,
-    toString(mint0) AS output_mint,
-    sum(transactions) AS transactions,
-    {network:String} AS network
-FROM filtered_pools AS pools
-GROUP BY program_id, program_name, amm, amm_name, amm_pool, input_mint, output_mint
-ORDER BY transactions DESC, program_id, amm, amm_pool
-LIMIT {limit:UInt64}
-OFFSET {offset:UInt64}
+    /* DEX */
+    p.program_id AS program_id,
+    program_names(p.program_id) AS program_name,
+    p.protocol AS protocol,
+    p.amm as amm,
+    program_names(p.amm) as amm_name,
+    p.amm_pool AS amm_pool,
+    pt.token0 AS input_mint,
+    pt.token1 AS output_mint,
+    p.transactions as transactions,
+
+    /* Network */
+    {network: String} AS network
+FROM pools AS p
+JOIN pools_with_tokens AS pt ON p.amm_pool = pt.amm_pool
+ORDER BY p.transactions DESC
