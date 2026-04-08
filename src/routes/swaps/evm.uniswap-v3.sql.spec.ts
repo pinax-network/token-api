@@ -1,7 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
-import { config } from '../../config.js';
-import { hasDatabase } from '../../supported-routes.js';
 import {
     EVM_CONTRACT_USDC_EXAMPLE,
     EVM_CONTRACT_WETH_EXAMPLE,
@@ -22,6 +20,9 @@ async function fetchRoute(path: string) {
 
 describe.skipIf(!DB_TESTS)('EVM swaps Uniswap V3 regression checks', () => {
     beforeAll(async () => {
+        const { config } = await import('../../config.js');
+        const { hasDatabase } = await import('../../supported-routes.js');
+
         (config as any).plans = null;
 
         app = new Hono();
