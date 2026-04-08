@@ -1,4 +1,4 @@
-WITH filtered_balances AS
+WITH balances AS
 (
     SELECT
         max(block_num) AS block_num,
@@ -29,5 +29,5 @@ SELECT
     'SOL' AS name,
     'SOL' AS symbol,
     {network:String} AS network
-FROM filtered_balances AS b
+FROM balances AS b
 ORDER BY timestamp DESC
