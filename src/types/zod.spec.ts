@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { symbol, z } from 'zod';
+import { z } from 'zod';
 import {
     apiErrorResponseSchema,
     apiUsageResponseSchema,

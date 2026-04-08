@@ -1,4 +1,4 @@
-import { symbol, z } from 'zod';
+import { z } from 'zod';
 import { config, DEFAULT_LIMIT } from '../config.js';
 import {
     EVM_ADDRESS_VITALIK_EXAMPLE,
@@ -13,7 +13,6 @@ import {
     SVM_AMM_RAYDIUM_V4_EXAMPLE,
     SVM_AUTHORITY_USER_EXAMPLE,
     SVM_MINT_PUMP_EXAMPLE,
-    SVM_TOKEN_ACCOUNT_PUMP_EXAMPLE,
     SVM_TRANSACTION_SWAP_EXAMPLE,
     TVM_ADDRESS_JUSTIN_SUN_EXAMPLE,
     TVM_CONTRACT_USDT_EXAMPLE,
