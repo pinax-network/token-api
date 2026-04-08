@@ -1020,6 +1020,30 @@ describe('createQuerySchema', () => {
             const result = schema.parse({ network: 'solana' });
             expect(result.start_time).toBeNull();
         });
+
+        it('should not expose default:null in OpenAPI meta for optional scalar fields', () => {
+            const schema = createQuerySchema(
+                {
+                    start_block: { schema: blockNumberSchema, optional: true },
+                },
+                false
+            );
+
+            const meta = schema.shape.start_block.meta();
+            expect(meta?.default).toBeUndefined();
+        });
+
+        it('should preserve default in OpenAPI meta for optional batched fields', () => {
+            const schema = createQuerySchema(
+                {
+                    mint: { schema: svmMintSchema, batched: true, optional: true },
+                },
+                false
+            );
+
+            const meta = schema.shape.mint.meta();
+            expect(meta?.default).not.toBeNull();
+        });
     });
 
     describe('prefault fields', () => {
