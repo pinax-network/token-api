@@ -5,42 +5,44 @@
 WITH cutoff AS (
     SELECT
         multiIf(
-            {network:String} = 'unichain', toUInt64(1),
-            {network:String} = 'optimism', toUInt64(10),
-            {network:String} = 'base', toUInt64(10),
-            {network:String} = 'arbitrum-one', toUInt64(100),
-            {network:String} = 'bsc', toUInt64(100),
-            {network:String} = 'avalanche', toUInt64(1000),
-            {network:String} = 'mainnet', toUInt64(5000),
-            {network:String} = 'polygon', toUInt64(50000),
-            toUInt64(100)
-        ) AS eth_cut
+            {network:String} = 'unichain', toUInt256(1 * pow(10, 18)),
+            {network:String} = 'optimism', toUInt256(10 * pow(10, 18)),
+            {network:String} = 'base', toUInt256(10 * pow(10, 18)),
+            {network:String} = 'arbitrum-one', toUInt256(100 * pow(10, 18)),
+            {network:String} = 'bsc', toUInt256(100 * pow(10, 18)),
+            {network:String} = 'avalanche', toUInt256(1000 * pow(10, 18)),
+            {network:String} = 'mainnet', toUInt256(5000 * pow(10, 18)),
+            {network:String} = 'polygon', toUInt256(50000 * pow(10, 18)),
+            toUInt256(100 * pow(10, 18))
+        )
 ),
-/* 2) Get top native token holders with cutoff applied */
-top_native AS (
-    SELECT
-        address,
-        balance AS amt,
-        timestamp AS ts,
-        block_num AS bn
-    FROM {db_balances:Identifier}.native_balances FINAL
-    WHERE balance > (SELECT eth_cut FROM cutoff) * pow(10, 18)
-    ORDER BY amt DESC, address
+/* find addresses above cutoff (ex: >=5000 ETH) */
+addresses AS (
+    SELECT address FROM {db_balances:Identifier}.native_balances
+    WHERE balance >= (SELECT * FROM cutoff)
+),
+/* get the latest balance for each account */
+balances AS (
+    SELECT address, argMax(balance, b.block_num) as balance, max(b.timestamp) as timestamp, max(block_num) as block_num
+    FROM {db_balances:Identifier}.native_balances b
+    WHERE address IN (SELECT address FROM addresses)
+    GROUP BY address
+    ORDER BY balance DESC, address
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
 )
 SELECT
     /* timestamps */
-    ts AS last_update,
-    bn AS last_update_block_num,
-    toUnixTimestamp(ts) AS last_update_timestamp,
+    b.timestamp AS last_update,
+    b.block_num AS last_update_block_num,
+    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
 
     /* identifiers */
     address,
 
     /* amounts */
-    toString(amt) AS amount,
-    amt / pow(10, m.decimals) AS value,
+    toString(b.balance) AS amount,
+    b.balance / pow(10, m.decimals) AS value,
 
     /* decimals and metadata */
     m.name AS name,
@@ -49,6 +51,7 @@ SELECT
 
     /* network */
     {network:String} as network
-FROM top_native
+FROM balances b
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND '0x0000000000000000000000000000000000000000' = m.contract
-ORDER BY value DESC, address
+ORDER BY b.balance DESC, address
+SETTINGS use_skip_indexes_for_top_k = 1, use_top_k_dynamic_filtering = 1

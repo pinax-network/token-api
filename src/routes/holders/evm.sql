@@ -1,29 +1,25 @@
-WITH
-
-balances AS (
-    SELECT
-        address,
-        balance AS amt,
-        timestamp AS ts,
-        block_num AS bn
+/* get the latest balance for each account */
+WITH balances AS (
+    SELECT address, contract, balance, timestamp, block_num
     FROM {db_balances:Identifier}.erc20_balances FINAL
     WHERE contract = {contract:String} AND balance > 0
-    ORDER BY amt DESC, address
+    ORDER BY balance DESC, address
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
 )
 SELECT
     /* timestamps */
-    b.ts AS last_update,
-    b.bn AS last_update_block_num,
-    toUnixTimestamp(b.ts) AS last_update_timestamp,
+    b.timestamp AS last_update,
+    b.block_num AS last_update_block_num,
+    toUnixTimestamp(b.timestamp) AS last_update_timestamp,
 
     /* identifiers */
-    b.address AS address,
-    {contract:String} AS contract,
+    address,
+    contract,
 
-    toString(b.amt) AS amount,
-    b.amt / pow(10, m.decimals) AS value,
+    /* amounts */
+    toString(b.balance) AS amount,
+    b.balance / pow(10, m.decimals) AS value,
 
     /* decimals and metadata */
     m.name AS name,
@@ -32,6 +28,6 @@ SELECT
 
     /* network */
     {network:String} as network
-FROM balances AS b
+FROM balances b
 LEFT JOIN metadata.metadata AS m FINAL ON m.network = {network:String} AND {contract:String} = m.contract
-ORDER BY value DESC, address
+ORDER BY b.balance DESC, address
