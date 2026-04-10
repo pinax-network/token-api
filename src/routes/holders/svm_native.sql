@@ -46,3 +46,4 @@ SELECT
 FROM balances AS b
 /* LEFT JOIN owners USING (account) */
 ORDER BY amount DESC, account
+SETTINGS use_skip_indexes_for_top_k = 1, use_top_k_dynamic_filtering = 1
