@@ -12,10 +12,6 @@ balances AS (
     ORDER BY amount DESC, account
     LIMIT {limit:UInt64}
     OFFSET {offset:UInt64}
-),
-owners AS (
-    SELECT account, owner FROM {db_accounts:Identifier}.owner_state
-    WHERE account IN (SELECT account FROM balances)
 )
 SELECT
     timestamp AS last_update,
@@ -44,6 +40,6 @@ SELECT
 
     {network:String} AS network
 FROM balances AS b
-/* LEFT JOIN owners USING (account) */
+/* LEFT JOIN {db_accounts:Identifier}.owner_state USING (account) */
 ORDER BY amount DESC, account
 SETTINGS use_skip_indexes_for_top_k = 1, use_top_k_dynamic_filtering = 1
