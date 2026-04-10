@@ -28,6 +28,8 @@ SELECT
 
     /* owner */
     account AS token_account,
+    /* TO-DO */
+    /* owners.owner AS owner, */
 
     /* amount */
     amount,
@@ -42,5 +44,5 @@ SELECT
 
     {network:String} AS network
 FROM balances AS b
-LEFT JOIN owners USING (account)
+/* LEFT JOIN owners USING (account) */
 ORDER BY amount DESC, account
