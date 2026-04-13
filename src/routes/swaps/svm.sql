@@ -183,7 +183,7 @@ mints_raw AS (
     SELECT output_mint AS account, output_mint AS mint FROM filtered_swaps
 ),
 account_mint_state AS (
-    SELECT account, mint
+    SELECT DISTINCT account, mint
     FROM {db_accounts:Identifier}.account_mint_state
     WHERE account IN (SELECT account FROM mints_raw)
 ),
