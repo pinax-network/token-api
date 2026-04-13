@@ -30,16 +30,20 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            // -- contract --
-            owner: svmOwnerSchema,
-            token_account: svmTokenAccountSchema,
-            mint: svmMintSchema,
+            // -- token --
             program_id: svmProgramIdSchema,
+            mint: svmMintSchema,
+
+            // -- account --
+            token_account: svmTokenAccountSchema,
+            owner: svmOwnerSchema,
+
+            // -- amount --
             amount: z.number(),
             value: z.number(),
+            decimals: z.number(),
 
-            // -- contract --
-            decimals: z.number().nullable(),
+            // -- metadata --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
 
