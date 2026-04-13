@@ -177,10 +177,29 @@ filtered_swaps AS
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
-mints AS (
-    SELECT input_mint AS mint FROM filtered_swaps
+mints_raw AS (
+    SELECT input_mint AS account, input_mint AS mint FROM filtered_swaps
     UNION DISTINCT
-    SELECT output_mint AS mint FROM filtered_swaps
+    SELECT output_mint AS account, output_mint AS mint FROM filtered_swaps
+),
+account_mint_state AS (
+    SELECT account, mint
+    FROM {db_accounts:Identifier}.account_mint_state
+    WHERE account IN (SELECT account FROM mints_raw)
+),
+mints AS (
+    SELECT account, mint FROM mints_raw
+    UNION DISTINCT
+    SELECT account, mint FROM account_mint_state
+),
+resolved_swaps AS (
+    SELECT
+        s.*,
+        coalesce(ai.mint, s.input_mint) AS resolved_input_mint,
+        coalesce(ao.mint, s.output_mint) AS resolved_output_mint
+    FROM filtered_swaps AS s
+    LEFT JOIN account_mint_state AS ai ON s.input_mint = ai.account
+    LEFT JOIN account_mint_state AS ao ON s.output_mint = ao.account
 ),
 metadata_mint_state AS (
     SELECT mint, metadata
@@ -202,22 +221,15 @@ metadata_symbol_state AS (
     FROM {db_metadata:Identifier}.metadata_symbol_state FINAL
     WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
 ),
-metadata_uri_state AS (
-    SELECT metadata, uri
-    FROM {db_metadata:Identifier}.metadata_uri_state FINAL
-    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
-),
 metadata_state AS (
     SELECT
         mm.mint,
         mm.metadata as metadata,
         n.name,
-        s.symbol,
-        u.uri
+        s.symbol
     FROM metadata_mint_state AS mm
     LEFT JOIN metadata_name_state AS n ON mm.metadata = n.metadata
     LEFT JOIN metadata_symbol_state AS s ON mm.metadata = s.metadata
-    LEFT JOIN metadata_uri_state AS u ON mm.metadata = u.metadata
 )
 SELECT
     /* block */
@@ -247,30 +259,36 @@ SELECT
     amm_pool,
     user,
 
-    /* input */
-    input_mint,
-    input_amount,
+    /* tokens */
+    CAST ((
+        resolved_input_mint,
+        m1.symbol,
+        d1.decimals
+    ) AS Tuple(mint String, symbol String, decimals UInt8)) AS input_token,
+    CAST ((
+        resolved_output_mint,
+        m2.symbol,
+        d2.decimals
+    ) AS Tuple(mint String, symbol String, decimals UInt8)) AS output_token,
 
-    /* input metadata */
-    coalesce(m1.name, '') AS input_name,
-    coalesce(m1.symbol, '') AS input_symbol,
+    /* input */
+    s.input_mint AS input_mint,
+    input_amount,
+    input_amount / pow(10, coalesce(d1.decimals, 0)) AS input_value,
 
     /* output */
-    output_mint,
+    s.output_mint AS output_mint,
     output_amount,
-
-    /* output metadata */
-    coalesce(m2.name, '') AS output_name,
-    coalesce(m2.symbol, '') AS output_symbol,
+    output_amount / pow(10, coalesce(d2.decimals, 0)) AS output_value,
 
     /* prices */
     s.protocol AS protocol,
 
     /* network */
     {network:String} AS network
-FROM filtered_swaps AS s
-LEFT JOIN decimals_state AS d1 ON s.input_mint = d1.mint
-LEFT JOIN decimals_state AS d2 ON s.output_mint = d2.mint
-LEFT JOIN metadata_state AS m1 ON s.input_mint = m1.mint
-LEFT JOIN metadata_state AS m2 ON s.output_mint = m2.mint
+FROM resolved_swaps AS s
+LEFT JOIN decimals_state AS d1 ON s.resolved_input_mint = d1.mint
+LEFT JOIN decimals_state AS d2 ON s.resolved_output_mint = d2.mint
+LEFT JOIN metadata_state AS m1 ON s.resolved_input_mint = m1.mint
+LEFT JOIN metadata_state AS m2 ON s.resolved_output_mint = m2.mint
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

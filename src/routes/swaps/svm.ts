@@ -10,6 +10,7 @@ import {
     blockNumberSchema,
     createQuerySchema,
     dateTimeSchema,
+    evmTokenResponseSchema,
     svmAddressSchema,
     svmAmmPoolSchema,
     svmAmmSchema,
@@ -40,6 +41,7 @@ const querySchema = createQuerySchema({
         meta: { example: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw' },
     },
     protocol: { schema: svmProtocolSchema, optional: true },
+
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
 
@@ -75,6 +77,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             amm: svmAmmSchema,
             amm_pool: svmAmmPoolSchema,
             user: svmAddressSchema,
+
+            input_token: evmTokenResponseSchema,
+            output_token: evmTokenResponseSchema,
 
             input_mint: svmMintSchema,
             input_amount: z.number(),
