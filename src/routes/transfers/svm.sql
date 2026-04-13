@@ -227,10 +227,10 @@ SELECT
     coalesce(t.decimals, d.decimals) AS decimals,
 
     /* metadata */
-    nullIf(m.name, '') AS name,
-    nullIf(m.symbol, '') AS symbol,
-    nullIf(m.uri, '') AS uri,
-    nullIf(m.metadata, '') AS metadata,
+    coalesce(m.name, '') AS name,
+    coalesce(m.symbol, '') AS symbol,
+    coalesce(m.uri, '') AS uri,
+    coalesce(m.metadata, '') AS metadata,
 
     /* network */
     {network:String} AS network

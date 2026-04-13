@@ -42,9 +42,9 @@ SELECT
     decimals AS decimals,
 
     /* metadata */
-    m.name AS name,
-    m.symbol AS symbol,
-    m.uri AS uri,
+    coalesce(m.name, '') AS name,
+    coalesce(m.symbol, '') AS symbol,
+    coalesce(m.uri, '') AS uri,
 
     /* network */
     {network:String} as network

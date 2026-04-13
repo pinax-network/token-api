@@ -173,9 +173,51 @@ filtered_swaps AS
         AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
         AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
         AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
-    ORDER BY timestamp DESC, block_num DESC
+    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+mints AS (
+    SELECT input_mint AS mint FROM filtered_swaps
+    UNION DISTINCT
+    SELECT output_mint AS mint FROM filtered_swaps
+),
+metadata_mint_state AS (
+    SELECT mint, metadata
+    FROM {db_metadata:Identifier}.metadata_mint_state
+    WHERE mint IN (SELECT mint FROM mints)
+),
+decimals_state AS (
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state FINAL
+    WHERE mint IN (SELECT mint FROM mints)
+),
+metadata_name_state AS (
+    SELECT metadata, name
+    FROM {db_metadata:Identifier}.metadata_name_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_symbol_state AS (
+    SELECT metadata, symbol
+    FROM {db_metadata:Identifier}.metadata_symbol_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_uri_state AS (
+    SELECT metadata, uri
+    FROM {db_metadata:Identifier}.metadata_uri_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_state AS (
+    SELECT
+        mm.mint,
+        mm.metadata as metadata,
+        n.name,
+        s.symbol,
+        u.uri
+    FROM metadata_mint_state AS mm
+    LEFT JOIN metadata_name_state AS n ON mm.metadata = n.metadata
+    LEFT JOIN metadata_symbol_state AS s ON mm.metadata = s.metadata
+    LEFT JOIN metadata_uri_state AS u ON mm.metadata = u.metadata
 )
 SELECT
     /* block */
@@ -209,9 +251,17 @@ SELECT
     input_mint,
     input_amount,
 
+    /* input metadata */
+    coalesce(m1.name, '') AS input_name,
+    coalesce(m1.symbol, '') AS input_symbol,
+
     /* output */
     output_mint,
     output_amount,
+
+    /* output metadata */
+    coalesce(m2.name, '') AS output_name,
+    coalesce(m2.symbol, '') AS output_symbol,
 
     /* prices */
     s.protocol AS protocol,
@@ -219,4 +269,8 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
-ORDER BY timestamp DESC, block_num DESC
+LEFT JOIN decimals_state AS d1 ON s.input_mint = d1.mint
+LEFT JOIN decimals_state AS d2 ON s.output_mint = d2.mint
+LEFT JOIN metadata_state AS m1 ON s.input_mint = m1.mint
+LEFT JOIN metadata_state AS m2 ON s.output_mint = m2.mint
+ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
