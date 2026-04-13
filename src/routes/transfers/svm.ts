@@ -118,6 +118,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),
+            metadata: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,

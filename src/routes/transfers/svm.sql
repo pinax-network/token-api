@@ -151,6 +151,46 @@ filtered_transfers AS
     ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+mints AS (
+    SELECT DISTINCT mint FROM filtered_transfers
+),
+metadata_mint_state AS (
+    SELECT mint, metadata
+    FROM {db_metadata:Identifier}.metadata_mint_state
+    WHERE mint IN (SELECT mint FROM mints)
+),
+decimals_state AS (
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state FINAL
+    WHERE mint IN (SELECT mint FROM mints)
+),
+metadata_name_state AS (
+    SELECT metadata, name
+    FROM {db_metadata:Identifier}.metadata_name_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_symbol_state AS (
+    SELECT metadata, symbol
+    FROM {db_metadata:Identifier}.metadata_symbol_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_uri_state AS (
+    SELECT metadata, uri
+    FROM {db_metadata:Identifier}.metadata_uri_state FINAL
+    WHERE metadata IN (SELECT metadata FROM metadata_mint_state)
+),
+metadata_state AS (
+    SELECT
+        mm.mint,
+        mm.metadata as metadata,
+        n.name,
+        s.symbol,
+        u.uri
+    FROM metadata_mint_state AS mm
+    LEFT JOIN metadata_name_state AS n ON mm.metadata = n.metadata
+    LEFT JOIN metadata_symbol_state AS s ON mm.metadata = s.metadata
+    LEFT JOIN metadata_uri_state AS u ON mm.metadata = u.metadata
 )
 SELECT
     /* block */
@@ -190,11 +230,11 @@ SELECT
     nullIf(m.name, '') AS name,
     nullIf(m.symbol, '') AS symbol,
     nullIf(m.uri, '') AS uri,
+    nullIf(m.metadata, '') AS metadata,
 
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN {db_accounts:Identifier}.decimals_state AS d USING (mint)
-LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
-LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
+LEFT JOIN decimals_state AS d USING (mint)
+LEFT JOIN metadata_state AS m USING (mint)
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
