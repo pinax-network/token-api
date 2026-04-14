@@ -197,7 +197,7 @@ SELECT
     multisig_authority,
 
     /* amount */
-    t.amount AS amount,
+    toString(t.amount) AS amount,
     t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
     coalesce(t.decimals, d.decimals) AS decimals,
 

@@ -81,9 +81,9 @@ const responseSchema = apiUsageResponseSchema.extend({
             // output_token: svmTokenResponseSchema,
 
             input_mint: svmMintSchema,
-            input_amount: z.number(),
+            input_amount: z.string(),
             output_mint: svmMintSchema,
-            output_amount: z.number(),
+            output_amount: z.string(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -128,9 +128,9 @@ const openapi = describeRoute(
                                             amm_pool: '4Ui9QdDNuUaAGqCPcDSp191QrixLzQiLxJ1Gnqvz3szP',
                                             user: 'JBRAzagTHzHfv9EZYcjdg1iShfCuVQGJh3yavF9hh5qC',
                                             input_mint: '9gMRWNfLXNc54ta5LxuM16p72GYap2t6rf455TTBKQW4',
-                                            input_amount: 506321,
+                                            input_amount: '506321',
                                             output_mint: 'CYcxSC2vmbScHFcTtEM6346uqMN8b9zeSGnP9qZu1E6U',
-                                            output_amount: 85939,
+                                            output_amount: '85939',
                                             protocol: 'orca_whirlpool',
                                             network: 'solana',
                                         },

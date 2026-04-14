@@ -236,13 +236,13 @@ SELECT
 
     /* input */
     s.input_mint AS input_mint,
-    input_amount,
-    input_amount / pow(10, coalesce(d1.decimals, 0)) AS input_value,
+    toString(s.input_amount) AS input_amount,
+    s.input_amount / pow(10, coalesce(d1.decimals, 0)) AS input_value,
 
     /* output */
     s.output_mint AS output_mint,
-    output_amount,
-    output_amount / pow(10, coalesce(d2.decimals, 0)) AS output_value,
+    toString(s.output_amount) AS output_amount,
+    s.output_amount / pow(10, coalesce(d2.decimals, 0)) AS output_value,
 
     /* prices */
     s.protocol AS protocol,

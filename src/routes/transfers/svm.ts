@@ -110,15 +110,15 @@ const responseSchema = apiUsageResponseSchema.extend({
             multisig_authority: z.array(svmAuthoritySchema),
 
             // -- amount --
-            amount: z.number(),
-            // value: z.number(),
-            // decimals: z.number().nullable(),
+            amount: z.string(),
+            value: z.number(),
+            decimals: z.number().nullable(),
 
-            // // -- token metadata --
-            // name: z.string().nullable(),
-            // symbol: z.string().nullable(),
-            // uri: z.string().nullable(),
-            // metadata: z.string().nullable(),
+            // -- token metadata --
+            name: z.string().nullable(),
+            symbol: z.string().nullable(),
+            uri: z.string().nullable(),
+            metadata: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -163,7 +163,7 @@ const openapi = describeRoute(
                                             destination: 'GMKAWHL8TKcaDEHoCEkqxSS9QxCppZStXqdF4p4sbLhu',
                                             authority: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
                                             multisig_authority: [],
-                                            amount: 1947170680,
+                                            amount: '1947170680',
                                             network: 'solana',
                                         },
                                     ],

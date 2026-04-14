@@ -28,8 +28,8 @@ SELECT
     o.owner AS owner,
 
     /* amount */
-    amount,
-    amount / pow(10, 9) AS value,
+    toString(b.amount) AS amount,
+    b.amount / pow(10, 9) AS value,
     9 AS decimals,
 
     /* metadata */
@@ -41,6 +41,6 @@ FROM balances AS b
 LEFT JOIN owners o USING (account)
 LEFT JOIN close_accounts c USING (account)
 WHERE (closed IS NULL OR closed = false)
-ORDER BY amount DESC, account
+ORDER BY b.amount DESC, b.account
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

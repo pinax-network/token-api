@@ -41,7 +41,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             token_account: svmTokenAccountSchema,
 
             // -- amount --
-            amount: z.number(),
+            amount: z.string(),
             value: z.number(),
             decimals: z.number(),
 

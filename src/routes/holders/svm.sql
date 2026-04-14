@@ -37,9 +37,9 @@ SELECT
     o.owner AS owner,
 
     /* amount */
-    amount,
-    amount / pow(10, decimals) AS value,
-    decimals AS decimals,
+    toString(b.amount) AS amount,
+    b.amount / pow(10, b.decimals) AS value,
+    b.decimals AS decimals,
 
     /* metadata */
     coalesce(m.name, '') AS name,
@@ -53,6 +53,6 @@ LEFT JOIN mint_meta m USING (mint)
 LEFT JOIN owners o USING (account)
 LEFT JOIN close_accounts c USING (account)
 WHERE mint = {mint:String} AND (closed IS NULL OR closed = false)
-ORDER BY amount DESC, account
+ORDER BY b.amount DESC, b.account
 LIMIT {limit:UInt64}
 OFFSET {offset:UInt64}

@@ -39,7 +39,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             owner: svmOwnerSchema,
 
             // -- amount --
-            amount: z.number(),
+            amount: z.string(),
             value: z.number(),
             decimals: z.number(),
 
@@ -77,7 +77,7 @@ const openapi = describeRoute(
                                             program_id: '11111111111111111111111111111111',
                                             mint: 'So11111111111111111111111111111111111111111',
                                             token_account: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-                                            amount: 15742688811617704,
+                                            amount: '15742688811617704',
                                             value: 15742688.811617704,
                                             decimals: 9,
                                             name: 'SOL',
