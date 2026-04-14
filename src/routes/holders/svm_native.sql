@@ -7,11 +7,6 @@ close_accounts AS (
     SELECT account, closed
     FROM {db_accounts:Identifier}.close_account_view
     WHERE account IN (SELECT account FROM balances)
-),
-owners AS (
-    SELECT account, owner
-    FROM {db_accounts:Identifier}.owner_view
-    WHERE account IN (SELECT account FROM balances)
 )
 SELECT
     /* block */
@@ -25,7 +20,6 @@ SELECT
 
     /* account */
     account AS token_account,
-    o.owner AS owner,
 
     /* amount */
     toString(b.amount) AS amount,
@@ -38,7 +32,6 @@ SELECT
 
     {network:String} AS network
 FROM balances AS b
-LEFT JOIN owners o USING (account)
 LEFT JOIN close_accounts c USING (account)
 WHERE (closed IS NULL OR closed = false)
 ORDER BY b.amount DESC, b.account
