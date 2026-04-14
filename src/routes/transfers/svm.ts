@@ -111,13 +111,13 @@ const responseSchema = apiUsageResponseSchema.extend({
 
             // -- amount --
             amount: z.number(),
-            value: z.number(),
-            decimals: z.number().nullable(),
+            // value: z.number(),
+            // decimals: z.number().nullable(),
 
-            // -- token metadata --
-            name: z.string().nullable(),
-            symbol: z.string().nullable(),
-            uri: z.string().nullable(),
+            // // -- token metadata --
+            // name: z.string().nullable(),
+            // symbol: z.string().nullable(),
+            // uri: z.string().nullable(),
             // metadata: z.string().nullable(),
 
             // -- chain --
@@ -144,34 +144,26 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 413066449,
-                                            datetime: '2026-04-14 01:50:11',
-                                            timestamp: 1776131411,
+                                            block_num: 413069155,
+                                            datetime: '2026-04-14 02:08:00',
+                                            timestamp: 1776132480,
                                             signature:
-                                                'z1LVRzwrGSASmKfnCxmrxfPuRRgF2Dpe1bo9woUYvj35iZ63Ere2D1R68NE8SS1fCZ9q2mR8HfGWpEsoE21xgvN',
-                                            transaction_index: 350,
-                                            instruction_index: 8,
+                                                '2HZjoVC9q35EoBDn8z6DfE7jtiua4cZiqBtmpc86cXTF1EoRwK8JPQM9SbTPMhnBMsTk32jtcGQ3sgpKCDK8jULv',
+                                            transaction_index: 171,
+                                            instruction_index: 2,
                                             stack_height: 2,
-                                            fee_payer: '7WdMdPGCVmMSZvJHmtuNtWJNw7EVPsW6py4XA5bRB3RC',
-                                            signer: '7WdMdPGCVmMSZvJHmtuNtWJNw7EVPsW6py4XA5bRB3RC',
-                                            signers: [
-                                                '7WdMdPGCVmMSZvJHmtuNtWJNw7EVPsW6py4XA5bRB3RC',
-                                                'F7YKz33Fi6CdySKfQc1abLuyZPZgXysYZEy9rxuEtAqk',
-                                            ],
-                                            fee: 10000,
-                                            compute_units_consumed: 215546,
+                                            fee_payer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
+                                            signer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
+                                            signers: ['3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo'],
+                                            fee: 5000,
+                                            compute_units_consumed: 55785,
                                             program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
                                             mint: 'So11111111111111111111111111111111111111112',
-                                            source: '34SkdfG8BmfMv8rvXSnVTHHp7QKxnLQdHWBRur71xqf2',
-                                            destination: 'Cxvdf5WPTNGvLujJrN6P4TwV9F1xwLuQAMhCivVnszt8',
-                                            authority: 'FzwDyTFQkExxo7gCm95xyKijK2VwtqM8noYd97tLJS17',
+                                            source: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat',
+                                            destination: 'GMKAWHL8TKcaDEHoCEkqxSS9QxCppZStXqdF4p4sbLhu',
+                                            authority: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
                                             multisig_authority: [],
-                                            amount: 11475586530,
-                                            value: 11.47558653,
-                                            decimals: 9,
-                                            name: 'Wrapped SOL',
-                                            symbol: 'SOL',
-                                            uri: '',
+                                            amount: 1947170680,
                                             network: 'solana',
                                         },
                                     ],
