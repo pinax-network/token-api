@@ -40,7 +40,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             low: z.number(),
             close: z.number(),
             volume: z.number(),
-            uaw: z.number(),
+            // uaw: z.number(),
             transactions: z.number(),
         })
     ),
@@ -63,15 +63,16 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            datetime: '2025-10-16 00:00:00',
+                                            datetime: '2026-02-12 00:00:00',
+                                            program_id: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
                                             amm: 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA',
                                             amm_pool: 'AmmpSnW5xVeKHTAU9fMjyKEMPgrzmUj3ah5vgvHhAB5J',
-                                            open: 0.0020385820805914096,
-                                            high: 0.002037622484039942,
-                                            low: 0.002029088299722426,
-                                            close: 0.0020285665581652053,
-                                            volume: 0.14567917800000002,
-                                            transactions: 8,
+                                            open: 0.47303410927710987,
+                                            high: 0.47303410927710987,
+                                            low: 0.4419901569742023,
+                                            close: 0.44281481073626966,
+                                            volume: 2382001780,
+                                            transactions: 277,
                                         },
                                     ],
                                 },
