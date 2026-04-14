@@ -145,23 +145,27 @@ export const evmProtocolSchema = z
     ])
     .meta({ description: 'Protocol name', example: 'uniswap_v3' });
 
-export const svmProtocolSchema = z
-    .enum([
-        'jupiter_v4',
-        'jupiter_v6',
-        'pumpfun',
-        'pumpfun_amm',
-        'raydium_amm_v4',
-        'raydium_clmm',
-        'raydium_cpmm',
-        'raydium_launchpad',
-        'meteora_dllm',
-        'orca_whirlpool',
-        'boop',
-        'darklake',
-        'dumpfun',
-    ])
+const svmProtocolsWithoutAggregators = [
+    'pumpfun',
+    'pumpfun_amm',
+    'raydium_amm_v4',
+    'raydium_clmm',
+    'raydium_cpmm',
+    'raydium_launchpad',
+    'meteora_dllm',
+    'orca_whirlpool',
+    'boop',
+    'darklake',
+    'dumpfun',
+] as const;
+
+const svmProtocols = ['jupiter_v4', 'jupiter_v6', ...svmProtocolsWithoutAggregators] as const;
+
+export const svmProtocolWithoutAggregatorSchema = z
+    .enum(svmProtocolsWithoutAggregators)
     .meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
+
+export const svmProtocolSchema = z.enum(svmProtocols).meta({ description: 'Protocol name', example: 'raydium_amm_v4' });
 
 export const tvmProtocolSchema = z
     .enum(['uniswap_v1', 'uniswap_v2', 'uniswap_v3', 'uniswap_v4', 'sunpump'])

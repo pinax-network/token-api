@@ -13,7 +13,7 @@ import {
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
-    svmProtocolSchema,
+    svmProtocolWithoutAggregatorSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
@@ -21,13 +21,12 @@ import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-
     amm: { schema: svmAmmSchema, batched: true, optional: true },
     amm_pool: { schema: svmAmmPoolSchema, batched: true, optional: true, meta: { example: '' } },
     input_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
-    protocol: { schema: svmProtocolSchema, optional: true },
+    protocol: { schema: svmProtocolWithoutAggregatorSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({

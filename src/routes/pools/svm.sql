@@ -17,13 +17,12 @@ pools AS (
         amm_pool,
         sum(transactions) as transactions
     FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
-    WHERE
-        amm_pool != ''
+    WHERE amm_pool != ''
     AND (empty({input_mint:Array(String)}) OR amm_pool IN input_pools)
     AND (empty({output_mint:Array(String)}) OR amm_pool IN output_pools)
     AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
     AND (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
-    AND (isNull({protocol:String}) OR protocol IN {protocol:String})
+    AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
 
     GROUP BY protocol, program_id, amm, amm_pool
 
