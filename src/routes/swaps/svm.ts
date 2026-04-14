@@ -17,7 +17,6 @@ import {
     svmNetworkIdSchema,
     svmProgramIdSchema,
     svmProtocolSchema,
-    svmTokenResponseSchema,
     svmTransactionSchema,
     timestampSchema,
 } from '../../types/zod.js';
