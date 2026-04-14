@@ -21,7 +21,7 @@ const querySchema = createQuerySchema({
     account: {
         schema: svmTokenAccountSchema,
         batched: true,
-        meta: { example: '12uyyQZ4LKiJGBfBGiRchtBCi1qp4JxxtouQXsRqNXYy' },
+        meta: { example: '5UZfa66rzeDpD9wKs3Sn3iewmavxYvpAtiF2Lqd2n1wW' },
     },
 });
 
