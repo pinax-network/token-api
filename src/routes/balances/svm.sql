@@ -82,9 +82,9 @@ SELECT
     coalesce(b.decimals, d.decimals) AS decimals,
 
     /* metadata */
-    coalesce(m.name, '') AS name,
-    coalesce(m.symbol, '') AS symbol,
-    coalesce(m.uri, '') AS uri,
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
 
     /* network */
     {network:String} AS network

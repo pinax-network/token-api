@@ -113,8 +113,8 @@ SELECT
     `to`,
 
     /* metadata */
-    m.name AS name,
-    m.symbol AS symbol,
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
     m.decimals AS decimals,
 
     /* amounts */

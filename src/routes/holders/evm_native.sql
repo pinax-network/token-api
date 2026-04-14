@@ -45,8 +45,8 @@ SELECT
     b.balance / pow(10, m.decimals) AS value,
 
     /* decimals and metadata */
-    m.name AS name,
-    m.symbol AS symbol,
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
     m.decimals AS decimals,
 
     /* network */
