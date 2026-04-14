@@ -230,7 +230,6 @@ SELECT
     coalesce(m.name, '') AS name,
     coalesce(m.symbol, '') AS symbol,
     coalesce(m.uri, '') AS uri,
-    coalesce(m.metadata, '') AS metadata,
 
     /* network */
     {network:String} AS network
