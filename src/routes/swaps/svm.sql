@@ -213,39 +213,49 @@ SELECT
     fee,
     compute_units_consumed,
 
-    /* instruction */
+    /* amm pool */
     program_id,
     program_names(program_id) AS program_name,
-
-    /* swap */
     amm,
     amm_pool,
-    user,
 
     /* tokens */
     CAST ((
         input_mint,
         m1.symbol,
         d1.decimals
-    ) AS Tuple(mint String, symbol String, decimals UInt8)) AS input_token,
+    ) AS Tuple(address String, symbol String, decimals UInt8)) AS input_token,
     CAST ((
         output_mint,
         m2.symbol,
         d2.decimals
-    ) AS Tuple(mint String, symbol String, decimals UInt8)) AS output_token,
+    ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
 
-    /* input */
+    /* swap */
+    user,
     s.input_mint AS input_mint,
     toString(s.input_amount) AS input_amount,
     s.input_amount / pow(10, coalesce(d1.decimals, 0)) AS input_value,
-
-    /* output */
     s.output_mint AS output_mint,
     toString(s.output_amount) AS output_amount,
     s.output_amount / pow(10, coalesce(d2.decimals, 0)) AS output_value,
 
     /* prices */
     s.protocol AS protocol,
+
+
+    /* summary */
+    format('Swap {} {} for {} {} on {}',
+        if(s.input_amount / pow(10, d1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, d1.decimals)), toString(s.input_amount / pow(10, d1.decimals))),
+        m1.symbol,
+        if(s.output_amount / pow(10, d2.decimals) > 1000, formatReadableQuantity(s.output_amount / pow(10, d2.decimals)), toString(s.output_amount / pow(10, d2.decimals))),
+        m2.symbol,
+        arrayStringConcat(
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
+                     splitByChar('_', toString(s.protocol))),
+            ' '
+        )
+    ) AS summary,
 
     /* network */
     {network:String} AS network
