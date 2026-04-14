@@ -152,17 +152,20 @@ filtered_transfers AS
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
 ),
+mints AS (
+    SELECT DISTINCT mint FROM filtered_transfers
+),
 metadata AS
 (
     SELECT mint, name, symbol, uri
     FROM {db_metadata:Identifier}.metadata
-    WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
+    WHERE mint IN mints
 ),
 decimals AS
 (
     SELECT mint, decimals
     FROM {db_accounts:Identifier}.decimals_state
-    WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
+    WHERE mint IN mints
 )
 SELECT
     /* block */
