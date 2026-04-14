@@ -1,10 +1,8 @@
-WITH mint_meta AS (
+WITH metadata AS (
     SELECT mint, name, symbol, uri
-    FROM {db_metadata:Identifier}.metadata_view
-    WHERE metadata = (
-        SELECT metadata FROM {db_metadata:Identifier}.metadata_mint_state
-        WHERE mint = {mint:String} LIMIT 1
-    )
+    FROM {db_metadata:Identifier}.metadata
+    WHERE mint = {mint:String}
+    LIMIT 1
 ),
 balances AS (
     SELECT account, block_num, timestamp, program_id, mint, amount, decimals
@@ -42,14 +40,14 @@ SELECT
     b.decimals AS decimals,
 
     /* metadata */
-    coalesce(m.name, '') AS name,
-    coalesce(m.symbol, '') AS symbol,
-    coalesce(m.uri, '') AS uri,
+    nullIf(m.name, '') AS name,
+    nullIf(m.symbol, '') AS symbol,
+    nullIf(m.uri, '') AS uri,
 
     /* network */
     {network:String} as network
 FROM balances b
-LEFT JOIN mint_meta m USING (mint)
+LEFT JOIN metadata m USING (mint)
 LEFT JOIN owners o USING (account)
 LEFT JOIN close_accounts c USING (account)
 WHERE mint = {mint:String} AND (closed IS NULL OR closed = false)
