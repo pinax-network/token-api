@@ -104,6 +104,65 @@ filtered_minutes AS
         toUInt64({limit:UInt64}) + toUInt64({offset:UInt64}),           /* safe to limit if there is 1 active filter */
         (toUInt64({limit:UInt64}) + toUInt64({offset:UInt64})) * 10     /* unsafe limit with a multiplier - usually safe but find a way to early return */
     )
+),
+filtered_transfers AS
+(
+    SELECT
+        block_num,
+        timestamp,
+        signature,
+        transaction_index,
+        instruction_index,
+        authority,
+        multisig_authority,
+        stack_height,
+        source,
+        destination,
+        fee_payer,
+        program_id,
+        mint,
+        decimals,
+        signer,
+        signers,
+        amount,
+        fee,
+        compute_units_consumed
+    FROM {db_transfers:Identifier}.transfers t
+    WHERE
+            ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(timestamp) IN (SELECT minute FROM filtered_minutes))
+
+        /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts/clamped_start_ts CTEs */
+        AND timestamp >= (SELECT ts FROM clamped_start_ts)
+        AND timestamp <= (SELECT ts FROM end_ts)
+
+        /* Fine-grained block_num exclusion — only rows on the exact boundary second are checked */
+        AND NOT (isNotNull({start_block:Nullable(UInt32)}) AND timestamp = (SELECT ts FROM clamped_start_ts) AND block_num < {start_block:Nullable(UInt32)})
+        AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND timestamp = (SELECT ts FROM end_ts)           AND block_num > {end_block:Nullable(UInt32)})
+
+        /* Apply filters */
+        AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
+        AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
+        AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
+        AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
+        AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
+        AND (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
+        AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
+        AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
+    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
+    LIMIT   {limit:UInt64}
+    OFFSET  {offset:UInt64}
+),
+metadata AS
+(
+    SELECT mint, name, symbol, uri
+    FROM {db_metadata:Identifier}.metadata
+    WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
+),
+decimals AS
+(
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state
+    WHERE mint IN (SELECT DISTINCT mint FROM filtered_transfers)
 )
 SELECT
     /* block */
@@ -125,8 +184,8 @@ SELECT
     compute_units_consumed,
 
     /* transfer */
-    program_id,
-    mint,
+    t.program_id AS program_id,
+    t.mint AS mint,
     source,
     destination,
 
@@ -135,31 +194,18 @@ SELECT
     multisig_authority,
 
     /* amount */
-    amount,
+    t.amount AS amount,
+    t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
+    coalesce(t.decimals, d.decimals) AS decimals,
+
+    /* metadata */
+    coalesce(m.name, '') AS name,
+    coalesce(m.symbol, '') AS symbol,
+    coalesce(m.uri, '') AS uri,
 
     /* network */
     {network:String} AS network
-FROM {db_transfers:Identifier}.transfers t
-WHERE
-        ((SELECT n FROM active_filters) = 0 OR toRelativeMinuteNum(t.timestamp) IN (SELECT minute FROM filtered_minutes))
-
-    /* Primary-key pruning via unified timestamp bounds from start_ts/end_ts/clamped_start_ts CTEs */
-    AND t.timestamp >= (SELECT ts FROM clamped_start_ts)
-    AND t.timestamp <= (SELECT ts FROM end_ts)
-
-    /* Fine-grained block_num exclusion — only rows on the exact boundary second are checked */
-    AND NOT (isNotNull({start_block:Nullable(UInt32)}) AND t.timestamp = (SELECT ts FROM clamped_start_ts) AND t.block_num < {start_block:Nullable(UInt32)})
-    AND NOT (isNotNull({end_block:Nullable(UInt32)})   AND t.timestamp = (SELECT ts FROM end_ts)           AND t.block_num > {end_block:Nullable(UInt32)})
-
-    /* Apply filters */
-    AND (empty({signature:Array(String)}) OR signature IN {signature:Array(String)})
-    AND (empty({source:Array(String)}) OR source IN {source:Array(String)})
-    AND (empty({destination:Array(String)}) OR destination IN {destination:Array(String)})
-    AND (empty({authority:Array(String)}) OR authority IN {authority:Array(String)})
-    AND (empty({program_id:Array(String)}) OR program_id IN {program_id:Array(String)})
-    AND (empty({mint:Array(String)}) OR mint IN {mint:Array(String)})
-    AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
-    AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
-ORDER BY t.timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+FROM filtered_transfers AS t
+LEFT JOIN metadata AS m USING (mint)
+LEFT JOIN decimals AS d USING (mint)
+ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
