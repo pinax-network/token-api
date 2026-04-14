@@ -222,23 +222,23 @@ SELECT
     /* tokens */
     CAST ((
         input_mint,
-        m1.symbol,
-        d1.decimals
-    ) AS Tuple(address String, symbol String, decimals UInt8)) AS input_token,
+        nullIf(m1.symbol, ''),
+        if(d1.mint != '', d1.decimals, NULL)
+    ) AS Tuple(address String, symbol Nullable(String), decimals Nullable(UInt8))) AS input_token,
     CAST ((
         output_mint,
-        m2.symbol,
-        d2.decimals
-    ) AS Tuple(address String, symbol String, decimals UInt8)) AS output_token,
+        nullIf(m2.symbol, ''),
+        if(d2.mint != '', d2.decimals, NULL)
+    ) AS Tuple(address String, symbol Nullable(String), decimals Nullable(UInt8))) AS output_token,
 
     /* swap */
     user,
     s.input_mint AS input_mint,
     toString(s.input_amount) AS input_amount,
-    s.input_amount / pow(10, coalesce(d1.decimals, 0)) AS input_value,
+    if(d1.mint != '', s.input_amount / pow(10, d1.decimals), 0) AS input_value,
     s.output_mint AS output_mint,
     toString(s.output_amount) AS output_amount,
-    s.output_amount / pow(10, coalesce(d2.decimals, 0)) AS output_value,
+    if(d2.mint != '', s.output_amount / pow(10, d2.decimals), 0) AS output_value,
 
     /* prices */
     s.protocol AS protocol,
@@ -246,10 +246,14 @@ SELECT
 
     /* summary */
     format('Swap {} {} for {} {} on {}',
-        if(s.input_amount / pow(10, d1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, d1.decimals)), toString(s.input_amount / pow(10, d1.decimals))),
-        m1.symbol,
-        if(s.output_amount / pow(10, d2.decimals) > 1000, formatReadableQuantity(s.output_amount / pow(10, d2.decimals)), toString(s.output_amount / pow(10, d2.decimals))),
-        m2.symbol,
+        if(d1.mint != '',
+            if(s.input_amount / pow(10, d1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, d1.decimals)), toString(s.input_amount / pow(10, d1.decimals))),
+            toString(s.input_amount)),
+        if(m1.mint != '', m1.symbol, s.input_mint),
+        if(d2.mint != '',
+            if(s.output_amount / pow(10, d2.decimals) > 1000, formatReadableQuantity(s.output_amount / pow(10, d2.decimals)), toString(s.output_amount / pow(10, d2.decimals))),
+            toString(s.output_amount)),
+        if(m2.mint != '', m2.symbol, s.output_mint),
         arrayStringConcat(
             arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
                      splitByChar('_', toString(s.protocol))),
