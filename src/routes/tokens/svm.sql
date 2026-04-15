@@ -1,42 +1,27 @@
 WITH circulating AS (
     SELECT
-        mint,
+        block_num,
+        timestamp,
         program_id,
-        decimals,
-        count() AS holders,
-        sum(amount) AS circulating_supply,
-        max(block_num) AS block_num,
-        max(timestamp) AS timestamp
-    FROM (
-        SELECT
-            account,
-            program_id,
-            mint,
-            decimals,
-            max(block_num) AS block_num,
-            max(timestamp) AS timestamp,
-            argMax(amount, b.block_num) AS amount
-        FROM {db_balances:Identifier}.balances AS b
-        WHERE mint IN {mint:Array(String)}
-        GROUP BY mint, account, program_id, decimals
-        HAVING amount > 0
-    )
-    GROUP BY mint, program_id, decimals
+        mint,
+        holders,
+        circulating_supply
+    FROM {db_balances:Identifier}.balances_metadata AS b
+    WHERE mint IN {mint:Array(String)}
 ),
 metadata AS
 (
-    SELECT
-        mint,
-        if(empty(name), NULL, name) AS name,
-        if(empty(symbol), NULL, symbol) AS symbol,
-        if(empty(uri), NULL, uri) AS uri
-    FROM {db_metadata:Identifier}.metadata_view
-    WHERE metadata IN (
-        SELECT metadata
-        FROM {db_metadata:Identifier}.metadata_mint_state
-        WHERE mint IN {mint:Array(String)}
-        GROUP BY metadata
-    )
+    SELECT mint, name, symbol, uri
+    FROM {db_metadata:Identifier}.metadata
+    WHERE mint IN {mint:Array(String)}
+    LIMIT 1 BY mint
+),
+decimals AS
+(
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state
+    WHERE mint IN {mint:Array(String)}
+    LIMIT 1 BY mint
 )
 SELECT
     /* timestamps */
@@ -49,11 +34,11 @@ SELECT
     toString(c.mint) AS mint,
 
     /* amounts */
-    c.circulating_supply / pow(10, c.decimals) AS circulating_supply,
+    c.circulating_supply / pow(10, d.decimals) AS circulating_supply,
     c.holders AS holders,
 
     /* metadata */
-    c.decimals AS decimals,
+    d.decimals AS decimals,
     m.name AS name,
     m.symbol AS symbol,
     m.uri AS uri,
@@ -61,3 +46,4 @@ SELECT
     {network:String} AS network
 FROM circulating AS c
 LEFT JOIN metadata AS m USING mint
+LEFT JOIN decimals AS d USING mint
