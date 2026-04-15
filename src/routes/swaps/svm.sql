@@ -186,13 +186,15 @@ metadata AS
 (
     SELECT mint, name, symbol, uri
     FROM {db_metadata:Identifier}.metadata
-    WHERE mint IN (SELECT DISTINCT mint FROM mints)
+    WHERE mint IN mints
+    LIMIT 1 BY mint
 ),
 decimals AS
 (
     SELECT mint, decimals
     FROM {db_accounts:Identifier}.decimals_state
-    WHERE mint IN (SELECT DISTINCT mint FROM mints)
+    WHERE mint IN mints
+    LIMIT 1 BY mint
 )
 SELECT
     /* block */
