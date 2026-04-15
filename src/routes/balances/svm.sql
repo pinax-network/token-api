@@ -13,12 +13,12 @@ balances AS
         argMax(b.amount, b.block_num) AS amount,
         mint,
         decimals
-    FROM {db_balances:Identifier}.balances AS b
+    FROM {db_balances:Identifier}.balances_by_account AS b
     WHERE b.account IN (SELECT account FROM owners)
         AND (empty({token_account:Array(String)}) OR b.account IN {token_account:Array(String)})
         AND (empty({mint:Array(String)}) OR b.mint IN {mint:Array(String)})
         AND (isNull({program_id:Nullable(String)}) OR b.program_id = {program_id:Nullable(String)})
-    GROUP BY b.mint, b.account, b.program_id, b.decimals
+    GROUP BY b.account, b.program_id, b.mint, b.decimals
     HAVING {include_null_balances:Bool} OR amount > 0
     ORDER BY timestamp DESC, account, mint
     LIMIT  {limit:UInt64}
