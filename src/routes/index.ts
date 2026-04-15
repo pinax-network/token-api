@@ -18,6 +18,7 @@ import networks from './networks.js';
 import evmTokens from './tokens/evm.js';
 import evmTokensNative from './tokens/evm_native.js';
 import svmTokens from './tokens/svm.js';
+import svmTokensNative from './tokens/svm_native.js';
 import tvmTokens from './tokens/tvm.js';
 import tvmTokensNative from './tokens/tvm_native.js';
 import version from './version.js';
@@ -96,14 +97,16 @@ router.use('/v1/*/balances/historical/native', cacheControl());
 
 // SVM - Tokens
 router.route('/v1/svm/transfers', svmTransfers);
-router.route('/v1/svm/transfers/native', svmTransfersNative);
 router.route('/v1/svm/balances', svmBalances);
 router.route('/v1/svm/holders', svmHolders);
-router.route('/v1/svm/holders/native', svmHoldersNative);
 router.route('/v1/svm/owner', svmOwner);
 router.route('/v1/svm/tokens', svmTokens);
 // SVM - Tokens (Native)
+router.route('/v1/svm/transfers/native', svmTransfersNative);
 router.route('/v1/svm/balances/native', svmBalancesNative);
+router.route('/v1/svm/holders/native', svmHoldersNative);
+router.route('/v1/svm/tokens/native', svmTokensNative);
+
 // SVM - DEXs
 router.route('/v1/svm/swaps', svmSwaps);
 router.route('/v1/svm/pools', svmPools);
