@@ -30,8 +30,8 @@ SELECT
     a.amount / pow(10, decimals) AS value,
 
     /* metadata */
-    name,
-    symbol,
+    nullIf(name, '') AS name,
+    nullIf(symbol, '') AS symbol,
     decimals,
 
     /* network */

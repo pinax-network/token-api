@@ -4,7 +4,7 @@ import { describeRoute, resolver, validator } from 'hono-openapi';
 import { z } from 'zod';
 import { config } from '../../config.js';
 import { handleUsageQueryError, makeUsageQueryJson } from '../../handleQuery.js';
-import { SVM_MINT_USDC_EXAMPLE, SVM_MINT_WSOL_EXAMPLE } from '../../types/examples.js';
+import { SVM_MINT_WSOL_EXAMPLE } from '../../types/examples.js';
 import {
     apiUsageResponseSchema,
     createQuerySchema,
@@ -13,7 +13,7 @@ import {
     svmMintSchema,
     svmNetworkIdSchema,
     svmProgramIdSchema,
-    svmProtocolSchema,
+    svmProtocolWithoutAggregatorSchema,
 } from '../../types/zod.js';
 import { validatorHook, withErrorResponses } from '../../utils.js';
 
@@ -21,13 +21,11 @@ import query from './svm.sql' with { type: 'text' };
 
 const querySchema = createQuerySchema({
     network: { schema: svmNetworkIdSchema },
-
     amm: { schema: svmAmmSchema, batched: true, optional: true },
     amm_pool: { schema: svmAmmPoolSchema, batched: true, optional: true, meta: { example: '' } },
-    input_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
-    output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
+    mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_WSOL_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
-    protocol: { schema: svmProtocolSchema, optional: true },
+    protocol: { schema: svmProtocolWithoutAggregatorSchema, optional: true },
 });
 
 const responseSchema = apiUsageResponseSchema.extend({
@@ -69,14 +67,15 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-                                            program_name: 'Jupiter Aggregator v6',
+                                            program_id: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+                                            program_name: 'Raydium Liquidity Pool V4',
+                                            protocol: 'raydium_amm_v4',
                                             amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
                                             amm_name: 'Raydium Liquidity Pool V4',
-                                            amm_pool: '',
-                                            input_mint: 'So11111111111111111111111111111111111111112',
-                                            output_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                            transactions: 6583671,
+                                            amm_pool: 'Dqb7bL7MZkuDgHrZZphRMRViJnepHxf9odx3RRwmifur',
+                                            input_mint: '9bJKq2eLbLFKbcD9zYBNTrQ5Pua7hXMeivu7Fk3iWWoQ',
+                                            output_mint: 'Fm34vVNQYoEkenNjCeM8MVP8mBV5EGLwA86WFHwyMcz4',
+                                            transactions: 43062555,
                                             network: 'solana',
                                         },
                                     ],

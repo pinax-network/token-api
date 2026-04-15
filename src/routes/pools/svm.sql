@@ -1,13 +1,10 @@
 WITH
-output_pools AS (
+amm_pools AS (
     SELECT DISTINCT amm_pool
     FROM {db_dex:Identifier}.state_pools_aggregating_by_mint
-    WHERE empty({output_mint:Array(String)}) OR mint IN {output_mint:Array(String)}
-),
-input_pools AS (
-    SELECT DISTINCT amm_pool
-    FROM {db_dex:Identifier}.state_pools_aggregating_by_mint
-    WHERE empty({input_mint:Array(String)}) OR mint IN {input_mint:Array(String)}
+    WHERE empty({mint:Array(String)}) OR mint IN {mint:Array(String)}
+    AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
+    LIMIT 100000
 ),
 pools AS (
     SELECT
@@ -17,13 +14,11 @@ pools AS (
         amm_pool,
         sum(transactions) as transactions
     FROM {db_dex:Identifier}.state_pools_aggregating_by_pool
-    WHERE
-        amm_pool != ''
-    AND (empty({input_mint:Array(String)}) OR amm_pool IN input_pools)
-    AND (empty({output_mint:Array(String)}) OR amm_pool IN output_pools)
+    WHERE amm_pool != ''
     AND (empty({amm_pool:Array(String)}) OR amm_pool IN {amm_pool:Array(String)})
     AND (empty({amm:Array(String)}) OR amm IN {amm:Array(String)})
-    AND (isNull({protocol:String}) OR protocol IN {protocol:String})
+    AND (empty({mint:Array(String)}) OR amm_pool IN amm_pools)
+    AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
 
     GROUP BY protocol, program_id, amm, amm_pool
 

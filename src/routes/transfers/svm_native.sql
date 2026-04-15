@@ -153,8 +153,8 @@ SELECT
     destination,
 
     /* amount */
-    lamports AS amount,
-    lamports / pow(10, 9) AS value,
+    toString(t.lamports) AS amount,
+    t.lamports / pow(10, 9) AS value,
     9 AS decimals,
 
     /* metadata */

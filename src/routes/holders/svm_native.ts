@@ -10,7 +10,6 @@ import {
     dateTimeSchema,
     svmMintSchema,
     svmNetworkIdSchema,
-    svmOwnerSchema,
     svmProgramIdSchema,
     svmTokenAccountSchema,
 } from '../../types/zod.js';
@@ -30,16 +29,19 @@ const responseSchema = apiUsageResponseSchema.extend({
             last_update_block_num: z.number(),
             last_update_timestamp: z.number(),
 
-            // -- contract --
-            owner: svmOwnerSchema,
-            token_account: svmTokenAccountSchema,
-            mint: svmMintSchema,
+            // -- token --
             program_id: svmProgramIdSchema,
-            amount: z.number(),
-            value: z.number(),
+            mint: svmMintSchema,
 
-            // -- contract --
-            decimals: z.number().nullable(),
+            // -- account --
+            token_account: svmTokenAccountSchema,
+
+            // -- amount --
+            amount: z.string(),
+            value: z.number(),
+            decimals: z.number(),
+
+            // -- metadata --
             name: z.string().nullable(),
             symbol: z.string().nullable(),
 
@@ -67,14 +69,14 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            last_update: '2026-04-10 06:45:28',
-                                            last_update_block_num: 412236609,
-                                            last_update_timestamp: 1775803528,
+                                            last_update: '2026-04-14 05:23:33',
+                                            last_update_block_num: 413099031,
+                                            last_update_timestamp: 1776144213,
                                             program_id: '11111111111111111111111111111111',
                                             mint: 'So11111111111111111111111111111111111111111',
                                             token_account: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-                                            amount: 15742688811617704,
-                                            value: 15742688.811617704,
+                                            amount: '15742688816057762',
+                                            value: 15742688.816057762,
                                             decimals: 9,
                                             name: 'SOL',
                                             symbol: 'SOL',

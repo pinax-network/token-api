@@ -110,7 +110,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             multisig_authority: z.array(svmAuthoritySchema),
 
             // -- amount --
-            amount: z.number(),
+            amount: z.string(),
             value: z.number(),
             decimals: z.number().nullable(),
 
@@ -118,6 +118,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             name: z.string().nullable(),
             symbol: z.string().nullable(),
             uri: z.string().nullable(),
+            metadata: z.string().nullable(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -143,30 +144,26 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 411673404,
-                                            datetime: '2026-04-07 17:06:18',
-                                            timestamp: 1775581578,
+                                            block_num: 413069155,
+                                            datetime: '2026-04-14 02:08:00',
+                                            timestamp: 1776132480,
                                             signature:
-                                                '4Xj7G5UWDKWbPEKTMie8adzPD27qGRYLE9hpYwuad228Tw96aVBMqhc4XG5daAeLrJXGAqRnQw8Cbi129dQfynAd',
-                                            transaction_index: 208,
-                                            instruction_index: 3,
+                                                '2HZjoVC9q35EoBDn8z6DfE7jtiua4cZiqBtmpc86cXTF1EoRwK8JPQM9SbTPMhnBMsTk32jtcGQ3sgpKCDK8jULv',
+                                            transaction_index: 171,
+                                            instruction_index: 2,
                                             stack_height: 2,
-                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                                            mint: 'So11111111111111111111111111111111111111112',
-                                            authority: 'HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC',
-                                            multisig_authority: [],
+                                            fee_payer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
                                             signer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
                                             signers: ['3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo'],
-                                            source: 'HuxWhQJLCvuuSzHuBkHX1PVJ2LrpVz8GnTCaEkMRKgM1',
-                                            destination: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat',
-                                            fee_payer: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
-                                            amount: '927931314',
-                                            value: 0.927931314,
-                                            decimals: 9,
-                                            name: 'Wrapped SOL',
-                                            symbol: 'WSOL',
                                             fee: 5000,
-                                            compute_units_consumed: 50323,
+                                            compute_units_consumed: 55785,
+                                            program_id: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                            mint: 'So11111111111111111111111111111111111111112',
+                                            source: 'AtpmmidnYUTC1w62zHXfeXygDFQG8H2CU2fseFLwHiat',
+                                            destination: 'GMKAWHL8TKcaDEHoCEkqxSS9QxCppZStXqdF4p4sbLhu',
+                                            authority: '3ghZcDUBHDGbgKPzmNnDXpAPb7gp2ApfkRtPWqRrGNTo',
+                                            multisig_authority: [],
+                                            amount: '1947170680',
                                             network: 'solana',
                                         },
                                     ],

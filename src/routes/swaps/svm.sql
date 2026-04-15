@@ -173,9 +173,26 @@ filtered_swaps AS
         AND (empty({fee_payer:Array(String)}) OR fee_payer IN {fee_payer:Array(String)})
         AND (empty({signer:Array(String)}) OR signer IN {signer:Array(String)})
         AND (isNull({protocol:Nullable(String)}) OR protocol = {protocol:Nullable(String)})
-    ORDER BY timestamp DESC, block_num DESC
+    ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+mints AS (
+    SELECT DISTINCT input_mint AS mint FROM filtered_swaps
+    UNION DISTINCT
+    SELECT DISTINCT output_mint AS mint FROM filtered_swaps
+),
+metadata AS
+(
+    SELECT mint, name, symbol, uri
+    FROM {db_metadata:Identifier}.metadata
+    WHERE mint IN (SELECT DISTINCT mint FROM mints)
+),
+decimals AS
+(
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state
+    WHERE mint IN (SELECT DISTINCT mint FROM mints)
 )
 SELECT
     /* block */
@@ -196,27 +213,59 @@ SELECT
     fee,
     compute_units_consumed,
 
-    /* instruction */
+    /* amm pool */
     program_id,
     program_names(program_id) AS program_name,
-
-    /* swap */
     amm,
     amm_pool,
+
+    /* tokens */
+    CAST ((
+        input_mint,
+        nullIf(m1.symbol, ''),
+        if(d1.mint != '', d1.decimals, NULL)
+    ) AS Tuple(address String, symbol Nullable(String), decimals Nullable(UInt8))) AS input_token,
+    CAST ((
+        output_mint,
+        nullIf(m2.symbol, ''),
+        if(d2.mint != '', d2.decimals, NULL)
+    ) AS Tuple(address String, symbol Nullable(String), decimals Nullable(UInt8))) AS output_token,
+
+    /* swap */
     user,
-
-    /* input */
-    input_mint,
-    input_amount,
-
-    /* output */
-    output_mint,
-    output_amount,
+    s.input_mint AS input_mint,
+    toString(s.input_amount) AS input_amount,
+    if(d1.mint != '', s.input_amount / pow(10, d1.decimals), 0) AS input_value,
+    s.output_mint AS output_mint,
+    toString(s.output_amount) AS output_amount,
+    if(d2.mint != '', s.output_amount / pow(10, d2.decimals), 0) AS output_value,
 
     /* prices */
     s.protocol AS protocol,
 
+
+    /* summary */
+    format('Swap {} {} for {} {} on {}',
+        if(d1.mint != '',
+            if(s.input_amount / pow(10, d1.decimals) > 1000, formatReadableQuantity(s.input_amount / pow(10, d1.decimals)), toString(s.input_amount / pow(10, d1.decimals))),
+            toString(s.input_amount)),
+        if(m1.mint != '', m1.symbol, s.input_mint),
+        if(d2.mint != '',
+            if(s.output_amount / pow(10, d2.decimals) > 1000, formatReadableQuantity(s.output_amount / pow(10, d2.decimals)), toString(s.output_amount / pow(10, d2.decimals))),
+            toString(s.output_amount)),
+        if(m2.mint != '', m2.symbol, s.output_mint),
+        arrayStringConcat(
+            arrayMap(x -> concat(upper(substring(x, 1, 1)), substring(x, 2)),
+                     splitByChar('_', toString(s.protocol))),
+            ' '
+        )
+    ) AS summary,
+
     /* network */
     {network:String} AS network
 FROM filtered_swaps AS s
-ORDER BY timestamp DESC, block_num DESC
+LEFT JOIN decimals AS d1 ON s.input_mint = d1.mint
+LEFT JOIN decimals AS d2 ON s.output_mint = d2.mint
+LEFT JOIN metadata AS m1 ON s.input_mint = m1.mint
+LEFT JOIN metadata AS m2 ON s.output_mint = m2.mint
+ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC

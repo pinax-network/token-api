@@ -11,8 +11,8 @@ SELECT
     b.close / pow(10, decimals) AS close,
 
     /* metadata */
-    name,
-    symbol,
+    nullIf(name, '') AS name,
+    nullIf(symbol, '') AS symbol,
     decimals,
 
     /* network */

@@ -17,6 +17,7 @@ import {
     svmNetworkIdSchema,
     svmProgramIdSchema,
     svmProtocolSchema,
+    svmTokenResponseSchema,
     svmTransactionSchema,
     timestampSchema,
 } from '../../types/zod.js';
@@ -40,6 +41,7 @@ const querySchema = createQuerySchema({
         meta: { example: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw' },
     },
     protocol: { schema: svmProtocolSchema, optional: true },
+
     output_mint: { schema: svmMintSchema, batched: true, optional: true, meta: { example: SVM_MINT_USDC_EXAMPLE } },
     program_id: { schema: svmProgramIdSchema, batched: true, optional: true },
 
@@ -57,29 +59,39 @@ const responseSchema = apiUsageResponseSchema.extend({
             datetime: dateTimeSchema,
             timestamp: z.number(),
 
-            // -- ordering --
+            // -- transaction --
             signature: svmTransactionSchema,
             transaction_index: z.number(),
             instruction_index: z.number(),
             stack_height: z.number(),
+            fee_payer: svmAddressSchema,
+            signer: svmAddressSchema,
+            signers: z.array(svmAddressSchema),
 
-            // -- fees --
+            // -- fee --
             fee: z.number(),
             compute_units_consumed: z.number(),
 
-            // -- transaction --
+            // -- amm pool --
             program_id: svmProgramIdSchema,
             program_name: z.string(),
-
-            // -- swap --
             amm: svmAmmSchema,
             amm_pool: svmAmmPoolSchema,
-            user: svmAddressSchema,
 
+            // -- tokens --
+            input_token: svmTokenResponseSchema,
+            output_token: svmTokenResponseSchema,
+
+            // -- swap --
+            user: svmAddressSchema,
             input_mint: svmMintSchema,
-            input_amount: z.number(),
+            input_amount: z.string(),
+            input_value: z.number(),
             output_mint: svmMintSchema,
-            output_amount: z.number(),
+            output_amount: z.string(),
+            output_value: z.number(),
+            protocol: svmProtocolSchema,
+            summary: z.string(),
 
             // -- chain --
             network: svmNetworkIdSchema,
@@ -105,25 +117,42 @@ const openapi = describeRoute(
                                 value: {
                                     data: [
                                         {
-                                            block_num: 373763118,
-                                            datetime: '2025-10-16 14:03:09',
-                                            timestamp: 1760623389,
+                                            block_num: 413234732,
+                                            datetime: '2026-04-14 20:14:22',
+                                            timestamp: 1776197662,
                                             signature:
-                                                '5pdoVcSiSBr3LMAijdRYKrL5RoLFjLgHxHbZ34dUBVubnsQt3q1v48LuPazebsSiBVuSbSTyJdzf3G9jqqn8o6jA',
-                                            transaction_index: 8,
-                                            instruction_index: 1,
-                                            stack_height: 1,
+                                                '2NJ58GcdxigtZGba2hoodBU88Sb69U7NzF5XM1AgnnUaeNNXVkzmwrNKsm1L5bfgzWuy6qdUmDkDLPd2njpAFY7s',
+                                            transaction_index: 5,
+                                            instruction_index: 0,
+                                            stack_height: 2,
+                                            fee_payer: '5sk1rcXG9cJmdEvSa6Z2SwU8JehfvGVzN269yADA248v',
+                                            signer: '5sk1rcXG9cJmdEvSa6Z2SwU8JehfvGVzN269yADA248v',
+                                            signers: ['5sk1rcXG9cJmdEvSa6Z2SwU8JehfvGVzN269yADA248v'],
+                                            fee: 6000,
+                                            compute_units_consumed: 104279,
                                             program_id: 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
                                             program_name: 'Jupiter Aggregator v6',
-                                            fee: 5000,
-                                            compute_units_consumed: 175632,
-                                            amm: '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+                                            amm: 'HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq',
                                             amm_pool: '',
-                                            user: '5MGfsuYNRhbuN6x1M6WaR3721dSDGtXpcsHxNsgkjsXC',
-                                            input_mint: 'HmrzeZapM1EygFc4tBJUXwWTzv5Ahy8axLSAadBx51sw',
-                                            input_amount: 49572355581648,
-                                            output_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                                            output_amount: 936671,
+                                            input_token: {
+                                                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                                symbol: 'USDC',
+                                                decimals: 6,
+                                            },
+                                            output_token: {
+                                                address: 'So11111111111111111111111111111111111111112',
+                                                symbol: 'SOL',
+                                                decimals: 9,
+                                            },
+                                            user: '5sk1rcXG9cJmdEvSa6Z2SwU8JehfvGVzN269yADA248v',
+                                            input_mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                                            input_amount: '11880',
+                                            input_value: 0.01188,
+                                            output_mint: 'So11111111111111111111111111111111111111112',
+                                            output_amount: '141217',
+                                            output_value: 0.000141217,
+                                            protocol: 'jupiter_v6',
+                                            summary: 'Swap 0.01188 USDC for 0.000141217 SOL on Jupiter V6',
                                             network: 'solana',
                                         },
                                     ],

@@ -151,6 +151,21 @@ filtered_transfers AS
     ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
     LIMIT   {limit:UInt64}
     OFFSET  {offset:UInt64}
+),
+mints AS (
+    SELECT DISTINCT mint FROM filtered_transfers
+),
+metadata AS
+(
+    SELECT mint, name, symbol, uri
+    FROM {db_metadata:Identifier}.metadata
+    WHERE mint IN mints
+),
+decimals AS
+(
+    SELECT mint, decimals
+    FROM {db_accounts:Identifier}.decimals_state
+    WHERE mint IN mints
 )
 SELECT
     /* block */
@@ -182,7 +197,7 @@ SELECT
     multisig_authority,
 
     /* amount */
-    t.amount AS amount,
+    toString(t.amount) AS amount,
     t.amount / pow(10, coalesce(t.decimals, d.decimals, 1)) AS value,
     coalesce(t.decimals, d.decimals) AS decimals,
 
@@ -194,7 +209,6 @@ SELECT
     /* network */
     {network:String} AS network
 FROM filtered_transfers AS t
-LEFT JOIN {db_accounts:Identifier}.decimals_state AS d USING (mint)
-LEFT JOIN {db_metadata:Identifier}.metadata_mint_state AS mm USING (mint)
-LEFT JOIN {db_metadata:Identifier}.metadata_view AS m USING (metadata)
+LEFT JOIN metadata AS m USING (mint)
+LEFT JOIN decimals AS d USING (mint)
 ORDER BY timestamp DESC, block_num DESC, transaction_index DESC, instruction_index DESC
