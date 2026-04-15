@@ -26,6 +26,15 @@ import {
     pageSchema,
     paginationQuerySchema,
     paginationResponseSchema,
+    polymarketConditionIdSchema,
+    polymarketEventTypeSchema,
+    polymarketMarketPositionSortBySchema,
+    polymarketMarketSortBySchema,
+    polymarketPositionSortBySchema,
+    polymarketSlugSchema,
+    polymarketTokenIdSchema,
+    polymarketUserIntervalSchema,
+    polymarketUserSortBySchema,
     serverErrorResponseSchema,
     statisticsResponseSchema,
     svmAddress,
@@ -1081,6 +1090,120 @@ describe('createQuerySchema', () => {
 
             const result = schema.parse({ network: 'solana' });
             expect(result.network).toBe('solana');
+        });
+    });
+});
+
+describe('Polymarket schemas', () => {
+    describe('polymarketConditionIdSchema', () => {
+        it('should accept valid condition ID', () => {
+            expect(
+                polymarketConditionIdSchema.parse('0x9708334534b504e2025a5a6af92f8600808c10be577e5066f920c40625fbec16')
+            ).toBe('0x9708334534b504e2025a5a6af92f8600808c10be577e5066f920c40625fbec16');
+        });
+
+        it('should lowercase uppercase hex', () => {
+            expect(
+                polymarketConditionIdSchema.parse('0x9708334534B504E2025A5A6AF92F8600808C10BE577E5066F920C40625FBEC16')
+            ).toBe('0x9708334534b504e2025a5a6af92f8600808c10be577e5066f920c40625fbec16');
+        });
+
+        it('should reject short hex', () => {
+            expect(() => polymarketConditionIdSchema.parse('0x9708')).toThrow();
+        });
+
+        it('should reject without 0x prefix', () => {
+            expect(() =>
+                polymarketConditionIdSchema.parse('9708334534b504e2025a5a6af92f8600808c10be577e5066f920c40625fbec16')
+            ).toThrow();
+        });
+    });
+
+    describe('polymarketTokenIdSchema', () => {
+        it('should accept numeric string', () => {
+            expect(
+                polymarketTokenIdSchema.parse(
+                    '53342136288932702007624506186417846874594504126387502748453102780630218207922'
+                )
+            ).toBe('53342136288932702007624506186417846874594504126387502748453102780630218207922');
+        });
+
+        it('should reject hex string', () => {
+            expect(() => polymarketTokenIdSchema.parse('0xabc123')).toThrow();
+        });
+
+        it('should reject empty string', () => {
+            expect(() => polymarketTokenIdSchema.parse('')).toThrow();
+        });
+    });
+
+    describe('polymarketSlugSchema', () => {
+        it('should accept valid slug', () => {
+            expect(polymarketSlugSchema.parse('will-bitcoin-reach-150k-in-january-2026')).toBe(
+                'will-bitcoin-reach-150k-in-january-2026'
+            );
+        });
+
+        it('should reject slug starting with hyphen', () => {
+            expect(() => polymarketSlugSchema.parse('-invalid-slug')).toThrow();
+        });
+
+        it('should reject uppercase', () => {
+            expect(() => polymarketSlugSchema.parse('Invalid-Slug')).toThrow();
+        });
+    });
+
+    describe('polymarketEventTypeSchema', () => {
+        it('should accept all valid types', () => {
+            expect(polymarketEventTypeSchema.parse('trade')).toBe('trade');
+            expect(polymarketEventTypeSchema.parse('split')).toBe('split');
+            expect(polymarketEventTypeSchema.parse('merge')).toBe('merge');
+            expect(polymarketEventTypeSchema.parse('redeem')).toBe('redeem');
+        });
+
+        it('should reject invalid type', () => {
+            expect(() => polymarketEventTypeSchema.parse('swap')).toThrow();
+        });
+    });
+
+    describe('polymarketSortBySchemas', () => {
+        it('market sort should accept volume, end_date, start_date', () => {
+            expect(polymarketMarketSortBySchema.parse('volume')).toBe('volume');
+            expect(polymarketMarketSortBySchema.parse('end_date')).toBe('end_date');
+            expect(polymarketMarketSortBySchema.parse('start_date')).toBe('start_date');
+        });
+
+        it('market position sort should not include current_price', () => {
+            expect(() => polymarketMarketPositionSortBySchema.parse('current_price')).toThrow();
+        });
+
+        it('user position sort should include current_price', () => {
+            expect(polymarketPositionSortBySchema.parse('current_price')).toBe('current_price');
+        });
+
+        it('user sort should accept total_volume, realized_pnl, unrealized_pnl, total_pnl, transactions', () => {
+            expect(polymarketUserSortBySchema.parse('total_volume')).toBe('total_volume');
+            expect(polymarketUserSortBySchema.parse('realized_pnl')).toBe('realized_pnl');
+            expect(polymarketUserSortBySchema.parse('unrealized_pnl')).toBe('unrealized_pnl');
+            expect(polymarketUserSortBySchema.parse('total_pnl')).toBe('total_pnl');
+            expect(polymarketUserSortBySchema.parse('transactions')).toBe('transactions');
+        });
+
+        it('user sort should reject invalid values', () => {
+            expect(() => polymarketUserSortBySchema.parse('volume')).toThrow();
+            expect(() => polymarketUserSortBySchema.parse('pnl')).toThrow();
+        });
+
+        it('user interval should transform to minutes', () => {
+            expect(polymarketUserIntervalSchema.parse('1h')).toBe(60);
+            expect(polymarketUserIntervalSchema.parse('1d')).toBe(1440);
+            expect(polymarketUserIntervalSchema.parse('1w')).toBe(10080);
+            expect(polymarketUserIntervalSchema.parse('30d')).toBe(43200);
+        });
+
+        it('user interval should reject invalid values', () => {
+            expect(() => polymarketUserIntervalSchema.parse('4h')).toThrow();
+            expect(() => polymarketUserIntervalSchema.parse('ALL')).toThrow();
         });
     });
 });
