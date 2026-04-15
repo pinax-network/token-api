@@ -1,74 +1,52 @@
-WITH ohlc_prices AS (
+WITH ohlc AS
+(
     SELECT
-        /* bar interval */
-        timestamp,
-        interval_min,
-
-        /* timestamp & block number */
-        min(min_timestamp) as min_timestamp,
-        max(max_timestamp) as max_timestamp,
-        min(min_block_num) as min_block_num,
-        max(max_block_num) as max_block_num,
-
-        /* DEX identity */
-        program_id,
-        amm,
-        amm_pool,
-
-        /* Aggregate */
-        argMinMerge(open0) AS open0,
-        quantileDeterministicMerge(0.95)(quantile0) as high_quantile0,
-        quantileDeterministicMerge(0.05)(quantile0) as low_quantile0,
-        argMaxMerge(close0) AS close0,
-
-        /* volume */
-        sum(gross_volume0) AS gross_volume0,
-        sum(gross_volume1) AS gross_volume1,
-        sum(net_flow0) AS net_flow0,
-        sum(net_flow1) AS net_flow1,
-
-        /* universal */
-        sum(transactions) as transactions
-    FROM {db_dex:Identifier}.state_ohlc_prices
-    GROUP BY
-        interval_min,
-        program_id, amm, amm_pool,
-        timestamp
-)
-SELECT
-    /* Time */
-    o.timestamp AS datetime,
-
-    /* DEX identity */
-    program_id,
-    amm,
-    amm_pool,
-
-    /* OHLC */
-    o.open0 AS open,
-    greatest(
-        o.high_quantile0,
-        o.open0,
-        o.close0
-    ) AS high,
-    least(
-        o.low_quantile0,
-        o.open0,
-        o.close0
-    ) AS low,
-    o.close0 AS close,
-
-    /* Volume */
-    o.gross_volume0 AS volume,
-
-    /* Universal */
-    transactions
-FROM ohlc_prices o
-WHERE
-        interval_min = {interval: UInt64}
+        if(
+            toTime(toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)) = toDateTime('1970-01-02 00:00:00'),
+            toDate(toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)),
+            toStartOfInterval(o.timestamp, INTERVAL {interval:UInt64} MINUTE)
+        ) AS datetime,
+        toString(o.amm) AS amm,
+        toString(o.amm_pool) AS amm_pool,
+        toString(o.mint0) AS token0,
+        toString(o.mint1) AS token1,
+        argMinMerge(open0) AS open_raw,
+        quantileDeterministicMerge(0.95)(quantile0) AS high_raw,
+        quantileDeterministicMerge(0.05)(quantile0) AS low_raw,
+        argMaxMerge(close0) AS close_raw,
+        sum(gross_volume1) AS volume,
+        uniqMerge(uniq_user) AS uaw,
+        sum(transactions) AS transactions,
+        token0 IN {stablecoin_contracts:Array(String)} AS is_stablecoin
+    FROM {db_dex:Identifier}.state_ohlc_prices AS o
+    WHERE interval_min = {interval: UInt64}
     AND amm_pool = {amm_pool: String}
     AND (isNull({start_time:Nullable(UInt64)}) OR timestamp >= toDateTime({start_time:Nullable(UInt64)}))
     AND (isNull({end_time:Nullable(UInt64)}) OR timestamp <= toDateTime({end_time:Nullable(UInt64)}))
-ORDER BY timestamp DESC
-LIMIT   {limit:UInt64}
-OFFSET  {offset:UInt64}
+    GROUP BY token0, token1, amm, amm_pool, datetime
+    LIMIT {limit: UInt64}
+    OFFSET {offset: UInt64}
+)
+SELECT
+    datetime,
+    amm,
+    amm_pool,
+    token0,
+    coalesce(
+        (SELECT decimals FROM {db_accounts:Identifier}.decimals_state WHERE mint IN (SELECT token0 FROM ohlc) AND decimals != 0),
+        9
+    ) AS token0_decimals,
+    token1,
+    coalesce(
+        (SELECT decimals FROM {db_accounts:Identifier}.decimals_state WHERE mint IN (SELECT token1 FROM ohlc) AND decimals != 0),
+        9
+    ) AS token1_decimals,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/open_raw, open_raw) AS open,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/low_raw, high_raw) AS high,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/high_raw, low_raw) AS low,
+    pow(10, -(token1_decimals - token0_decimals)) * if(is_stablecoin, 1/close_raw, close_raw) AS close,
+    pow(10, -(token1_decimals)) * toFloat64(volume) * if(is_stablecoin, close, 1) AS volume,
+    uaw,
+    transactions
+FROM ohlc AS o
+ORDER BY datetime DESC;
