@@ -62,6 +62,10 @@ app.get(
                 { name: 'TVM Tokens (ERC-20)' },
                 { name: 'TVM Tokens (Native)' },
                 { name: 'TVM DEXs' },
+                // Polymarket
+                { name: 'Polymarket Markets' },
+                { name: 'Polymarket Platform' },
+                { name: 'Polymarket Users' },
                 // Monitoring
                 { name: 'Monitoring' },
             ],
