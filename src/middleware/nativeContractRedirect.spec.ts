@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import type { Context } from 'hono';
 import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../types/examples.js';
-import { nativeContractRedirect } from './nativeContractRedirect.js';
+import { nativeContractRedirect, nativeMintRedirect } from './nativeContractRedirect.js';
 
 // Helper function to create a mock Hono context
 function createMockContext(url: string): Context {
@@ -129,5 +129,71 @@ describe('nativeContractRedirect middleware', () => {
             expect(ctx.redirect).not.toHaveBeenCalled();
             expect(next).toHaveBeenCalledTimes(1);
         });
+    });
+
+    describe('redirect URL format', () => {
+        it('should use relative path (no scheme/host) for redirect behind reverse proxy', async () => {
+            const url = `http://token-api-http-svc:80/v1/evm/transfers?network=mainnet&contract=${EVM_CONTRACT_NATIVE_EXAMPLE}`;
+            const ctx = createMockContext(url);
+            const next = createMockNext();
+
+            await nativeContractRedirect(ctx, next);
+
+            const redirectedUrl = (ctx.redirect as any).mock.calls[0][0];
+            expect(redirectedUrl).not.toContain('http://');
+            expect(redirectedUrl).not.toContain('https://');
+            expect(redirectedUrl).toBe('/v1/evm/transfers/native?network=mainnet');
+        });
+    });
+});
+
+describe('nativeMintRedirect middleware', () => {
+    it('should redirect native SOL system program to /native endpoint', async () => {
+        const url =
+            'https://api.example.com/v1/svm/transfers?network=solana&mint=11111111111111111111111111111111&limit=1';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).toHaveBeenCalledTimes(1);
+        const redirectedUrl = (ctx.redirect as any).mock.calls[0][0];
+        expect(redirectedUrl).toBe('/v1/svm/transfers/native?network=solana&limit=1');
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should use relative path behind reverse proxy', async () => {
+        const url = 'http://localhost:8000/v1/svm/holders?network=solana&mint=11111111111111111111111111111111&limit=5';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        const redirectedUrl = (ctx.redirect as any).mock.calls[0][0];
+        expect(redirectedUrl).not.toContain('http://');
+        expect(redirectedUrl).toBe('/v1/svm/holders/native?network=solana&limit=5');
+    });
+
+    it('should not redirect for wSOL mint', async () => {
+        const url =
+            'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111112&limit=1';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not redirect when no mint parameter', async () => {
+        const url = 'https://api.example.com/v1/svm/transfers?network=solana&limit=1';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
     });
 });

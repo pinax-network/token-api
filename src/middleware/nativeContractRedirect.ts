@@ -15,34 +15,19 @@ import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../types/examples.js';
  * @param next - Next middleware function
  */
 export async function nativeContractRedirect(c: Context, next: Next) {
-    // Get raw query parameter value
     const url = new URL(c.req.url);
     const contractParam = url.searchParams.get('contract');
 
-    // Check if contract param is a single value (not comma-separated) matching native address
-    // Note: The comma check is intentional - the createQuerySchema batching feature uses comma
-    // as the separator for multiple values (see zod.ts line 621). This ensures we only redirect
-    // single-value requests, not batched requests with multiple contracts.
-
-    // EVM
     if (
         contractParam &&
         contractParam.toLowerCase() === EVM_CONTRACT_NATIVE_EXAMPLE.toLowerCase() &&
         !contractParam.includes(',')
     ) {
-        // Remove contract parameter
         url.searchParams.delete('contract');
-
-        // Construct redirect URL to /native endpoint
-        const currentPath = url.pathname;
-        const nativePath = `${currentPath}/native`;
-        url.pathname = nativePath;
-
-        // Redirect to native endpoint with modified query params
-        return c.redirect(url.toString());
+        const query = url.searchParams.toString();
+        return c.redirect(`${url.pathname}/native${query ? `?${query}` : ''}`);
     }
 
-    // Continue with normal processing
     await next();
 }
 
@@ -60,34 +45,19 @@ export async function nativeContractRedirect(c: Context, next: Next) {
  * @param next - Next middleware function
  */
 export async function nativeMintRedirect(c: Context, next: Next) {
-    // Get raw query parameter value
     const url = new URL(c.req.url);
     const mintParam = url.searchParams.get('mint');
 
-    // Check if mint param is a single value (not comma-separated) matching native address
-    // Note: The comma check is intentional - the createQuerySchema batching feature uses comma
-    // as the separator for multiple values (see zod.ts line 621). This ensures we only redirect
-    // single-value requests, not batched requests with multiple mints.
-
-    // SVM
     if (
         mintParam &&
         (mintParam.toLowerCase() === '11111111111111111111111111111111' ||
             mintParam.toLowerCase() === 'sol11111111111111111111111111111111') &&
         !mintParam.includes(',')
     ) {
-        // Remove mint parameter
         url.searchParams.delete('mint');
-
-        // Construct redirect URL to /native endpoint
-        const currentPath = url.pathname;
-        const nativePath = `${currentPath}/native`;
-        url.pathname = nativePath;
-
-        // Redirect to native endpoint with modified query params
-        return c.redirect(url.toString());
+        const query = url.searchParams.toString();
+        return c.redirect(`${url.pathname}/native${query ? `?${query}` : ''}`);
     }
 
-    // Continue with normal processing
     await next();
 }
