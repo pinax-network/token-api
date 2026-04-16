@@ -42,7 +42,7 @@ const responseSchema = apiUsageResponseSchema.extend({
             address: svmAddressSchema,
             mint: svmMintSchema,
 
-            amount: z.number(),
+            amount: z.string(),
             value: z.number(),
             decimals: z.number().nullable(),
 
