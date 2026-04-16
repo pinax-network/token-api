@@ -16,13 +16,10 @@ import { EVM_CONTRACT_NATIVE_EXAMPLE } from '../types/examples.js';
  */
 export async function nativeContractRedirect(c: Context, next: Next) {
     const url = new URL(c.req.url);
-    const contractParam = url.searchParams.get('contract');
+    const contractValues = url.searchParams.getAll('contract');
+    const only = contractValues.length === 1 ? contractValues[0] : undefined;
 
-    if (
-        contractParam &&
-        contractParam.toLowerCase() === EVM_CONTRACT_NATIVE_EXAMPLE.toLowerCase() &&
-        !contractParam.includes(',')
-    ) {
+    if (only && !only.includes(',') && only.toLowerCase() === EVM_CONTRACT_NATIVE_EXAMPLE.toLowerCase()) {
         url.searchParams.delete('contract');
         const query = url.searchParams.toString();
         return c.redirect(`${url.pathname}/native${query ? `?${query}` : ''}`);
@@ -52,9 +49,10 @@ const NATIVE_MINT_ALIASES = new Set([
  */
 export async function nativeMintRedirect(c: Context, next: Next) {
     const url = new URL(c.req.url);
-    const mintParam = url.searchParams.get('mint');
+    const mintValues = url.searchParams.getAll('mint');
+    const only = mintValues.length === 1 ? mintValues[0] : undefined;
 
-    if (mintParam && !mintParam.includes(',') && NATIVE_MINT_ALIASES.has(mintParam.toLowerCase())) {
+    if (only && !only.includes(',') && NATIVE_MINT_ALIASES.has(only.toLowerCase())) {
         url.searchParams.delete('mint');
         const query = url.searchParams.toString();
         return c.redirect(`${url.pathname}/native${query ? `?${query}` : ''}`);

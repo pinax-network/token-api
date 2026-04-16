@@ -129,6 +129,17 @@ describe('nativeContractRedirect middleware', () => {
             expect(ctx.redirect).not.toHaveBeenCalled();
             expect(next).toHaveBeenCalledTimes(1);
         });
+
+        it('should continue normal processing when contract is repeated (batched as array)', async () => {
+            const url = `https://api.example.com/v1/evm/transfers?network=mainnet&contract=${EVM_CONTRACT_NATIVE_EXAMPLE}&contract=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`;
+            const ctx = createMockContext(url);
+            const next = createMockNext();
+
+            await nativeContractRedirect(ctx, next);
+
+            expect(ctx.redirect).not.toHaveBeenCalled();
+            expect(next).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('redirect URL format', () => {
@@ -199,6 +210,18 @@ describe('nativeMintRedirect middleware', () => {
     it('should not redirect when mint is comma-separated (multiple values)', async () => {
         const url =
             'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111111,So11111111111111111111111111111111111111112';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not redirect when mint is repeated (batched as array)', async () => {
+        const url =
+            'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111111&mint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
         const ctx = createMockContext(url);
         const next = createMockNext();
 
