@@ -1,22 +1,22 @@
 SELECT
     p.user,
-    sum(p.scaled_buy_cost) AS buy_cost,
-    sum(p.scaled_sell_revenue) AS sell_revenue,
-    sum(p.scaled_realized_pnl) AS realized_pnl,
-    if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * coalesce(lp.close, 0), 0) AS unrealized_pnl,
-    sum(p.scaled_realized_pnl) + if(sum(p.scaled_net_amount) > 0, sum(p.scaled_net_amount) * coalesce(lp.close, 0), 0) AS total_pnl,
-    if(sum(p.scaled_buy_cost) > 0, sum(p.scaled_realized_pnl) / sum(p.scaled_buy_cost), 0) AS pnl_pct,
-    sum(p.scaled_net_amount) AS net_position,
-    if(sum(p.scaled_buy_amount) > 0, sum(p.scaled_buy_cost) / sum(p.scaled_buy_amount), 0) AS avg_price,
+    toFloat64(sum(p.buy_cost)) / 1000000. AS buy_cost,
+    toFloat64(sum(p.sell_revenue)) / 1000000. AS sell_revenue,
+    toFloat64(sum(p.sell_revenue) - sum(p.buy_cost)) / 1000000. AS realized_pnl,
+    if(toFloat64(sum(p.net_amount)) / 1000000. > 0, toFloat64(sum(p.net_amount)) / 1000000. * coalesce(lp.close, 0), 0) AS unrealized_pnl,
+    toFloat64(sum(p.sell_revenue) - sum(p.buy_cost)) / 1000000. + if(toFloat64(sum(p.net_amount)) / 1000000. > 0, toFloat64(sum(p.net_amount)) / 1000000. * coalesce(lp.close, 0), 0) AS total_pnl,
+    if(sum(p.buy_cost) > 0, toFloat64(sum(p.sell_revenue) - sum(p.buy_cost)) / toFloat64(sum(p.buy_cost)), 0) AS pnl_pct,
+    toFloat64(sum(p.net_amount)) / 1000000. AS net_position,
+    if(toFloat64(sum(p.buy_amount)) > 0, toFloat64(sum(p.buy_cost)) / toFloat64(sum(p.buy_amount)), 0) AS avg_price,
     coalesce(lp.close, 0) AS current_price,
-    sum(p.scaled_net_amount) * coalesce(lp.close, 0) AS position_value,
-    toBool(sum(p.scaled_net_amount) != 0) AS active,
+    toFloat64(sum(p.net_amount)) / 1000000. * coalesce(lp.close, 0) AS position_value,
+    toBool(sum(p.net_amount) != 0) AS active,
     sum(p.buy_count) AS buys,
     sum(p.sell_count) AS sells,
     sum(p.transactions) AS transactions,
     CAST((nullIf(a.condition_id, ''), nullIf(a.market_slug, ''), toString(p.token_id), nullIf(a.outcome_label, ''), a.closed)
         AS Tuple(condition_id Nullable(String), market_slug Nullable(String), token_id String, outcome_label Nullable(String), closed Bool)) AS market
-FROM {db_polymarket:Identifier}.user_position p
+FROM {db_polymarket:Identifier}.state_user_position p
 LEFT JOIN {db_scraper:Identifier}.polymarket_markets_by_asset_id a
     ON a.asset_id = p.token_id
 LEFT JOIN {db_polymarket:Identifier}.state_latest_price lp FINAL
