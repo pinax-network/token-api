@@ -52,7 +52,7 @@ SELECT
     b.mint as mint,
 
     /* amount */
-    b.amount AS amount,
+    String(b.amount) AS amount,
     b.amount / pow(10, coalesce(b.decimals, d.decimals, 1)) AS value,
     coalesce(b.decimals, d.decimals) AS decimals,
 
