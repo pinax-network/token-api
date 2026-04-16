@@ -58,7 +58,7 @@ const openapi = describeRoute(
         description:
             'Returns market metadata including question, outcomes with token IDs, volume, and status. Each market has exactly two outcomes (binary); multi-outcome scenarios are modeled as multiple markets grouped under one event.\n\nUse this to discover `token_id` values needed for OHLCV and position queries, or to resolve a slug to identifiers. When no identifier is provided, returns a paginated list for discovery.',
         tags: ['Polymarket Markets'],
-        security: [{ bearerAuth: [] }],
+        security: [],
         responses: {
             200: {
                 description: 'Successful Response',
