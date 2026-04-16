@@ -25,7 +25,7 @@ SELECT
     'So11111111111111111111111111111111111111111' AS mint,
 
     /* amount */
-    String(b.amount) AS amount,
+    toString(b.amount) AS amount,
     b.amount / pow(10, 9) AS value,
     9 as decimals,
 
