@@ -39,6 +39,13 @@ minutes_union AS
 
     SELECT minute
     FROM {db_transfers:Identifier}.transfers
+    WHERE (notEmpty({authority:Array(String)}) AND authority IN {authority:Array(String)})
+    GROUP BY minute
+
+    UNION ALL
+
+    SELECT minute
+    FROM {db_transfers:Identifier}.transfers
     WHERE (notEmpty({mint:Array(String)}) AND mint IN {mint:Array(String)})
     GROUP BY minute
 
