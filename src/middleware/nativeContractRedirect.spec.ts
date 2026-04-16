@@ -129,6 +129,17 @@ describe('nativeContractRedirect middleware', () => {
             expect(ctx.redirect).not.toHaveBeenCalled();
             expect(next).toHaveBeenCalledTimes(1);
         });
+
+        it('should continue normal processing when contract is repeated (batched as array)', async () => {
+            const url = `https://api.example.com/v1/evm/transfers?network=mainnet&contract=${EVM_CONTRACT_NATIVE_EXAMPLE}&contract=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48`;
+            const ctx = createMockContext(url);
+            const next = createMockNext();
+
+            await nativeContractRedirect(ctx, next);
+
+            expect(ctx.redirect).not.toHaveBeenCalled();
+            expect(next).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('redirect URL format', () => {
@@ -148,19 +159,29 @@ describe('nativeContractRedirect middleware', () => {
 });
 
 describe('nativeMintRedirect middleware', () => {
-    it('should redirect native SOL system program to /native endpoint', async () => {
-        const url =
-            'https://api.example.com/v1/svm/transfers?network=solana&mint=11111111111111111111111111111111&limit=1';
-        const ctx = createMockContext(url);
-        const next = createMockNext();
+    const nativeAliases = [
+        '11111111111111111111111111111111',
+        'So11111111111111111111111111111111111111111',
+        'so11111111111111111111111111111111111111111',
+        'SO11111111111111111111111111111111111111111',
+        'sol11111111111111111111111111111111',
+        'SOL11111111111111111111111111111111',
+    ];
 
-        await nativeMintRedirect(ctx, next);
+    for (const alias of nativeAliases) {
+        it(`should redirect native mint alias ${alias} to /native endpoint`, async () => {
+            const url = `https://api.example.com/v1/svm/transfers?network=solana&mint=${alias}&limit=1`;
+            const ctx = createMockContext(url);
+            const next = createMockNext();
 
-        expect(ctx.redirect).toHaveBeenCalledTimes(1);
-        const redirectedUrl = (ctx.redirect as any).mock.calls[0][0];
-        expect(redirectedUrl).toBe('/v1/svm/transfers/native?network=solana&limit=1');
-        expect(next).not.toHaveBeenCalled();
-    });
+            await nativeMintRedirect(ctx, next);
+
+            expect(ctx.redirect).toHaveBeenCalledTimes(1);
+            const redirectedUrl = (ctx.redirect as any).mock.calls[0][0];
+            expect(redirectedUrl).toBe('/v1/svm/transfers/native?network=solana&limit=1');
+            expect(next).not.toHaveBeenCalled();
+        });
+    }
 
     it('should use relative path behind reverse proxy', async () => {
         const url = 'http://localhost:8000/v1/svm/holders?network=solana&mint=11111111111111111111111111111111&limit=5';
@@ -174,9 +195,33 @@ describe('nativeMintRedirect middleware', () => {
         expect(redirectedUrl).toBe('/v1/svm/holders/native?network=solana&limit=5');
     });
 
-    it('should not redirect for wSOL mint', async () => {
+    it('should not redirect for wSOL mint (real SPL token, ends in 2)', async () => {
         const url =
             'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111112&limit=1';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not redirect when mint is comma-separated (multiple values)', async () => {
+        const url =
+            'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111111,So11111111111111111111111111111111111111112';
+        const ctx = createMockContext(url);
+        const next = createMockNext();
+
+        await nativeMintRedirect(ctx, next);
+
+        expect(ctx.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not redirect when mint is repeated (batched as array)', async () => {
+        const url =
+            'https://api.example.com/v1/svm/transfers?network=solana&mint=So11111111111111111111111111111111111111111&mint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
         const ctx = createMockContext(url);
         const next = createMockNext();
 
