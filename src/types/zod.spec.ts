@@ -55,6 +55,7 @@ import {
     svmTransaction,
     svmTransactionSchema,
     timestampSchema,
+    toSvmProtocolDbValue,
     tvmAddress,
     tvmAddressSchema,
     tvmContractSchema,
@@ -268,10 +269,24 @@ describe('Protocol Schemas', () => {
     describe('svmProtocolSchema', () => {
         it('should accept valid protocols', () => {
             expect(svmProtocolSchema.parse('raydium_amm_v4')).toBe('raydium_amm_v4');
+            expect(svmProtocolSchema.parse('meteora_dlmm')).toBe('meteora_dlmm');
         });
 
         it('should reject invalid protocols', () => {
             expect(() => svmProtocolSchema.parse('invalid')).toThrow();
+            expect(() => svmProtocolSchema.parse('meteora_dllm')).toThrow();
+        });
+    });
+
+    describe('toSvmProtocolDbValue', () => {
+        it('should map meteora_dlmm to the legacy storage value', () => {
+            expect(toSvmProtocolDbValue('meteora_dlmm')).toBe('meteora_dllm');
+        });
+
+        it('should pass other values through unchanged', () => {
+            expect(toSvmProtocolDbValue('raydium_amm_v4')).toBe('raydium_amm_v4');
+            expect(toSvmProtocolDbValue(undefined)).toBe(undefined);
+            expect(toSvmProtocolDbValue(null)).toBe(null);
         });
     });
 
