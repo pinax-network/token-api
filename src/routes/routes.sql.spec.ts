@@ -311,6 +311,21 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data.length).toBeGreaterThan(0);
     });
 
+    it('GET /v1/evm/tokens/metadata', async () => {
+        if (!hasEvmBalances) return;
+        const { response, body } = await fetchRoute(
+            `/v1/evm/tokens/metadata?network=${evmNetwork}&contract=${EVM_CONTRACT_USDT_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('name');
+        expect(body.data[0]).toHaveProperty('symbol');
+        expect(body.data[0]).toHaveProperty('decimals');
+        expect(body.data[0]).not.toHaveProperty('circulating_supply');
+        expect(body.data[0]).not.toHaveProperty('holders');
+    });
+
     it('GET /v1/evm/tokens/native', async () => {
         if (!hasEvmBalances) return;
         const { response, body } = await fetchRoute(`/v1/evm/tokens/native?network=${evmNetwork}`);
@@ -330,6 +345,17 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(body.data.length).toBeGreaterThan(0);
     });
 
+    it('GET /v1/svm/tokens/metadata', async () => {
+        if (!hasSvmBalances) return;
+        const { response, body } = await fetchRoute(
+            `/v1/svm/tokens/metadata?network=${svmNetwork}&mint=${SVM_MINT_WSOL_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data[0]).not.toHaveProperty('circulating_supply');
+        expect(body.data[0]).not.toHaveProperty('holders');
+    });
+
     // --- TVM Tokens ---
     it('GET /v1/tvm/tokens', async () => {
         if (!hasTvmTransfers) return;
@@ -339,6 +365,20 @@ describe.skipIf(!DB_TESTS)('SQL queries', () => {
         expect(response.status).toBe(200);
         expect(body.data).toBeArray();
         expect(body.data.length).toBeGreaterThan(0);
+    });
+
+    it('GET /v1/tvm/tokens/metadata', async () => {
+        if (!hasTvmTransfers) return;
+        const { response, body } = await fetchRoute(
+            `/v1/tvm/tokens/metadata?network=${tvmNetwork}&contract=${TVM_CONTRACT_USDT_EXAMPLE}`
+        );
+        expect(response.status).toBe(200);
+        expect(body.data).toBeArray();
+        expect(body.data.length).toBeGreaterThan(0);
+        expect(body.data[0]).toHaveProperty('name');
+        expect(body.data[0]).toHaveProperty('symbol');
+        expect(body.data[0]).toHaveProperty('decimals');
+        expect(body.data[0]).not.toHaveProperty('total_transfers');
     });
 
     it('GET /v1/tvm/tokens/native', async () => {
