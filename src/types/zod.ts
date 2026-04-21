@@ -39,46 +39,53 @@ export const booleanFromString = z.preprocess((val, ctx) => {
     return z.NEVER;
 }, z.boolean());
 
+const EVM_ADDRESS_RE = /^(0[xX])?[0-9a-fA-F]{40}$/;
+const EVM_TX_RE = /^(0[xX])?[0-9a-fA-F]{64}$/;
+const SVM_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const SVM_SIGNATURE_RE = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+const TVM_ADDRESS_RE = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
+const TVM_TX_RE = /^[0-9a-fA-F]{64}$/;
+
 export const evmAddress = z.coerce
     .string()
-    .refine((val) => /^(0[xX])?[0-9a-fA-F]{40}$/.test(val), 'Invalid EVM address')
+    .refine((val) => EVM_ADDRESS_RE.test(val), 'Invalid EVM address')
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 40 ? `0x${addr}` : addr))
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'evm-address', pattern: EVM_ADDRESS_RE.source });
 
 export const evmTransaction = z.coerce
     .string()
-    .refine((val) => /^(0[xX])?[0-9a-fA-F]{64}$/.test(val), 'Invalid EVM transaction')
+    .refine((val) => EVM_TX_RE.test(val), 'Invalid EVM transaction')
     .transform((addr) => addr.toLowerCase())
     .transform((addr) => (addr.length === 64 ? `0x${addr}` : addr))
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'evm-tx-hash', pattern: EVM_TX_RE.source });
 
 export const svmAddress = z.coerce
     .string()
-    .refine((val) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val), 'Invalid SVM address')
+    .refine((val) => SVM_ADDRESS_RE.test(val), 'Invalid SVM address')
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'svm-address', pattern: SVM_ADDRESS_RE.source });
 
 export const svmTransaction = z.coerce
     .string()
-    .refine((val) => /^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(val), 'Invalid SVM transaction')
+    .refine((val) => SVM_SIGNATURE_RE.test(val), 'Invalid SVM transaction')
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'svm-signature', pattern: SVM_SIGNATURE_RE.source });
 
 export const tvmAddress = z.coerce
     .string()
-    .refine((val) => /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(val), 'Invalid TVM address')
+    .refine((val) => TVM_ADDRESS_RE.test(val), 'Invalid TVM address')
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'tvm-address', pattern: TVM_ADDRESS_RE.source });
 
 export const tvmTransaction = z.coerce
     .string()
-    .refine((val) => /^[0-9a-fA-F]{64}$/.test(val), 'Invalid TVM transaction hash')
+    .refine((val) => TVM_TX_RE.test(val), 'Invalid TVM transaction hash')
     .transform((hash) => hash.toLowerCase())
     .pipe(z.string())
-    .meta({ type: 'string' });
+    .meta({ type: 'string', format: 'tvm-tx-hash', pattern: TVM_TX_RE.source });
 
 export const version = z.coerce.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 export const commit = z.coerce.string().regex(/^[0-9a-f]{7}$/);

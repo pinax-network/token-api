@@ -221,6 +221,35 @@ describe('Base Validation Schemas', () => {
     });
 });
 
+describe('OpenAPI metadata projection', () => {
+    const cases: Array<[string, z.ZodType, string, string]> = [
+        ['evmAddress', evmAddress, 'evm-address', '^(0[xX])?[0-9a-fA-F]{40}$'],
+        ['evmTransaction', evmTransaction, 'evm-tx-hash', '^(0[xX])?[0-9a-fA-F]{64}$'],
+        ['svmAddress', svmAddress, 'svm-address', '^[1-9A-HJ-NP-Za-km-z]{32,44}$'],
+        ['svmTransaction', svmTransaction, 'svm-signature', '^[1-9A-HJ-NP-Za-km-z]{87,88}$'],
+        ['tvmAddress', tvmAddress, 'tvm-address', '^T[1-9A-HJ-NP-Za-km-z]{33}$'],
+        ['tvmTransaction', tvmTransaction, 'tvm-tx-hash', '^[0-9a-fA-F]{64}$'],
+    ];
+
+    for (const [name, schema, expectedFormat, expectedPattern] of cases) {
+        it(`${name} projects format and pattern into JSON Schema`, () => {
+            const json = z.toJSONSchema(schema, { io: 'input' }) as Record<string, unknown>;
+            expect(json.type).toBe('string');
+            expect(json.format).toBe(expectedFormat);
+            expect(json.pattern).toBe(expectedPattern);
+        });
+    }
+
+    it('wrapper schemas inherit the base format', () => {
+        const contract = z.toJSONSchema(evmContractSchema, { io: 'input' }) as Record<string, unknown>;
+        expect(contract.format).toBe('evm-address');
+        const mint = z.toJSONSchema(svmMintSchema, { io: 'input' }) as Record<string, unknown>;
+        expect(mint.format).toBe('svm-address');
+        const tvmContract = z.toJSONSchema(tvmContractSchema, { io: 'input' }) as Record<string, unknown>;
+        expect(tvmContract.format).toBe('tvm-address');
+    });
+});
+
 describe('Network Schemas', () => {
     describe('evmNetworkIdSchema', () => {
         it('should accept valid EVM network IDs', () => {
