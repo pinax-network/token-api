@@ -24,10 +24,13 @@ Authorization: Bearer <your-token>
 
 An `X-Api-Key: <your-api-key>` header is accepted as an alternative.
 
-**Unauthenticated endpoints** (no header required):
+**Unauthenticated endpoints** (no header required, no usage charge):
 - `GET /v1/health`
 - `GET /v1/version`
 - `GET /v1/networks`
+- `GET /v1/evm/dexes`
+- `GET /v1/svm/dexes`
+- `GET /v1/tvm/dexes`
 - `GET /v1/polymarket/markets`
 
 ## Common patterns
