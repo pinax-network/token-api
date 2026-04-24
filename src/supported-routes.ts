@@ -19,6 +19,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     { path: '/v1/svm/holders', chain: 'svm', requires: ['balances'] },
     { path: '/v1/svm/owner', chain: 'svm', requires: ['balances'] },
     { path: '/v1/svm/tokens', chain: 'svm', requires: ['balances'] },
+    { path: '/v1/svm/tokens/metadata', chain: 'svm', requires: ['balances'] },
     // SVM - Tokens (Native)
     { path: '/v1/svm/balances/native', chain: 'svm', requires: ['balances'] },
     // SVM - DEXs
@@ -31,6 +32,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     { path: '/v1/evm/balances', chain: 'evm', requires: ['balances'] },
     { path: '/v1/evm/holders', chain: 'evm', requires: ['balances'] },
     { path: '/v1/evm/tokens', chain: 'evm', requires: ['balances', 'transfers'] },
+    { path: '/v1/evm/tokens/metadata', chain: 'evm', requires: ['balances'] },
     { path: '/v1/evm/balances/historical', chain: 'evm', requires: ['balances'] },
     // EVM - Tokens (Native)
     { path: '/v1/evm/transfers/native', chain: 'evm', requires: ['transfers'] },
@@ -53,6 +55,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     // TVM - Tokens
     { path: '/v1/tvm/transfers', chain: 'tvm', requires: ['transfers'] },
     { path: '/v1/tvm/tokens', chain: 'tvm', requires: ['transfers'] },
+    { path: '/v1/tvm/tokens/metadata', chain: 'tvm', requires: ['transfers'] },
     // TVM - Tokens (Native)
     { path: '/v1/tvm/transfers/native', chain: 'tvm', requires: ['transfers'] },
     { path: '/v1/tvm/tokens/native', chain: 'tvm', requires: ['transfers'] },

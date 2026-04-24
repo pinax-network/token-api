@@ -16,10 +16,13 @@ import health from './health.js';
 import networks from './networks.js';
 // Tokens
 import evmTokens from './tokens/evm.js';
+import evmTokensMetadata from './tokens/evm_metadata.js';
 import evmTokensNative from './tokens/evm_native.js';
 import svmTokens from './tokens/svm.js';
+import svmTokensMetadata from './tokens/svm_metadata.js';
 import svmTokensNative from './tokens/svm_native.js';
 import tvmTokens from './tokens/tvm.js';
+import tvmTokensMetadata from './tokens/tvm_metadata.js';
 import tvmTokensNative from './tokens/tvm_native.js';
 import version from './version.js';
 
@@ -88,6 +91,7 @@ router.use('/v1/*/holders/native', cacheControl());
 router.use('/v1/*/dexes', cacheControl());
 router.use('/v1/*/tokens', cacheControl());
 router.use('/v1/*/tokens/native', cacheControl());
+router.use('/v1/*/tokens/metadata', cacheControl());
 router.use('/v1/*/pools', cacheControl());
 router.use('/v1/*/pools/ohlc', cacheControl());
 router.use('/v1/*/nft/collections', cacheControl());
@@ -101,6 +105,7 @@ router.route('/v1/svm/balances', svmBalances);
 router.route('/v1/svm/holders', svmHolders);
 router.route('/v1/svm/owner', svmOwner);
 router.route('/v1/svm/tokens', svmTokens);
+router.route('/v1/svm/tokens/metadata', svmTokensMetadata);
 // SVM - Tokens (Native)
 router.route('/v1/svm/transfers/native', svmTransfersNative);
 router.route('/v1/svm/balances/native', svmBalancesNative);
@@ -118,6 +123,7 @@ router.route('/v1/evm/transfers', evmTransfers);
 router.route('/v1/evm/balances', evmBalances);
 router.route('/v1/evm/holders', evmHolders);
 router.route('/v1/evm/tokens', evmTokens);
+router.route('/v1/evm/tokens/metadata', evmTokensMetadata);
 router.route('/v1/evm/balances/historical', evmBalancesHistorical);
 // EVM - Tokens (Native)
 router.route('/v1/evm/transfers/native', evmTransfersNative);
@@ -143,6 +149,7 @@ router.route('/v1/tvm/transfers', tvmTransfers);
 // router.route('/v1/tvm/balances', tvmBalances);
 // router.route('/v1/tvm/holders', tvmHolders);
 router.route('/v1/tvm/tokens', tvmTokens);
+router.route('/v1/tvm/tokens/metadata', tvmTokensMetadata);
 // router.route('/v1/tvm/balances/historical', tvmBalancesHistorical);
 // TVM - Tokens (Native)
 router.route('/v1/tvm/transfers/native', tvmTransfersNative);
