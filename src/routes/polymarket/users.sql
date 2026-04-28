@@ -11,6 +11,6 @@ SELECT
     total_pnl,
     first_trade,
     last_trade
-FROM {db_polymarket:Identifier}.state_user
+FROM {db_polymarket:Identifier}.state_user FINAL
 WHERE interval_min = {interval_min:UInt32}
   AND (isNull({user:Nullable(String)}) OR user = {user:Nullable(String)})
