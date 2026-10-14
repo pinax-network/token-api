@@ -209,6 +209,38 @@ networks:
     });
 });
 
+describe('split balances key spellings', () => {
+    it('should ignore other spellings of the split keys, like any unknown key', () => {
+        const { path, cleanup } = writeYaml(`
+clusters:
+  a:
+    url: http://localhost:8123
+networks:
+  solana:
+    type: svm
+    cluster: a
+    balances: solana:svm-balances@v0.3.2
+    balancesNative: x
+    balances-erc-20: y
+  mainnet:
+    type: evm
+    cluster: a
+    balances-native: mainnet:evm-balances-native@v0.7.2
+    balancesNative: mainnet:evm-balances@v0.3.3
+`);
+        try {
+            const result = loadDbsConfig(path);
+            expect(result.balancesNativeDatabases).toEqual({
+                mainnet: { database: 'mainnet:evm-balances-native@v0.7.2', type: 'evm', cluster: 'a' },
+            });
+            expect(result.balancesErc20Databases).toEqual({});
+            expect(result.balancesDatabases.solana?.database).toBe('solana:svm-balances@v0.3.2');
+        } finally {
+            cleanup();
+        }
+    });
+});
+
 describe('evmBalancesDatabase', () => {
     const mapping = (database: string) => ({ database, type: 'evm', cluster: 'c' });
     const cfg = {

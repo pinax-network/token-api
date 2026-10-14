@@ -34,8 +34,8 @@ export interface NetworkDatabaseMapping {
 type DatabaseMap = Record<string, NetworkDatabaseMapping>;
 
 // Known database maps — add new entries here when onboarding new database types.
-// The generic parser populates all of these from YAML `${key}` → `${key}Databases`,
-// with kebab-case keys in camelCase (`balances-native` → `balancesNativeDatabases`).
+// The generic parser populates all of these from YAML `${key}` → `${key}Databases`;
+// the split EVM balances keys map explicitly (`balances-native` → `balancesNativeDatabases`).
 // `networkClusters` is the canonical network → cluster lookup; it does not
 // depend on any specific database map, so cluster routing keeps working when
 // a new database type is added without touching the routing layer.
@@ -77,12 +77,12 @@ function emptyConfig(): ParsedDbsConfig {
     };
 }
 
-/** Per-network keys of the split EVM balances databases. */
-const SPLIT_BALANCES_KEYS = ['balances-native', 'balances-erc20'] as const;
-
-function camelCase(key: string): string {
-    return key.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase());
-}
+/** Per-network keys of the split EVM balances databases, and their maps. */
+const SPLIT_BALANCES_KEYS: Record<string, keyof ParsedDbsConfig> = {
+    'balances-native': 'balancesNativeDatabases',
+    'balances-erc20': 'balancesErc20Databases',
+};
+const SPLIT_BALANCES_PROPS = new Set(Object.values(SPLIT_BALANCES_KEYS));
 
 /**
  * The database an EVM balances route reads on `network`: the split database of
@@ -126,14 +126,16 @@ export function loadDbsConfig(configPath?: string): ParsedDbsConfig {
         const mapping = { type, cluster };
         result.networkClusters[networkId] = cluster;
 
-        for (const key of SPLIT_BALANCES_KEYS) {
-            if (databases[key] !== undefined && type !== 'evm') {
+        for (const [key, dbName] of Object.entries(databases)) {
+            const split = Object.hasOwn(SPLIT_BALANCES_KEYS, key) ? SPLIT_BALANCES_KEYS[key] : undefined;
+            if (split && type !== 'evm') {
                 throw new Error(`Network ${networkId}: ${key} is only supported on EVM networks`);
             }
-        }
-
-        for (const [key, dbName] of Object.entries(databases)) {
-            const prop = `${camelCase(key)}Databases` as keyof ParsedDbsConfig;
+            const prop = split ?? (`${key}Databases` as keyof ParsedDbsConfig);
+            // Only the documented keys reach the split maps (`balancesNative` is an unknown key).
+            if (!split && SPLIT_BALANCES_PROPS.has(prop)) {
+                continue;
+            }
             const map = result[prop];
             if (map && typeof map === 'object' && !Array.isArray(map)) {
                 (map as DatabaseMap)[networkId] = { database: dbName, ...mapping };

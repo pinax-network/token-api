@@ -46,6 +46,12 @@ describe('Configured route availability', () => {
             evm: 3,
             svm: 0,
         },
+        {
+            name: 'ERC-20 balances only',
+            networks: { mainnet: { type: 'evm', cluster: 'test', 'balances-erc20': 'balances-erc20' } },
+            evm: 2,
+            svm: 0,
+        },
         { name: 'SVM only', networks: { solana: svm }, evm: 0, svm: 13 },
         { name: 'no families', networks: {}, evm: 0, svm: 0 },
         {

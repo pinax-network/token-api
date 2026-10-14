@@ -3,8 +3,9 @@
 # Set DBS_CONFIG_PATH environment variable to point to this file.
 #
 # Each network entry has `type` and `cluster` (required), plus any number of
-# database keys. Each key `foo` maps to `fooDatabases` in the parsed config;
-# a kebab-case key is camelCased (`balances-native` → `balancesNativeDatabases`).
+# database keys. Each key `foo` maps to `fooDatabases` in the parsed config,
+# except the split EVM balances keys below (`balances-native` →
+# `balancesNativeDatabases`, `balances-erc20` → `balancesErc20Databases`).
 #
 # EVM balances: `balances` is a database with both native and ERC-20 tables.
 # `balances-native` (evm-balances-native) and `balances-erc20`
