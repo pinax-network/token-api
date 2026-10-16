@@ -61,7 +61,7 @@ The current Pinax API surface includes Token API data for EVM and SVM networks, 
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (JavaScript runtime)
+- [Bun](https://bun.sh/) 1.4.3 or later (JavaScript runtime and package manager): `curl -fsSL https://bun.com/install | bash -s "bun-v1.4.3"`
 - [ClickHouse](https://clickhouse.com/) database instance
 - Access to blockchain data (via Substreams or data provider)
 

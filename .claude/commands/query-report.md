@@ -4,7 +4,7 @@ Build a ClickHouse Query Performance Report.
 
 1. Run the query-log script to collect data from all clusters:
    ```
-   bun run query-log
+   bun scripts/query-log.ts
    ```
    You can pass flags: `--hours <N>` (default 24), `--limit <N>` (default 30), `--sort memory|duration|read_bytes` (default memory).
 
