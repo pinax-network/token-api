@@ -74,13 +74,13 @@ From `package.json` scripts:
 
 - `bun dev`: start local API with watch mode.
 - `bun start`: start API once (no watch).
-- `bun build`: compile standalone binary (`pinax-api`).
-- `bun test`: unit/integration tests with coverage.
-- `bun test:db`: DB-backed test run (`DB_TESTS=true`).
+- `bun run build`: compile standalone binary (`pinax-api`).
+- `bun run test`: unit/integration tests with coverage.
+- `bun run test:sql` / `bun run test:perf`: DB-backed SQL and performance test runs (`DB_TESTS=true`).
 - `bun lint`: TypeScript check + Biome check.
 - `bun fix`: apply Biome fixes.
-- `bun perf`: run performance script (`scripts/perf.ts`).
-- `bun query-log`: run query logging script (`scripts/query-log.ts`).
+- `bun scripts/perf.ts`: run performance script.
+- `bun scripts/query-log.ts`: run query logging script.
 
 CI anchors:
 

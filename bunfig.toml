@@ -1,0 +1,7 @@
+[install]
+# Supply-chain hardening: install only versions published at least 5 days ago,
+# save exact versions with `bun add`, and never auto-install missing packages
+# at runtime (that would fetch the latest versions).
+minimumReleaseAge = 432000
+exact = true
+auto = "disable"
